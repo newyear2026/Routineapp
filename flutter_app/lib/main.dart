@@ -8,6 +8,7 @@ import 'screens/initial_routine_setup_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/today_progress_screen.dart';
 import 'screens/settings_screen.dart';
+import 'screens/routine_add_screen.dart';
 
 void main() {
   WidgetsFlutterBinding.ensureInitialized();
@@ -33,7 +34,6 @@ class RoutineTimerApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
         useMaterial3: true,
-        fontFamily: 'Pretendard',
         scaffoldBackgroundColor: Colors.transparent,
       ),
       routerConfig: _router,
@@ -72,6 +72,10 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/settings',
       builder: (context, state) => const SettingsScreen(),
+    ),
+    GoRoute(
+      path: '/routine-add',
+      builder: (context, state) => const RoutineAddScreen(),
     ),
   ],
 );

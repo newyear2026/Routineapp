@@ -1,0 +1,8 @@
+# Legacy web tooling (삭제 후 남은 폴더가 있으면 무시)
+node_modules/
+.vite/
+
+# Flutter
+flutter_app/.dart_tool/
+flutter_app/build/
+flutter_app/.flutter-plugins-dependencies

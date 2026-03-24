@@ -53,9 +53,10 @@ class _NotificationPermissionScreenState
           ),
         ),
         child: SafeArea(
-          child: Padding(
+          child: SingleChildScrollView(
             padding: const EdgeInsets.all(30),
             child: Column(
+              mainAxisSize: MainAxisSize.min,
               children: [
                 // 상단 텍스트
                 const SizedBox(height: 20),
@@ -66,7 +67,7 @@ class _NotificationPermissionScreenState
                     color: Color(0xFF8B7B9E),
                   ),
                 ),
-                const Spacer(),
+                const SizedBox(height: 24),
 
                 // 중앙 벨 아이콘
                 AnimatedBuilder(
@@ -145,7 +146,7 @@ class _NotificationPermissionScreenState
                   '공부 시간이에요!',
                   '집중해서 학습해봐요',
                 ),
-                const Spacer(),
+                const SizedBox(height: 32),
 
                 // 허용 버튼
                 GestureDetector(
