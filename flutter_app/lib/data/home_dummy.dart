@@ -72,7 +72,7 @@ const homeDummyCurrentRoutine = CurrentRoutine(
   endTime: '16:00',
   progress: 25,
   repeatDays: ['월', '화', '수', '목', '금'],
-  memo: '집중해서 공부하는 시간이에요. 휴대폰은 멀리 두고 온전히 학습에 몰입해봐요.',
+  memo: '휴대폰은 잠시 멀리 두고, 지금은 학습에만 집중해봐요.',
 );
 
 const homeDummyNextRoutine = NextRoutine(

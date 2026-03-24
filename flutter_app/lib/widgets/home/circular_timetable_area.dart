@@ -9,13 +9,15 @@ import '../../theme/home_theme.dart';
 ///
 /// - [routines]: 시계 둘레 세그먼트(시작 시각 순). 비어 있으면 아무 것도 그리지 않음.
 /// - [currentTime]: 시침·중앙 시각 표시 (24h 기준 hour/minute).
-/// - [activeRoutine]: 강조할 루틴 — [RoutineSegment.id]와 [CurrentRoutine.id]가 같아야 같은 조각이 강조됨.
+/// - [activeRoutine]: 강조할 루틴 — [RoutineSegment.id]와 id가 같아야 함. null이면 강조 없음.
+/// - [centerRoutineName]: 중앙에 표시할 루틴 이름 (시간 슬롯이 없을 때 다음 루틴 등)
 class CircularTimetableArea extends StatelessWidget {
   const CircularTimetableArea({
     super.key,
     required this.routines,
     required this.currentTime,
-    required this.activeRoutine,
+    this.activeRoutine,
+    required this.centerRoutineName,
   });
 
   /// 원형 시간표에 그릴 루틴(세그먼트) 목록
@@ -24,8 +26,11 @@ class CircularTimetableArea extends StatelessWidget {
   /// 현재 시각 (시침 + 중앙 라벨)
   final TimeOfDay currentTime;
 
-  /// 현재 활성 루틴 (세그먼트 id와 매칭)
-  final CurrentRoutine activeRoutine;
+  /// 현재 시간대에 해당하면 링에서 강조
+  final CurrentRoutine? activeRoutine;
+
+  /// 시계 중앙 라벨 (현재/다음 루틴 이름)
+  final String centerRoutineName;
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +42,8 @@ class CircularTimetableArea extends StatelessWidget {
       segments: routines,
       currentHour: currentTime.hour,
       currentMinute: currentTime.minute,
-      activeSegmentId: activeRoutine.id,
+      activeSegmentId: activeRoutine?.id ?? '',
+      activeRoutineName: centerRoutineName,
     );
   }
 }
@@ -49,12 +55,14 @@ class _CircularTimetableView extends StatelessWidget {
     required this.currentHour,
     required this.currentMinute,
     required this.activeSegmentId,
+    required this.activeRoutineName,
   });
 
   final List<RoutineSegment> segments;
   final int currentHour;
   final int currentMinute;
   final String activeSegmentId;
+  final String activeRoutineName;
 
   @override
   Widget build(BuildContext context) {
@@ -89,28 +97,62 @@ class _CircularTimetableView extends StatelessWidget {
             final x = 50 + midR * math.cos(mid);
             final y = 50 + midR * math.sin(mid);
             final isActive = seg.id == activeSegmentId;
+            final slotW = isActive ? 58.0 : 36.0;
+            final slotH = isActive ? 58.0 : 34.0;
             return Positioned(
-              left: size * x / 100 - 24,
-              top: size * y / 100 - 24,
-              width: 48,
-              height: 48,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    seg.emoji,
-                    style: TextStyle(fontSize: isActive ? 22 : 18),
-                  ),
-                  Text(
-                    seg.label,
-                    style: TextStyle(
-                      fontSize: isActive ? 11 : 10,
-                      fontWeight: isActive ? FontWeight.w600 : FontWeight.w500,
-                      color: isActive ? HomeTheme.textPrimary : HomeTheme.textMuted,
+              left: size * x / 100 - slotW / 2,
+              top: size * y / 100 - slotH / 2,
+              width: slotW,
+              height: slotH,
+              child: isActive
+                  ? Column(
+                      mainAxisSize: MainAxisSize.min,
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          seg.emoji,
+                          style: const TextStyle(fontSize: 22, height: 1),
+                        ),
+                        const SizedBox(height: 3),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                          decoration: BoxDecoration(
+                            color: HomeTheme.accentPink.withValues(alpha: 0.42),
+                            borderRadius: BorderRadius.circular(10),
+                            border: Border.all(
+                              color: HomeTheme.accentPink.withValues(alpha: 0.7),
+                              width: 1.2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: HomeTheme.accentPink.withValues(alpha: 0.28),
+                                blurRadius: 8,
+                                offset: const Offset(0, 2),
+                              ),
+                            ],
+                          ),
+                          child: Text(
+                            seg.label,
+                            style: const TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.15,
+                              color: HomeTheme.textPrimary,
+                            ),
+                          ),
+                        ),
+                      ],
+                    )
+                  : Center(
+                      child: Text(
+                        seg.emoji,
+                        style: TextStyle(
+                          fontSize: 17,
+                          height: 1,
+                          color: HomeTheme.textMuted.withValues(alpha: 0.85),
+                        ),
+                      ),
                     ),
-                  ),
-                ],
-              ),
             );
           }),
           Column(
@@ -118,15 +160,46 @@ class _CircularTimetableView extends StatelessWidget {
             children: [
               Text(
                 '${currentHour.toString().padLeft(2, '0')}:${currentMinute.toString().padLeft(2, '0')}',
-                style: const TextStyle(
-                  fontSize: 28,
-                  fontWeight: FontWeight.w600,
+                style: TextStyle(
+                  fontSize: 34,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: -1,
+                  height: 1.05,
                   color: HomeTheme.textPrimary,
+                  shadows: [
+                    Shadow(
+                      color: Colors.white.withValues(alpha: 0.95),
+                      blurRadius: 6,
+                    ),
+                    Shadow(
+                      color: HomeTheme.textPrimary.withValues(alpha: 0.12),
+                      offset: const Offset(0, 1),
+                      blurRadius: 0,
+                    ),
+                  ],
                 ),
               ),
-              const Text(
-                '현재 시간',
-                style: TextStyle(fontSize: 11, color: HomeTheme.textMuted),
+              const SizedBox(height: 2),
+              Text(
+                '지금 루틴',
+                style: TextStyle(
+                  fontSize: 10,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: 0.35,
+                  color: HomeTheme.textMuted.withValues(alpha: 0.88),
+                ),
+              ),
+              const SizedBox(height: 3),
+              Text(
+                activeRoutineName,
+                textAlign: TextAlign.center,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: 14,
+                  fontWeight: FontWeight.w700,
+                  color: HomeTheme.textPrimary,
+                ),
               ),
             ],
           ),
@@ -176,11 +249,28 @@ class _TimetableRingPainter extends CustomPainter {
       if (sweep <= 0) sweep += 2 * math.pi;
 
       final isActive = seg.id == activeSegmentId;
+
+      if (isActive) {
+        final glow = Paint()
+          ..color = HomeTheme.accentPink.withValues(alpha: 0.38)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = strokeW + 12
+          ..strokeCap = StrokeCap.round
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
+        canvas.drawArc(
+          Rect.fromCircle(center: c, radius: midR),
+          startRad,
+          sweep,
+          false,
+          glow,
+        );
+      }
+
       final paint = Paint()
-        ..color = seg.color.withValues(alpha: isActive ? 0.95 : 0.72)
+        ..color = seg.color.withValues(alpha: isActive ? 1.0 : 0.5)
         ..style = PaintingStyle.stroke
         ..strokeWidth = strokeW
-        ..strokeCap = StrokeCap.butt;
+        ..strokeCap = isActive ? StrokeCap.round : StrokeCap.butt;
 
       canvas.drawArc(
         Rect.fromCircle(center: c, radius: midR),
@@ -192,9 +282,9 @@ class _TimetableRingPainter extends CustomPainter {
 
       if (isActive) {
         final hi = Paint()
-          ..color = Colors.white.withValues(alpha: 0.55)
+          ..color = Colors.white.withValues(alpha: 0.75)
           ..style = PaintingStyle.stroke
-          ..strokeWidth = 4
+          ..strokeWidth = 5
           ..strokeCap = StrokeCap.round;
         canvas.drawArc(
           Rect.fromCircle(center: c, radius: midR),
@@ -202,6 +292,18 @@ class _TimetableRingPainter extends CustomPainter {
           sweep,
           false,
           hi,
+        );
+        final rim = Paint()
+          ..color = const Color(0xFFFF8CA8).withValues(alpha: 0.55)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2.5
+          ..strokeCap = StrokeCap.round;
+        canvas.drawArc(
+          Rect.fromCircle(center: c, radius: midR + strokeW * 0.35),
+          startRad,
+          sweep,
+          false,
+          rim,
         );
       }
     }
@@ -259,20 +361,33 @@ class _ClockHandPainter extends CustomPainter {
       c.dy + len * math.sin(angle),
     );
 
+    const shadowOffset = Offset(0, 1.8);
+    final shadowPaint = Paint()
+      ..color = const Color(0xFFC75B7E).withValues(alpha: 0.28)
+      ..strokeWidth = 7
+      ..strokeCap = StrokeCap.round;
+    canvas.drawLine(c + shadowOffset, end + shadowOffset, shadowPaint);
+
     final paint = Paint()
       ..shader = const LinearGradient(
-        colors: [Color(0xFFFFB8C6), Color(0xFFFF8CA8)],
+        colors: [Color(0xFFFF9EB0), Color(0xFFFF6B9D)],
       ).createShader(Rect.fromPoints(c, end))
-      ..strokeWidth = 4
+      ..strokeWidth = 5.5
       ..strokeCap = StrokeCap.round;
 
     canvas.drawLine(c, end, paint);
 
+    final rim = Paint()
+      ..color = Colors.white.withValues(alpha: 0.92)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 2;
+    canvas.drawCircle(c, 9.5 * scale, rim);
+
     final dot = Paint()
       ..shader = const RadialGradient(
-        colors: [Color(0xFFFFB8C6), Color(0xFFFF8CA8)],
+        colors: [Color(0xFFFFB8C6), Color(0xFFFF6B9D)],
       ).createShader(Rect.fromCircle(center: c, radius: 8));
-    canvas.drawCircle(c, 8 * scale, dot);
+    canvas.drawCircle(c, 7.5 * scale, dot);
   }
 
   @override

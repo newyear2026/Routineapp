@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
+import 'application/routine_app_controller.dart';
 import 'screens/splash_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/notification_permission_screen.dart';
@@ -29,14 +32,17 @@ class RoutineTimerApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp.router(
-      title: 'Routine Timer',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        useMaterial3: true,
-        scaffoldBackgroundColor: Colors.transparent,
+    return ChangeNotifierProvider(
+      create: (_) => RoutineAppController()..load(),
+      child: MaterialApp.router(
+        title: 'Routine Timer',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          useMaterial3: true,
+          scaffoldBackgroundColor: Colors.transparent,
+        ),
+        routerConfig: _router,
       ),
-      routerConfig: _router,
     );
   }
 }

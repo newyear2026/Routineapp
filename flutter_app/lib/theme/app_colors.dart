@@ -4,9 +4,9 @@ import 'package:flutter/material.dart';
 ///
 /// Home · Routine Add · Progress 공통 사용.
 abstract final class AppColors {
-  // ── Text ─────────────────────────────────────────
-  static const Color textPrimary = Color(0xFF8B7B9E);
-  static const Color textMuted = Color(0xFFB8A4C9);
+  // ── Text (파스텔 톤 유지, 본문 가독성을 위해 1단계만 진하게) ──
+  static const Color textPrimary = Color(0xFF6B5D7A);
+  static const Color textMuted = Color(0xFF9A8AAC);
 
   // ── Accent & action ──────────────────────────────
   static const Color accentPink = Color(0xFFFFB8C6);
