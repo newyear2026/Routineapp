@@ -13,6 +13,7 @@ abstract final class RoutineSeed {
         colorValue: 0xFFFFE4E9,
         iconEmoji: '🌅',
         memo: '하루를 시작해요.',
+        updatedAtMs: 1,
       ),
       Routine(
         id: 'study',
@@ -23,6 +24,7 @@ abstract final class RoutineSeed {
         colorValue: 0xFFE8DDFA,
         iconEmoji: '📚',
         memo: '휴대폰은 잠시 멀리 두고, 지금은 학습에만 집중해봐요.',
+        updatedAtMs: 2,
       ),
       Routine(
         id: 'rest',
@@ -33,6 +35,7 @@ abstract final class RoutineSeed {
         colorValue: 0xFFD4E4FF,
         iconEmoji: '☕',
         memo: '잠깐 숨 돌리기.',
+        updatedAtMs: 3,
       ),
     ];
   }

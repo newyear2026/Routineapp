@@ -30,4 +30,23 @@ class LocalRoutineRepository implements RoutineRepository {
     final jsonStr = jsonEncode(routines.map((e) => e.toJson()).toList());
     await (await _prefs).setString(_kRoutines, jsonStr);
   }
+
+  @override
+  Future<void> addRoutine(Routine routine) async {
+    final all = await loadRoutines();
+    all.add(routine);
+    await saveRoutines(all);
+  }
+
+  @override
+  Future<void> upsertRoutine(Routine routine) async {
+    final all = await loadRoutines();
+    final idx = all.indexWhere((r) => r.id == routine.id);
+    if (idx >= 0) {
+      all[idx] = routine;
+    } else {
+      all.add(routine);
+    }
+    await saveRoutines(all);
+  }
 }

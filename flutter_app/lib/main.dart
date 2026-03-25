@@ -3,6 +3,8 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import 'app_route_observer.dart';
+import 'app_scaffold_messenger.dart';
 import 'application/routine_app_controller.dart';
 import 'screens/splash_screen.dart';
 import 'screens/onboarding_screen.dart';
@@ -35,6 +37,7 @@ class RoutineTimerApp extends StatelessWidget {
     return ChangeNotifierProvider(
       create: (_) => RoutineAppController()..load(),
       child: MaterialApp.router(
+        scaffoldMessengerKey: appScaffoldMessengerKey,
         title: 'Routine Timer',
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
@@ -50,6 +53,7 @@ class RoutineTimerApp extends StatelessWidget {
 // 라우터 설정
 final GoRouter _router = GoRouter(
   initialLocation: '/',
+  observers: [appRouteObserver],
   routes: [
     GoRoute(
       path: '/',
@@ -81,7 +85,10 @@ final GoRouter _router = GoRouter(
     ),
     GoRoute(
       path: '/routine-add',
-      builder: (context, state) => const RoutineAddScreen(),
+      builder: (context, state) {
+        final id = state.uri.queryParameters['id'];
+        return RoutineAddScreen(editRoutineId: id);
+      },
     ),
   ],
 );

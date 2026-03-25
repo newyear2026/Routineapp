@@ -34,6 +34,12 @@ _StatusStyle _styleFor(ProgressRoutineStatus s) {
         background: Color(0xFFFFE4E9),
         accent: HomeTheme.actionRose,
       );
+    case ProgressRoutineStatus.noResponse:
+      return const _StatusStyle(
+        icon: Icons.help_outline_rounded,
+        background: Color(0xFFE8F0FF),
+        accent: Color(0xFF6B7FD7),
+      );
     case ProgressRoutineStatus.pending:
       return const _StatusStyle(
         icon: Icons.circle_outlined,
@@ -43,7 +49,7 @@ _StatusStyle _styleFor(ProgressRoutineStatus s) {
   }
 }
 
-/// 상태별 루틴 섹션 (완료 / 나중에 / 스킵 / 대기)
+/// 상태별 루틴 섹션 (완료 / 나중에 / 스킵 / 응답 없음 / 대기)
 class ProgressStatusSection extends StatelessWidget {
   const ProgressStatusSection({
     super.key,

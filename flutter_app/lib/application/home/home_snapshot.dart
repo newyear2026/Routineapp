@@ -3,10 +3,13 @@ import 'package:flutter/material.dart';
 import '../../domain/models/routine.dart';
 import '../../domain/models/routine_log_status.dart';
 import '../../models/home_models.dart';
+import 'progress_summary.dart';
 
-/// Home 화면에 필요한 데이터를 한 번에 묶은 스냅샷 (ViewModel)
+/// Home 화면에 필요한 데이터를 한 번에 묶은 스냅샷 (ViewModel 역할).
 ///
 /// 계산은 [HomeSnapshotBuilder] — 화면/위젯은 이 타입만 소비한다.
+typedef HomeViewModel = HomeSnapshot;
+
 class HomeSnapshot {
   const HomeSnapshot({
     required this.dateLabel,
@@ -33,6 +36,7 @@ class HomeSnapshot {
     required this.completeButtonLabel,
     required this.canActOnCurrentSlot,
     required this.homeProgress,
+    required this.progressSummary,
     required this.isEmptyDay,
   });
 
@@ -58,6 +62,9 @@ class HomeSnapshot {
   final int dayProgressPercent;
   final int completedCount;
   final int totalCount;
+
+  /// [calculateProgress]와 동일 값 — 위젯·확장 시 우선 사용
+  final ProgressSummary progressSummary;
 
   /// 현재 슬롯 루틴의 **최종 표시 상태** (시간 + 로그, [RoutineStateResolver])
   final RoutineLogStatus? currentRoutineLogStatus;

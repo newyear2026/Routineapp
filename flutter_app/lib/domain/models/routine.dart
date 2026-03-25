@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../utils/time_minutes.dart';
+
 /// 루틴 정의 — 저장소·도메인 공통 모델 (UI Color는 [colorValue]로 보관)
 class Routine {
   const Routine({
@@ -12,6 +14,7 @@ class Routine {
     required this.iconEmoji,
     this.notificationEnabled = true,
     this.memo,
+    this.updatedAtMs = 0,
   });
 
   final String id;
@@ -29,7 +32,35 @@ class Routine {
   final bool notificationEnabled;
   final String? memo;
 
+  /// 마지막 저장 시각(epoch ms) — 겹침 시 현재 슬롯 우선순위
+  final int updatedAtMs;
+
   Color get color => Color(colorValue);
+
+  /// 루틴 추가 폼에서 새 [Routine] 생성 (로컬 id 자동 부여)
+  factory Routine.create({
+    required String title,
+    required TimeOfDay startTime,
+    required TimeOfDay endTime,
+    required Set<int> repeatWeekdays,
+    required int colorValue,
+    bool notificationEnabled = true,
+    String iconEmoji = '📌',
+  }) {
+    final id = 'r_${DateTime.now().microsecondsSinceEpoch}';
+    final now = DateTime.now().millisecondsSinceEpoch;
+    return Routine(
+      id: id,
+      title: title.trim(),
+      startMinutesFromMidnight: TimeMinutes.fromTimeOfDay(startTime),
+      endMinutesFromMidnight: TimeMinutes.fromTimeOfDay(endTime),
+      repeatWeekdays: {...repeatWeekdays},
+      colorValue: colorValue,
+      iconEmoji: iconEmoji,
+      notificationEnabled: notificationEnabled,
+      updatedAtMs: now,
+    );
+  }
 
   Routine copyWith({
     String? id,
@@ -41,6 +72,7 @@ class Routine {
     String? iconEmoji,
     bool? notificationEnabled,
     String? memo,
+    int? updatedAtMs,
   }) {
     return Routine(
       id: id ?? this.id,
@@ -54,6 +86,7 @@ class Routine {
       iconEmoji: iconEmoji ?? this.iconEmoji,
       notificationEnabled: notificationEnabled ?? this.notificationEnabled,
       memo: memo ?? this.memo,
+      updatedAtMs: updatedAtMs ?? this.updatedAtMs,
     );
   }
 
@@ -67,6 +100,7 @@ class Routine {
         'iconEmoji': iconEmoji,
         'notificationEnabled': notificationEnabled,
         'memo': memo,
+        'updatedAtMs': updatedAtMs,
       };
 
   factory Routine.fromJson(Map<String, dynamic> json) {
@@ -83,6 +117,7 @@ class Routine {
       iconEmoji: json['iconEmoji'] as String,
       notificationEnabled: json['notificationEnabled'] as bool? ?? true,
       memo: json['memo'] as String?,
+      updatedAtMs: json['updatedAtMs'] as int? ?? 0,
     );
   }
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../app_route_observer.dart';
 import '../application/home/home_snapshot.dart';
 import '../application/routine_app_controller.dart';
 import '../theme/home_theme.dart';
@@ -13,9 +14,42 @@ import '../widgets/home/home_header_bar.dart';
 import '../widgets/home/home_now_focus_banner.dart';
 import '../widgets/home/home_timeline_section.dart';
 
-/// Home — 레이아웃만 담당. 데이터·계산은 [RoutineAppController.homeSnapshot]
-class HomeScreen extends StatelessWidget {
+/// Home — [RoutineAppController.homeSnapshot]만 소비. 저장소는 컨트롤러 경유.
+class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
+
+  @override
+  State<HomeScreen> createState() => _HomeScreenState();
+}
+
+class _HomeScreenState extends State<HomeScreen> with RouteAware {
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final route = ModalRoute.of(context);
+    if (route is PageRoute<void>) {
+      appRouteObserver.subscribe(this, route);
+    }
+  }
+
+  @override
+  void dispose() {
+    appRouteObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  /// push 로 연 화면에서 pop 으로 돌아올 때 저장소 다시 읽기 (예: 루틴 추가)
+  @override
+  void didPopNext() {
+    _reloadStorage();
+  }
+
+  void _reloadStorage() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      context.read<RoutineAppController>().load();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {

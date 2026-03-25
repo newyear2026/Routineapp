@@ -13,7 +13,7 @@ abstract final class RoutineLogActionService {
     required String dateYmd,
     required RoutineLog? existing,
     required DateTime nowLocal,
-    RoutineActionSource source = RoutineActionSource.user,
+    RoutineActionSource source = RoutineActionSource.app,
   }) {
     final ts = nowLocal.millisecondsSinceEpoch;
     final id = '${routine.id}_$dateYmd';
@@ -55,7 +55,7 @@ abstract final class RoutineLogActionService {
     required RoutineLog? existing,
     required DateTime nowLocal,
     Duration delay = defaultSnooze,
-    RoutineActionSource source = RoutineActionSource.user,
+    RoutineActionSource source = RoutineActionSource.app,
   }) {
     final until = nowLocal.add(delay).millisecondsSinceEpoch;
     final id = '${routine.id}_$dateYmd';
@@ -90,7 +90,7 @@ abstract final class RoutineLogActionService {
     required String dateYmd,
     required RoutineLog? existing,
     required DateTime nowLocal,
-    RoutineActionSource source = RoutineActionSource.user,
+    RoutineActionSource source = RoutineActionSource.app,
   }) {
     final ts = nowLocal.millisecondsSinceEpoch;
     final id = '${routine.id}_$dateYmd';

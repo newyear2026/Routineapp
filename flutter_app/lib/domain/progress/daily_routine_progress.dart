@@ -1,6 +1,6 @@
 import '../models/routine_log.dart';
 
-/// 오늘 루틴 대비 완료 진행률 — [calculateDailyProgress] 결과
+/// 오늘 루틴 대비 완료 진행률 — [calculateProgress] / [DailyProgressCalculator.calculateProgress] 결과
 class DailyRoutineProgressResult {
   const DailyRoutineProgressResult({
     required this.total,
@@ -12,13 +12,13 @@ class DailyRoutineProgressResult {
   /// 오늘 스케줄에 포함된 루틴 수
   final int total;
 
-  /// 그중 `completed` 로그가 있는 루틴 수
+  /// `RoutineLogStatus.completed`인 **서로 다른 routineId** 수 (오늘 스케줄 내)
   final int completed;
 
-  /// 아직 완료 처리되지 않은 루틴 수 (`total - completed`)
+  /// `total - completed` (total이 0이면 0)
   final int remaining;
 
-  /// 0~100 (소수 반올림)
+  /// `completed / total * 100` 반올림, total이 0이면 0
   final int percent;
 }
 

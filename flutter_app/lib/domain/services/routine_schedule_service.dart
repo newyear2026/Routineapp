@@ -1,57 +1,22 @@
 import '../models/routine.dart';
-import '../utils/time_minutes.dart';
-import '../utils/time_calculation.dart';
+import 'home_routine_schedule.dart';
 
-/// 현재/다음 루틴 슬롯 계산 — [RoutineDayService]에서 위임 가능
+/// 현재/다음 루틴 슬롯 — 구현은 [HomeRoutineSchedule]
 class RoutineScheduleService {
   const RoutineScheduleService();
 
   /// 해당 로컬 날짜의 요일에 맞는 루틴, 시작 시각 순
-  List<Routine> routinesForDate(DateTime dateLocal, List<Routine> all) {
-    final wd = dateLocal.weekday;
-    final filtered = all.where((r) => r.repeatWeekdays.contains(wd)).toList();
-    filtered.sort((a, b) => a.startMinutesFromMidnight
-        .compareTo(b.startMinutesFromMidnight));
-    return filtered;
-  }
+  List<Routine> routinesForDate(DateTime dateLocal, List<Routine> all) =>
+      HomeRoutineSchedule.getTodayRoutines(dateLocal, all);
 
   /// 현재 시각이 구간 안에 있는 루틴
-  Routine? currentRoutineAt(DateTime nowLocal, List<Routine> todaysSorted) {
-    final m = TimeMinutes.fromDateTime(nowLocal);
-    for (final r in todaysSorted) {
-      if (TimeCalculation.containsMinuteInOpenInterval(
-        m,
-        r.startMinutesFromMidnight,
-        r.endMinutesFromMidnight,
-      )) {
-        return r;
-      }
-    }
-    return null;
-  }
+  Routine? currentRoutineAt(DateTime nowLocal, List<Routine> todaysSorted) =>
+      HomeRoutineSchedule.getCurrentRoutine(nowLocal, todaysSorted);
 
-  /// 같은 날 기준 다음 루틴 (시간대 없으면 곧 시작할 루틴)
-  Routine? nextRoutineAfter(DateTime nowLocal, List<Routine> todaysSorted) {
-    final m = TimeMinutes.fromDateTime(nowLocal);
-    final current = currentRoutineAt(nowLocal, todaysSorted);
-    if (current != null) {
-      final idx = todaysSorted.indexWhere((e) => e.id == current.id);
-      if (idx >= 0 && idx < todaysSorted.length - 1) {
-        return todaysSorted[idx + 1];
-      }
-      return null;
-    }
-    for (final r in todaysSorted) {
-      if (m < r.startMinutesFromMidnight) {
-        return r;
-      }
-    }
-    return null;
-  }
+  /// 같은 날 기준 다음 루틴 (슬롯 안이면 그다음, 아니면 다음 시작 예정)
+  Routine? nextRoutineAfter(DateTime nowLocal, List<Routine> todaysSorted) =>
+      HomeRoutineSchedule.getNextRoutine(nowLocal, todaysSorted);
 
-  Routine? routineAfter(Routine anchor, List<Routine> sortedToday) {
-    final i = sortedToday.indexWhere((e) => e.id == anchor.id);
-    if (i < 0 || i >= sortedToday.length - 1) return null;
-    return sortedToday[i + 1];
-  }
+  Routine? routineAfter(Routine anchor, List<Routine> sortedToday) =>
+      HomeRoutineSchedule.routineAfter(anchor, sortedToday);
 }

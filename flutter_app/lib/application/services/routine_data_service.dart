@@ -24,6 +24,10 @@ class RoutineDataService {
   Future<void> saveRoutines(List<Routine> routines) =>
       _routines.saveRoutines(routines);
 
+  Future<void> addRoutine(Routine routine) => _routines.addRoutine(routine);
+
+  Future<void> upsertRoutine(Routine routine) => _routines.upsertRoutine(routine);
+
   Future<List<RoutineLog>> loadLogsForDate(DateTime dateLocal) =>
       _logs.loadLogsForDate(dateLocal);
 

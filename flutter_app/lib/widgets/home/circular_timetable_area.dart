@@ -86,8 +86,12 @@ class _CircularTimetableView extends StatelessWidget {
             final i = e.key;
             final seg = e.value;
             final next = segments[(i + 1) % segments.length];
-            final startRad = (seg.startHour / 24) * 2 * math.pi - math.pi / 2;
-            final endRad = (next.startHour / 24) * 2 * math.pi - math.pi / 2;
+            final startRad =
+                (seg.startMinutesFromMidnight / (24 * 60)) * 2 * math.pi -
+                    math.pi / 2;
+            final endRad =
+                (next.startMinutesFromMidnight / (24 * 60)) * 2 * math.pi -
+                    math.pi / 2;
             double mid = (startRad + endRad) / 2;
             if (endRad < startRad) {
               mid = (startRad + endRad + 2 * math.pi) / 2;
@@ -243,8 +247,12 @@ class _TimetableRingPainter extends CustomPainter {
     for (var i = 0; i < segments.length; i++) {
       final seg = segments[i];
       final next = segments[(i + 1) % segments.length];
-      var startRad = (seg.startHour / 24) * 2 * math.pi - math.pi / 2;
-      var endRad = (next.startHour / 24) * 2 * math.pi - math.pi / 2;
+      var startRad =
+          (seg.startMinutesFromMidnight / (24 * 60)) * 2 * math.pi -
+              math.pi / 2;
+      var endRad =
+          (next.startMinutesFromMidnight / (24 * 60)) * 2 * math.pi -
+              math.pi / 2;
       var sweep = endRad - startRad;
       if (sweep <= 0) sweep += 2 * math.pi;
 

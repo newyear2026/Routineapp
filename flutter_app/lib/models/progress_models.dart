@@ -15,6 +15,7 @@ enum ProgressRoutineStatus {
   completed,
   later,
   skipped,
+  noResponse,
   pending,
 }
 
@@ -27,6 +28,8 @@ extension ProgressRoutineStatusX on ProgressRoutineStatus {
         return '나중에';
       case ProgressRoutineStatus.skipped:
         return '스킵';
+      case ProgressRoutineStatus.noResponse:
+        return '응답 없음';
       case ProgressRoutineStatus.pending:
         return '대기';
     }

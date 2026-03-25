@@ -4,12 +4,14 @@ import '../../domain/models/routine.dart';
 import '../../domain/models/routine_log.dart';
 import '../../domain/models/routine_log_status.dart';
 import '../../domain/progress/daily_progress.dart';
+import '../../domain/services/home_routine_schedule.dart';
 import '../../domain/services/routine_day_service.dart';
 import '../../domain/services/routine_progress_service.dart';
 import '../../domain/services/routine_state_resolver.dart';
 import '../../models/home_models.dart';
 import '../mappers/home_view_mapper.dart';
 import 'home_snapshot.dart';
+import 'progress_summary.dart';
 
 /// Home 스냅샷 조립 — 로컬/더미 저장소에서 읽은 [Routine]·[RoutineLog]만 넘기면 됨
 abstract final class HomeSnapshotBuilder {
@@ -26,15 +28,18 @@ abstract final class HomeSnapshotBuilder {
     final dayOfWeekLabel = '${_weekdays[nowLocal.weekday - 1]}요일';
     final greeting = _greetingForHour(nowLocal.hour);
 
-    final todaySorted = dayService.routinesForDate(nowLocal, allRoutines);
-    final current = dayService.currentRoutineAt(nowLocal, todaySorted);
-    final next = dayService.nextRoutineAfter(nowLocal, todaySorted);
+    final todaySorted =
+        HomeRoutineSchedule.getTodayRoutines(nowLocal, allRoutines);
+    final current =
+        HomeRoutineSchedule.getCurrentRoutine(nowLocal, todaySorted);
+    final next = HomeRoutineSchedule.getNextRoutine(nowLocal, todaySorted);
 
     final display = current ?? next;
     final nextAfterDisplay = display != null
-        ? dayService.routineAfter(display, todaySorted)
+        ? HomeRoutineSchedule.routineAfter(display, todaySorted)
         : null;
 
+    // Home 상단·Progress 화면과 동일: [calculateProgress] (DailyProgressCalculator)
     final dayProgress = calculateProgress(todaySorted, logsToday);
     final total = dayProgress.total;
     final completed = dayProgress.completed;
@@ -120,6 +125,7 @@ abstract final class HomeSnapshotBuilder {
       completeButtonLabel: completeLabel,
       canActOnCurrentSlot: canAct,
       homeProgress: HomeProgress(completed: completed, total: total),
+      progressSummary: ProgressSummary.fromResult(dayProgress),
       isEmptyDay: todaySorted.isEmpty,
     );
   }

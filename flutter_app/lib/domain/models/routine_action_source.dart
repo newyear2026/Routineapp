@@ -1,4 +1,6 @@
 enum RoutineActionSource {
+  /// 앱 내 버튼(완료·나중에·스킵 등)
+  app,
   user,
   system,
   notification,
@@ -7,6 +9,8 @@ enum RoutineActionSource {
 extension RoutineActionSourceSerialization on RoutineActionSource {
   String get storageKey {
     switch (this) {
+      case RoutineActionSource.app:
+        return 'app';
       case RoutineActionSource.user:
         return 'user';
       case RoutineActionSource.system:
@@ -20,6 +24,8 @@ extension RoutineActionSourceSerialization on RoutineActionSource {
 RoutineActionSource? parseRoutineActionSource(String? raw) {
   if (raw == null) return null;
   switch (raw) {
+    case 'app':
+      return RoutineActionSource.app;
     case 'user':
       return RoutineActionSource.user;
     case 'system':

@@ -9,7 +9,7 @@ abstract final class HomeViewMapper {
         .map(
           (r) => RoutineSegment(
             id: r.id,
-            startHour: (r.startMinutesFromMidnight ~/ 60).clamp(0, 23),
+            startMinutesFromMidnight: r.startMinutesFromMidnight,
             label: r.title,
             emoji: r.iconEmoji,
             color: r.color,

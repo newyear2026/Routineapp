@@ -7,8 +7,11 @@ import 'daily_routine_progress.dart';
 ///
 /// [todayRoutines]: 이미 요일 필터·정렬된 오늘의 [Routine] 목록
 /// [logsToday]: 해당 로컬 날짜(`yyyy-MM-dd`)의 [RoutineLog] 목록
+///
+/// **진행률**: `total` = 오늘 루틴 개수, `completed` = 그중 `RoutineLogStatus.completed`인
+/// **서로 다른 routineId** 개수, `remaining = total - completed`,
+/// `percent = round(completed / total * 100)` — `total == 0`이면 `percent = 0`.
 abstract final class DailyProgressCalculator {
-  /// 오늘 루틴 수 대비 `completed` 로그가 있는 루틴 수로 진행률 계산
   static DailyRoutineProgressResult calculateProgress(
     List<Routine> todayRoutines,
     List<RoutineLog> logsToday,
@@ -16,13 +19,15 @@ abstract final class DailyProgressCalculator {
     final routineIds = todayRoutines.map((r) => r.id).toSet();
     final relevant = logsToday.where((l) => routineIds.contains(l.routineId));
 
-    final completed = relevant
+    final completedIds = relevant
         .where((l) => l.status == RoutineLogStatus.completed)
-        .length;
-
+        .map((l) => l.routineId)
+        .toSet();
     final total = todayRoutines.length;
-    final remaining = (total - completed).clamp(0, total);
-    final percent = total > 0 ? ((completed / total) * 100).round().clamp(0, 100) : 0;
+    final completed = total > 0 ? completedIds.length.clamp(0, total) : 0;
+    final remaining = total > 0 ? (total - completed).clamp(0, total) : 0;
+    final percent =
+        total > 0 ? ((completed / total) * 100).round().clamp(0, 100) : 0;
 
     return DailyRoutineProgressResult(
       total: total,
