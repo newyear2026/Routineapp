@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../application/services/notification_onboarding_actions.dart';
+
 class NotificationPermissionScreen extends StatefulWidget {
   const NotificationPermissionScreen({super.key});
 
@@ -13,6 +15,7 @@ class _NotificationPermissionScreenState
     extends State<NotificationPermissionScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _bellController;
+  final NotificationOnboardingActions _actions = NotificationOnboardingActions();
 
   @override
   void initState() {
@@ -29,13 +32,19 @@ class _NotificationPermissionScreenState
     super.dispose();
   }
 
-  void _allowNotifications() {
-    // 실제로는 알림 권한 요청 로직
-    context.go('/routine-setup');
+  Future<void> _goHome() async {
+    if (!mounted) return;
+    context.go('/home');
   }
 
-  void _skipNotifications() {
-    context.go('/routine-setup');
+  Future<void> _allowNotifications() async {
+    await _actions.completeWithSystemPermissionRequest();
+    await _goHome();
+  }
+
+  Future<void> _skipNotifications() async {
+    await _actions.deferNotificationSetupLater();
+    await _goHome();
   }
 
   @override
@@ -58,7 +67,6 @@ class _NotificationPermissionScreenState
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                // 상단 텍스트
                 const SizedBox(height: 20),
                 const Text(
                   '알림 설정',
@@ -68,8 +76,6 @@ class _NotificationPermissionScreenState
                   ),
                 ),
                 const SizedBox(height: 24),
-
-                // 중앙 벨 아이콘
                 AnimatedBuilder(
                   animation: _bellController,
                   builder: (context, child) {
@@ -107,8 +113,6 @@ class _NotificationPermissionScreenState
                   },
                 ),
                 const SizedBox(height: 50),
-
-                // 제목
                 const Text(
                   '알림을 받으시겠어요?',
                   style: TextStyle(
@@ -119,8 +123,6 @@ class _NotificationPermissionScreenState
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 16),
-
-                // 설명
                 const Text(
                   '루틴 시간마다 귀여운 알림으로\n잊지 않도록 도와드릴게요 💕',
                   style: TextStyle(
@@ -131,8 +133,6 @@ class _NotificationPermissionScreenState
                   textAlign: TextAlign.center,
                 ),
                 const SizedBox(height: 40),
-
-                // 알림 예시 카드들
                 _buildNotificationExample(
                   '🌅',
                   '07:00',
@@ -147,8 +147,6 @@ class _NotificationPermissionScreenState
                   '집중해서 학습해봐요',
                 ),
                 const SizedBox(height: 32),
-
-                // 허용 버튼
                 GestureDetector(
                   onTap: _allowNotifications,
                   child: Container(
@@ -180,8 +178,6 @@ class _NotificationPermissionScreenState
                   ),
                 ),
                 const SizedBox(height: 12),
-
-                // 나중에 하기 버튼
                 TextButton(
                   onPressed: _skipNotifications,
                   child: const Text(

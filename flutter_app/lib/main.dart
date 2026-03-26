@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
@@ -14,10 +15,15 @@ import 'screens/home_screen.dart';
 import 'screens/today_progress_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/routine_add_screen.dart';
+import 'screens/widget_medium_preview_screen.dart';
+import 'widget_home/home_widget_sync_service.dart';
 
-void main() {
+Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+  if (!kIsWeb) {
+    await HomeWidgetSyncService.instance.init();
+  }
+
   // 상태바 투명하게
   SystemChrome.setSystemUIOverlayStyle(
     const SystemUiOverlayStyle(
@@ -89,6 +95,10 @@ final GoRouter _router = GoRouter(
         final id = state.uri.queryParameters['id'];
         return RoutineAddScreen(editRoutineId: id);
       },
+    ),
+    GoRoute(
+      path: '/widget-medium-preview',
+      builder: (context, state) => const WidgetMediumPreviewScreen(),
     ),
   ],
 );

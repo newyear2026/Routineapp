@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../data/local/onboarding_local_storage.dart';
+
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
 
@@ -52,12 +54,18 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
         curve: Curves.easeInOut,
       );
     } else {
-      context.go('/notification-permission');
+      _finishIntro();
     }
   }
 
+  Future<void> _finishIntro() async {
+    await OnboardingLocalStorage.markIntroSeen();
+    if (!mounted) return;
+    context.go('/routine-setup');
+  }
+
   void _skipOnboarding() {
-    context.go('/notification-permission');
+    _finishIntro();
   }
 
   @override

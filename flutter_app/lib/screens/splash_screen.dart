@@ -1,6 +1,10 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
-import 'dart:async';
+
+import '../data/local/onboarding_local_storage.dart';
+import '../domain/onboarding/onboarding_route_selector.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -34,11 +38,13 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    // 2초 후 온보딩으로 이동
-    Timer(const Duration(seconds: 2), () {
-      if (mounted) {
-        context.go('/onboarding');
-      }
+    // 2초 후 온보딩 상태에 따라 Home 또는 미완료 단계로 이동
+    Timer(const Duration(seconds: 2), () async {
+      if (!mounted) return;
+      final state = await OnboardingLocalStorage.load();
+      final path = OnboardingRouteSelector.resolveStartPath(state);
+      if (!mounted) return;
+      context.go(path);
     });
   }
 

@@ -1,6 +1,11 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../application/services/notification_permission_service.dart';
+import '../data/local/notification_preferences_storage.dart';
+import '../data/local/onboarding_local_storage.dart';
+import '../domain/settings/notification_permission_status.dart';
+import '../domain/settings/notification_preferences.dart';
 import '../theme/home_theme.dart';
 
 class SettingsScreen extends StatefulWidget {
@@ -12,15 +17,83 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen>
     with SingleTickerProviderStateMixin {
-  bool _notificationsEnabled = true;
+  bool _notificationsEnabled = false;
   bool _watchEnabled = false;
   bool _soundEnabled = true;
 
   late AnimationController _floatingController;
 
+  Future<void> _loadNotificationPrefs() async {
+    final prefs = await NotificationPreferencesStorage.load();
+    if (!mounted) return;
+    setState(() {
+      _notificationsEnabled = prefs.notificationsEnabled;
+      _soundEnabled = prefs.soundEnabled;
+    });
+  }
+
+  Future<void> _onPushChanged(bool wantOn) async {
+    if (!wantOn) {
+      final current = await NotificationPreferencesStorage.load();
+      await NotificationPreferencesStorage.save(
+        NotificationPreferences(
+          notificationsEnabled: false,
+          permissionStatus: current.permissionStatus,
+          soundEnabled: false,
+        ),
+      );
+      if (!mounted) return;
+      setState(() {
+        _notificationsEnabled = false;
+        _soundEnabled = false;
+      });
+      return;
+    }
+
+    final granted = await NotificationPermissionService.instance
+        .requestPostNotificationsPermission();
+    if (!mounted) return;
+    if (granted) {
+      await NotificationPreferencesStorage.save(
+        const NotificationPreferences(
+          notificationsEnabled: true,
+          permissionStatus: NotificationPermissionStatus.granted,
+          soundEnabled: true,
+        ),
+      );
+      setState(() {
+        _notificationsEnabled = true;
+        _soundEnabled = true;
+      });
+    } else {
+      await NotificationPreferencesStorage.save(
+        const NotificationPreferences(
+          notificationsEnabled: false,
+          permissionStatus: NotificationPermissionStatus.denied,
+          soundEnabled: false,
+        ),
+      );
+      setState(() {
+        _notificationsEnabled = false;
+        _soundEnabled = false;
+      });
+    }
+  }
+
+  Future<void> _onSoundChanged(bool value) async {
+    if (!_notificationsEnabled) return;
+    final current = await NotificationPreferencesStorage.load();
+    await NotificationPreferencesStorage.save(
+      current.copyWith(soundEnabled: value),
+    );
+    if (!mounted) return;
+    setState(() => _soundEnabled = value);
+  }
+
   @override
   void initState() {
     super.initState();
+    _loadNotificationPrefs();
     _floatingController = AnimationController(
       duration: const Duration(milliseconds: 2500),
       vsync: this,
@@ -99,15 +172,15 @@ class _SettingsScreenState extends State<SettingsScreen>
                             '푸시 알림',
                             HomeTheme.accentPink,
                             _notificationsEnabled,
-                            (value) =>
-                                setState(() => _notificationsEnabled = value),
+                            (value) => _onPushChanged(value),
                           ),
                           _buildToggleItem(
                             Icons.volume_up_rounded,
                             '알림 소리',
                             const Color(0xFFFFDDC5),
-                            _soundEnabled,
-                            (value) => setState(() => _soundEnabled = value),
+                            _notificationsEnabled && _soundEnabled,
+                            (value) => _onSoundChanged(value),
+                            switchEnabled: _notificationsEnabled,
                           ),
                         ]),
                         const SizedBox(height: 26),
@@ -125,6 +198,17 @@ class _SettingsScreenState extends State<SettingsScreen>
                         _buildSectionTitle('개인화', Icons.auto_awesome_rounded),
                         _buildSettingsList([
                           _buildNavigationItem(
+                            Icons.replay_rounded,
+                            '온보딩 다시 보기',
+                            const Color(0xFFFFE9D4),
+                            () {
+                              OnboardingLocalStorage.resetForReplay().then((_) {
+                                if (!context.mounted) return;
+                                context.go('/onboarding');
+                              });
+                            },
+                          ),
+                          _buildNavigationItem(
                             Icons.emoji_emotions_rounded,
                             '캐릭터 설정',
                             const Color(0xFFFFE4E9),
@@ -140,6 +224,12 @@ class _SettingsScreenState extends State<SettingsScreen>
                         const SizedBox(height: 26),
                         _buildSectionTitle('지원', Icons.support_rounded),
                         _buildSettingsList([
+                          _buildNavigationItem(
+                            Icons.widgets_outlined,
+                            'Medium 위젯 미리보기',
+                            const Color(0xFFFFE9D4),
+                            () => context.push('/widget-medium-preview'),
+                          ),
                           _buildNavigationItem(
                             Icons.mail_outline_rounded,
                             '문의하기',
@@ -533,38 +623,42 @@ class _SettingsScreenState extends State<SettingsScreen>
     String label,
     Color color,
     bool value,
-    ValueChanged<bool> onChanged,
-  ) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-      child: Row(
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.28),
-              borderRadius: BorderRadius.circular(13),
-              border: Border.all(
-                color: color.withValues(alpha: 0.25),
+    ValueChanged<bool> onChanged, {
+    bool switchEnabled = true,
+  }) {
+    return Opacity(
+      opacity: switchEnabled ? 1.0 : 0.45,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+        child: Row(
+          children: [
+            Container(
+              width: 42,
+              height: 42,
+              decoration: BoxDecoration(
+                color: color.withValues(alpha: 0.28),
+                borderRadius: BorderRadius.circular(13),
+                border: Border.all(
+                  color: color.withValues(alpha: 0.25),
+                ),
+              ),
+              child: Icon(icon, color: color.withValues(alpha: 0.95), size: 21),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                label,
+                style: const TextStyle(
+                  fontSize: 15,
+                  color: HomeTheme.textPrimary,
+                  fontWeight: FontWeight.w600,
+                  letterSpacing: -0.1,
+                ),
               ),
             ),
-            child: Icon(icon, color: color.withValues(alpha: 0.95), size: 21),
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontSize: 15,
-                color: HomeTheme.textPrimary,
-                fontWeight: FontWeight.w600,
-                letterSpacing: -0.1,
-              ),
-            ),
-          ),
-          _buildToggleSwitch(value, onChanged, color),
-        ],
+            _buildToggleSwitch(value, onChanged, color, enabled: switchEnabled),
+          ],
+        ),
       ),
     );
   }
@@ -692,12 +786,14 @@ class _SettingsScreenState extends State<SettingsScreen>
   Widget _buildToggleSwitch(
     bool value,
     ValueChanged<bool> onChanged,
-    Color color,
-  ) {
+    Color color, {
+    bool enabled = true,
+  }) {
     return Semantics(
       toggled: value,
+      enabled: enabled,
       child: GestureDetector(
-        onTap: () => onChanged(!value),
+        onTap: enabled ? () => onChanged(!value) : null,
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 220),
           curve: Curves.easeOutCubic,

@@ -1,5 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
+
+import '../application/routine_app_controller.dart';
+import '../application/services/onboarding_routine_setup_service.dart';
+import '../domain/onboarding/recommended_routine_catalog.dart';
 
 class InitialRoutineSetupScreen extends StatefulWidget {
   const InitialRoutineSetupScreen({super.key});
@@ -10,78 +15,52 @@ class InitialRoutineSetupScreen extends StatefulWidget {
 }
 
 class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
-  final List<RoutineTemplate> _templates = [
-    RoutineTemplate(
-      emoji: '🌅',
-      name: '기상',
-      time: '07:00',
-      color: const Color(0xFFFFE4E9),
-      isSelected: true,
-    ),
-    RoutineTemplate(
-      emoji: '💪',
-      name: '운동',
-      time: '07:30',
-      color: const Color(0xFFFFD4E0),
-      isSelected: true,
-    ),
-    RoutineTemplate(
-      emoji: '🍳',
-      name: '아침식사',
-      time: '09:00',
-      color: const Color(0xFFFFE9D4),
-      isSelected: true,
-    ),
-    RoutineTemplate(
-      emoji: '📚',
-      name: '공부',
-      time: '10:00',
-      color: const Color(0xFFE8DDFA),
-      isSelected: false,
-    ),
-    RoutineTemplate(
-      emoji: '🍱',
-      name: '점심식사',
-      time: '12:00',
-      color: const Color(0xFFFFFDDC5),
-      isSelected: true,
-    ),
-    RoutineTemplate(
-      emoji: '☕',
-      name: '휴식',
-      time: '15:00',
-      color: const Color(0xFFD4E4FF),
-      isSelected: false,
-    ),
-    RoutineTemplate(
-      emoji: '🍽️',
-      name: '저녁식사',
-      time: '18:00',
-      color: const Color(0xFFFFE4E9),
-      isSelected: true,
-    ),
-    RoutineTemplate(
-      emoji: '🌙',
-      name: '취침',
-      time: '23:00',
-      color: const Color(0xFFD4C5F0),
-      isSelected: true,
-    ),
-  ];
+  static const List<RecommendedRoutineDefinition> _catalog =
+      RecommendedRoutineCatalog.items;
+  final OnboardingRoutineSetupService _onboardingRoutines =
+      OnboardingRoutineSetupService();
+
+  late List<bool> _selected;
+
+  @override
+  void initState() {
+    super.initState();
+    _selected = List<bool>.from(RecommendedRoutineCatalog.defaultSelection);
+  }
 
   void _toggleRoutine(int index) {
     setState(() {
-      _templates[index].isSelected = !_templates[index].isSelected;
+      _selected[index] = !_selected[index];
     });
   }
 
-  void _completeSetup() {
-    context.go('/home');
+  List<RecommendedRoutineDefinition> _selectedDefinitions() {
+    final out = <RecommendedRoutineDefinition>[];
+    for (var i = 0; i < _catalog.length; i++) {
+      if (_selected[i]) out.add(_catalog[i]);
+    }
+    return out;
+  }
+
+  Future<void> _completeSetup() async {
+    await _onboardingRoutines.completeWithSelectedDefinitions(
+      _selectedDefinitions(),
+    );
+    if (!mounted) return;
+    await context.read<RoutineAppController>().load();
+    if (!mounted) return;
+    context.go('/notification-permission');
+  }
+
+  Future<void> _skipRoutineSetup() async {
+    await _onboardingRoutines.skipWithoutSavingRoutines();
+    if (!mounted) return;
+    context.go('/notification-permission');
   }
 
   @override
   Widget build(BuildContext context) {
-    final selectedCount = _templates.where((t) => t.isSelected).length;
+    final selectedCount = _selected.where((s) => s).length;
 
     return Scaffold(
       body: Container(
@@ -98,7 +77,6 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
         child: SafeArea(
           child: Column(
             children: [
-              // 헤더
               Padding(
                 padding: const EdgeInsets.all(30),
                 child: Column(
@@ -130,8 +108,6 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 20),
-                    
-                    // 선택된 루틴 수
                     Container(
                       padding: const EdgeInsets.symmetric(
                         horizontal: 16,
@@ -153,21 +129,35 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
                   ],
                 ),
               ),
-
-              // 루틴 목록
               Expanded(
                 child: ListView.builder(
                   padding: const EdgeInsets.symmetric(horizontal: 30),
-                  itemCount: _templates.length,
+                  itemCount: _catalog.length,
                   itemBuilder: (context, index) {
-                    return _buildRoutineCard(_templates[index], index);
+                    final def = _catalog[index];
+                    return _buildRoutineCard(
+                      def: def,
+                      index: index,
+                      isSelected: _selected[index],
+                    );
                   },
                 ),
               ),
-
-              // 완료 버튼
               Padding(
-                padding: const EdgeInsets.all(30),
+                padding: const EdgeInsets.fromLTRB(30, 0, 30, 12),
+                child: TextButton(
+                  onPressed: _skipRoutineSetup,
+                  child: const Text(
+                    '나중에 설정할게요',
+                    style: TextStyle(
+                      fontSize: 14,
+                      color: Color(0xFFB8A4C9),
+                    ),
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(30, 0, 30, 30),
                 child: GestureDetector(
                   onTap: _completeSetup,
                   child: Container(
@@ -206,7 +196,12 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
     );
   }
 
-  Widget _buildRoutineCard(RoutineTemplate template, int index) {
+  Widget _buildRoutineCard({
+    required RecommendedRoutineDefinition def,
+    required int index,
+    required bool isSelected,
+  }) {
+    final color = Color(def.colorValue);
     return Padding(
       padding: const EdgeInsets.only(bottom: 12),
       child: GestureDetector(
@@ -215,20 +210,20 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
           duration: const Duration(milliseconds: 200),
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
-            color: template.isSelected
+            color: isSelected
                 ? Colors.white.withOpacity(0.9)
                 : Colors.white.withOpacity(0.4),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: template.isSelected
-                  ? template.color
+              color: isSelected
+                  ? color
                   : const Color(0xFFE8DDFA).withOpacity(0.3),
-              width: template.isSelected ? 2 : 1,
+              width: isSelected ? 2 : 1,
             ),
-            boxShadow: template.isSelected
+            boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: template.color.withOpacity(0.2),
+                      color: color.withOpacity(0.2),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -237,24 +232,21 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
           ),
           child: Row(
             children: [
-              // 체크박스
               AnimatedContainer(
                 duration: const Duration(milliseconds: 200),
                 width: 24,
                 height: 24,
                 decoration: BoxDecoration(
                   shape: BoxShape.circle,
-                  color: template.isSelected
-                      ? template.color
-                      : Colors.transparent,
+                  color: isSelected ? color : Colors.transparent,
                   border: Border.all(
-                    color: template.isSelected
-                        ? template.color
+                    color: isSelected
+                        ? color
                         : const Color(0xFFB8A4C9).withOpacity(0.4),
                     width: 2,
                   ),
                 ),
-                child: template.isSelected
+                child: isSelected
                     ? const Icon(
                         Icons.check,
                         size: 16,
@@ -263,8 +255,6 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
                     : null,
               ),
               const SizedBox(width: 12),
-
-              // 이모지 아이콘
               Container(
                 width: 50,
                 height: 50,
@@ -274,27 +264,25 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
                     begin: Alignment.topLeft,
                     end: Alignment.bottomRight,
                     colors: [
-                      template.color,
-                      template.color.withOpacity(0.7),
+                      color,
+                      color.withOpacity(0.7),
                     ],
                   ),
                 ),
                 child: Center(
                   child: Text(
-                    template.emoji,
+                    def.emoji,
                     style: const TextStyle(fontSize: 24),
                   ),
                 ),
               ),
               const SizedBox(width: 12),
-
-              // 루틴 정보
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      template.name,
+                      def.title,
                       style: const TextStyle(
                         fontSize: 16,
                         fontWeight: FontWeight.w600,
@@ -303,7 +291,7 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
                     ),
                     const SizedBox(height: 4),
                     Text(
-                      template.time,
+                      def.timeLabel,
                       style: const TextStyle(
                         fontSize: 13,
                         color: Color(0xFFB8A4C9),
@@ -312,9 +300,7 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
                   ],
                 ),
               ),
-
-              // 추천 뱃지
-              if (index < 3)
+              if (def.showRecommendedBadge)
                 Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 8,
@@ -339,20 +325,4 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
       ),
     );
   }
-}
-
-class RoutineTemplate {
-  final String emoji;
-  final String name;
-  final String time;
-  final Color color;
-  bool isSelected;
-
-  RoutineTemplate({
-    required this.emoji,
-    required this.name,
-    required this.time,
-    required this.color,
-    this.isSelected = false,
-  });
 }

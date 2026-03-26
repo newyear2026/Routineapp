@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
 import '../domain/models/routine.dart';
@@ -12,6 +13,7 @@ import 'home/home_snapshot_builder.dart';
 import 'home/progress_summary.dart';
 import 'routine_save_result.dart';
 import 'services/routine_data_service.dart';
+import '../widget_home/home_widget_sync_service.dart';
 
 /// 앱 MVP 상태 — Repository는 [RoutineDataService], Home은 [homeSnapshot] / 슬롯·진행 요약 getter
 class RoutineAppController extends ChangeNotifier {
@@ -67,6 +69,9 @@ class RoutineAppController extends ChangeNotifier {
     _logsToday = await _data.loadLogsForDate(_now);
     _loaded = true;
     notifyListeners();
+    if (!kIsWeb) {
+      await HomeWidgetSyncService.instance.push(homeSnapshot);
+    }
   }
 
   /// 신규·수정 저장 — [updatedAtMs]는 항상 저장 시각으로 갱신
@@ -152,5 +157,8 @@ class RoutineAppController extends ChangeNotifier {
     await _data.upsertLog(outcome.log);
     _logsToday = await _data.loadLogsForDate(_now);
     notifyListeners();
+    if (!kIsWeb) {
+      await HomeWidgetSyncService.instance.push(homeSnapshot);
+    }
   }
 }
