@@ -39,7 +39,9 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
   /// 월~일 선택
   late List<bool> _weekdays;
 
-  int _colorIndex = 3;
+  /// 저장·편집에 쓰는 ARGB (팔레트와 독립적으로 유지 — 불일치 시에도 기존 색 보존)
+  late int _selectedColorArgb;
+
   bool _notificationEnabled = true;
 
   Routine? _editingBaseline;
@@ -52,6 +54,9 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
   void initState() {
     super.initState();
     _weekdays = [true, true, true, true, true, false, false];
+    _selectedColorArgb = routineColorArgbNormalize(
+      routineFormPaletteColors[3].toARGB32(),
+    );
     if (widget.editRoutineId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _loadEditRoutine());
     }
@@ -73,8 +78,7 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
     }
     if (found == null) return;
     final r = found;
-    final colors = routineFormPaletteColors;
-    final idx = colors.indexWhere((c) => c.toARGB32() == r.colorValue);
+    final normalizedArgb = routineColorArgbNormalize(r.colorValue);
     setState(() {
       _editingBaseline = r;
       _nameController.text = r.title;
@@ -89,7 +93,7 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
       for (var i = 0; i < 7; i++) {
         _weekdays[i] = r.repeatWeekdays.contains(i + 1);
       }
-      _colorIndex = idx >= 0 ? idx : 3;
+      _selectedColorArgb = normalizedArgb;
       _notificationEnabled = r.notificationEnabled;
     });
   }
@@ -106,15 +110,18 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
     });
   }
 
-  int _colorIndexClamped() {
-    final colors = routineFormPaletteColors;
-    return _colorIndex.clamp(0, colors.length - 1);
+  /// 현재 [_selectedColorArgb]와 일치하는 팔레트 칸. 없으면 null.
+  int? _paletteIndexForUi() {
+    final n = routineColorArgbNormalize(_selectedColorArgb);
+    final i = routineFormPaletteColors.indexWhere(
+      (c) => routineColorArgbNormalize(c.toARGB32()) == n,
+    );
+    return i >= 0 ? i : null;
   }
 
   Routine _routineFromForm() {
     final title = _nameController.text;
-    const colors = routineFormPaletteColors;
-    final idx = _colorIndexClamped();
+    final colorValue = routineColorArgbNormalize(_selectedColorArgb);
     final repeat = <int>{};
     for (var i = 0; i < 7; i++) {
       if (_weekdays[i]) repeat.add(i + 1);
@@ -127,7 +134,7 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
         startMinutesFromMidnight: TimeMinutes.fromTimeOfDay(_startTime),
         endMinutesFromMidnight: TimeMinutes.fromTimeOfDay(_endTime),
         repeatWeekdays: repeat,
-        colorValue: colors[idx].toARGB32(),
+        colorValue: colorValue,
         notificationEnabled: _notificationEnabled,
       );
     }
@@ -137,7 +144,7 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
       startTime: _startTime,
       endTime: _endTime,
       repeatWeekdays: repeat,
-      colorValue: colors[idx].toARGB32(),
+      colorValue: colorValue,
       notificationEnabled: _notificationEnabled,
     );
   }
@@ -271,25 +278,34 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                                         textInputAction: TextInputAction.next,
                                       ),
                                       const SizedBox(height: 20),
-                                      Row(
-                                        crossAxisAlignment: CrossAxisAlignment.start,
-                                        children: [
-                                          Expanded(
-                                            child: PastelTimeField(
-                                              label: '시작',
-                                              value: _startTime,
-                                              onChanged: (t) => setState(() => _startTime = t),
-                                            ),
-                                          ),
-                                          const SizedBox(width: 12),
-                                          Expanded(
-                                            child: PastelTimeField(
-                                              label: '종료',
-                                              value: _endTime,
-                                              onChanged: (t) => setState(() => _endTime = t),
-                                            ),
-                                          ),
-                                        ],
+                                      LayoutBuilder(
+                                        builder: (context, constraints) {
+                                          final gap =
+                                              constraints.maxWidth < 340 ? 8.0 : 12.0;
+                                          return Row(
+                                            crossAxisAlignment:
+                                                CrossAxisAlignment.start,
+                                            children: [
+                                              Expanded(
+                                                child: PastelTimeField(
+                                                  label: '시작',
+                                                  value: _startTime,
+                                                  onChanged: (t) =>
+                                                      setState(() => _startTime = t),
+                                                ),
+                                              ),
+                                              SizedBox(width: gap),
+                                              Expanded(
+                                                child: PastelTimeField(
+                                                  label: '종료',
+                                                  value: _endTime,
+                                                  onChanged: (t) =>
+                                                      setState(() => _endTime = t),
+                                                ),
+                                              ),
+                                            ],
+                                          );
+                                        },
                                       ),
                                     ],
                                   ),
@@ -306,8 +322,13 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                                 AppCard(
                                   child: PastelColorPalette(
                                     colors: routineFormPaletteColors,
-                                    selectedIndex: _colorIndexClamped(),
-                                    onSelected: (i) => setState(() => _colorIndex = i),
+                                    selectedIndex: _paletteIndexForUi(),
+                                    onSelected: (i) => setState(() {
+                                      _selectedColorArgb =
+                                          routineColorArgbNormalize(
+                                        routineFormPaletteColors[i].toARGB32(),
+                                      );
+                                    }),
                                   ),
                                 ),
                                 const SizedBox(height: 16),

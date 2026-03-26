@@ -107,13 +107,14 @@ class Routine {
     final days = (json['repeatWeekdays'] as List<dynamic>)
         .map((e) => e as int)
         .toSet();
+    final rawColor = json['colorValue'] as int;
     return Routine(
       id: json['id'] as String,
       title: json['title'] as String,
       startMinutesFromMidnight: json['startMinutesFromMidnight'] as int,
       endMinutesFromMidnight: json['endMinutesFromMidnight'] as int,
       repeatWeekdays: days,
-      colorValue: json['colorValue'] as int,
+      colorValue: rawColor & 0xFFFFFFFF,
       iconEmoji: json['iconEmoji'] as String,
       notificationEnabled: json['notificationEnabled'] as bool? ?? true,
       memo: json['memo'] as String?,

@@ -11,7 +11,9 @@ class PastelColorPalette extends StatelessWidget {
   });
 
   final List<Color> colors;
-  final int selectedIndex;
+
+  /// 팔레트에 없는 색이면 null → 선택 링 없음
+  final int? selectedIndex;
   final ValueChanged<int> onSelected;
 
   @override
@@ -36,7 +38,7 @@ class PastelColorPalette extends StatelessWidget {
             separatorBuilder: (_, __) => const SizedBox(width: 12),
             itemBuilder: (context, i) {
               final c = colors[i];
-              final sel = i == selectedIndex;
+              final sel = selectedIndex != null && i == selectedIndex;
               return GestureDetector(
                 onTap: () => onSelected(i),
                 child: AnimatedContainer(

@@ -11,3 +11,6 @@ const routineFormPaletteColors = <Color>[
   Color(0xFFFFE8F0),
   Color(0xFFD4C5F0),
 ];
+
+/// JSON·저장소에서 온 부호 있는 int와 팔레트 [Color] 비교를 맞춘다.
+int routineColorArgbNormalize(int value) => value & 0xFFFFFFFF;

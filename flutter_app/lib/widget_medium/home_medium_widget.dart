@@ -11,7 +11,7 @@ class HomeMediumWidget extends StatelessWidget {
   const HomeMediumWidget({
     super.key,
     required this.viewModel,
-    this.ringSize = 128,
+    this.ringSize = 152,
   });
 
   final HomeMediumWidgetViewModel viewModel;
@@ -29,8 +29,8 @@ class HomeMediumWidget extends StatelessWidget {
     return Material(
       color: Colors.transparent,
       child: Container(
-        constraints: const BoxConstraints(minHeight: 148, maxHeight: 168),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+        constraints: const BoxConstraints(minHeight: 152, maxHeight: 176),
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
         decoration: BoxDecoration(
           color: _ivory,
           borderRadius: BorderRadius.circular(22),
@@ -46,12 +46,12 @@ class HomeMediumWidget extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Expanded(
-              flex: 11,
+              flex: 12,
               child: _LeftColumn(vm: vm, badgeColor: _badge, brown: _brown, muted: _muted),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 4),
             Expanded(
-              flex: 10,
+              flex: 11,
               child: Align(
                 alignment: Alignment.centerRight,
                 child: MiniCircularTimetable(
@@ -93,7 +93,7 @@ class _LeftColumn extends StatelessWidget {
         Text(
           vm.headerTitle,
           style: TextStyle(
-            fontSize: 13,
+            fontSize: 15,
             fontWeight: FontWeight.w800,
             color: brown,
             height: 1.2,
@@ -103,36 +103,36 @@ class _LeftColumn extends StatelessWidget {
         Text(
           vm.subtitle,
           style: TextStyle(
-            fontSize: 10,
+            fontSize: 11.5,
             fontWeight: FontWeight.w600,
             color: muted.withValues(alpha: 0.95),
           ),
         ),
-        const SizedBox(height: 10),
+        const SizedBox(height: 7),
         Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
               vm.currentRoutineIconEmoji,
-              style: const TextStyle(fontSize: 18, height: 1.1),
+              style: const TextStyle(fontSize: 22, height: 1.1),
             ),
-            const SizedBox(width: 6),
+            const SizedBox(width: 5),
             Expanded(
               child: Text(
                 vm.currentRoutineTitle,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 17,
+                  fontSize: 20,
                   fontWeight: FontWeight.w800,
                   color: brown,
-                  height: 1.15,
+                  height: 1.12,
                 ),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 6),
+        const SizedBox(height: 5),
         Row(
           crossAxisAlignment: CrossAxisAlignment.center,
           children: [
@@ -140,15 +140,15 @@ class _LeftColumn extends StatelessWidget {
               child: Text(
                 vm.currentRoutineTimeRange,
                 style: TextStyle(
-                  fontSize: 12.5,
+                  fontSize: 14.5,
                   fontWeight: FontWeight.w700,
                   color: brown.withValues(alpha: 0.92),
                 ),
               ),
             ),
-            const SizedBox(width: 8),
+            const SizedBox(width: 6),
             Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(
                 color: badgeColor,
                 borderRadius: BorderRadius.circular(20),
@@ -156,7 +156,7 @@ class _LeftColumn extends StatelessWidget {
               child: Text(
                 vm.currentRoutineStatusLabel,
                 style: const TextStyle(
-                  fontSize: 10,
+                  fontSize: 12.5,
                   fontWeight: FontWeight.w700,
                   color: Colors.white,
                   letterSpacing: -0.1,
@@ -165,10 +165,10 @@ class _LeftColumn extends StatelessWidget {
             ),
           ],
         ),
-        const SizedBox(height: 8),
+        const SizedBox(height: 5),
         Row(
           children: [
-            Icon(Icons.search_rounded, size: 14, color: muted.withValues(alpha: 0.9)),
+            Icon(Icons.search_rounded, size: 15, color: muted.withValues(alpha: 0.9)),
             const SizedBox(width: 4),
             Expanded(
               child: Text(
@@ -176,7 +176,7 @@ class _LeftColumn extends StatelessWidget {
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: TextStyle(
-                  fontSize: 10.5,
+                  fontSize: 11.5,
                   fontWeight: FontWeight.w600,
                   color: muted,
                 ),

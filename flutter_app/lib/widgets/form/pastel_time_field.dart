@@ -59,7 +59,7 @@ class PastelTimeField extends StatelessWidget {
             },
             borderRadius: BorderRadius.circular(18),
             child: Ink(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
               decoration: BoxDecoration(
                 color: Colors.white.withValues(alpha: 0.65),
                 borderRadius: BorderRadius.circular(18),
@@ -69,18 +69,30 @@ class PastelTimeField extends StatelessWidget {
               ),
               child: Row(
                 children: [
-                  Icon(Icons.schedule, size: 20, color: HomeTheme.textMuted.withValues(alpha: 0.85)),
-                  const SizedBox(width: 10),
-                  Text(
-                    _format(value),
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
-                      color: HomeTheme.textPrimary,
+                  Icon(
+                    Icons.schedule,
+                    size: 18,
+                    color: HomeTheme.textMuted.withValues(alpha: 0.85),
+                  ),
+                  const SizedBox(width: 8),
+                  Expanded(
+                    child: Text(
+                      _format(value),
+                      style: const TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w600,
+                        color: HomeTheme.textPrimary,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
                   ),
-                  const Spacer(),
-                  Icon(Icons.expand_more, color: HomeTheme.textMuted.withValues(alpha: 0.7)),
+                  const SizedBox(width: 6),
+                  Icon(
+                    Icons.expand_more,
+                    size: 20,
+                    color: HomeTheme.textMuted.withValues(alpha: 0.7),
+                  ),
                 ],
               ),
             ),

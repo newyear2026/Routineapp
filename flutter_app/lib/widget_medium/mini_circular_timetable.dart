@@ -17,7 +17,7 @@ class MiniCircularTimetable extends StatelessWidget {
     this.activeSegmentId,
     this.pointerAngleRad,
     this.centerLabel = '현재 시간',
-    this.size = 132,
+    this.size = 152,
   });
 
   final List<MediumRingSegment> segments;
@@ -60,19 +60,19 @@ class MiniCircularTimetable extends StatelessWidget {
             children: [
               Text(
                 '${currentTime.hour.toString().padLeft(2, '0')}:${currentTime.minute.toString().padLeft(2, '0')}',
-                style: const TextStyle(
-                  fontSize: 22,
+                style: TextStyle(
+                  fontSize: (size * 0.172).clamp(24.0, 30.0),
                   fontWeight: FontWeight.w800,
-                  letterSpacing: -0.5,
-                  color: Color(0xFF5C4033),
+                  letterSpacing: -0.6,
+                  color: const Color(0xFF5C4033),
                   height: 1.05,
                 ),
               ),
-              const SizedBox(height: 2),
+              SizedBox(height: size * 0.012),
               Text(
                 centerLabel,
                 style: TextStyle(
-                  fontSize: 9,
+                  fontSize: (size * 0.069).clamp(10.0, 12.0),
                   fontWeight: FontWeight.w600,
                   color: const Color(0xFF9A8AAC).withValues(alpha: 0.95),
                 ),
@@ -95,6 +95,8 @@ class _HourLabels extends StatelessWidget {
   Widget build(BuildContext context) {
     final c = size / 2;
     final r = size * 0.52;
+    final labelHalf = size * 0.072;
+    final labelHalfV = size * 0.042;
     const labels = <(int, double)>[
       (0, -math.pi / 2),
       (6, 0),
@@ -107,12 +109,12 @@ class _HourLabels extends StatelessWidget {
       children: [
         for (final (h, ang) in labels)
           Positioned(
-            left: c + r * math.cos(ang) - 14,
-            top: c + r * math.sin(ang) - 8,
+            left: c + r * math.cos(ang) - labelHalf,
+            top: c + r * math.sin(ang) - labelHalfV,
             child: Text(
               '$h시',
               style: TextStyle(
-                fontSize: 9,
+                fontSize: (size * 0.066).clamp(9.5, 11.5),
                 fontWeight: FontWeight.w700,
                 color: const Color(0xFF7A6B5A).withValues(alpha: 0.85),
               ),
