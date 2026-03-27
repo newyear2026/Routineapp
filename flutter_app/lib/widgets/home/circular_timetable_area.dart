@@ -221,6 +221,69 @@ class _CircularTimetableView extends StatelessWidget {
   }
 }
 
+/// 루틴 구간 경계 — 시간 가이드보다 길·진하게, 활성 구간 양끝은 더 강조
+void _drawRoutineBoundaryLine(
+  Canvas canvas,
+  Offset c,
+  double angleRad,
+  double ringInner,
+  double ringOuter,
+  double scale,
+  Color segmentColor,
+  bool emphasis,
+) {
+  final cos = math.cos(angleRad);
+  final sin = math.sin(angleRad);
+
+  /// 링 안쪽보다 조금 안쪽, 바깥은 링 밖으로 살짝 돌출해 끝이 분리되어 보이게
+  final rInner = ringInner - 1.4 * scale;
+  final rOuter = ringOuter + 3.0 * scale;
+
+  final strokeBlend = emphasis ? 0.42 : 0.28;
+  var lineColor = Color.lerp(
+    segmentColor,
+    const Color(0xFF5C4033),
+    strokeBlend,
+  )!;
+  if (emphasis) {
+    lineColor = Color.lerp(lineColor, HomeTheme.accentPink, 0.22)!;
+  }
+
+  final inner = Offset(c.dx + rInner * cos, c.dy + rInner * sin);
+  final outer = Offset(c.dx + rOuter * cos, c.dy + rOuter * sin);
+
+  final haloW = (emphasis ? 5.2 : 3.6) * scale;
+  final halo = Paint()
+    ..color = lineColor.withValues(alpha: 0.2)
+    ..strokeWidth = haloW
+    ..strokeCap = StrokeCap.round
+    ..style = PaintingStyle.stroke
+    ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.2);
+  canvas.drawLine(inner, outer, halo);
+
+  final mainW = (emphasis ? 3.0 : 2.0) * scale;
+  final main = Paint()
+    ..color = lineColor.withValues(alpha: emphasis ? 0.94 : 0.88)
+    ..strokeWidth = mainW
+    ..strokeCap = StrokeCap.round
+    ..style = PaintingStyle.stroke;
+  canvas.drawLine(inner, outer, main);
+
+  final capR = (emphasis ? 2.8 : 2.0) * scale;
+  final capPaint = Paint()
+    ..color = lineColor.withValues(alpha: 0.9)
+    ..style = PaintingStyle.fill;
+  canvas.drawCircle(outer, capR, capPaint);
+  canvas.drawCircle(
+    outer,
+    capR,
+    Paint()
+      ..color = Colors.white.withValues(alpha: 0.88)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 1,
+  );
+}
+
 /// 동심원 도넛 + 시간 가이드 + 루틴 구간 + 현재 시각 점 (긴 바늘 없음)
 class _TimetableRingPainter extends CustomPainter {
   _TimetableRingPainter({
@@ -257,16 +320,17 @@ class _TimetableRingPainter extends CustomPainter {
     final bg = Paint()..color = const Color(0xFFFFF9F5);
     canvas.drawCircle(c, outerR + 4, bg);
 
-    // —— 시간 가이드: 중앙 홀 ~ 도넛 안쪽 사이 (얇은 방사선, 24h)
+    // —— 시간 가이드: 가늘고 은은하게 (루틴 경계보다 약하게)
     for (var h = 0; h < 24; h++) {
       final angle = _minutesToRad(h * 60);
       final isMajor = h == 0 || h == 6 || h == 12 || h == 18;
       final paint = Paint()
         ..color = const Color(0xFFB8A4C9).withValues(
-          alpha: isMajor ? 0.38 : 0.14,
+          alpha: isMajor ? 0.22 : 0.085,
         )
-        ..strokeWidth = isMajor ? 1.25 * scale : 0.75 * scale
-        ..strokeCap = StrokeCap.round;
+        ..strokeWidth = isMajor ? 0.95 * scale : 0.55 * scale
+        ..strokeCap = StrokeCap.round
+        ..style = PaintingStyle.stroke;
       final r0 = centerHoleR + 2 * scale;
       final r1 = ringInner - 1.5 * scale;
       final start = Offset(
@@ -280,10 +344,11 @@ class _TimetableRingPainter extends CustomPainter {
       canvas.drawLine(start, end, paint);
     }
 
-    // —— 루틴 구간 호 (기존 + 경계 강조)
-    for (var i = 0; i < segments.length; i++) {
+    // —— 루틴 구간 호
+    final n = segments.length;
+    for (var i = 0; i < n; i++) {
       final seg = segments[i];
-      final next = segments[(i + 1) % segments.length];
+      final next = segments[(i + 1) % n];
       var startRad = (seg.startMinutesFromMidnight / (24 * 60)) * 2 * math.pi -
           math.pi / 2;
       var endRad = (next.startMinutesFromMidnight / (24 * 60)) * 2 * math.pi -
@@ -349,21 +414,30 @@ class _TimetableRingPainter extends CustomPainter {
           rim,
         );
       }
+    }
 
-      // 루틴 시작 경계선 (시간 가이드보다 선명)
-      final boundaryPaint = Paint()
-        ..color = seg.color.withValues(alpha: isActive ? 0.95 : 0.72)
-        ..strokeWidth = isActive ? 2.8 * scale : 2.0 * scale
-        ..strokeCap = StrokeCap.round;
-      final b0 = Offset(
-        c.dx + ringInner * math.cos(startRad),
-        c.dy + ringInner * math.sin(startRad),
+    // —— 루틴 구간 경계 (호 위에 그림): 시작=이전 구간 종료와 동일 각도
+    for (var i = 0; i < n; i++) {
+      final seg = segments[i];
+      final prev = segments[(i - 1 + n) % n];
+      final startRad =
+          (seg.startMinutesFromMidnight / (24 * 60)) * 2 * math.pi -
+              math.pi / 2;
+
+      /// 이 선은 seg의 시작이자 prev의 끝 → 둘 중 하나가 활성이면 강조
+      final emphasis = activeSegmentId.isNotEmpty &&
+          (seg.id == activeSegmentId || prev.id == activeSegmentId);
+
+      _drawRoutineBoundaryLine(
+        canvas,
+        c,
+        startRad,
+        ringInner,
+        ringOuter,
+        scale,
+        seg.color,
+        emphasis,
       );
-      final b1 = Offset(
-        c.dx + ringOuter * math.cos(startRad),
-        c.dy + ringOuter * math.sin(startRad),
-      );
-      canvas.drawLine(b0, b1, boundaryPaint);
     }
 
     // —— 현재 시각: 링 바깥쪽 작은 점 (긴 바늘 없음)
