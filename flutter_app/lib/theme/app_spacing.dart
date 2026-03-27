@@ -24,9 +24,11 @@ abstract final class AppSpacing {
   /// 카드 내부 패딩 기본값
   static const double cardPadding = 18;
 
-  static const EdgeInsets screenPaddingH = EdgeInsets.symmetric(horizontal: screenHorizontal);
+  static const EdgeInsets screenPaddingH =
+      EdgeInsets.symmetric(horizontal: screenHorizontal);
 
-  static const EdgeInsets scrollContent = EdgeInsets.fromLTRB(screenHorizontal, 8, screenHorizontal, xxxl);
+  static const EdgeInsets scrollContent =
+      EdgeInsets.fromLTRB(screenHorizontal, 8, screenHorizontal, xxxl);
 }
 
 /// **코너 반경**

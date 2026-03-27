@@ -60,13 +60,11 @@ class SystemHomeWidgetPayload {
     final nextR = snapshot.nextRoutine;
     final nextTitle = nextCard?.name ?? nextR?.title ?? '';
     final nextTime = nextCard?.time ??
-        (nextR != null
-            ? _hm(nextR.startMinutesFromMidnight)
-            : '');
+        (nextR != null ? _hm(nextR.startMinutesFromMidnight) : '');
 
     final t = vm.currentTime;
-    final ptr = vm.pointerAngleRad ??
-        MiniCircularTimetable.pointerAngleFromTime(t);
+    final ptr =
+        vm.pointerAngleRad ?? MiniCircularTimetable.pointerAngleFromTime(t);
 
     return SystemHomeWidgetPayload(
       schemaVersion: currentSchemaVersion,
@@ -83,7 +81,8 @@ class SystemHomeWidgetPayload {
       currentTimeMinute: t.minute,
       pointerAngleRad: ptr,
       centerTimeLabel: vm.centerTimeLabel,
-      ringSegments: vm.ringSegments.map(SystemRingSegmentPayload.fromMedium).toList(),
+      ringSegments:
+          vm.ringSegments.map(SystemRingSegmentPayload.fromMedium).toList(),
       activeSegmentId: vm.activeSegmentId,
     );
   }

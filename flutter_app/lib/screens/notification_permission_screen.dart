@@ -15,7 +15,8 @@ class _NotificationPermissionScreenState
     extends State<NotificationPermissionScreen>
     with SingleTickerProviderStateMixin {
   late AnimationController _bellController;
-  final NotificationOnboardingActions _actions = NotificationOnboardingActions();
+  final NotificationOnboardingActions _actions =
+      NotificationOnboardingActions();
 
   @override
   void initState() {
@@ -96,7 +97,8 @@ class _NotificationPermissionScreenState
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFFFFDDC5).withOpacity(0.4),
+                              color: const Color(0xFFFFDDC5)
+                                  .withValues(alpha: 0.4),
                               blurRadius: 30,
                               offset: const Offset(0, 10),
                             ),
@@ -159,7 +161,7 @@ class _NotificationPermissionScreenState
                       borderRadius: BorderRadius.circular(28),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFFD4E4FF).withOpacity(0.4),
+                          color: const Color(0xFFD4E4FF).withValues(alpha: 0.4),
                           blurRadius: 20,
                           offset: const Offset(0, 8),
                         ),
@@ -205,10 +207,10 @@ class _NotificationPermissionScreenState
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white.withOpacity(0.6),
+        color: Colors.white.withValues(alpha: 0.6),
         borderRadius: BorderRadius.circular(20),
         border: Border.all(
-          color: const Color(0xFFE8DDFA).withOpacity(0.3),
+          color: const Color(0xFFE8DDFA).withValues(alpha: 0.3),
           width: 1,
         ),
       ),
@@ -219,7 +221,7 @@ class _NotificationPermissionScreenState
             height: 50,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(15),
-              color: const Color(0xFFFFE4E9).withOpacity(0.5),
+              color: const Color(0xFFFFE4E9).withValues(alpha: 0.5),
             ),
             child: Center(
               child: Text(

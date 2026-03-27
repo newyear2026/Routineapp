@@ -22,7 +22,7 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
-    
+
     _controller = AnimationController(
       duration: const Duration(milliseconds: 1500),
       vsync: this,
@@ -73,7 +73,7 @@ class _SplashScreenState extends State<SplashScreen>
           children: [
             // 배경 데코레이션
             _buildFloatingEmojis(),
-            
+
             // 중앙 로고
             Center(
               child: AnimatedBuilder(
@@ -102,7 +102,8 @@ class _SplashScreenState extends State<SplashScreen>
                               ),
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFFFFB8C6).withOpacity(0.4),
+                                  color: const Color(0xFFFFB8C6)
+                                      .withValues(alpha: 0.4),
                                   blurRadius: 30,
                                   offset: const Offset(0, 10),
                                 ),
@@ -116,7 +117,7 @@ class _SplashScreenState extends State<SplashScreen>
                             ),
                           ),
                           const SizedBox(height: 24),
-                          
+
                           // 앱 이름
                           const Text(
                             'Routine Timer',
@@ -127,7 +128,7 @@ class _SplashScreenState extends State<SplashScreen>
                             ),
                           ),
                           const SizedBox(height: 8),
-                          
+
                           // 서브 텍스트
                           const Text(
                             '오늘도 함께 해요 💕',

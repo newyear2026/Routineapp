@@ -51,8 +51,10 @@ class ProgressPercentHeader extends StatelessWidget {
                   child: CircularProgressIndicator(
                     value: percent / 100,
                     strokeWidth: 12,
-                    backgroundColor: HomeTheme.textMuted.withValues(alpha: 0.14),
-                    valueColor: const AlwaysStoppedAnimation(HomeTheme.accentPink),
+                    backgroundColor:
+                        HomeTheme.textMuted.withValues(alpha: 0.14),
+                    valueColor:
+                        const AlwaysStoppedAnimation(HomeTheme.accentPink),
                   ),
                 ),
                 Column(

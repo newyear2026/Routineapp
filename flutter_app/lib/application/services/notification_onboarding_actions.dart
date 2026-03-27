@@ -11,7 +11,8 @@ import 'notification_permission_service.dart';
 class NotificationOnboardingActions {
   NotificationOnboardingActions({
     NotificationPermissionService? permissionService,
-  }) : _permission = permissionService ?? NotificationPermissionService.instance;
+  }) : _permission =
+            permissionService ?? NotificationPermissionService.instance;
 
   final NotificationPermissionService _permission;
 

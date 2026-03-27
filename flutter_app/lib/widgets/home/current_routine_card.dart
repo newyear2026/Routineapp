@@ -60,7 +60,8 @@ class CurrentRoutineCard extends StatelessWidget {
                   ),
                 ),
                 child: Center(
-                  child: Text(routine.emoji, style: const TextStyle(fontSize: 22)),
+                  child:
+                      Text(routine.emoji, style: const TextStyle(fontSize: 22)),
                 ),
               ),
               const SizedBox(width: 12),
@@ -94,7 +95,8 @@ class CurrentRoutineCard extends StatelessWidget {
                     Align(
                       alignment: Alignment.centerLeft,
                       child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
                           color: HomeTheme.accentPink.withValues(alpha: 0.22),
                           borderRadius: BorderRadius.circular(999),
@@ -122,7 +124,8 @@ class CurrentRoutineCard extends StatelessWidget {
             children: routine.repeatDays
                 .map(
                   (d) => Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
+                    padding:
+                        const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
                     decoration: BoxDecoration(
                       color: _chipMuted.withValues(alpha: 0.22),
                       borderRadius: BorderRadius.circular(999),
@@ -204,7 +207,8 @@ class CurrentRoutineCard extends StatelessWidget {
                       ),
                       const SizedBox(width: 6),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 10, vertical: 5),
                         decoration: BoxDecoration(
                           color: HomeTheme.accentPink.withValues(alpha: 0.28),
                           borderRadius: BorderRadius.circular(999),

@@ -46,8 +46,7 @@ class RoutineAppController extends ChangeNotifier {
   List<Routine> get _todaySorted =>
       _dayService.routinesForDate(_now, _routines);
 
-  Routine? get _currentSlot =>
-      _dayService.currentRoutineAt(_now, _todaySorted);
+  Routine? get _currentSlot => _dayService.currentRoutineAt(_now, _todaySorted);
 
   HomeSnapshot get homeSnapshot => HomeSnapshotBuilder.build(
         nowLocal: _now,

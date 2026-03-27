@@ -34,8 +34,7 @@ class RoutineDayService {
     String routineId,
     List<RoutineLog> logsToday,
   ) {
-    final found =
-        logsToday.where((l) => l.routineId == routineId).toList();
+    final found = logsToday.where((l) => l.routineId == routineId).toList();
     if (found.isEmpty) return null;
     return found.first;
   }

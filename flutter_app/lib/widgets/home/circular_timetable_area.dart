@@ -284,12 +284,10 @@ class _TimetableRingPainter extends CustomPainter {
     for (var i = 0; i < segments.length; i++) {
       final seg = segments[i];
       final next = segments[(i + 1) % segments.length];
-      var startRad =
-          (seg.startMinutesFromMidnight / (24 * 60)) * 2 * math.pi -
-              math.pi / 2;
-      var endRad =
-          (next.startMinutesFromMidnight / (24 * 60)) * 2 * math.pi -
-              math.pi / 2;
+      var startRad = (seg.startMinutesFromMidnight / (24 * 60)) * 2 * math.pi -
+          math.pi / 2;
+      var endRad = (next.startMinutesFromMidnight / (24 * 60)) * 2 * math.pi -
+          math.pi / 2;
       var sweep = endRad - startRad;
       if (sweep <= 0) sweep += 2 * math.pi;
 

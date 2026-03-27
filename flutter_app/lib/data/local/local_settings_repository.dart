@@ -27,8 +27,7 @@ class LocalSettingsRepository implements SettingsRepository {
 
   @override
   Future<void> saveAppSettings(AppSettings settings) async {
-    await (await _prefs)
-        .setString(_kSettings, jsonEncode(settings.toJson()));
+    await (await _prefs).setString(_kSettings, jsonEncode(settings.toJson()));
   }
 
   @override

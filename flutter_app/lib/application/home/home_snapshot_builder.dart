@@ -58,13 +58,11 @@ abstract final class HomeSnapshotBuilder {
 
     final clockTime = TimeOfDay.fromDateTime(nowLocal);
     final segments = HomeViewMapper.toSegments(todaySorted);
-    final centerName = current != null
-        ? current.title
-        : (next != null ? next.title : '루틴');
+    final centerName =
+        current != null ? current.title : (next != null ? next.title : '루틴');
 
-    final activeRing = current != null
-        ? HomeViewMapper.ringStubFromRoutine(current)
-        : null;
+    final activeRing =
+        current != null ? HomeViewMapper.ringStubFromRoutine(current) : null;
 
     CurrentRoutine? card;
     NextRoutine? nextCard;

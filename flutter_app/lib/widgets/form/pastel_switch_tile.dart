@@ -41,7 +41,8 @@ class PastelSwitchTile extends StatelessWidget {
                 ],
               ),
             ),
-            child: const Icon(Icons.notifications_outlined, color: HomeTheme.textPrimary, size: 22),
+            child: const Icon(Icons.notifications_outlined,
+                color: HomeTheme.textPrimary, size: 22),
           ),
           const SizedBox(width: 12),
           Expanded(

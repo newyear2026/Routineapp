@@ -39,14 +39,17 @@ class AppCard extends StatelessWidget {
             ? Colors.white.withValues(alpha: 0.88)
             : Colors.white.withValues(alpha: 0.42),
         borderRadius: BorderRadius.circular(
-          variant == AppCardVariant.elevated ? AppRadii.cardLarge : AppRadii.card,
+          variant == AppCardVariant.elevated
+              ? AppRadii.cardLarge
+              : AppRadii.card,
         ),
         border: Border.all(
           color: AppColors.border.withValues(alpha: 0.45),
         ),
         boxShadow: [
           BoxShadow(
-            color: AppColors.textMuted.withValues(alpha: variant == AppCardVariant.elevated ? 0.14 : 0.08),
+            color: AppColors.textMuted.withValues(
+                alpha: variant == AppCardVariant.elevated ? 0.14 : 0.08),
             blurRadius: variant == AppCardVariant.elevated ? 28 : 16,
             offset: Offset(0, variant == AppCardVariant.elevated ? 10 : 6),
           ),

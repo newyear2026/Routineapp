@@ -114,7 +114,7 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
                         vertical: 8,
                       ),
                       decoration: BoxDecoration(
-                        color: const Color(0xFFE8DDFA).withOpacity(0.3),
+                        color: const Color(0xFFE8DDFA).withValues(alpha: 0.3),
                         borderRadius: BorderRadius.circular(20),
                       ),
                       child: Text(
@@ -170,7 +170,7 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
                       borderRadius: BorderRadius.circular(28),
                       boxShadow: [
                         BoxShadow(
-                          color: const Color(0xFFD4C5F0).withOpacity(0.4),
+                          color: const Color(0xFFD4C5F0).withValues(alpha: 0.4),
                           blurRadius: 20,
                           offset: const Offset(0, 8),
                         ),
@@ -211,19 +211,19 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
           padding: const EdgeInsets.all(16),
           decoration: BoxDecoration(
             color: isSelected
-                ? Colors.white.withOpacity(0.9)
-                : Colors.white.withOpacity(0.4),
+                ? Colors.white.withValues(alpha: 0.9)
+                : Colors.white.withValues(alpha: 0.4),
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: isSelected
                   ? color
-                  : const Color(0xFFE8DDFA).withOpacity(0.3),
+                  : const Color(0xFFE8DDFA).withValues(alpha: 0.3),
               width: isSelected ? 2 : 1,
             ),
             boxShadow: isSelected
                 ? [
                     BoxShadow(
-                      color: color.withOpacity(0.2),
+                      color: color.withValues(alpha: 0.2),
                       blurRadius: 12,
                       offset: const Offset(0, 4),
                     ),
@@ -242,7 +242,7 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
                   border: Border.all(
                     color: isSelected
                         ? color
-                        : const Color(0xFFB8A4C9).withOpacity(0.4),
+                        : const Color(0xFFB8A4C9).withValues(alpha: 0.4),
                     width: 2,
                   ),
                 ),
@@ -265,7 +265,7 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
                     end: Alignment.bottomRight,
                     colors: [
                       color,
-                      color.withOpacity(0.7),
+                      color.withValues(alpha: 0.7),
                     ],
                   ),
                 ),
@@ -307,7 +307,7 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
                     vertical: 4,
                   ),
                   decoration: BoxDecoration(
-                    color: const Color(0xFFFFB8C6).withOpacity(0.2),
+                    color: const Color(0xFFFFB8C6).withValues(alpha: 0.2),
                     borderRadius: BorderRadius.circular(8),
                   ),
                   child: const Text(

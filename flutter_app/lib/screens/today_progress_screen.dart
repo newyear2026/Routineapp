@@ -40,7 +40,8 @@ class TodayProgressScreen extends StatelessWidget {
           todayRoutines: todayRoutines,
           logsToday: logs,
         );
-        final feedback = ProgressViewMapper.feedbackForPercent(progress.percent);
+        final feedback =
+            ProgressViewMapper.feedbackForPercent(progress.percent);
         final miniStats = ProgressViewMapper.miniStatsFromProgress(
           completed: progress.completed,
           total: progress.total,
@@ -60,7 +61,8 @@ class TodayProgressScreen extends StatelessWidget {
                     margin: const EdgeInsets.all(16),
                     clipBehavior: Clip.antiAlias,
                     decoration: BoxDecoration(
-                      borderRadius: BorderRadius.circular(HomeTheme.shellRadius),
+                      borderRadius:
+                          BorderRadius.circular(HomeTheme.shellRadius),
                       gradient: HomeTheme.shellGradient,
                       boxShadow: [
                         BoxShadow(
@@ -72,7 +74,8 @@ class TodayProgressScreen extends StatelessWidget {
                     ),
                     child: Stack(
                       children: [
-                        const Positioned.fill(child: HomeDecorativeBackground()),
+                        const Positioned.fill(
+                            child: HomeDecorativeBackground()),
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
@@ -91,7 +94,8 @@ class TodayProgressScreen extends StatelessWidget {
                                 padding:
                                     const EdgeInsets.fromLTRB(20, 4, 20, 28),
                                 child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
                                   children: [
                                     ProgressPercentHeader(
                                       percent: progress.percent,
@@ -116,8 +120,8 @@ class TodayProgressScreen extends StatelessWidget {
                                       const Align(
                                         alignment: Alignment.centerLeft,
                                         child: Padding(
-                                          padding:
-                                              EdgeInsets.only(left: 4, bottom: 10),
+                                          padding: EdgeInsets.only(
+                                              left: 4, bottom: 10),
                                           child: Text(
                                             '상태별 루틴',
                                             style: TextStyle(

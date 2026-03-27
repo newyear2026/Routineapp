@@ -16,7 +16,8 @@ abstract final class HomeRoutineSchedule {
     final filtered =
         allRoutines.where((r) => r.repeatWeekdays.contains(wd)).toList();
     filtered.sort((a, b) {
-      final s = a.startMinutesFromMidnight.compareTo(b.startMinutesFromMidnight);
+      final s =
+          a.startMinutesFromMidnight.compareTo(b.startMinutesFromMidnight);
       if (s != 0) return s;
       final u = b.updatedAtMs.compareTo(a.updatedAtMs);
       if (u != 0) return u;

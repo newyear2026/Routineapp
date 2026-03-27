@@ -49,7 +49,9 @@ class PastelColorPalette extends StatelessWidget {
                     shape: BoxShape.circle,
                     color: c,
                     border: Border.all(
-                      color: sel ? HomeTheme.textPrimary : Colors.white.withValues(alpha: 0.6),
+                      color: sel
+                          ? HomeTheme.textPrimary
+                          : Colors.white.withValues(alpha: 0.6),
                       width: sel ? 3 : 2,
                     ),
                     boxShadow: [

@@ -104,9 +104,8 @@ class Routine {
       };
 
   factory Routine.fromJson(Map<String, dynamic> json) {
-    final days = (json['repeatWeekdays'] as List<dynamic>)
-        .map((e) => e as int)
-        .toSet();
+    final days =
+        (json['repeatWeekdays'] as List<dynamic>).map((e) => e as int).toSet();
     final rawColor = json['colorValue'] as int;
     return Routine(
       id: json['id'] as String,

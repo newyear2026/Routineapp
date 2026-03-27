@@ -159,8 +159,7 @@ class _MiniDonutRingPainter extends CustomPainter {
       final startRad =
           (seg.startMinutesFromMidnight / (24 * 60)) * 2 * math.pi -
               math.pi / 2;
-      final sweepRad =
-          (seg.sweepMinutes / (24 * 60)) * 2 * math.pi;
+      final sweepRad = (seg.sweepMinutes / (24 * 60)) * 2 * math.pi;
 
       final isActive = activeSegmentId != null && seg.id == activeSegmentId;
 

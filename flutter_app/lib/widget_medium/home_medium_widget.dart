@@ -47,7 +47,8 @@ class HomeMediumWidget extends StatelessWidget {
           children: [
             Expanded(
               flex: 12,
-              child: _LeftColumn(vm: vm, badgeColor: _badge, brown: _brown, muted: _muted),
+              child: _LeftColumn(
+                  vm: vm, badgeColor: _badge, brown: _brown, muted: _muted),
             ),
             const SizedBox(width: 4),
             Expanded(
@@ -168,7 +169,8 @@ class _LeftColumn extends StatelessWidget {
         const SizedBox(height: 5),
         Row(
           children: [
-            Icon(Icons.search_rounded, size: 15, color: muted.withValues(alpha: 0.9)),
+            Icon(Icons.search_rounded,
+                size: 15, color: muted.withValues(alpha: 0.9)),
             const SizedBox(width: 4),
             Expanded(
               child: Text(

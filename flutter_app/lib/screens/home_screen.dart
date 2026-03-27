@@ -98,7 +98,8 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                     ),
                     child: Stack(
                       children: [
-                        const Positioned.fill(child: HomeDecorativeBackground()),
+                        const Positioned.fill(
+                            child: HomeDecorativeBackground()),
                         Column(
                           children: [
                             HomeHeaderBar(
@@ -127,7 +128,8 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                                           h.activeRoutineForRing,
                                       isEmpty: h.isEmptyDay,
                                     ),
-                                    if (h.currentRoutineStatusLabel != null) ...[
+                                    if (h.currentRoutineStatusLabel !=
+                                        null) ...[
                                       const SizedBox(height: 10),
                                       Text(
                                         h.currentRoutineStatusLabel!,

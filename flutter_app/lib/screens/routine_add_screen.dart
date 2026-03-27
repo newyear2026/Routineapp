@@ -239,7 +239,8 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
         child: SafeArea(
           child: Center(
             child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: HomeTheme.mobileWidth),
+              constraints:
+                  const BoxConstraints(maxWidth: HomeTheme.mobileWidth),
               child: Container(
                 margin: const EdgeInsets.all(16),
                 clipBehavior: Clip.antiAlias,
@@ -269,7 +270,8 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                               children: [
                                 AppCard(
                                   child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
                                     children: [
                                       PastelTextField(
                                         label: '루틴 이름',
@@ -280,8 +282,9 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                                       const SizedBox(height: 20),
                                       LayoutBuilder(
                                         builder: (context, constraints) {
-                                          final gap =
-                                              constraints.maxWidth < 340 ? 8.0 : 12.0;
+                                          final gap = constraints.maxWidth < 340
+                                              ? 8.0
+                                              : 12.0;
                                           return Row(
                                             crossAxisAlignment:
                                                 CrossAxisAlignment.start,
@@ -290,8 +293,8 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                                                 child: PastelTimeField(
                                                   label: '시작',
                                                   value: _startTime,
-                                                  onChanged: (t) =>
-                                                      setState(() => _startTime = t),
+                                                  onChanged: (t) => setState(
+                                                      () => _startTime = t),
                                                 ),
                                               ),
                                               SizedBox(width: gap),
@@ -299,8 +302,8 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                                                 child: PastelTimeField(
                                                   label: '종료',
                                                   value: _endTime,
-                                                  onChanged: (t) =>
-                                                      setState(() => _endTime = t),
+                                                  onChanged: (t) => setState(
+                                                      () => _endTime = t),
                                                 ),
                                               ),
                                             ],
@@ -337,7 +340,8 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                                     title: '알림 받기',
                                     subtitle: '설정한 시간에 알림을 보내드릴게요',
                                     value: _notificationEnabled,
-                                    onChanged: (v) => setState(() => _notificationEnabled = v),
+                                    onChanged: (v) => setState(
+                                        () => _notificationEnabled = v),
                                   ),
                                 ),
                                 const SizedBox(height: 24),

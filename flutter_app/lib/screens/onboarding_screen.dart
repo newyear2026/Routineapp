@@ -97,7 +97,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       'Routine Timer',
                       style: TextStyle(
                         fontSize: 16,
-                        color: const Color(0xFF8B7B9E).withOpacity(0.6),
+                        color: const Color(0xFF8B7B9E).withValues(alpha: 0.6),
                       ),
                     ),
                     TextButton(
@@ -157,7 +157,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           borderRadius: BorderRadius.circular(28),
                           boxShadow: [
                             BoxShadow(
-                              color: const Color(0xFFD4C5F0).withOpacity(0.4),
+                              color: const Color(0xFFD4C5F0)
+                                  .withValues(alpha: 0.4),
                               blurRadius: 20,
                               offset: const Offset(0, 8),
                             ),
@@ -165,9 +166,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         ),
                         child: Center(
                           child: Text(
-                            _currentPage == _pages.length - 1
-                                ? '시작하기'
-                                : '다음',
+                            _currentPage == _pages.length - 1 ? '시작하기' : '다음',
                             style: const TextStyle(
                               color: Colors.white,
                               fontSize: 16,
@@ -206,7 +205,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
               boxShadow: [
                 BoxShadow(
-                  color: page.gradientColors[0].withOpacity(0.4),
+                  color: page.gradientColors[0].withValues(alpha: 0.4),
                   blurRadius: 30,
                   offset: const Offset(0, 10),
                 ),
@@ -258,7 +257,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
       decoration: BoxDecoration(
         color: isActive
             ? const Color(0xFFD4C5F0)
-            : const Color(0xFFD4C5F0).withOpacity(0.3),
+            : const Color(0xFFD4C5F0).withValues(alpha: 0.3),
         borderRadius: BorderRadius.circular(4),
       ),
     );

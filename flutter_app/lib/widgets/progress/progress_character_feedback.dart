@@ -69,7 +69,8 @@ class ProgressFeedbackCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Text(content.titleEmoji, style: const TextStyle(fontSize: 20)),
+                    Text(content.titleEmoji,
+                        style: const TextStyle(fontSize: 20)),
                     const SizedBox(width: 8),
                     Text(
                       content.title,

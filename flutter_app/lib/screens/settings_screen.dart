@@ -130,7 +130,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                               width: 42,
                               height: 42,
                               decoration: BoxDecoration(
-                                color: HomeTheme.textMuted.withValues(alpha: 0.15),
+                                color:
+                                    HomeTheme.textMuted.withValues(alpha: 0.15),
                                 borderRadius: BorderRadius.circular(20),
                               ),
                               child: const Icon(
@@ -165,7 +166,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                     child: ListView(
                       padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
                       children: [
-                        _buildSectionTitle('알림 및 소리', Icons.notifications_active_rounded),
+                        _buildSectionTitle(
+                            '알림 및 소리', Icons.notifications_active_rounded),
                         _buildSettingsList([
                           _buildToggleItem(
                             Icons.notifications_rounded,
@@ -252,7 +254,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                                 style: TextStyle(
                                   fontSize: 12,
                                   fontWeight: FontWeight.w500,
-                                  color: HomeTheme.textMuted.withValues(alpha: 0.85),
+                                  color: HomeTheme.textMuted
+                                      .withValues(alpha: 0.85),
                                 ),
                               ),
                               const SizedBox(height: 4),
@@ -260,7 +263,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                                 'Routine Timer App',
                                 style: TextStyle(
                                   fontSize: 11,
-                                  color: HomeTheme.textMuted.withValues(alpha: 0.65),
+                                  color: HomeTheme.textMuted
+                                      .withValues(alpha: 0.65),
                                 ),
                               ),
                             ],
@@ -351,7 +355,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                               decoration: BoxDecoration(
                                 color: const Color(0xFF7FDD8F),
                                 shape: BoxShape.circle,
-                                border: Border.all(color: Colors.white, width: 2),
+                                border:
+                                    Border.all(color: Colors.white, width: 2),
                                 boxShadow: [
                                   BoxShadow(
                                     color: Colors.black.withValues(alpha: 0.08),
@@ -472,7 +477,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                   ),
                 ),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 14, vertical: 8),
                   decoration: BoxDecoration(
                     color: Colors.white.withValues(alpha: 0.75),
                     borderRadius: BorderRadius.circular(16),
@@ -524,7 +530,8 @@ class _SettingsScreenState extends State<SettingsScreen>
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon, size: 14, color: HomeTheme.textPrimary.withValues(alpha: 0.75)),
+          Icon(icon,
+              size: 14, color: HomeTheme.textPrimary.withValues(alpha: 0.75)),
           const SizedBox(width: 5),
           Text(
             label,
@@ -690,7 +697,8 @@ class _SettingsScreenState extends State<SettingsScreen>
                     color: color.withValues(alpha: 0.22),
                   ),
                 ),
-                child: Icon(icon, color: color.withValues(alpha: 0.95), size: 21),
+                child:
+                    Icon(icon, color: color.withValues(alpha: 0.95), size: 21),
               ),
               const SizedBox(width: 12),
               Expanded(

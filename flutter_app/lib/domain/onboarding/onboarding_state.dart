@@ -50,8 +50,8 @@ class OnboardingState {
   }) {
     return OnboardingState(
       hasSeenIntro: hasSeenIntro ?? this.hasSeenIntro,
-      hasCompletedInitialRoutineSetup:
-          hasCompletedInitialRoutineSetup ?? this.hasCompletedInitialRoutineSetup,
+      hasCompletedInitialRoutineSetup: hasCompletedInitialRoutineSetup ??
+          this.hasCompletedInitialRoutineSetup,
       hasHandledNotificationSetup:
           hasHandledNotificationSetup ?? this.hasHandledNotificationSetup,
     );
