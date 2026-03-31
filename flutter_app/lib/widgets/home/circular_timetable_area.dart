@@ -5,12 +5,12 @@ import 'package:flutter/material.dart';
 import '../../models/home_models.dart';
 import '../../theme/home_theme.dart';
 
-/// Home의 **원형 시간표 영역** — 시계 바늘이 아닌 하루 루틴 시간표 UI.
+/// Home **원형 하루 시간표** — 도넛형 조각 + 흰색 구간 경계 + 현재 시각 바늘.
 ///
-/// - [routines]: 시계 둘레 세그먼트(시작 시각 순). 비어 있으면 아무 것도 그리지 않음.
-/// - [currentTime]: 중앙 시각 텍스트 및 링 위 «지금» 위치 점.
-/// - [activeRoutine]: 강조할 루틴 — [RoutineSegment.id]와 id가 같아야 함. null이면 강조 없음.
-/// - [centerRoutineName]: 중앙에 표시할 현재 루틴 이름
+/// - [routines]: 시작 시각 순 세그먼트
+/// - [currentTime]: 중앙 시각 및 바늘 각도
+/// - [activeRoutine]: 강조 구간([RoutineSegment.id] 일치)
+/// - [centerRoutineName]: 중앙에 표시할 루틴 이름
 class CircularTimetableArea extends StatelessWidget {
   const CircularTimetableArea({
     super.key,
@@ -74,95 +74,12 @@ class _CircularTimetableView extends StatelessWidget {
         children: [
           CustomPaint(
             size: const Size(size, size),
-            painter: _TimetableRingPainter(
+            painter: _PieTimetablePainter(
               segments: segments,
               activeSegmentId: activeSegmentId,
               nowMinutesFromMidnight: nowMinutesFromMidnight,
             ),
           ),
-          ...segments.asMap().entries.map((e) {
-            final i = e.key;
-            final seg = e.value;
-            final next = segments[(i + 1) % segments.length];
-            final startRad =
-                (seg.startMinutesFromMidnight / (24 * 60)) * 2 * math.pi -
-                    math.pi / 2;
-            final endRad =
-                (next.startMinutesFromMidnight / (24 * 60)) * 2 * math.pi -
-                    math.pi / 2;
-            double mid = (startRad + endRad) / 2;
-            if (endRad < startRad) {
-              mid = (startRad + endRad + 2 * math.pi) / 2;
-              if (mid > math.pi) mid -= 2 * math.pi;
-            }
-            const midR = 102 / 2;
-            final x = 50 + midR * math.cos(mid);
-            final y = 50 + midR * math.sin(mid);
-            final isActive = seg.id == activeSegmentId;
-            final slotW = isActive ? 58.0 : 36.0;
-            final slotH = isActive ? 58.0 : 34.0;
-            return Positioned(
-              left: size * x / 100 - slotW / 2,
-              top: size * y / 100 - slotH / 2,
-              width: slotW,
-              height: slotH,
-              child: isActive
-                  ? Column(
-                      mainAxisSize: MainAxisSize.min,
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Text(
-                          seg.emoji,
-                          style: const TextStyle(fontSize: 22, height: 1),
-                        ),
-                        const SizedBox(height: 3),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 3,
-                          ),
-                          decoration: BoxDecoration(
-                            color: HomeTheme.accentPink.withValues(alpha: 0.42),
-                            borderRadius: BorderRadius.circular(10),
-                            border: Border.all(
-                              color:
-                                  HomeTheme.accentPink.withValues(alpha: 0.7),
-                              width: 1.2,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: HomeTheme.accentPink.withValues(
-                                  alpha: 0.28,
-                                ),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              ),
-                            ],
-                          ),
-                          child: Text(
-                            seg.label,
-                            style: const TextStyle(
-                              fontSize: 11,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: -0.15,
-                              color: HomeTheme.textPrimary,
-                            ),
-                          ),
-                        ),
-                      ],
-                    )
-                  : Center(
-                      child: Text(
-                        seg.emoji,
-                        style: TextStyle(
-                          fontSize: 17,
-                          height: 1,
-                          color: HomeTheme.textMuted.withValues(alpha: 0.85),
-                        ),
-                      ),
-                    ),
-            );
-          }),
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 8),
             child: Column(
@@ -221,72 +138,9 @@ class _CircularTimetableView extends StatelessWidget {
   }
 }
 
-/// 루틴 구간 경계 — 시간 가이드보다 길·진하게, 활성 구간 양끝은 더 강조
-void _drawRoutineBoundaryLine(
-  Canvas canvas,
-  Offset c,
-  double angleRad,
-  double ringInner,
-  double ringOuter,
-  double scale,
-  Color segmentColor,
-  bool emphasis,
-) {
-  final cos = math.cos(angleRad);
-  final sin = math.sin(angleRad);
-
-  /// 링 안쪽보다 조금 안쪽, 바깥은 링 밖으로 살짝 돌출해 끝이 분리되어 보이게
-  final rInner = ringInner - 1.4 * scale;
-  final rOuter = ringOuter + 3.0 * scale;
-
-  final strokeBlend = emphasis ? 0.42 : 0.28;
-  var lineColor = Color.lerp(
-    segmentColor,
-    const Color(0xFF5C4033),
-    strokeBlend,
-  )!;
-  if (emphasis) {
-    lineColor = Color.lerp(lineColor, HomeTheme.accentPink, 0.22)!;
-  }
-
-  final inner = Offset(c.dx + rInner * cos, c.dy + rInner * sin);
-  final outer = Offset(c.dx + rOuter * cos, c.dy + rOuter * sin);
-
-  final haloW = (emphasis ? 5.2 : 3.6) * scale;
-  final halo = Paint()
-    ..color = lineColor.withValues(alpha: 0.2)
-    ..strokeWidth = haloW
-    ..strokeCap = StrokeCap.round
-    ..style = PaintingStyle.stroke
-    ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.2);
-  canvas.drawLine(inner, outer, halo);
-
-  final mainW = (emphasis ? 3.0 : 2.0) * scale;
-  final main = Paint()
-    ..color = lineColor.withValues(alpha: emphasis ? 0.94 : 0.88)
-    ..strokeWidth = mainW
-    ..strokeCap = StrokeCap.round
-    ..style = PaintingStyle.stroke;
-  canvas.drawLine(inner, outer, main);
-
-  final capR = (emphasis ? 2.8 : 2.0) * scale;
-  final capPaint = Paint()
-    ..color = lineColor.withValues(alpha: 0.9)
-    ..style = PaintingStyle.fill;
-  canvas.drawCircle(outer, capR, capPaint);
-  canvas.drawCircle(
-    outer,
-    capR,
-    Paint()
-      ..color = Colors.white.withValues(alpha: 0.88)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1,
-  );
-}
-
-/// 동심원 도넛 + 시간 가이드 + 루틴 구간 + 현재 시각 점 (긴 바늘 없음)
-class _TimetableRingPainter extends CustomPainter {
-  _TimetableRingPainter({
+/// 참고 UI: 채워진 도넛 조각, **흰색** 구간 경계, 바깥 12·6 눈금, 흰색 현재 시각 바늘.
+class _PieTimetablePainter extends CustomPainter {
+  _PieTimetablePainter({
     required this.segments,
     required this.activeSegmentId,
     required this.nowMinutesFromMidnight,
@@ -300,52 +154,198 @@ class _TimetableRingPainter extends CustomPainter {
     return (minutes / (24 * 60)) * 2 * math.pi - math.pi / 2;
   }
 
+  static void _addAnnulusSector(
+    Path path,
+    Offset c,
+    double rInner,
+    double rOuter,
+    double startRad,
+    double sweep,
+  ) {
+    final endRad = startRad + sweep;
+    path.moveTo(
+      c.dx + rInner * math.cos(startRad),
+      c.dy + rInner * math.sin(startRad),
+    );
+    path.lineTo(
+      c.dx + rOuter * math.cos(startRad),
+      c.dy + rOuter * math.sin(startRad),
+    );
+    path.arcTo(
+      Rect.fromCircle(center: c, radius: rOuter),
+      startRad,
+      sweep,
+      false,
+    );
+    path.lineTo(
+      c.dx + rInner * math.cos(endRad),
+      c.dy + rInner * math.sin(endRad),
+    );
+    path.arcTo(
+      Rect.fromCircle(center: c, radius: rInner),
+      endRad,
+      -sweep,
+      false,
+    );
+    path.close();
+  }
+
+  void _drawWhiteBoundary(
+    Canvas canvas,
+    Offset c,
+    double angleRad,
+    double rInner,
+    double rOuter,
+    double scale, {
+    required bool emphasis,
+  }) {
+    final cos = math.cos(angleRad);
+    final sin = math.sin(angleRad);
+    final inner = Offset(c.dx + rInner * cos, c.dy + rInner * sin);
+    final outer = Offset(c.dx + rOuter * cos, c.dy + rOuter * sin);
+    final w = (emphasis ? 2.85 : 2.0) * scale;
+    final p = Paint()
+      ..color = Colors.white.withValues(alpha: emphasis ? 0.98 : 0.9)
+      ..strokeWidth = w
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke;
+    if (emphasis) {
+      canvas.drawLine(
+        inner,
+        outer,
+        Paint()
+          ..color = Colors.white.withValues(alpha: 0.22)
+          ..strokeWidth = w + 3 * scale
+          ..strokeCap = StrokeCap.round
+          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 1.5),
+      );
+    }
+    canvas.drawLine(inner, outer, p);
+  }
+
+  void _paintSegmentLabel(
+    Canvas canvas,
+    Offset c,
+    double midRad,
+    double rMid,
+    String text,
+    double sweepRad,
+    double scale,
+  ) {
+    if (text.isEmpty) return;
+    final sweepDeg = sweepRad.abs() * 180 / math.pi;
+    final useRadial = sweepDeg < 16;
+    final fontSize =
+        (sweepDeg < 12 ? 8.5 : (sweepDeg < 28 ? 9.5 : 11.0)) * scale;
+
+    final arcChord = rMid * sweepRad.abs();
+    final maxW = math.min(arcChord * 0.92, 72 * scale);
+
+    final tp = TextPainter(
+      text: TextSpan(
+        text: text,
+        style: TextStyle(
+          color: Colors.white.withValues(alpha: 0.96),
+          fontSize: fontSize,
+          fontWeight: FontWeight.w700,
+          height: 1.1,
+          letterSpacing: -0.2,
+          shadows: [
+            Shadow(
+              color: Colors.black.withValues(alpha: 0.22),
+              blurRadius: 2,
+              offset: const Offset(0, 0.5),
+            ),
+          ],
+        ),
+      ),
+      textDirection: TextDirection.ltr,
+      maxLines: useRadial ? 3 : 2,
+      ellipsis: '…',
+      textAlign: TextAlign.center,
+    );
+    tp.layout(maxWidth: maxW);
+
+    final ox = c.dx + rMid * math.cos(midRad);
+    final oy = c.dy + rMid * math.sin(midRad);
+    canvas.save();
+    canvas.translate(ox, oy);
+
+    /// 좁은 조각: 반지름 방향 정렬, 넓은 조각: 접선(가로에 가깝게) 정렬
+    canvas.rotate(useRadial ? midRad : midRad + math.pi / 2);
+    tp.paint(canvas, Offset(-tp.width / 2, -tp.height / 2));
+    canvas.restore();
+  }
+
+  void _paintCornerHour(
+    Canvas canvas,
+    Offset c,
+    double outerR,
+    double scale,
+    double angleRad,
+    String primary,
+    String? secondary,
+  ) {
+    final r = outerR + 20 * scale;
+    final ox = c.dx + r * math.cos(angleRad);
+    final oy = c.dy + r * math.sin(angleRad);
+
+    final children = <InlineSpan>[
+      TextSpan(
+        text: primary,
+        style: TextStyle(
+          color: const Color(0xFF6B6570).withValues(alpha: 0.88),
+          fontSize: 13 * scale,
+          fontWeight: FontWeight.w700,
+          height: 1.05,
+        ),
+      ),
+      if (secondary != null)
+        TextSpan(
+          text: '\n$secondary',
+          style: TextStyle(
+            color: const Color(0xFF6B6570).withValues(alpha: 0.78),
+            fontSize: 11 * scale,
+            height: 1.1,
+          ),
+        ),
+    ];
+
+    final tp = TextPainter(
+      text: TextSpan(children: children),
+      textDirection: TextDirection.ltr,
+      textAlign: TextAlign.center,
+    );
+    tp.layout();
+    tp.paint(
+      canvas,
+      Offset(ox - tp.width / 2, oy - tp.height / 2),
+    );
+  }
+
   @override
   void paint(Canvas canvas, Size size) {
     final c = Offset(size.width / 2, size.height / 2);
     final scale = size.width / 200;
-    final innerR = 58 * scale;
-    final outerR = 87 * scale;
-    final midR = (innerR + outerR) / 2;
-    final strokeW = outerR - innerR;
-    final ringInner = midR - strokeW / 2;
-    final ringOuter = midR + strokeW / 2;
-    final centerHoleR = 50 * scale;
 
-    final glow = Paint()
-      ..color = const Color(0xFFE8DDFA).withValues(alpha: 0.35)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 18);
-    canvas.drawCircle(c, outerR + 8, glow);
+    /// 링 반경 (200 기준 설계 → 320에서 scale)
+    final centerHoleR = 44 * scale;
+    final ringOuter = 91 * scale;
 
-    final bg = Paint()..color = const Color(0xFFFFF9F5);
-    canvas.drawCircle(c, outerR + 4, bg);
+    final dialShadow = Paint()
+      ..color = const Color(0xFFC5C5CE).withValues(alpha: 0.28)
+      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 10);
+    canvas.drawCircle(c, ringOuter + 5 * scale, dialShadow);
 
-    // —— 시간 가이드: 가늘고 은은하게 (루틴 경계보다 약하게)
-    for (var h = 0; h < 24; h++) {
-      final angle = _minutesToRad(h * 60);
-      final isMajor = h == 0 || h == 6 || h == 12 || h == 18;
-      final paint = Paint()
-        ..color = const Color(0xFFB8A4C9).withValues(
-          alpha: isMajor ? 0.22 : 0.085,
-        )
-        ..strokeWidth = isMajor ? 0.95 * scale : 0.55 * scale
-        ..strokeCap = StrokeCap.round
-        ..style = PaintingStyle.stroke;
-      final r0 = centerHoleR + 2 * scale;
-      final r1 = ringInner - 1.5 * scale;
-      final start = Offset(
-        c.dx + r0 * math.cos(angle),
-        c.dy + r0 * math.sin(angle),
-      );
-      final end = Offset(
-        c.dx + r1 * math.cos(angle),
-        c.dy + r1 * math.sin(angle),
-      );
-      canvas.drawLine(start, end, paint);
-    }
+    final dialRim = Paint()
+      ..color = const Color(0xFFE6E6EB)
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 3.2 * scale;
+    canvas.drawCircle(c, ringOuter + 1.2 * scale, dialRim);
 
-    // —— 루틴 구간 호
     final n = segments.length;
+
+    // —— 채워진 루틴 조각
     for (var i = 0; i < n; i++) {
       final seg = segments[i];
       final next = segments[(i + 1) % n];
@@ -357,120 +357,126 @@ class _TimetableRingPainter extends CustomPainter {
       if (sweep <= 0) sweep += 2 * math.pi;
 
       final isActive = seg.id == activeSegmentId;
-
+      var fillColor = Color.lerp(seg.color, Colors.white, 0.06)!;
       if (isActive) {
-        final glow = Paint()
-          ..color = HomeTheme.accentPink.withValues(alpha: 0.38)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = strokeW + 12
-          ..strokeCap = StrokeCap.round
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 5);
-        canvas.drawArc(
-          Rect.fromCircle(center: c, radius: midR),
-          startRad,
-          sweep,
-          false,
-          glow,
-        );
+        fillColor = Color.lerp(fillColor, Colors.white, 0.12)!;
       }
 
-      final paint = Paint()
-        ..color = seg.color.withValues(alpha: isActive ? 1.0 : 0.52)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeW
-        ..strokeCap = isActive ? StrokeCap.round : StrokeCap.butt;
-
-      canvas.drawArc(
-        Rect.fromCircle(center: c, radius: midR),
-        startRad,
-        sweep,
-        false,
-        paint,
+      final path = Path();
+      _addAnnulusSector(path, c, centerHoleR, ringOuter, startRad, sweep);
+      canvas.drawPath(
+        path,
+        Paint()..color = fillColor.withValues(alpha: isActive ? 1.0 : 0.93),
       );
-
-      if (isActive) {
-        final hi = Paint()
-          ..color = Colors.white.withValues(alpha: 0.75)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 5
-          ..strokeCap = StrokeCap.round;
-        canvas.drawArc(
-          Rect.fromCircle(center: c, radius: midR),
-          startRad,
-          sweep,
-          false,
-          hi,
-        );
-        final rim = Paint()
-          ..color = const Color(0xFFFF8CA8).withValues(alpha: 0.55)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2.5
-          ..strokeCap = StrokeCap.round;
-        canvas.drawArc(
-          Rect.fromCircle(center: c, radius: midR + strokeW * 0.35),
-          startRad,
-          sweep,
-          false,
-          rim,
-        );
-      }
     }
 
-    // —— 루틴 구간 경계 (호 위에 그림): 시작=이전 구간 종료와 동일 각도
+    // —— 정시 사이 작은 점 (0·6·12·18 제외)
+    for (var h = 0; h < 24; h++) {
+      if (h % 6 == 0) continue;
+      final ang = _minutesToRad(h * 60);
+      final rDot = (centerHoleR + ringOuter) / 2;
+      final p = Offset(
+        c.dx + rDot * math.cos(ang),
+        c.dy + rDot * math.sin(ang),
+      );
+      canvas.drawCircle(
+        p,
+        1.15 * scale,
+        Paint()..color = const Color(0xFF8A8790).withValues(alpha: 0.38),
+      );
+    }
+
+    // —— 루틴 구간 흰색 경계
     for (var i = 0; i < n; i++) {
       final seg = segments[i];
       final prev = segments[(i - 1 + n) % n];
       final startRad =
           (seg.startMinutesFromMidnight / (24 * 60)) * 2 * math.pi -
               math.pi / 2;
-
-      /// 이 선은 seg의 시작이자 prev의 끝 → 둘 중 하나가 활성이면 강조
       final emphasis = activeSegmentId.isNotEmpty &&
           (seg.id == activeSegmentId || prev.id == activeSegmentId);
-
-      _drawRoutineBoundaryLine(
+      _drawWhiteBoundary(
         canvas,
         c,
         startRad,
-        ringInner,
+        centerHoleR,
         ringOuter,
         scale,
-        seg.color,
-        emphasis,
+        emphasis: emphasis,
       );
     }
 
-    // —— 현재 시각: 링 바깥쪽 작은 점 (긴 바늘 없음)
-    final nowRad = _minutesToRad(nowMinutesFromMidnight);
-    final dotR = ringOuter + 3.2 * scale;
-    final dotCenter = Offset(
-      c.dx + dotR * math.cos(nowRad),
-      c.dy + dotR * math.sin(nowRad),
-    );
-    final dotGlow = Paint()
-      ..color = const Color(0xFFFFB8C6).withValues(alpha: 0.45)
-      ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
-    canvas.drawCircle(dotCenter, 7 * scale, dotGlow);
-    final dotFill = Paint()
-      ..color = const Color(0xFFE07A5F).withValues(alpha: 0.92);
-    canvas.drawCircle(dotCenter, 4.2 * scale, dotFill);
-    final dotRim = Paint()
-      ..color = Colors.white.withValues(alpha: 0.9)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1.2;
-    canvas.drawCircle(dotCenter, 4.2 * scale, dotRim);
+    // —— 바깥 12(자)·6 시 표기 (상=자정 🌙, 하=정오 ☀️)
+    _paintCornerHour(canvas, c, ringOuter, scale, -math.pi / 2, '12', '🌙');
+    _paintCornerHour(canvas, c, ringOuter, scale, 0, '6', null);
+    _paintCornerHour(canvas, c, ringOuter, scale, math.pi / 2, '12', '☀️');
+    _paintCornerHour(canvas, c, ringOuter, scale, math.pi, '6', null);
 
-    final centerPaint = Paint()..color = Colors.white;
-    canvas.drawCircle(c, centerHoleR, centerPaint);
-    final centerBorder = Paint()
-      ..color = const Color(0xFFB8A4C9).withValues(alpha: 0.12)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
-    canvas.drawCircle(c, centerHoleR, centerBorder);
+    // —— 현재 시각: 중심에서 바깥까지 흰색 둥근 바늘
+    final nowRad = _minutesToRad(nowMinutesFromMidnight);
+    final pivotR = 6.2 * scale;
+    final handInner = Offset(
+      c.dx + pivotR * math.cos(nowRad),
+      c.dy + pivotR * math.sin(nowRad),
+    );
+    final handOuter = Offset(
+      c.dx + (ringOuter + 1.5 * scale) * math.cos(nowRad),
+      c.dy + (ringOuter + 1.5 * scale) * math.sin(nowRad),
+    );
+    canvas.drawLine(
+      handInner,
+      handOuter,
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.94)
+        ..strokeWidth = 6.8 * scale
+        ..strokeCap = StrokeCap.round
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 0.6),
+    );
+    canvas.drawLine(
+      handInner,
+      handOuter,
+      Paint()
+        ..color = Colors.white.withValues(alpha: 1)
+        ..strokeWidth = 5.2 * scale
+        ..strokeCap = StrokeCap.round,
+    );
+
+    // —— 조각 안 라벨 (흰색, 바늘 위에 그려 가독성 유지)
+    for (var i = 0; i < n; i++) {
+      final seg = segments[i];
+      final next = segments[(i + 1) % n];
+      var startRad = (seg.startMinutesFromMidnight / (24 * 60)) * 2 * math.pi -
+          math.pi / 2;
+      var endRad = (next.startMinutesFromMidnight / (24 * 60)) * 2 * math.pi -
+          math.pi / 2;
+      var sweep = endRad - startRad;
+      if (sweep <= 0) sweep += 2 * math.pi;
+      final mid = startRad + sweep / 2;
+      final rMid = centerHoleR + (ringOuter - centerHoleR) * 0.52;
+      _paintSegmentLabel(canvas, c, mid, rMid, seg.label, sweep, scale);
+    }
+
+    // —— 중앙 축 (바늘·라벨 위)
+    canvas.drawCircle(
+      c,
+      pivotR + 1.4 * scale,
+      Paint()
+        ..color = Colors.white.withValues(alpha: 0.35)
+        ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 3),
+    );
+    canvas.drawCircle(c, pivotR, Paint()..color = Colors.white);
+    canvas.drawCircle(
+      c,
+      pivotR,
+      Paint()
+        ..color = const Color(0xFFD8D4DE).withValues(alpha: 0.5)
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 1,
+    );
   }
 
   @override
-  bool shouldRepaint(covariant _TimetableRingPainter oldDelegate) {
+  bool shouldRepaint(covariant _PieTimetablePainter oldDelegate) {
     return oldDelegate.segments != segments ||
         oldDelegate.activeSegmentId != activeSegmentId ||
         oldDelegate.nowMinutesFromMidnight != nowMinutesFromMidnight;
