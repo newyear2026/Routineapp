@@ -43,6 +43,20 @@ class MiniCircularTimetable extends StatelessWidget {
         clipBehavior: Clip.none,
         alignment: Alignment.center,
         children: [
+          Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  Colors.white.withValues(alpha: 0.92),
+                  const Color(0xFFFFF8F0).withValues(alpha: 0.82),
+                  const Color(0xFFF3ECFF).withValues(alpha: 0.74),
+                ],
+              ),
+            ),
+          ),
           CustomPaint(
             size: Size(size, size),
             painter: _MiniDonutRingPainter(
@@ -144,7 +158,7 @@ class _MiniDonutRingPainter extends CustomPainter {
     final strokeW = outerR - innerR;
 
     final track = Paint()
-      ..color = const Color(0xFFF0E8E0).withValues(alpha: 0.65)
+      ..color = const Color(0xFFF0E8E0).withValues(alpha: 0.52)
       ..style = PaintingStyle.stroke
       ..strokeWidth = strokeW;
     canvas.drawArc(
@@ -165,7 +179,7 @@ class _MiniDonutRingPainter extends CustomPainter {
 
       if (isActive) {
         final glow = Paint()
-          ..color = const Color(0xFFFF8CA8).withValues(alpha: 0.35)
+          ..color = const Color(0xFFFF8CA8).withValues(alpha: 0.24)
           ..style = PaintingStyle.stroke
           ..strokeWidth = strokeW + 8
           ..strokeCap = StrokeCap.round
@@ -180,7 +194,7 @@ class _MiniDonutRingPainter extends CustomPainter {
       }
 
       final paint = Paint()
-        ..color = seg.color.withValues(alpha: isActive ? 1.0 : 0.72)
+        ..color = seg.color.withValues(alpha: isActive ? 1.0 : 0.82)
         ..style = PaintingStyle.stroke
         ..strokeWidth = strokeW
         ..strokeCap = StrokeCap.round;
@@ -194,7 +208,7 @@ class _MiniDonutRingPainter extends CustomPainter {
       );
     }
 
-    final hole = Paint()..color = const Color(0xFFFFF9F5);
+    final hole = Paint()..color = const Color(0xFFFFFBF7);
     canvas.drawCircle(c, innerR - 1, hole);
 
     final holeBorder = Paint()

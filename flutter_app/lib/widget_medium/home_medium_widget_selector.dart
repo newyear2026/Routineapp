@@ -29,13 +29,15 @@ abstract final class HomeMediumWidgetSelector {
       isUpcomingOnly: h.isDisplayUpcoming,
     );
 
-    var nextLine = '다음 루틴이 없어요';
+    var nextTitle = '다음 루틴 없음';
+    var nextTime = '—';
     if (h.nextRoutineCard != null) {
       final n = h.nextRoutineCard!;
-      nextLine = '다음: ${n.name} (${n.time})';
+      nextTitle = n.name;
+      nextTime = n.time;
     } else if (next != null) {
-      nextLine =
-          '다음: ${next.title} (${TimeMinutes.formatHm(next.startMinutesFromMidnight)})';
+      nextTitle = next.title;
+      nextTime = TimeMinutes.formatHm(next.startMinutesFromMidnight);
     }
 
     final ring = _ringSegmentsFromUiSegments(h.segments);
@@ -47,8 +49,11 @@ abstract final class HomeMediumWidgetSelector {
       currentRoutineTitle: title,
       currentRoutineIconEmoji: emoji,
       currentRoutineTimeRange: timeRange,
+      currentRoutineTimingHint:
+          h.currentRoutineCard?.timingHint ?? (h.isDisplayUpcoming ? '시작까지 확인' : '오늘 일정 확인'),
       currentRoutineStatusLabel: status,
-      nextRoutineLine: nextLine,
+      nextRoutineTitle: nextTitle,
+      nextRoutineTime: nextTime,
       currentTime: h.clockTime,
       centerTimeLabel: '현재 시간',
       ringSegments: ring,

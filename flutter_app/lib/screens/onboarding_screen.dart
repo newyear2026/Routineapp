@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../data/local/onboarding_local_storage.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
+import '../theme/app_theme_preset.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/ds/ds.dart';
 
@@ -73,9 +74,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.appTheme;
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.pageGradient),
+        decoration: BoxDecoration(gradient: theme.pageGradient),
         child: SafeArea(
           child: Center(
             child: ConstrainedBox(

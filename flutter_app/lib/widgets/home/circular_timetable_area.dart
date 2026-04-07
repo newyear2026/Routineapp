@@ -75,6 +75,38 @@ class _CircularTimetableView extends StatelessWidget {
         clipBehavior: Clip.none,
         alignment: Alignment.center,
         children: [
+          Container(
+            width: size,
+            height: size,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              gradient: RadialGradient(
+                colors: [
+                  Colors.white.withValues(alpha: 0.96),
+                  const Color(0xFFFFF7FB).withValues(alpha: 0.88),
+                  const Color(0xFFF4EEFF).withValues(alpha: 0.74),
+                ],
+              ),
+              boxShadow: [
+                BoxShadow(
+                  color: HomeTheme.accentPink.withValues(alpha: 0.12),
+                  blurRadius: 30,
+                  offset: const Offset(0, 12),
+                ),
+              ],
+            ),
+          ),
+          Container(
+            width: size * 0.78,
+            height: size * 0.78,
+            decoration: BoxDecoration(
+              shape: BoxShape.circle,
+              border: Border.all(
+                color: Colors.white.withValues(alpha: 0.8),
+                width: 2,
+              ),
+            ),
+          ),
           CustomPaint(
             size: Size(size, size),
             painter: _PieTimetablePainter(
@@ -120,16 +152,29 @@ class _CircularTimetableView extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 4),
-                Text(
-                  activeRoutineName,
-                  textAlign: TextAlign.center,
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    fontWeight: FontWeight.w800,
-                    height: 1.2,
-                    color: HomeTheme.textPrimary,
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 6,
+                  ),
+                  decoration: BoxDecoration(
+                    color: Colors.white.withValues(alpha: 0.72),
+                    borderRadius: BorderRadius.circular(999),
+                    border: Border.all(
+                      color: HomeTheme.accentPink.withValues(alpha: 0.18),
+                    ),
+                  ),
+                  child: Text(
+                    activeRoutineName,
+                    textAlign: TextAlign.center,
+                    maxLines: 2,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 14,
+                      fontWeight: FontWeight.w800,
+                      height: 1.2,
+                      color: HomeTheme.textPrimary,
+                    ),
                   ),
                 ),
               ],
@@ -215,7 +260,7 @@ class _PieTimetablePainter extends CustomPainter {
     final outer = Offset(c.dx + rOuter * cos, c.dy + rOuter * sin);
     final w = (emphasis ? 2.85 : 2.0) * scale;
     final p = Paint()
-      ..color = Colors.white.withValues(alpha: emphasis ? 0.98 : 0.9)
+      ..color = Colors.white.withValues(alpha: emphasis ? 0.98 : 0.82)
       ..strokeWidth = w
       ..strokeCap = StrokeCap.round
       ..style = PaintingStyle.stroke;
@@ -262,7 +307,7 @@ class _PieTimetablePainter extends CustomPainter {
           letterSpacing: -0.2,
           shadows: [
             Shadow(
-              color: Colors.black.withValues(alpha: 0.22),
+              color: Colors.black.withValues(alpha: 0.16),
               blurRadius: 2,
               offset: const Offset(0, 0.5),
             ),

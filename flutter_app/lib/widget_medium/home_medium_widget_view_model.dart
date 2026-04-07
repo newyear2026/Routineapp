@@ -12,8 +12,10 @@ class HomeMediumWidgetViewModel {
     required this.currentRoutineTitle,
     required this.currentRoutineIconEmoji,
     required this.currentRoutineTimeRange,
+    required this.currentRoutineTimingHint,
     required this.currentRoutineStatusLabel,
-    required this.nextRoutineLine,
+    required this.nextRoutineTitle,
+    required this.nextRoutineTime,
     required this.currentTime,
     required this.centerTimeLabel,
     required this.ringSegments,
@@ -27,10 +29,11 @@ class HomeMediumWidgetViewModel {
   final String currentRoutineTitle;
   final String currentRoutineIconEmoji;
   final String currentRoutineTimeRange;
+  final String currentRoutineTimingHint;
   final String currentRoutineStatusLabel;
 
-  /// 예: `다음: search (21:00)`
-  final String nextRoutineLine;
+  final String nextRoutineTitle;
+  final String nextRoutineTime;
 
   final TimeOfDay currentTime;
   final String centerTimeLabel;
@@ -49,8 +52,10 @@ class HomeMediumWidgetViewModel {
       currentRoutineTitle: 'Game',
       currentRoutineIconEmoji: '📌',
       currentRoutineTimeRange: '21:00 - 23:00',
+      currentRoutineTimingHint: '종료까지 1시간 30분 남음',
       currentRoutineStatusLabel: '진행 중',
-      nextRoutineLine: '다음: search (21:00)',
+      nextRoutineTitle: 'search',
+      nextRoutineTime: '21:00',
       currentTime: const TimeOfDay(hour: 21, minute: 30),
       centerTimeLabel: '현재 시간',
       activeSegmentId: 'seg_game',

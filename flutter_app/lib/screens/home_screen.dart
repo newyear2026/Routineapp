@@ -6,6 +6,7 @@ import '../app_route_observer.dart';
 import '../application/home/home_snapshot.dart';
 import '../application/routine_app_controller.dart';
 import '../theme/home_theme.dart';
+import '../theme/app_theme_preset.dart';
 import '../widgets/home/current_routine_card.dart';
 import '../widgets/home/home_bottom_actions.dart';
 import '../widgets/home/home_character_section.dart';
@@ -62,6 +63,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
         }
 
         final HomeSnapshot h = app.homeSnapshot;
+        final theme = context.appTheme;
 
         return Scaffold(
           floatingActionButton: FloatingActionButton(
@@ -75,7 +77,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
           body: Container(
             width: double.infinity,
             height: double.infinity,
-            decoration: const BoxDecoration(gradient: HomeTheme.pageGradient),
+            decoration: BoxDecoration(gradient: theme.pageGradient),
             child: SafeArea(
               child: Center(
                 child: ConstrainedBox(
@@ -87,7 +89,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                     decoration: BoxDecoration(
                       borderRadius:
                           BorderRadius.circular(HomeTheme.shellRadius),
-                      gradient: HomeTheme.shellGradient,
+                      gradient: theme.shellGradient,
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.12),

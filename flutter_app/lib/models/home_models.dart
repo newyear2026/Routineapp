@@ -31,6 +31,7 @@ class CurrentRoutine {
     required this.emoji,
     required this.startTime,
     required this.endTime,
+    required this.timingHint,
     required this.progress,
     required this.repeatDays,
     required this.memo,
@@ -41,6 +42,7 @@ class CurrentRoutine {
   final String emoji;
   final String startTime;
   final String endTime;
+  final String timingHint;
   final int progress;
   final List<String> repeatDays;
   final String memo;

@@ -1,11 +1,14 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:provider/provider.dart';
 
+import '../application/routine_app_controller.dart';
 import '../application/services/notification_permission_service.dart';
 import '../data/local/notification_preferences_storage.dart';
 import '../data/local/onboarding_local_storage.dart';
 import '../domain/settings/notification_permission_status.dart';
 import '../domain/settings/notification_preferences.dart';
+import '../theme/app_theme_preset.dart';
 import '../theme/home_theme.dart';
 import '../widgets/ds/ds.dart';
 
@@ -109,9 +112,11 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   @override
   Widget build(BuildContext context) {
+    final theme = context.appTheme;
+    final controller = context.watch<RoutineAppController>();
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(gradient: AppColors.pageGradient),
+        decoration: BoxDecoration(gradient: theme.pageGradient),
         child: Stack(
           children: [
             ..._buildSubtleDecorations(),
@@ -197,10 +202,15 @@ class _SettingsScreenState extends State<SettingsScreen>
                             '테마 설정',
                             const Color(0xFFE8DDFA),
                             null,
-                            statusLabel: '준비 중',
-                            description: '색상 테마 선택 기능을 준비하고 있어요',
+                            statusLabel: '활성',
+                            description: '앱 전체에 적용할 테마 프리셋을 고를 수 있어요',
                           ),
                         ]),
+                        const SizedBox(height: 14),
+                        _ThemePresetSection(
+                          currentThemeId: controller.themeId,
+                          onSelected: controller.updateTheme,
+                        ),
                         const SizedBox(height: 26),
                         _buildSectionTitle('지원', Icons.support_rounded),
                         _buildSettingsList([
@@ -715,5 +725,97 @@ class _SettingsScreenState extends State<SettingsScreen>
         );
       }),
     ];
+  }
+}
+
+class _ThemePresetSection extends StatelessWidget {
+  const _ThemePresetSection({
+    required this.currentThemeId,
+    required this.onSelected,
+  });
+
+  final String currentThemeId;
+  final ValueChanged<String> onSelected;
+
+  @override
+  Widget build(BuildContext context) {
+    return AppCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            '테마 프리셋',
+            style: AppTextStyles.titleSection.copyWith(fontSize: 15),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '배경과 버튼, 강조색이 함께 바뀝니다.',
+            style: AppTextStyles.caption.copyWith(height: 1.35),
+          ),
+          const SizedBox(height: 14),
+          Column(
+            children: AppThemePreset.all.map((preset) {
+              final selected = preset.id == currentThemeId;
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Material(
+                  color: Colors.transparent,
+                  child: InkWell(
+                    onTap: () => onSelected(preset.id),
+                    borderRadius: BorderRadius.circular(18),
+                    child: Ink(
+                      padding: const EdgeInsets.all(14),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withValues(alpha: 0.6),
+                        borderRadius: BorderRadius.circular(18),
+                        border: Border.all(
+                          color: selected
+                              ? preset.accentLavender.withValues(alpha: 0.85)
+                              : AppColors.border.withValues(alpha: 0.45),
+                          width: selected ? 1.6 : 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          ...preset.previewColors.map(
+                            (color) => Container(
+                              width: 22,
+                              height: 22,
+                              margin: const EdgeInsets.only(right: 6),
+                              decoration: BoxDecoration(
+                                color: color,
+                                shape: BoxShape.circle,
+                                border: Border.all(
+                                  color: Colors.white.withValues(alpha: 0.9),
+                                  width: 1.5,
+                                ),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 8),
+                          Expanded(
+                            child: Text(
+                              preset.label,
+                              style: AppTextStyles.bodyStrong.copyWith(
+                                fontSize: 15,
+                              ),
+                            ),
+                          ),
+                          if (selected)
+                            const AppStatusBadge(
+                              label: '사용 중',
+                              tone: AppStatusBadgeTone.success,
+                            ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+              );
+            }).toList(),
+          ),
+        ],
+      ),
+    );
   }
 }

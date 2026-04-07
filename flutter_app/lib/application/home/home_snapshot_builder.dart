@@ -63,6 +63,7 @@ abstract final class HomeSnapshotBuilder {
 
     final activeRing =
         current != null ? HomeViewMapper.ringStubFromRoutine(current) : null;
+    final isUpcoming = current == null && display != null;
 
     CurrentRoutine? card;
     NextRoutine? nextCard;
@@ -71,7 +72,11 @@ abstract final class HomeSnapshotBuilder {
       final windowPct = current != null && current.id == display.id
           ? progressService.progressPercentInWindow(display, nowLocal)
           : 0;
-      card = HomeViewMapper.toCurrentRoutine(display, windowPct);
+      card = HomeViewMapper.toCurrentRoutine(
+        display,
+        windowPct,
+        _timingHint(nowLocal: nowLocal, display: display, isUpcoming: isUpcoming),
+      );
       nextCard = HomeViewMapper.toNextRoutine(nextAfterDisplay);
       character = HomeViewMapper.characterFor(display);
     } else {
@@ -84,7 +89,6 @@ abstract final class HomeSnapshotBuilder {
       );
     }
 
-    final isUpcoming = current == null && display != null;
     final canAct = current != null &&
         RoutineStateResolver.canApplyUserAction(
           routine: current,
@@ -215,5 +219,30 @@ abstract final class HomeSnapshotBuilder {
       return '${nextRoutine.title} 루틴은 $time에 시작해요.';
     }
     return '오늘 예정된 루틴을 모두 마쳤어요.';
+  }
+
+  static String _timingHint({
+    required DateTime nowLocal,
+    required Routine display,
+    required bool isUpcoming,
+  }) {
+    final nowMinutes = nowLocal.hour * 60 + nowLocal.minute;
+    final targetMinutes = isUpcoming
+        ? display.startMinutesFromMidnight - nowMinutes
+        : display.endMinutesFromMidnight - nowMinutes;
+    final safeMinutes = targetMinutes.clamp(0, 24 * 60);
+    if (safeMinutes <= 0) {
+      return isUpcoming ? '곧 시작해요' : '마감 시각이에요';
+    }
+    final label = _durationLabel(safeMinutes);
+    return isUpcoming ? '시작까지 $label 남음' : '종료까지 $label 남음';
+  }
+
+  static String _durationLabel(int minutes) {
+    final h = minutes ~/ 60;
+    final m = minutes % 60;
+    if (h > 0 && m > 0) return '$h시간 $m분';
+    if (h > 0) return '$h시간';
+    return '$m분';
   }
 }

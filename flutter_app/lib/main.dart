@@ -16,6 +16,7 @@ import 'screens/today_progress_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/routine_add_screen.dart';
 import 'screens/widget_medium_preview_screen.dart';
+import 'theme/app_theme_preset.dart';
 import 'widget_home/home_widget_sync_service.dart';
 
 Future<void> main() async {
@@ -42,15 +43,22 @@ class RoutineTimerApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => RoutineAppController()..load(),
-      child: MaterialApp.router(
-        scaffoldMessengerKey: appScaffoldMessengerKey,
-        title: 'Routine Timer',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          useMaterial3: true,
-          scaffoldBackgroundColor: Colors.transparent,
-        ),
-        routerConfig: _router,
+      child: Consumer<RoutineAppController>(
+        builder: (context, app, _) {
+          return MaterialApp.router(
+            scaffoldMessengerKey: appScaffoldMessengerKey,
+            title: 'Routine Timer',
+            debugShowCheckedModeBanner: false,
+            theme: ThemeData(
+              useMaterial3: true,
+              scaffoldBackgroundColor: Colors.transparent,
+              extensions: <ThemeExtension<dynamic>>[
+                AppThemeTokens(preset: app.currentThemePreset),
+              ],
+            ),
+            routerConfig: _router,
+          );
+        },
       ),
     );
   }

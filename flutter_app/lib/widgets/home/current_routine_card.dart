@@ -108,6 +108,18 @@ class CurrentRoutineCard extends StatelessWidget {
                         letterSpacing: 0.1,
                       ),
                     ),
+                    const SizedBox(height: 5),
+                    Text(
+                      routine.timingHint,
+                      style: TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w700,
+                        color: (isUpcoming
+                                ? _chipMuted
+                                : HomeTheme.accentPink)
+                            .withValues(alpha: 0.92),
+                      ),
+                    ),
                     const SizedBox(height: 7),
                     Align(
                       alignment: Alignment.centerLeft,

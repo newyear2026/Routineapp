@@ -3,19 +3,23 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../app_scaffold_messenger.dart';
+import '../application/mappers/home_view_mapper.dart';
 import '../application/routine_app_controller.dart';
 import '../data/routine_form_palette.dart';
 import '../domain/models/routine.dart';
 import '../domain/routine_overlap/routine_schedule_overlap.dart';
 import '../domain/utils/time_minutes.dart';
 import '../domain/validation/routine_form_validator.dart';
+import '../models/home_models.dart';
 import '../theme/home_theme.dart';
+import '../theme/app_theme_preset.dart';
 import '../widgets/ds/ds.dart';
 import '../widgets/form/pastel_color_palette.dart';
 import '../widgets/form/pastel_switch_tile.dart';
 import '../widgets/form/pastel_text_field.dart';
 import '../widgets/form/pastel_time_field.dart';
 import '../widgets/form/pastel_weekday_selector.dart';
+import '../widgets/home/circular_timetable_area.dart';
 import '../widgets/home/home_decorative_background.dart';
 
 /// 루틴 추가·편집 — 저장은 [RoutineAppController.saveRoutine]
@@ -293,6 +297,10 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
     final repeat = _selectedRepeatDays();
     final candidate = _routineFromForm();
     final controller = context.watch<RoutineAppController>();
+    final theme = context.appTheme;
+    final isNameFilled = _nameController.text.trim().isNotEmpty;
+    final isTimeValid = _timeRangeError() == null;
+    final isRepeatValid = _repeatDaysError() == null;
     final conflicts = RoutineScheduleOverlap.conflictingRoutines(
       candidate: candidate,
       allRoutines: controller.routines,
@@ -303,7 +311,7 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
       body: Container(
         width: double.infinity,
         height: double.infinity,
-        decoration: const BoxDecoration(gradient: HomeTheme.pageGradient),
+        decoration: BoxDecoration(gradient: theme.pageGradient),
         child: SafeArea(
           child: Center(
             child: ConstrainedBox(
@@ -314,7 +322,7 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                 clipBehavior: Clip.antiAlias,
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(HomeTheme.shellRadius),
-                  gradient: HomeTheme.shellGradient,
+                  gradient: theme.shellGradient,
                   boxShadow: [
                     BoxShadow(
                       color: Colors.black.withValues(alpha: 0.12),
@@ -340,20 +348,23 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                               crossAxisAlignment: CrossAxisAlignment.stretch,
                               children: [
                                 AppCard(
+                                  variant: AppCardVariant.elevated,
                                   child: Column(
                                     crossAxisAlignment:
                                         CrossAxisAlignment.stretch,
                                     children: [
-                                      PastelTextField(
-                                        label: '루틴 이름',
-                                        hint: '예: 아침 스트레칭',
-                                        controller: _nameController,
-                                        textInputAction: TextInputAction.next,
-                                        onChanged: _validateTitle,
-                                        errorText: _titleError,
-                                        helperText: '홈 화면과 알림에 표시될 이름이에요.',
+                                      Text(
+                                        '시간 설정',
+                                        style: AppTextStyles.titleSection
+                                            .copyWith(fontSize: 16),
                                       ),
-                                      const SizedBox(height: 20),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        '하루 원형 일정표에서 가장 중요한 기준이에요.',
+                                        style: AppTextStyles.caption
+                                            .copyWith(height: 1.35),
+                                      ),
+                                      const SizedBox(height: 16),
                                       LayoutBuilder(
                                         builder: (context, constraints) {
                                           final gap = constraints.maxWidth < 340
@@ -410,6 +421,31 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                                 ),
                                 const SizedBox(height: 16),
                                 AppCard(
+                                  variant: AppCardVariant.elevated,
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.stretch,
+                                    children: [
+                                      Text(
+                                        '기본 정보',
+                                        style: AppTextStyles.titleSection
+                                            .copyWith(fontSize: 16),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      PastelTextField(
+                                        label: '루틴 이름',
+                                        hint: '예: 아침 스트레칭',
+                                        controller: _nameController,
+                                        textInputAction: TextInputAction.next,
+                                        onChanged: _validateTitle,
+                                        errorText: _titleError,
+                                        helperText: '홈 화면과 알림에 표시될 이름이에요.',
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                const SizedBox(height: 16),
+                                AppCard(
                                   child: PastelColorPalette(
                                     colors: routineFormPaletteColors,
                                     selectedIndex: _paletteIndexForUi(),
@@ -419,13 +455,16 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                                         routineFormPaletteColors[i].toARGB32(),
                                       );
                                     }),
+                                    helperText:
+                                        '선택한 색은 홈 카드와 원형 일정표에서 이 루틴을 구분하는 기준이 돼요.',
                                   ),
                                 ),
                                 const SizedBox(height: 16),
                                 AppCard(
                                   child: PastelSwitchTile(
                                     title: '알림 받기',
-                                    subtitle: '설정한 시간에 알림을 보내드릴게요',
+                                    subtitle: '루틴 시작 시각에 맞춰 1회 알려드릴게요',
+                                    helper: '알림을 받으면 바로 완료하거나 잠시 미룰 수 있어요.',
                                     value: _notificationEnabled,
                                     onChanged: (v) => setState(
                                         () => _notificationEnabled = v),
@@ -442,6 +481,25 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                                         '입력 미리보기',
                                         style: AppTextStyles.titleSection
                                             .copyWith(fontSize: 16),
+                                      ),
+                                      const SizedBox(height: 10),
+                                      Wrap(
+                                        spacing: 8,
+                                        runSpacing: 8,
+                                        children: [
+                                          _FormProgressChip(
+                                            label: '이름',
+                                            done: isNameFilled,
+                                          ),
+                                          _FormProgressChip(
+                                            label: '시간',
+                                            done: isTimeValid,
+                                          ),
+                                          _FormProgressChip(
+                                            label: '요일',
+                                            done: isRepeatValid,
+                                          ),
+                                        ],
                                       ),
                                       const SizedBox(height: 14),
                                       Row(
@@ -522,7 +580,7 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                                               ),
                                               const SizedBox(height: 4),
                                               Text(
-                                                '"${conflicts.first.title}" 루틴과 시간이 겹쳐요. 저장은 가능하지만 홈 화면이 복잡해질 수 있어요.',
+                                                '"${conflicts.first.title}"과 시간이 겹쳐 홈에서 어떤 루틴이 먼저 보일지 헷갈릴 수 있어요.',
                                                 style: AppTextStyles.caption
                                                     .copyWith(height: 1.45),
                                               ),
@@ -530,6 +588,12 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                                           ),
                                         ),
                                       ],
+                                      const SizedBox(height: 16),
+                                      _RoutineSchedulePreview(
+                                        candidate: candidate,
+                                        allRoutines: controller.routines,
+                                        isEdit: _isEdit,
+                                      ),
                                     ],
                                   ),
                                 ),
@@ -551,6 +615,176 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
             ),
           ),
         ),
+      ),
+    );
+  }
+}
+
+class _RoutineSchedulePreview extends StatelessWidget {
+  const _RoutineSchedulePreview({
+    required this.candidate,
+    required this.allRoutines,
+    required this.isEdit,
+  });
+
+  final Routine candidate;
+  final List<Routine> allRoutines;
+  final bool isEdit;
+
+  @override
+  Widget build(BuildContext context) {
+    final weekday = candidate.repeatWeekdays.isNotEmpty
+        ? (candidate.repeatWeekdays.toList()..sort()).first
+        : DateTime.now().weekday;
+    final label = _weekdayName(weekday);
+    final selectedCount = candidate.repeatWeekdays.length;
+    final previewRoutines = [
+      ...allRoutines.where(
+        (routine) =>
+            routine.id != candidate.id &&
+            routine.repeatWeekdays.contains(weekday),
+      ),
+      candidate,
+    ]..sort(
+        (a, b) => a.startMinutesFromMidnight.compareTo(
+          b.startMinutesFromMidnight,
+        ),
+      );
+
+    final segments = previewRoutines
+        .map(
+          (routine) => RoutineSegment(
+            id: routine.id,
+            startMinutesFromMidnight: routine.startMinutesFromMidnight,
+            endMinutesFromMidnight: routine.endMinutesFromMidnight,
+            label: routine.title,
+            emoji: routine.id == candidate.id ? '✨' : routine.iconEmoji,
+            color: routine.id == candidate.id
+                ? candidate.color.withValues(alpha: 0.98)
+                : routine.color.withValues(alpha: 0.56),
+          ),
+        )
+        .toList();
+
+    return Container(
+      padding: const EdgeInsets.all(14),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.52),
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(
+          color: candidate.color.withValues(alpha: 0.24),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                width: 10,
+                height: 10,
+                decoration: BoxDecoration(
+                  color: candidate.color,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: Text(
+                  '$label 미리보기',
+                  style: AppTextStyles.bodyStrong.copyWith(fontSize: 14),
+                ),
+              ),
+              if (selectedCount > 1)
+                AppStatusBadge(
+                  label: '$selectedCount일 반복',
+                  tone: AppStatusBadgeTone.info,
+                ),
+              if (isEdit)
+                const AppStatusBadge(
+                  label: '편집 중',
+                  tone: AppStatusBadgeTone.info,
+                ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          Text(
+            '설정한 시간대가 하루 원형 일정표에서 어디에 들어가는지 바로 확인할 수 있어요.',
+            style: AppTextStyles.caption.copyWith(height: 1.35),
+          ),
+          const SizedBox(height: 14),
+          Center(
+            child: CircularTimetableArea(
+              routines: segments,
+              currentTime: TimeOfDay(
+                hour: candidate.startMinutesFromMidnight ~/ 60,
+                minute: candidate.startMinutesFromMidnight % 60,
+              ),
+              activeRoutine: HomeViewMapper.ringStubFromRoutine(candidate),
+              centerRoutineName: candidate.title.isEmpty ? '새 루틴' : candidate.title,
+              size: 228,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  String _weekdayName(int weekday) {
+    const map = {
+      1: '월요일',
+      2: '화요일',
+      3: '수요일',
+      4: '목요일',
+      5: '금요일',
+      6: '토요일',
+      7: '일요일',
+    };
+    return map[weekday] ?? '선택한 요일';
+  }
+}
+
+class _FormProgressChip extends StatelessWidget {
+  const _FormProgressChip({
+    required this.label,
+    required this.done,
+  });
+
+  final String label;
+  final bool done;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+      decoration: BoxDecoration(
+        color: done
+            ? const Color(0xFFDFF5E7)
+            : Colors.white.withValues(alpha: 0.55),
+        borderRadius: BorderRadius.circular(999),
+        border: Border.all(
+          color: done
+              ? const Color(0xFFAED8BA)
+              : AppColors.border.withValues(alpha: 0.45),
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            done ? Icons.check_circle_rounded : Icons.radio_button_unchecked,
+            size: 14,
+            color: done ? const Color(0xFF4C8B61) : AppColors.textMuted,
+          ),
+          const SizedBox(width: 6),
+          Text(
+            label,
+            style: AppTextStyles.caption.copyWith(
+              fontWeight: FontWeight.w700,
+              color: done ? const Color(0xFF4C8B61) : AppColors.textMuted,
+            ),
+          ),
+        ],
       ),
     );
   }

@@ -167,24 +167,57 @@ class _LeftColumn extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 5),
-        Row(
-          children: [
-            Icon(Icons.search_rounded,
-                size: 15, color: muted.withValues(alpha: 0.9)),
-            const SizedBox(width: 4),
-            Expanded(
-              child: Text(
-                vm.nextRoutineLine,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
+        Text(
+          vm.currentRoutineTimingHint,
+          maxLines: 1,
+          overflow: TextOverflow.ellipsis,
+          style: TextStyle(
+            fontSize: 11.5,
+            fontWeight: FontWeight.w700,
+            color: badgeColor.withValues(alpha: 0.92),
+          ),
+        ),
+        const SizedBox(height: 6),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
+          decoration: BoxDecoration(
+            color: Colors.white.withValues(alpha: 0.56),
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: muted.withValues(alpha: 0.14),
+            ),
+          ),
+          child: Row(
+            children: [
+              Icon(
+                Icons.skip_next_rounded,
+                size: 16,
+                color: muted.withValues(alpha: 0.92),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  vm.nextRoutineTitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w700,
+                    color: brown.withValues(alpha: 0.92),
+                  ),
+                ),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                vm.nextRoutineTime,
                 style: TextStyle(
                   fontSize: 11.5,
-                  fontWeight: FontWeight.w600,
+                  fontWeight: FontWeight.w700,
                   color: muted,
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );

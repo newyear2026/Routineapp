@@ -6,6 +6,7 @@ import '../application/mappers/progress_view_mapper.dart';
 import '../application/routine_app_controller.dart';
 import '../domain/progress/daily_progress.dart';
 import '../theme/home_theme.dart';
+import '../theme/app_theme_preset.dart';
 import '../widgets/ds/ds.dart';
 import '../widgets/home/home_decorative_background.dart';
 import '../widgets/progress/progress_character_feedback.dart';
@@ -47,12 +48,13 @@ class TodayProgressScreen extends StatelessWidget {
           completed: progress.completed,
           total: progress.total,
         );
+        final theme = context.appTheme;
 
         return Scaffold(
           body: Container(
             width: double.infinity,
             height: double.infinity,
-            decoration: const BoxDecoration(gradient: HomeTheme.pageGradient),
+            decoration: BoxDecoration(gradient: theme.pageGradient),
             child: SafeArea(
               child: Center(
                 child: ConstrainedBox(
@@ -64,7 +66,7 @@ class TodayProgressScreen extends StatelessWidget {
                     decoration: BoxDecoration(
                       borderRadius:
                           BorderRadius.circular(HomeTheme.shellRadius),
-                      gradient: HomeTheme.shellGradient,
+                      gradient: theme.shellGradient,
                       boxShadow: [
                         BoxShadow(
                           color: Colors.black.withValues(alpha: 0.12),

@@ -74,7 +74,8 @@ class SystemHomeWidgetPayload {
       currentRoutineIconEmoji: vm.currentRoutineIconEmoji,
       currentRoutineTimeRange: vm.currentRoutineTimeRange,
       currentRoutineStatus: vm.currentRoutineStatusLabel,
-      nextRoutineLine: vm.nextRoutineLine,
+      nextRoutineLine:
+          '다음: ${vm.nextRoutineTitle} (${vm.nextRoutineTime})',
       nextRoutineTitle: nextTitle,
       nextRoutineTime: nextTime,
       currentTimeHour: t.hour,

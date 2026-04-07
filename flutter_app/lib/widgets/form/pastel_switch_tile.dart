@@ -7,12 +7,14 @@ class PastelSwitchTile extends StatelessWidget {
     super.key,
     required this.title,
     this.subtitle,
+    this.helper,
     required this.value,
     required this.onChanged,
   });
 
   final String title;
   final String? subtitle;
+  final String? helper;
   final bool value;
   final ValueChanged<bool> onChanged;
 
@@ -64,6 +66,17 @@ class PastelSwitchTile extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 12,
                       color: HomeTheme.textMuted.withValues(alpha: 0.95),
+                    ),
+                  ),
+                ],
+                if (helper != null) ...[
+                  const SizedBox(height: 6),
+                  Text(
+                    helper!,
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      height: 1.35,
+                      color: HomeTheme.textMuted.withValues(alpha: 0.82),
                     ),
                   ),
                 ],

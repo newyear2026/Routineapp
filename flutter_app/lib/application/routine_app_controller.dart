@@ -1,13 +1,16 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 
+import '../data/local/local_settings_repository.dart';
 import '../domain/models/routine.dart';
 import '../domain/models/routine_log.dart';
 import '../domain/models/routine_action_source.dart';
+import '../domain/models/app_settings.dart';
 import '../domain/services/routine_day_service.dart';
 import '../domain/services/routine_log_action_service.dart';
 import '../domain/services/routine_state_resolver.dart';
 import '../domain/utils/time_minutes.dart';
+import '../theme/app_theme_preset.dart';
 import 'home/home_snapshot.dart';
 import 'home/home_snapshot_builder.dart';
 import 'home/progress_summary.dart';
@@ -25,15 +28,20 @@ class RoutineAppController extends ChangeNotifier {
 
   final RoutineDataService _data;
   final RoutineDayService _dayService;
+  final LocalSettingsRepository _settings = LocalSettingsRepository.instance;
 
   List<Routine> _routines = [];
   List<RoutineLog> _logsToday = [];
+  AppSettings _appSettings = const AppSettings();
   bool _loaded = false;
 
   bool get isLoaded => _loaded;
 
   /// 충돌 검사·편집 로드용 — 저장 후 [load]로 갱신됨
   List<Routine> get routines => List<Routine>.unmodifiable(_routines);
+  AppSettings get appSettings => _appSettings;
+  String get themeId => _appSettings.themeId ?? AppThemePreset.softDay.id;
+  AppThemePreset get currentThemePreset => AppThemePreset.byId(themeId);
 
   DateTime get _now => DateTime.now();
 
@@ -66,11 +74,18 @@ class RoutineAppController extends ChangeNotifier {
   Future<void> load() async {
     _routines = await _data.loadRoutines();
     _logsToday = await _data.loadLogsForDate(_now);
+    _appSettings = await _settings.loadAppSettings();
     _loaded = true;
     notifyListeners();
     if (!kIsWeb) {
       await HomeWidgetSyncService.instance.push(homeSnapshot);
     }
+  }
+
+  Future<void> updateTheme(String themeId) async {
+    _appSettings = _appSettings.copyWith(themeId: themeId);
+    await _settings.saveAppSettings(_appSettings);
+    notifyListeners();
   }
 
   /// 신규·수정 저장 — [updatedAtMs]는 항상 저장 시각으로 갱신

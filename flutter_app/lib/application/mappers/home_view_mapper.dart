@@ -36,6 +36,7 @@ abstract final class HomeViewMapper {
   static CurrentRoutine toCurrentRoutine(
     Routine r,
     int progressPercent,
+    String timingHint,
   ) {
     return CurrentRoutine(
       id: r.id,
@@ -43,6 +44,7 @@ abstract final class HomeViewMapper {
       emoji: r.iconEmoji,
       startTime: TimeMinutes.formatHm(r.startMinutesFromMidnight),
       endTime: TimeMinutes.formatHm(r.endMinutesFromMidnight),
+      timingHint: timingHint,
       progress: progressPercent.clamp(0, 100),
       repeatDays: weekdayLabels(r.repeatWeekdays),
       memo: r.memo ?? '',
@@ -74,6 +76,7 @@ abstract final class HomeViewMapper {
       emoji: r.iconEmoji,
       startTime: TimeMinutes.formatHm(r.startMinutesFromMidnight),
       endTime: TimeMinutes.formatHm(r.endMinutesFromMidnight),
+      timingHint: '',
       progress: 0,
       repeatDays: weekdayLabels(r.repeatWeekdays),
       memo: r.memo ?? '',

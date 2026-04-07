@@ -8,6 +8,7 @@ class PastelColorPalette extends StatelessWidget {
     required this.colors,
     required this.selectedIndex,
     required this.onSelected,
+    this.helperText,
   });
 
   final List<Color> colors;
@@ -15,6 +16,7 @@ class PastelColorPalette extends StatelessWidget {
   /// 팔레트에 없는 색이면 null → 선택 링 없음
   final int? selectedIndex;
   final ValueChanged<int> onSelected;
+  final String? helperText;
 
   @override
   Widget build(BuildContext context) {
@@ -70,6 +72,18 @@ class PastelColorPalette extends StatelessWidget {
             },
           ),
         ),
+        if (helperText != null) ...[
+          const SizedBox(height: 10),
+          Text(
+            helperText!,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+              height: 1.35,
+              color: HomeTheme.textMuted.withValues(alpha: 0.86),
+            ),
+          ),
+        ],
       ],
     );
   }
