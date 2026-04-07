@@ -10,39 +10,43 @@ class HomeCharacterSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Container(
-          width: 44,
-          height: 44,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(22),
-            gradient: const LinearGradient(
-              colors: [Color(0xFFFFE4E9), Color(0xFFFFD4E0)],
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: HomeTheme.accentPink.withValues(alpha: 0.22),
-                blurRadius: 12,
-                offset: const Offset(0, 4),
+    return Opacity(
+      opacity: 0.82,
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Container(
+            width: 38,
+            height: 38,
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(19),
+              gradient: const LinearGradient(
+                colors: [Color(0xFFFFE4E9), Color(0xFFFFD4E0)],
               ),
-            ],
+              boxShadow: [
+                BoxShadow(
+                  color: HomeTheme.accentPink.withValues(alpha: 0.16),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
+            ),
+            child: Center(
+              child:
+                  Text(character.emoji, style: const TextStyle(fontSize: 20)),
+            ),
           ),
-          child: Center(
-            child: Text(character.emoji, style: const TextStyle(fontSize: 24)),
+          const SizedBox(width: 8),
+          Text(
+            '오늘도 천천히 해봐요',
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w500,
+              color: HomeTheme.textMuted.withValues(alpha: 0.78),
+            ),
           ),
-        ),
-        const SizedBox(width: 10),
-        Text(
-          '오늘도 천천히 해봐요',
-          style: TextStyle(
-            fontSize: 12,
-            fontWeight: FontWeight.w500,
-            color: HomeTheme.textMuted.withValues(alpha: 0.9),
-          ),
-        ),
-      ],
+        ],
+      ),
     );
   }
 }

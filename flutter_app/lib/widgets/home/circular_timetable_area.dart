@@ -18,12 +18,14 @@ class CircularTimetableArea extends StatelessWidget {
     required this.currentTime,
     this.activeRoutine,
     required this.centerRoutineName,
+    this.size = 272,
   });
 
   final List<RoutineSegment> routines;
   final TimeOfDay currentTime;
   final CurrentRoutine? activeRoutine;
   final String centerRoutineName;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +42,7 @@ class CircularTimetableArea extends StatelessWidget {
       nowMinutesFromMidnight: nowMin,
       activeSegmentId: activeRoutine?.id ?? '',
       activeRoutineName: centerRoutineName,
+      size: size,
     );
   }
 }
@@ -52,6 +55,7 @@ class _CircularTimetableView extends StatelessWidget {
     required this.nowMinutesFromMidnight,
     required this.activeSegmentId,
     required this.activeRoutineName,
+    required this.size,
   });
 
   final List<RoutineSegment> segments;
@@ -60,11 +64,10 @@ class _CircularTimetableView extends StatelessWidget {
   final int nowMinutesFromMidnight;
   final String activeSegmentId;
   final String activeRoutineName;
+  final double size;
 
   @override
   Widget build(BuildContext context) {
-    const size = 320.0;
-
     return SizedBox(
       width: size,
       height: size,
@@ -73,7 +76,7 @@ class _CircularTimetableView extends StatelessWidget {
         alignment: Alignment.center,
         children: [
           CustomPaint(
-            size: const Size(size, size),
+            size: Size(size, size),
             painter: _PieTimetablePainter(
               segments: segments,
               activeSegmentId: activeSegmentId,
@@ -88,7 +91,7 @@ class _CircularTimetableView extends StatelessWidget {
                 Text(
                   '${currentHour.toString().padLeft(2, '0')}:${currentMinute.toString().padLeft(2, '0')}',
                   style: TextStyle(
-                    fontSize: 36,
+                    fontSize: size >= 300 ? 36 : 32,
                     fontWeight: FontWeight.w800,
                     letterSpacing: -1.2,
                     height: 1.05,
@@ -123,7 +126,7 @@ class _CircularTimetableView extends StatelessWidget {
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                   style: const TextStyle(
-                    fontSize: 16,
+                    fontSize: 15,
                     fontWeight: FontWeight.w800,
                     height: 1.2,
                     color: HomeTheme.textPrimary,
@@ -152,6 +155,13 @@ class _PieTimetablePainter extends CustomPainter {
 
   double _minutesToRad(int minutes) {
     return (minutes / (24 * 60)) * 2 * math.pi - math.pi / 2;
+  }
+
+  double _segmentSweepRad(RoutineSegment segment) {
+    final sweepMinutes =
+        segment.endMinutesFromMidnight - segment.startMinutesFromMidnight;
+    if (sweepMinutes <= 0) return 0;
+    return (sweepMinutes / (24 * 60)) * 2 * math.pi;
   }
 
   static void _addAnnulusSector(
@@ -348,13 +358,10 @@ class _PieTimetablePainter extends CustomPainter {
     // —— 채워진 루틴 조각
     for (var i = 0; i < n; i++) {
       final seg = segments[i];
-      final next = segments[(i + 1) % n];
       var startRad = (seg.startMinutesFromMidnight / (24 * 60)) * 2 * math.pi -
           math.pi / 2;
-      var endRad = (next.startMinutesFromMidnight / (24 * 60)) * 2 * math.pi -
-          math.pi / 2;
-      var sweep = endRad - startRad;
-      if (sweep <= 0) sweep += 2 * math.pi;
+      final sweep = _segmentSweepRad(seg);
+      if (sweep <= 0) continue;
 
       final isActive = seg.id == activeSegmentId;
       var fillColor = Color.lerp(seg.color, Colors.white, 0.06)!;
@@ -444,13 +451,10 @@ class _PieTimetablePainter extends CustomPainter {
     // —— 조각 안 라벨 (흰색, 바늘 위에 그려 가독성 유지)
     for (var i = 0; i < n; i++) {
       final seg = segments[i];
-      final next = segments[(i + 1) % n];
       var startRad = (seg.startMinutesFromMidnight / (24 * 60)) * 2 * math.pi -
           math.pi / 2;
-      var endRad = (next.startMinutesFromMidnight / (24 * 60)) * 2 * math.pi -
-          math.pi / 2;
-      var sweep = endRad - startRad;
-      if (sweep <= 0) sweep += 2 * math.pi;
+      final sweep = _segmentSweepRad(seg);
+      if (sweep <= 0) continue;
       final mid = startRad + sweep / 2;
       final rMid = centerHoleR + (ringOuter - centerHoleR) * 0.52;
       _paintSegmentLabel(canvas, c, mid, rMid, seg.label, sweep, scale);

@@ -12,6 +12,8 @@ class PastelTextField extends StatelessWidget {
     this.keyboardType,
     this.textInputAction,
     this.onChanged,
+    this.errorText,
+    this.helperText,
   });
 
   final String label;
@@ -21,6 +23,8 @@ class PastelTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
   final ValueChanged<String>? onChanged;
+  final String? errorText;
+  final String? helperText;
 
   @override
   Widget build(BuildContext context) {
@@ -32,6 +36,8 @@ class PastelTextField extends StatelessWidget {
       keyboardType: keyboardType,
       textInputAction: textInputAction,
       onChanged: onChanged,
+      errorText: errorText,
+      helperText: helperText,
     );
   }
 }

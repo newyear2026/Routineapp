@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
+import 'app_field_message.dart';
 
 /// 라벨 + 둥근 **텍스트 입력** (Routine Add 등)
 class AppLabeledTextField extends StatelessWidget {
@@ -15,6 +16,8 @@ class AppLabeledTextField extends StatelessWidget {
     this.keyboardType,
     this.textInputAction,
     this.onChanged,
+    this.errorText,
+    this.helperText,
   });
 
   final String label;
@@ -24,6 +27,8 @@ class AppLabeledTextField extends StatelessWidget {
   final TextInputType? keyboardType;
   final TextInputAction? textInputAction;
   final ValueChanged<String>? onChanged;
+  final String? errorText;
+  final String? helperText;
 
   @override
   Widget build(BuildContext context) {
@@ -70,8 +75,33 @@ class AppLabeledTextField extends StatelessWidget {
                 width: 1.5,
               ),
             ),
+            errorText: errorText,
+            errorMaxLines: 2,
+            errorStyle: AppTextStyles.caption.copyWith(
+              color: const Color(0xFFB14F67),
+              fontWeight: FontWeight.w600,
+              height: 1.35,
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadii.input),
+              borderSide: const BorderSide(
+                color: Color(0xFFE294A6),
+                width: 1.2,
+              ),
+            ),
+            focusedErrorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(AppRadii.input),
+              borderSide: const BorderSide(
+                color: Color(0xFFD96B85),
+                width: 1.5,
+              ),
+            ),
           ),
         ),
+        if (errorText == null && helperText != null) ...[
+          const SizedBox(height: AppSpacing.xs),
+          AppFieldMessage(message: helperText!),
+        ],
       ],
     );
   }

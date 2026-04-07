@@ -97,6 +97,12 @@ abstract final class HomeSnapshotBuilder {
       current,
       effectiveCurrent,
     );
+    final disabledMessage = _actionDisabledMessage(
+      todaySorted: todaySorted,
+      currentSlot: current,
+      nextRoutine: next,
+      effectiveOnCurrent: effectiveCurrent,
+    );
 
     return HomeSnapshot(
       dateLabel: dateLabel,
@@ -122,6 +128,7 @@ abstract final class HomeSnapshotBuilder {
       isDisplayUpcoming: isUpcoming,
       completeButtonLabel: completeLabel,
       canActOnCurrentSlot: canAct,
+      actionDisabledMessage: disabledMessage,
       homeProgress: HomeProgress(completed: completed, total: total),
       progressSummary: ProgressSummary.fromResult(dayProgress),
       isEmptyDay: todaySorted.isEmpty,
@@ -174,5 +181,39 @@ abstract final class HomeSnapshotBuilder {
       case RoutineLogStatus.expired:
         return '시간이 지났어요';
     }
+  }
+
+  static String? _actionDisabledMessage({
+    required List<Routine> todaySorted,
+    required Routine? currentSlot,
+    required Routine? nextRoutine,
+    required RoutineLogStatus? effectiveOnCurrent,
+  }) {
+    if (currentSlot != null) {
+      switch (effectiveOnCurrent) {
+        case RoutineLogStatus.completed:
+          return '이 슬롯은 이미 완료했어요. 다음 루틴까지 잠시 쉬어가면 됩니다.';
+        case RoutineLogStatus.skipped:
+          return '이 슬롯은 이미 건너뛰었어요. 다음 루틴에서 다시 이어가세요.';
+        case RoutineLogStatus.snoozed:
+          return '나중에로 미뤘어요. 알림이 다시 오면 바로 처리할 수 있어요.';
+        case RoutineLogStatus.expired:
+          return '이 루틴 시간은 지났어요. 다음 루틴부터 다시 시작하면 됩니다.';
+        default:
+          return null;
+      }
+    }
+
+    if (todaySorted.isEmpty) {
+      return '오늘 루틴이 없어요. 오른쪽 아래 + 버튼으로 하나 추가해보세요.';
+    }
+    if (nextRoutine != null) {
+      final hour = nextRoutine.startMinutesFromMidnight ~/ 60;
+      final minute = nextRoutine.startMinutesFromMidnight % 60;
+      final time =
+          '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+      return '${nextRoutine.title} 루틴은 $time에 시작해요.';
+    }
+    return '오늘 예정된 루틴을 모두 마쳤어요.';
   }
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/home_theme.dart';
+import '../ds/app_field_message.dart';
 
 /// 탭 시 시간 선택 다이얼로그 (로컬 state와 연결)
 class PastelTimeField extends StatelessWidget {
@@ -8,11 +9,15 @@ class PastelTimeField extends StatelessWidget {
     required this.label,
     required this.value,
     required this.onChanged,
+    this.errorText,
+    this.helperText,
   });
 
   final String label;
   final TimeOfDay value;
   final ValueChanged<TimeOfDay> onChanged;
+  final String? errorText;
+  final String? helperText;
 
   String _format(TimeOfDay t) {
     final h = t.hour.toString().padLeft(2, '0');
@@ -64,7 +69,10 @@ class PastelTimeField extends StatelessWidget {
                 color: Colors.white.withValues(alpha: 0.65),
                 borderRadius: BorderRadius.circular(18),
                 border: Border.all(
-                  color: const Color(0xFFE8DDFA).withValues(alpha: 0.45),
+                  color: errorText != null
+                      ? const Color(0xFFE294A6)
+                      : const Color(0xFFE8DDFA).withValues(alpha: 0.45),
+                  width: errorText != null ? 1.2 : 1,
                 ),
               ),
               child: Row(
@@ -98,6 +106,13 @@ class PastelTimeField extends StatelessWidget {
             ),
           ),
         ),
+        if (errorText != null) ...[
+          const SizedBox(height: 6),
+          AppFieldMessage(message: errorText!, isError: true),
+        ] else if (helperText != null) ...[
+          const SizedBox(height: 6),
+          AppFieldMessage(message: helperText!),
+        ],
       ],
     );
   }

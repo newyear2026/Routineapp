@@ -115,34 +115,23 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                                 padding:
                                     const EdgeInsets.fromLTRB(24, 0, 24, 24),
                                 child: Column(
+                                  crossAxisAlignment:
+                                      CrossAxisAlignment.stretch,
                                   children: [
                                     HomeNowFocusBanner(
                                       character: h.character,
+                                      compact: true,
                                     ),
-                                    const SizedBox(height: 18),
-                                    HomeTimelineSection(
-                                      segments: h.segments,
-                                      clockTime: h.clockTime,
-                                      centerRoutineName: h.centerRoutineName,
-                                      activeRoutineForRing:
-                                          h.activeRoutineForRing,
-                                      isEmpty: h.isEmptyDay,
+                                    const SizedBox(height: 16),
+                                    _SectionHeader(
+                                      title: h.isDisplayUpcoming
+                                          ? '다음 루틴'
+                                          : '현재 루틴',
+                                      subtitle: h.isDisplayUpcoming
+                                          ? '곧 시작할 루틴을 먼저 확인해두세요'
+                                          : '지금 처리해야 할 루틴부터 빠르게 끝내세요',
                                     ),
-                                    if (h.currentRoutineStatusLabel !=
-                                        null) ...[
-                                      const SizedBox(height: 10),
-                                      Text(
-                                        h.currentRoutineStatusLabel!,
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: 12,
-                                          fontWeight: FontWeight.w600,
-                                          color: HomeTheme.textMuted
-                                              .withValues(alpha: 0.88),
-                                        ),
-                                      ),
-                                    ],
-                                    const SizedBox(height: 20),
+                                    const SizedBox(height: 10),
                                     if (h.currentRoutineCard != null)
                                       CurrentRoutineCard(
                                         routine: h.currentRoutineCard!,
@@ -151,15 +140,28 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                                       )
                                     else
                                       const _EmptyRoutineCard(),
-                                    const SizedBox(height: 20),
-                                    HomeCharacterSection(
-                                      character: h.character,
-                                    ),
-                                    const SizedBox(height: 20),
+                                    if (h.currentRoutineStatusLabel != null) ...[
+                                      const SizedBox(height: 10),
+                                      Text(
+                                        h.currentRoutineStatusLabel!,
+                                        textAlign: TextAlign.center,
+                                        style: TextStyle(
+                                          fontSize: 13,
+                                          fontWeight: FontWeight.w600,
+                                          color: HomeTheme.textMuted
+                                              .withValues(alpha: 0.88),
+                                        ),
+                                      ),
+                                    ],
+                                    const SizedBox(height: 16),
                                     HomeBottomActions(
                                       completeLabel: h.completeButtonLabel,
                                       primaryEnabled: h.canActOnCurrentSlot,
                                       secondaryEnabled: h.canActOnCurrentSlot,
+                                      disabledReason:
+                                          h.canActOnCurrentSlot
+                                              ? null
+                                              : h.actionDisabledMessage,
                                       onComplete: h.canActOnCurrentSlot
                                           ? () => app.completeCurrent()
                                           : null,
@@ -169,6 +171,56 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                                       onSkip: h.canActOnCurrentSlot
                                           ? () => app.skipCurrent()
                                           : null,
+                                    ),
+                                    const SizedBox(height: 24),
+                                    _SectionHeader(
+                                      title: '오늘 흐름',
+                                      subtitle: '하루 일정은 아래 원형 시간표에서 한눈에 볼 수 있어요',
+                                    ),
+                                    const SizedBox(height: 10),
+                                    Container(
+                                      padding: const EdgeInsets.fromLTRB(
+                                          16, 18, 16, 16),
+                                      decoration: BoxDecoration(
+                                        color: Colors.white
+                                            .withValues(alpha: 0.62),
+                                        borderRadius:
+                                            BorderRadius.circular(28),
+                                        border: Border.all(
+                                          color: HomeTheme.accentPink
+                                              .withValues(alpha: 0.18),
+                                        ),
+                                      ),
+                                      child: Column(
+                                        children: [
+                                          HomeTimelineSection(
+                                            segments: h.segments,
+                                            clockTime: h.clockTime,
+                                            centerRoutineName:
+                                                h.centerRoutineName,
+                                            activeRoutineForRing:
+                                                h.activeRoutineForRing,
+                                            isEmpty: h.isEmptyDay,
+                                          ),
+                                          if (!h.isEmptyDay) ...[
+                                            const SizedBox(height: 10),
+                                            Text(
+                                              '원형 시간표를 보며 오늘 루틴 간격을 확인해보세요.',
+                                              textAlign: TextAlign.center,
+                                              style: TextStyle(
+                                                fontSize: 12,
+                                                fontWeight: FontWeight.w600,
+                                                color: HomeTheme.textMuted
+                                                    .withValues(alpha: 0.8),
+                                              ),
+                                            ),
+                                          ],
+                                        ],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 18),
+                                    HomeCharacterSection(
+                                      character: h.character,
                                     ),
                                   ],
                                 ),
@@ -185,6 +237,44 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
           ),
         );
       },
+    );
+  }
+}
+
+class _SectionHeader extends StatelessWidget {
+  const _SectionHeader({
+    required this.title,
+    required this.subtitle,
+  });
+
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 17,
+            fontWeight: FontWeight.w800,
+            letterSpacing: -0.25,
+            color: HomeTheme.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 4),
+        Text(
+          subtitle,
+          style: TextStyle(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            height: 1.35,
+            color: HomeTheme.textMuted.withValues(alpha: 0.82),
+          ),
+        ),
+      ],
     );
   }
 }

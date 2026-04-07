@@ -2,6 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../application/services/notification_onboarding_actions.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_spacing.dart';
+import '../theme/app_text_styles.dart';
+import '../widgets/ds/ds.dart';
 
 class NotificationPermissionScreen extends StatefulWidget {
   const NotificationPermissionScreen({super.key});
@@ -52,145 +56,88 @@ class _NotificationPermissionScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFFFF8F3),
-              Color(0xFFFFF5F8),
-            ],
-          ),
-        ),
+        decoration: const BoxDecoration(gradient: AppColors.pageGradient),
         child: SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(30),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const SizedBox(height: 20),
-                const Text(
-                  '알림 설정',
-                  style: TextStyle(
-                    fontSize: 20,
-                    color: Color(0xFF8B7B9E),
-                  ),
-                ),
-                const SizedBox(height: 24),
-                AnimatedBuilder(
-                  animation: _bellController,
-                  builder: (context, child) {
-                    return Transform.rotate(
-                      angle: _bellController.value * 0.3 - 0.15,
-                      child: Container(
-                        width: 140,
-                        height: 140,
-                        decoration: BoxDecoration(
-                          borderRadius: BorderRadius.circular(40),
-                          gradient: const LinearGradient(
-                            begin: Alignment.topLeft,
-                            end: Alignment.bottomRight,
-                            colors: [
-                              Color(0xFFFFE9D4),
-                              Color(0xFFFFDDC5),
-                            ],
-                          ),
-                          boxShadow: [
-                            BoxShadow(
-                              color: const Color(0xFFFFDDC5)
-                                  .withValues(alpha: 0.4),
-                              blurRadius: 30,
-                              offset: const Offset(0, 10),
+          child: Center(
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: AppLayout.maxContentWidth),
+              child: SingleChildScrollView(
+                padding: const EdgeInsets.all(30),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const SizedBox(height: 12),
+                    const Text('알림 설정', style: AppTextStyles.titleScreen),
+                    const SizedBox(height: 24),
+                    AnimatedBuilder(
+                      animation: _bellController,
+                      builder: (context, child) {
+                        return Transform.rotate(
+                          angle: _bellController.value * 0.3 - 0.15,
+                          child: Container(
+                            width: 132,
+                            height: 132,
+                            decoration: BoxDecoration(
+                              borderRadius: BorderRadius.circular(40),
+                              gradient: AppColors.highlightGradient,
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.warning
+                                      .withValues(alpha: 0.28),
+                                  blurRadius: 30,
+                                  offset: const Offset(0, 10),
+                                ),
+                              ],
                             ),
-                          ],
-                        ),
-                        child: const Center(
-                          child: Text(
-                            '🔔',
-                            style: TextStyle(fontSize: 70),
+                            child: const Center(
+                              child: Text('🔔', style: TextStyle(fontSize: 66)),
+                            ),
                           ),
-                        ),
-                      ),
-                    );
-                  },
-                ),
-                const SizedBox(height: 50),
-                const Text(
-                  '알림을 받으시겠어요?',
-                  style: TextStyle(
-                    fontSize: 26,
-                    fontWeight: FontWeight.w600,
-                    color: Color(0xFF8B7B9E),
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 16),
-                const Text(
-                  '루틴 시간마다 귀여운 알림으로\n잊지 않도록 도와드릴게요 💕',
-                  style: TextStyle(
-                    fontSize: 15,
-                    color: Color(0xFFB8A4C9),
-                    height: 1.6,
-                  ),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 40),
-                _buildNotificationExample(
-                  '🌅',
-                  '07:00',
-                  '기상 시간이에요!',
-                  '상쾌한 아침을 시작해봐요',
-                ),
-                const SizedBox(height: 12),
-                _buildNotificationExample(
-                  '📚',
-                  '14:00',
-                  '공부 시간이에요!',
-                  '집중해서 학습해봐요',
-                ),
-                const SizedBox(height: 32),
-                GestureDetector(
-                  onTap: _allowNotifications,
-                  child: Container(
-                    width: double.infinity,
-                    height: 56,
-                    decoration: BoxDecoration(
-                      gradient: const LinearGradient(
-                        colors: [Color(0xFFD4E4FF), Color(0xFFC5D5F0)],
-                      ),
-                      borderRadius: BorderRadius.circular(28),
-                      boxShadow: [
-                        BoxShadow(
-                          color: const Color(0xFFD4E4FF).withValues(alpha: 0.4),
-                          blurRadius: 20,
-                          offset: const Offset(0, 8),
-                        ),
-                      ],
+                        );
+                      },
                     ),
-                    child: const Center(
-                      child: Text(
-                        '알림 허용하기',
-                        style: TextStyle(
-                          color: Colors.white,
-                          fontSize: 16,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                    const SizedBox(height: 36),
+                    const Text(
+                      '알림을 받으시겠어요?',
+                      style: AppTextStyles.hero,
+                      textAlign: TextAlign.center,
                     ),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                TextButton(
-                  onPressed: _skipNotifications,
-                  child: const Text(
-                    '나중에 설정할게요',
-                    style: TextStyle(
-                      color: Color(0xFFB8A4C9),
-                      fontSize: 14,
+                    const SizedBox(height: 12),
+                    const Text(
+                      '루틴 시간에 맞춰 가볍게 알려드릴게요.\n바로 완료하거나 잠시 미룰 수 있어요.',
+                      style: AppTextStyles.helper,
+                      textAlign: TextAlign.center,
                     ),
-                  ),
+                    const SizedBox(height: AppSpacing.xxl),
+                    _buildNotificationExample(
+                      '🌅',
+                      '07:00',
+                      '기상 시간이에요!',
+                      '상쾌한 아침을 시작해봐요',
+                    ),
+                    const SizedBox(height: 12),
+                    _buildNotificationExample(
+                      '📚',
+                      '14:00',
+                      '공부 시간이에요!',
+                      '집중해서 학습해봐요',
+                    ),
+                    const SizedBox(height: 28),
+                    AppButton(
+                      label: '알림 허용하기',
+                      onPressed: _allowNotifications,
+                    ),
+                    const SizedBox(height: 12),
+                    AppButton(
+                      label: '나중에 설정할게요',
+                      onPressed: _skipNotifications,
+                      variant: AppButtonVariant.ghost,
+                      expand: false,
+                      height: 40,
+                    ),
+                  ],
                 ),
-              ],
+              ),
             ),
           ),
         ),
@@ -204,16 +151,8 @@ class _NotificationPermissionScreenState
     String title,
     String description,
   ) {
-    return Container(
+    return AppCard(
       padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.6),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: const Color(0xFFE8DDFA).withValues(alpha: 0.3),
-          width: 1,
-        ),
-      ),
       child: Row(
         children: [
           Container(
@@ -221,13 +160,10 @@ class _NotificationPermissionScreenState
             height: 50,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(15),
-              color: const Color(0xFFFFE4E9).withValues(alpha: 0.5),
+              color: AppColors.accentPink.withValues(alpha: 0.22),
             ),
             child: Center(
-              child: Text(
-                emoji,
-                style: const TextStyle(fontSize: 24),
-              ),
+              child: Text(emoji, style: const TextStyle(fontSize: 24)),
             ),
           ),
           const SizedBox(width: 12),
@@ -237,20 +173,13 @@ class _NotificationPermissionScreenState
               children: [
                 Row(
                   children: [
-                    Text(
-                      time,
-                      style: const TextStyle(
-                        fontSize: 12,
-                        color: Color(0xFFB8A4C9),
-                      ),
-                    ),
+                    Text(time, style: AppTextStyles.caption),
                     const SizedBox(width: 8),
-                    Text(
-                      title,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        fontWeight: FontWeight.w600,
-                        color: Color(0xFF8B7B9E),
+                    Expanded(
+                      child: Text(
+                        title,
+                        style: AppTextStyles.bodyStrong.copyWith(fontSize: 14),
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
@@ -258,10 +187,7 @@ class _NotificationPermissionScreenState
                 const SizedBox(height: 4),
                 Text(
                   description,
-                  style: const TextStyle(
-                    fontSize: 12,
-                    color: Color(0xFFB8A4C9),
-                  ),
+                  style: AppTextStyles.caption.copyWith(height: 1.45),
                 ),
               ],
             ),

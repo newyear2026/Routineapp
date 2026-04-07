@@ -43,6 +43,7 @@ class HomeTimelineSection extends StatelessWidget {
       currentTime: clockTime,
       activeRoutine: activeRoutineForRing,
       centerRoutineName: centerRoutineName,
+      size: 272,
     );
   }
 }

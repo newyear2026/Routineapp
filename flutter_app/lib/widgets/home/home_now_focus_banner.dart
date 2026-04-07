@@ -4,15 +4,19 @@ import '../../theme/home_theme.dart';
 
 /// 홈 최상단 — "지금 무엇을 해야 하는지" 한눈에 (캐릭터보다 먼저 읽히도록)
 class HomeNowFocusBanner extends StatelessWidget {
-  const HomeNowFocusBanner({super.key, required this.character});
+  const HomeNowFocusBanner({super.key, required this.character, this.compact = false});
 
   final CharacterCopy character;
+  final bool compact;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      padding: EdgeInsets.symmetric(
+        horizontal: compact ? 16 : 18,
+        vertical: compact ? 14 : 16,
+      ),
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(22),
         gradient: LinearGradient(
@@ -40,8 +44,8 @@ class HomeNowFocusBanner extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           Container(
-            width: 48,
-            height: 48,
+            width: compact ? 42 : 48,
+            height: compact ? 42 : 48,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(16),
               gradient: LinearGradient(
@@ -57,25 +61,25 @@ class HomeNowFocusBanner extends StatelessWidget {
             child: Center(
               child: Text(
                 character.highlightEmoji,
-                style: const TextStyle(fontSize: 26),
+                style: TextStyle(fontSize: compact ? 22 : 26),
               ),
             ),
           ),
-          const SizedBox(width: 14),
+          SizedBox(width: compact ? 12 : 14),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  '지금은',
+                  '현재 집중 루틴',
                   style: TextStyle(
-                    fontSize: 13,
+                    fontSize: compact ? 12 : 13,
                     fontWeight: FontWeight.w600,
-                    letterSpacing: 0.3,
+                    letterSpacing: 0.2,
                     color: HomeTheme.textMuted.withValues(alpha: 0.95),
                   ),
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 3),
                 Text.rich(
                   TextSpan(
                     style: const TextStyle(
@@ -85,17 +89,17 @@ class HomeNowFocusBanner extends StatelessWidget {
                     children: [
                       TextSpan(
                         text: character.highlightRoutineName,
-                        style: const TextStyle(
-                          fontSize: 24,
+                        style: TextStyle(
+                          fontSize: compact ? 21 : 24,
                           fontWeight: FontWeight.w800,
                           letterSpacing: -0.4,
                           color: HomeTheme.textPrimary,
                         ),
                       ),
-                      const TextSpan(
-                        text: ' 시간이에요',
+                      TextSpan(
+                        text: compact ? '에 집중할 차례예요' : ' 시간이에요',
                         style: TextStyle(
-                          fontSize: 19,
+                          fontSize: compact ? 15 : 19,
                           fontWeight: FontWeight.w700,
                           color: HomeTheme.textPrimary,
                         ),

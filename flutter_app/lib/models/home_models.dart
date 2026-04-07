@@ -5,6 +5,7 @@ class RoutineSegment {
   const RoutineSegment({
     required this.id,
     required this.startMinutesFromMidnight,
+    required this.endMinutesFromMidnight,
     required this.label,
     required this.emoji,
     required this.color,
@@ -14,6 +15,7 @@ class RoutineSegment {
 
   /// 0 ~ 1439 — 원형 링 각도·구간 계산에 사용
   final int startMinutesFromMidnight;
+  final int endMinutesFromMidnight;
   final String label;
   final String emoji;
   final Color color;

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../ds/app_icon_button.dart';
 import '../../models/home_models.dart';
 import '../../theme/home_theme.dart';
 
@@ -59,20 +60,21 @@ class HomeHeaderBar extends StatelessWidget {
                   ],
                 ),
               ),
-              _CircleIconButton(
+              AppIconButton(
                 icon: Icons.insights_rounded,
                 tooltip: '오늘 진행',
-                color: HomeTheme.accentPink,
-                background: HomeTheme.accentPink.withValues(alpha: 0.22),
-                onTap: onProgressTap,
+                foregroundColor: HomeTheme.accentPink,
+                backgroundColor: HomeTheme.accentPink.withValues(alpha: 0.22),
+                onPressed: onProgressTap,
               ),
               const SizedBox(width: 8),
-              _CircleIconButton(
+              AppIconButton(
                 icon: Icons.settings_rounded,
                 tooltip: '설정',
-                color: const Color(0xFFD4C5F0),
-                background: const Color(0xFFD4C5F0).withValues(alpha: 0.22),
-                onTap: onSettingsTap,
+                foregroundColor: const Color(0xFFD4C5F0),
+                backgroundColor:
+                    const Color(0xFFD4C5F0).withValues(alpha: 0.22),
+                onPressed: onSettingsTap,
               ),
             ],
           ),
@@ -113,45 +115,5 @@ class HomeHeaderBar extends StatelessWidget {
         ],
       ),
     );
-  }
-}
-
-class _CircleIconButton extends StatelessWidget {
-  const _CircleIconButton({
-    required this.icon,
-    required this.color,
-    required this.background,
-    this.onTap,
-    this.tooltip,
-  });
-
-  final IconData icon;
-  final Color color;
-  final Color background;
-  final VoidCallback? onTap;
-  final String? tooltip;
-
-  @override
-  Widget build(BuildContext context) {
-    final child = Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap ?? () {},
-        borderRadius: BorderRadius.circular(20),
-        child: Ink(
-          width: 42,
-          height: 42,
-          decoration: BoxDecoration(
-            color: background,
-            borderRadius: BorderRadius.circular(20),
-          ),
-          child: Icon(icon, color: color, size: 21),
-        ),
-      ),
-    );
-    if (tooltip != null) {
-      return Tooltip(message: tooltip!, child: child);
-    }
-    return child;
   }
 }

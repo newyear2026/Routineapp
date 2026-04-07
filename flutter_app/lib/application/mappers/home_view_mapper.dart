@@ -10,6 +10,7 @@ abstract final class HomeViewMapper {
           (r) => RoutineSegment(
             id: r.id,
             startMinutesFromMidnight: r.startMinutesFromMidnight,
+            endMinutesFromMidnight: r.endMinutesFromMidnight,
             label: r.title,
             emoji: r.iconEmoji,
             color: r.color,

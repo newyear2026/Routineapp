@@ -5,8 +5,8 @@ import 'package:flutter/material.dart';
 /// Home · Routine Add · Progress 공통 사용.
 abstract final class AppColors {
   // ── Text (파스텔 톤 유지, 본문 가독성을 위해 1단계만 진하게) ──
-  static const Color textPrimary = Color(0xFF6B5D7A);
-  static const Color textMuted = Color(0xFF9A8AAC);
+  static const Color textPrimary = Color(0xFF473A57);
+  static const Color textMuted = Color(0xFF6F617F);
 
   // ── Accent & action ──────────────────────────────
   static const Color accentPink = Color(0xFFFFB8C6);
@@ -15,6 +15,8 @@ abstract final class AppColors {
   static const Color actionBlue = Color(0xFF6B8BC9);
   static const Color actionOrange = Color(0xFFD9A57B);
   static const Color actionRose = Color(0xFFD99BB0);
+  static const Color success = Color(0xFF7FDD8F);
+  static const Color warning = Color(0xFFD9A57B);
 
   // ── Border / divider ─────────────────────────────
   static const Color border = Color(0xFFE8DDFA);
@@ -46,6 +48,14 @@ abstract final class AppColors {
   /// Primary CTA (저장·완료 등)
   static const LinearGradient primaryButtonGradient = LinearGradient(
     colors: [Color(0xFFD4E4FF), Color(0xFFC5D5F0)],
+  );
+
+  static const LinearGradient softAccentGradient = LinearGradient(
+    colors: [Color(0xFFD4C5F0), Color(0xFFC4B5E6)],
+  );
+
+  static const LinearGradient highlightGradient = LinearGradient(
+    colors: [Color(0xFFFFE9D4), Color(0xFFFFDDC5)],
   );
 
   /// Progress 링 등 강조

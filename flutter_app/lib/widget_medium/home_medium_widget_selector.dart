@@ -61,13 +61,10 @@ abstract final class HomeMediumWidgetSelector {
     List<RoutineSegment> segments,
   ) {
     if (segments.isEmpty) return [];
-    final n = segments.length;
     final out = <MediumRingSegment>[];
-    for (var i = 0; i < n; i++) {
-      final a = segments[i];
-      final b = segments[(i + 1) % n];
-      var sweep = b.startMinutesFromMidnight - a.startMinutesFromMidnight;
-      if (sweep <= 0) sweep += 24 * 60;
+    for (final a in segments) {
+      final sweep = a.endMinutesFromMidnight - a.startMinutesFromMidnight;
+      if (sweep <= 0) continue;
       out.add(
         MediumRingSegment(
           id: a.id,

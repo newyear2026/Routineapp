@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/home_theme.dart';
+import '../ds/app_field_message.dart';
 
 /// 월~일 토글 칩 (반복 요일)
 class PastelWeekdaySelector extends StatelessWidget {
@@ -8,12 +9,16 @@ class PastelWeekdaySelector extends StatelessWidget {
     required this.labels,
     required this.selected,
     required this.onChanged,
+    this.errorText,
+    this.helperText,
   });
 
   /// 보통 ['월','화','수','목','금','토','일']
   final List<String> labels;
   final List<bool> selected;
   final void Function(int index, bool value) onChanged;
+  final String? errorText;
+  final String? helperText;
 
   @override
   Widget build(BuildContext context) {
@@ -58,6 +63,13 @@ class PastelWeekdaySelector extends StatelessWidget {
             );
           }),
         ),
+        if (errorText != null) ...[
+          const SizedBox(height: 8),
+          AppFieldMessage(message: errorText!, isError: true),
+        ] else if (helperText != null) ...[
+          const SizedBox(height: 8),
+          AppFieldMessage(message: helperText!),
+        ],
       ],
     );
   }

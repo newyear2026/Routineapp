@@ -35,6 +35,7 @@ class HomeSnapshot {
     required this.isDisplayUpcoming,
     required this.completeButtonLabel,
     required this.canActOnCurrentSlot,
+    this.actionDisabledMessage,
     required this.homeProgress,
     required this.progressSummary,
     required this.isEmptyDay,
@@ -88,6 +89,7 @@ class HomeSnapshot {
   final bool isDisplayUpcoming;
   final String completeButtonLabel;
   final bool canActOnCurrentSlot;
+  final String? actionDisabledMessage;
   final HomeProgress homeProgress;
   final bool isEmptyDay;
 }

@@ -10,6 +10,7 @@ class HomeBottomActions extends StatelessWidget {
     this.onSkip,
     this.primaryEnabled = true,
     this.secondaryEnabled = true,
+    this.disabledReason,
   });
 
   final String completeLabel;
@@ -22,6 +23,7 @@ class HomeBottomActions extends StatelessWidget {
 
   /// false면 나중에/건너뛰기 비활성
   final bool secondaryEnabled;
+  final String? disabledReason;
 
   void _noop() {}
 
@@ -38,9 +40,9 @@ class HomeBottomActions extends StatelessWidget {
               borderRadius: BorderRadius.circular(28),
               child: Ink(
                 width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 18),
+                padding: const EdgeInsets.symmetric(vertical: 20),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(28),
+                  borderRadius: BorderRadius.circular(30),
                   gradient: const LinearGradient(
                     colors: [Color(0xFF8FA8DC), Color(0xFF6B8BC9)],
                     begin: Alignment.topLeft,
@@ -53,8 +55,8 @@ class HomeBottomActions extends StatelessWidget {
                   boxShadow: [
                     BoxShadow(
                       color: const Color(0xFF5A7AB8).withValues(alpha: 0.45),
-                      blurRadius: 24,
-                      offset: const Offset(0, 12),
+                      blurRadius: 28,
+                      offset: const Offset(0, 14),
                     ),
                   ],
                 ),
@@ -70,7 +72,7 @@ class HomeBottomActions extends StatelessWidget {
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           color: Colors.white,
-                          fontSize: 18,
+                          fontSize: 19,
                           fontWeight: FontWeight.w800,
                           letterSpacing: -0.25,
                           height: 1.2,
@@ -87,7 +89,7 @@ class HomeBottomActions extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         Opacity(
-          opacity: secondaryEnabled ? 1 : 0.45,
+          opacity: secondaryEnabled ? 1 : 0.52,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
@@ -103,6 +105,19 @@ class HomeBottomActions extends StatelessWidget {
             ],
           ),
         ),
+        if ((!primaryEnabled || !secondaryEnabled) && disabledReason != null) ...[
+          const SizedBox(height: 10),
+          Text(
+            disabledReason!,
+            textAlign: TextAlign.center,
+            style: TextStyle(
+              fontSize: 13,
+              fontWeight: FontWeight.w600,
+              height: 1.4,
+              color: HomeTheme.textMuted.withValues(alpha: 0.88),
+            ),
+          ),
+        ],
       ],
     );
   }
@@ -121,13 +136,13 @@ class _LaterButton extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(24),
         child: Ink(
-          height: 48,
+          height: 50,
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(24),
-            color: Colors.white.withValues(alpha: 0.5),
+            borderRadius: BorderRadius.circular(25),
+            color: Colors.white.withValues(alpha: 0.62),
             border: Border.all(
-              color: HomeTheme.textMuted.withValues(alpha: 0.22),
+              color: HomeTheme.textMuted.withValues(alpha: 0.18),
             ),
           ),
           child: Row(
@@ -185,7 +200,7 @@ class _SkipLinkButton extends StatelessWidget {
                   fontSize: 12,
                   fontWeight: FontWeight.w600,
                   letterSpacing: -0.15,
-                  color: HomeTheme.textMuted.withValues(alpha: 0.45),
+                  color: HomeTheme.textMuted.withValues(alpha: 0.56),
                 ),
               ),
             ],

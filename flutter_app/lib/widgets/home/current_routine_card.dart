@@ -24,31 +24,48 @@ class CurrentRoutineCard extends StatelessWidget {
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(18, 16, 18, 16),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.72),
-        borderRadius: BorderRadius.circular(24),
+        color: Colors.white.withValues(alpha: 0.82),
+        borderRadius: BorderRadius.circular(26),
         border: Border.all(
-          color: HomeTheme.accentPink.withValues(alpha: 0.38),
-          width: 1.5,
+          color: HomeTheme.accentPink.withValues(alpha: 0.46),
+          width: 1.8,
         ),
         boxShadow: [
           BoxShadow(
-            color: HomeTheme.textPrimary.withValues(alpha: 0.06),
-            blurRadius: 28,
-            offset: const Offset(0, 10),
+            color: HomeTheme.accentPink.withValues(alpha: 0.14),
+            blurRadius: 30,
+            offset: const Offset(0, 14),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            decoration: BoxDecoration(
+              color: HomeTheme.accentPink.withValues(alpha: 0.18),
+              borderRadius: BorderRadius.circular(999),
+            ),
+            child: Text(
+              isUpcoming ? '곧 시작하는 루틴' : '지금 가장 중요한 루틴',
+              style: TextStyle(
+                fontSize: 11,
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.12,
+                color: HomeTheme.textPrimary.withValues(alpha: 0.82),
+              ),
+            ),
+          ),
+          const SizedBox(height: 14),
           Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Container(
-                width: 46,
-                height: 46,
+                width: 52,
+                height: 52,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(15),
+                  borderRadius: BorderRadius.circular(18),
                   gradient: LinearGradient(
                     colors: [
                       const Color(0xFFE8DDFA).withValues(alpha: 0.55),
@@ -85,8 +102,8 @@ class CurrentRoutineCard extends StatelessWidget {
                     Text(
                       '${routine.startTime} — ${routine.endTime}',
                       style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w700,
                         color: HomeTheme.textMuted.withValues(alpha: 0.92),
                         letterSpacing: 0.1,
                       ),
@@ -98,7 +115,9 @@ class CurrentRoutineCard extends StatelessWidget {
                         padding: const EdgeInsets.symmetric(
                             horizontal: 8, vertical: 3),
                         decoration: BoxDecoration(
-                          color: HomeTheme.accentPink.withValues(alpha: 0.22),
+                          color:
+                              (isUpcoming ? _chipMuted : HomeTheme.accentPink)
+                                  .withValues(alpha: 0.24),
                           borderRadius: BorderRadius.circular(999),
                         ),
                         child: Text(
@@ -117,34 +136,9 @@ class CurrentRoutineCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 10),
-          Wrap(
-            spacing: 4,
-            runSpacing: 4,
-            children: routine.repeatDays
-                .map(
-                  (d) => Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 6, vertical: 1),
-                    decoration: BoxDecoration(
-                      color: _chipMuted.withValues(alpha: 0.22),
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                    child: Text(
-                      d,
-                      style: TextStyle(
-                        fontSize: 9,
-                        fontWeight: FontWeight.w500,
-                        color: HomeTheme.textMuted.withValues(alpha: 0.65),
-                      ),
-                    ),
-                  ),
-                )
-                .toList(),
-          ),
           const SizedBox(height: 14),
           Text(
-            '지금 할 일',
+            isUpcoming ? '곧 할 일' : '지금 할 일',
             style: TextStyle(
               fontSize: 10,
               fontWeight: FontWeight.w700,
@@ -152,17 +146,40 @@ class CurrentRoutineCard extends StatelessWidget {
               color: HomeTheme.textMuted.withValues(alpha: 0.7),
             ),
           ),
-          const SizedBox(height: 5),
+          const SizedBox(height: 6),
           Text(
             routine.memo,
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
             style: TextStyle(
-              fontSize: 13,
+              fontSize: 14,
               height: 1.45,
-              fontWeight: FontWeight.w500,
+              fontWeight: FontWeight.w600,
               color: HomeTheme.textPrimary.withValues(alpha: 0.92),
             ),
+          ),
+          const SizedBox(height: 12),
+          Row(
+            children: [
+              Icon(
+                Icons.repeat_rounded,
+                size: 15,
+                color: HomeTheme.textMuted.withValues(alpha: 0.78),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  routine.repeatDays.join(', '),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: HomeTheme.textMuted.withValues(alpha: 0.82),
+                  ),
+                ),
+              ),
+            ],
           ),
           const SizedBox(height: 14),
           if (next != null)
@@ -227,12 +244,12 @@ class CurrentRoutineCard extends StatelessWidget {
                 ],
               ),
             ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Text(
-                '이 루틴 진행도',
+                isUpcoming ? '시작 전 준비도' : '이 루틴 진행도',
                 style: TextStyle(
                   fontSize: 10,
                   fontWeight: FontWeight.w600,
@@ -242,7 +259,7 @@ class CurrentRoutineCard extends StatelessWidget {
               Text(
                 '${routine.progress}%',
                 style: TextStyle(
-                  fontSize: 11,
+                  fontSize: 13,
                   fontWeight: FontWeight.w800,
                   color: HomeTheme.textPrimary.withValues(alpha: 0.85),
                 ),

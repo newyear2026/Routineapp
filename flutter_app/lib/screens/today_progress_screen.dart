@@ -6,6 +6,7 @@ import '../application/mappers/progress_view_mapper.dart';
 import '../application/routine_app_controller.dart';
 import '../domain/progress/daily_progress.dart';
 import '../theme/home_theme.dart';
+import '../widgets/ds/ds.dart';
 import '../widgets/home/home_decorative_background.dart';
 import '../widgets/progress/progress_character_feedback.dart';
 import '../widgets/progress/progress_mini_stats_row.dart';
@@ -79,8 +80,9 @@ class TodayProgressScreen extends StatelessWidget {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
-                            _ProgressAppBar(
-                              dateLine: '$dateString $dayOfWeekLabel',
+                            AppPageHeader(
+                              title: '오늘의 루틴',
+                              subtitle: '$dateString $dayOfWeekLabel',
                               onBack: () {
                                 if (context.canPop()) {
                                   context.pop();
@@ -161,70 +163,6 @@ class TodayProgressScreen extends StatelessWidget {
           ),
         );
       },
-    );
-  }
-}
-
-class _ProgressAppBar extends StatelessWidget {
-  const _ProgressAppBar({
-    required this.dateLine,
-    required this.onBack,
-  });
-
-  final String dateLine;
-  final VoidCallback onBack;
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 10, 12, 6),
-      child: Row(
-        children: [
-          Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: onBack,
-              borderRadius: BorderRadius.circular(20),
-              child: Ink(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: HomeTheme.textMuted.withValues(alpha: 0.18),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  size: 18,
-                  color: HomeTheme.textPrimary,
-                ),
-              ),
-            ),
-          ),
-          Expanded(
-            child: Column(
-              children: [
-                const Text(
-                  '오늘의 루틴',
-                  style: TextStyle(
-                    fontSize: 17,
-                    fontWeight: FontWeight.w700,
-                    color: HomeTheme.textPrimary,
-                  ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  dateLine,
-                  style: TextStyle(
-                    fontSize: 11,
-                    color: HomeTheme.textMuted.withValues(alpha: 0.95),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: 40),
-        ],
-      ),
     );
   }
 }

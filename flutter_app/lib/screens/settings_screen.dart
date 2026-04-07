@@ -7,6 +7,7 @@ import '../data/local/onboarding_local_storage.dart';
 import '../domain/settings/notification_permission_status.dart';
 import '../domain/settings/notification_preferences.dart';
 import '../theme/home_theme.dart';
+import '../widgets/ds/ds.dart';
 
 class SettingsScreen extends StatefulWidget {
   const SettingsScreen({super.key});
@@ -110,52 +111,20 @@ class _SettingsScreenState extends State<SettingsScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(gradient: HomeTheme.pageGradient),
+        decoration: const BoxDecoration(gradient: AppColors.pageGradient),
         child: Stack(
           children: [
             ..._buildSubtleDecorations(),
             SafeArea(
-              child: Column(
-                children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(20, 16, 20, 8),
-                    child: Row(
-                      children: [
-                        Material(
-                          color: Colors.transparent,
-                          child: InkWell(
-                            onTap: () => context.go('/home'),
-                            borderRadius: BorderRadius.circular(20),
-                            child: Ink(
-                              width: 42,
-                              height: 42,
-                              decoration: BoxDecoration(
-                                color:
-                                    HomeTheme.textMuted.withValues(alpha: 0.15),
-                                borderRadius: BorderRadius.circular(20),
-                              ),
-                              child: const Icon(
-                                Icons.arrow_back_rounded,
-                                color: HomeTheme.textPrimary,
-                                size: 22,
-                              ),
-                            ),
-                          ),
-                        ),
-                        const Spacer(),
-                        const Text(
-                          '설정',
-                          style: TextStyle(
-                            fontSize: 19,
-                            fontWeight: FontWeight.w700,
-                            letterSpacing: -0.3,
-                            color: HomeTheme.textPrimary,
-                          ),
-                        ),
-                        const Spacer(),
-                        const SizedBox(width: 42),
-                      ],
-                    ),
+              child: Center(
+                child: ConstrainedBox(
+                  constraints:
+                      const BoxConstraints(maxWidth: AppLayout.maxContentWidth),
+                  child: Column(
+                    children: [
+                  AppPageHeader(
+                    title: '설정',
+                    onBack: () => context.go('/home'),
                   ),
                   Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 20),
@@ -167,7 +136,9 @@ class _SettingsScreenState extends State<SettingsScreen>
                       padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
                       children: [
                         _buildSectionTitle(
-                            '알림 및 소리', Icons.notifications_active_rounded),
+                          '알림 및 소리',
+                          Icons.notifications_active_rounded,
+                        ),
                         _buildSettingsList([
                           _buildToggleItem(
                             Icons.notifications_rounded,
@@ -183,6 +154,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                             _notificationsEnabled && _soundEnabled,
                             (value) => _onSoundChanged(value),
                             switchEnabled: _notificationsEnabled,
+                            description: '푸시 알림이 켜져 있을 때만 사용할 수 있어요',
                           ),
                         ]),
                         const SizedBox(height: 26),
@@ -194,6 +166,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                             const Color(0xFFD4E4FF),
                             _watchEnabled,
                             (value) => setState(() => _watchEnabled = value),
+                            description: '기본 토글만 먼저 연결되어 있어요',
                           ),
                         ]),
                         const SizedBox(height: 26),
@@ -209,18 +182,23 @@ class _SettingsScreenState extends State<SettingsScreen>
                                 context.go('/onboarding');
                               });
                             },
+                            description: '앱의 첫 안내 플로우를 다시 볼 수 있어요',
                           ),
                           _buildNavigationItem(
                             Icons.emoji_emotions_rounded,
                             '캐릭터 설정',
                             const Color(0xFFFFE4E9),
-                            () {},
+                            null,
+                            statusLabel: '준비 중',
+                            description: '다음 업데이트에서 캐릭터를 고를 수 있어요',
                           ),
                           _buildNavigationItem(
                             Icons.palette_rounded,
                             '테마 설정',
                             const Color(0xFFE8DDFA),
-                            () {},
+                            null,
+                            statusLabel: '준비 중',
+                            description: '색상 테마 선택 기능을 준비하고 있어요',
                           ),
                         ]),
                         const SizedBox(height: 26),
@@ -231,12 +209,15 @@ class _SettingsScreenState extends State<SettingsScreen>
                             'Medium 위젯 미리보기',
                             const Color(0xFFFFE9D4),
                             () => context.push('/widget-medium-preview'),
+                            description: '위젯 톤과 정보를 미리 확인할 수 있어요',
                           ),
                           _buildNavigationItem(
                             Icons.mail_outline_rounded,
                             '문의하기',
                             const Color(0xFFD4C5F0),
-                            () {},
+                            null,
+                            statusLabel: '준비 중',
+                            description: '지원 채널 연결 전이에요',
                           ),
                           _buildInfoItem(
                             Icons.info_outline_rounded,
@@ -251,9 +232,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                             children: [
                               Text(
                                 'Made with 💕',
-                                style: TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
+                                style: AppTextStyles.caption.copyWith(
                                   color: HomeTheme.textMuted
                                       .withValues(alpha: 0.85),
                                 ),
@@ -261,8 +240,7 @@ class _SettingsScreenState extends State<SettingsScreen>
                               const SizedBox(height: 4),
                               Text(
                                 'Routine Timer App',
-                                style: TextStyle(
-                                  fontSize: 11,
+                                style: AppTextStyles.captionTight.copyWith(
                                   color: HomeTheme.textMuted
                                       .withValues(alpha: 0.65),
                                 ),
@@ -273,7 +251,9 @@ class _SettingsScreenState extends State<SettingsScreen>
                       ],
                     ),
                   ),
-                ],
+                    ],
+                  ),
+                ),
               ),
             ),
           ],
@@ -283,30 +263,9 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   Widget _buildProfileCard() {
-    return Container(
+    return AppCard(
+      variant: AppCardVariant.elevated,
       padding: const EdgeInsets.all(18),
-      decoration: BoxDecoration(
-        gradient: LinearGradient(
-          begin: Alignment.topLeft,
-          end: Alignment.bottomRight,
-          colors: [
-            Colors.white.withValues(alpha: 0.92),
-            const Color(0xFFFFF9F5).withValues(alpha: 0.88),
-          ],
-        ),
-        borderRadius: BorderRadius.circular(26),
-        border: Border.all(
-          color: HomeTheme.accentPink.withValues(alpha: 0.35),
-          width: 1.5,
-        ),
-        boxShadow: [
-          BoxShadow(
-            color: HomeTheme.textPrimary.withValues(alpha: 0.06),
-            blurRadius: 22,
-            offset: const Offset(0, 10),
-          ),
-        ],
-      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -353,17 +312,10 @@ class _SettingsScreenState extends State<SettingsScreen>
                               width: 18,
                               height: 18,
                               decoration: BoxDecoration(
-                                color: const Color(0xFF7FDD8F),
+                                color: AppColors.success,
                                 shape: BoxShape.circle,
                                 border:
                                     Border.all(color: Colors.white, width: 2),
-                                boxShadow: [
-                                  BoxShadow(
-                                    color: Colors.black.withValues(alpha: 0.08),
-                                    blurRadius: 4,
-                                    offset: const Offset(0, 1),
-                                  ),
-                                ],
                               ),
                             ),
                           ),
@@ -378,24 +330,12 @@ class _SettingsScreenState extends State<SettingsScreen>
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text(
+                    Text(
                       '나의 루틴 친구',
-                      style: TextStyle(
-                        fontSize: 17,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: -0.35,
-                        color: HomeTheme.textPrimary,
-                      ),
+                      style: AppTextStyles.titleSection.copyWith(fontSize: 17),
                     ),
                     const SizedBox(height: 4),
-                    Text(
-                      '오늘도 함께해요',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w500,
-                        color: HomeTheme.textMuted.withValues(alpha: 0.92),
-                      ),
-                    ),
+                    const Text('오늘도 함께해요', style: AppTextStyles.label),
                     const SizedBox(height: 10),
                     Wrap(
                       spacing: 6,
@@ -435,43 +375,20 @@ class _SettingsScreenState extends State<SettingsScreen>
               border: Border.all(
                 color: HomeTheme.accentPink.withValues(alpha: 0.4),
               ),
-              boxShadow: [
-                BoxShadow(
-                  color: HomeTheme.accentPink.withValues(alpha: 0.12),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
             ),
             child: Row(
               children: [
-                const Text(
-                  '🔥',
-                  style: TextStyle(fontSize: 28),
-                ),
+                const Text('🔥', style: TextStyle(fontSize: 28)),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        '연속 루틴',
-                        style: TextStyle(
-                          fontSize: 11,
-                          fontWeight: FontWeight.w700,
-                          letterSpacing: 0.4,
-                          color: HomeTheme.textMuted.withValues(alpha: 0.85),
-                        ),
-                      ),
+                      const Text('연속 루틴', style: AppTextStyles.caption),
                       const SizedBox(height: 2),
-                      const Text(
+                      Text(
                         '3일째 이어가는 중이에요',
-                        style: TextStyle(
-                          fontSize: 15,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.2,
-                          color: HomeTheme.textPrimary,
-                        ),
+                        style: AppTextStyles.bodyStrong.copyWith(fontSize: 15),
                       ),
                     ],
                   ),
@@ -488,24 +405,14 @@ class _SettingsScreenState extends State<SettingsScreen>
                   ),
                   child: Column(
                     children: [
-                      const Text(
-                        '3',
-                        style: TextStyle(
-                          fontSize: 26,
-                          fontWeight: FontWeight.w800,
-                          height: 1,
-                          letterSpacing: -0.5,
-                          color: HomeTheme.textPrimary,
-                        ),
-                      ),
                       Text(
-                        '연속일',
-                        style: TextStyle(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w700,
-                          color: HomeTheme.textMuted.withValues(alpha: 0.85),
+                        '3',
+                        style: AppTextStyles.statMedium.copyWith(
+                          fontSize: 26,
+                          color: AppColors.textPrimary,
                         ),
                       ),
+                      const Text('연속일', style: AppTextStyles.captionTight),
                     ],
                   ),
                 ),
@@ -523,20 +430,20 @@ class _SettingsScreenState extends State<SettingsScreen>
       decoration: BoxDecoration(
         color: accent.withValues(alpha: 0.22),
         borderRadius: BorderRadius.circular(999),
-        border: Border.all(
-          color: accent.withValues(alpha: 0.35),
-        ),
+        border: Border.all(color: accent.withValues(alpha: 0.35)),
       ),
       child: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Icon(icon,
-              size: 14, color: HomeTheme.textPrimary.withValues(alpha: 0.75)),
+          Icon(
+            icon,
+            size: 14,
+            color: HomeTheme.textPrimary.withValues(alpha: 0.75),
+          ),
           const SizedBox(width: 5),
           Text(
             label,
-            style: TextStyle(
-              fontSize: 11,
+            style: AppTextStyles.captionTight.copyWith(
               fontWeight: FontWeight.w700,
               color: HomeTheme.textPrimary.withValues(alpha: 0.88),
             ),
@@ -575,12 +482,7 @@ class _SettingsScreenState extends State<SettingsScreen>
           const SizedBox(width: 6),
           Text(
             title,
-            style: const TextStyle(
-              fontSize: 14,
-              fontWeight: FontWeight.w800,
-              letterSpacing: -0.2,
-              color: HomeTheme.textPrimary,
-            ),
+            style: AppTextStyles.titleSection.copyWith(fontSize: 14),
           ),
         ],
       ),
@@ -632,39 +534,21 @@ class _SettingsScreenState extends State<SettingsScreen>
     bool value,
     ValueChanged<bool> onChanged, {
     bool switchEnabled = true,
+    String? description,
   }) {
     return Opacity(
       opacity: switchEnabled ? 1.0 : 0.45,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-        child: Row(
-          children: [
-            Container(
-              width: 42,
-              height: 42,
-              decoration: BoxDecoration(
-                color: color.withValues(alpha: 0.28),
-                borderRadius: BorderRadius.circular(13),
-                border: Border.all(
-                  color: color.withValues(alpha: 0.25),
-                ),
-              ),
-              child: Icon(icon, color: color.withValues(alpha: 0.95), size: 21),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: Text(
-                label,
-                style: const TextStyle(
-                  fontSize: 15,
-                  color: HomeTheme.textPrimary,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: -0.1,
-                ),
-              ),
-            ),
-            _buildToggleSwitch(value, onChanged, color, enabled: switchEnabled),
-          ],
+      child: AppSettingsTile(
+        icon: icon,
+        label: label,
+        accent: color,
+        description: description,
+        enabled: switchEnabled,
+        trailing: _buildToggleSwitch(
+          value,
+          onChanged,
+          color,
+          enabled: switchEnabled,
         ),
       ),
     );
@@ -674,61 +558,33 @@ class _SettingsScreenState extends State<SettingsScreen>
     IconData icon,
     String label,
     Color color,
-    VoidCallback onTap,
-  ) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(18),
-        splashColor: HomeTheme.accentPink.withValues(alpha: 0.12),
-        highlightColor: HomeTheme.textMuted.withValues(alpha: 0.06),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-          child: Row(
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.28),
-                  borderRadius: BorderRadius.circular(13),
-                  border: Border.all(
-                    color: color.withValues(alpha: 0.22),
-                  ),
-                ),
-                child:
-                    Icon(icon, color: color.withValues(alpha: 0.95), size: 21),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  label,
-                  style: const TextStyle(
-                    fontSize: 15,
-                    color: HomeTheme.textPrimary,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: -0.1,
-                  ),
-                ),
-              ),
-              Container(
-                padding: const EdgeInsets.all(4),
-                decoration: BoxDecoration(
-                  color: HomeTheme.textMuted.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: HomeTheme.textMuted.withValues(alpha: 0.12),
-                  ),
-                ),
-                child: Icon(
-                  Icons.chevron_right_rounded,
-                  color: HomeTheme.textMuted.withValues(alpha: 0.75),
-                  size: 22,
-                ),
-              ),
-            ],
+    VoidCallback? onTap, {
+    String? statusLabel,
+    String? description,
+  }) {
+    final enabled = onTap != null;
+    return AppSettingsTile(
+      icon: icon,
+      label: label,
+      accent: color,
+      description: description,
+      onTap: onTap,
+      enabled: enabled,
+      statusLabel: statusLabel,
+      statusTone: AppStatusBadgeTone.readySoon,
+      trailing: Container(
+        padding: const EdgeInsets.all(4),
+        decoration: BoxDecoration(
+          color: HomeTheme.textMuted.withValues(alpha: 0.1),
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: HomeTheme.textMuted.withValues(alpha: 0.12),
           ),
+        ),
+        child: Icon(
+          enabled ? Icons.chevron_right_rounded : Icons.remove_rounded,
+          color: HomeTheme.textMuted.withValues(alpha: 0.75),
+          size: 22,
         ),
       ),
     );
@@ -740,53 +596,26 @@ class _SettingsScreenState extends State<SettingsScreen>
     Color color,
     String value,
   ) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-      child: Row(
-        children: [
-          Container(
-            width: 42,
-            height: 42,
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.28),
-              borderRadius: BorderRadius.circular(13),
-              border: Border.all(
-                color: color.withValues(alpha: 0.2),
-              ),
-            ),
-            child: Icon(icon, color: color.withValues(alpha: 0.95), size: 21),
+    return AppSettingsTile(
+      icon: icon,
+      label: label,
+      accent: color,
+      trailing: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+        decoration: BoxDecoration(
+          color: HomeTheme.textMuted.withValues(alpha: 0.12),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(
+            color: HomeTheme.textMuted.withValues(alpha: 0.15),
           ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              label,
-              style: const TextStyle(
-                fontSize: 15,
-                color: HomeTheme.textPrimary,
-                fontWeight: FontWeight.w600,
-                letterSpacing: -0.1,
-              ),
-            ),
+        ),
+        child: Text(
+          value,
+          style: AppTextStyles.caption.copyWith(
+            fontWeight: FontWeight.w700,
+            color: HomeTheme.textPrimary.withValues(alpha: 0.85),
           ),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-            decoration: BoxDecoration(
-              color: HomeTheme.textMuted.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12),
-              border: Border.all(
-                color: HomeTheme.textMuted.withValues(alpha: 0.15),
-              ),
-            ),
-            child: Text(
-              value,
-              style: TextStyle(
-                fontSize: 12,
-                fontWeight: FontWeight.w700,
-                color: HomeTheme.textPrimary.withValues(alpha: 0.85),
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
@@ -825,7 +654,7 @@ class _SettingsScreenState extends State<SettingsScreen>
               color: value
                   ? color.withValues(alpha: 0.45)
                   : const Color(0xFFC9C0D4).withValues(alpha: 0.65),
-              width: value ? 1.5 : 1.5,
+              width: 1.5,
             ),
             boxShadow: value
                 ? [
