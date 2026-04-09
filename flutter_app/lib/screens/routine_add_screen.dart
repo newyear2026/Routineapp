@@ -49,6 +49,7 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
   String? _titleError;
   String? _timeError;
   String? _repeatError;
+  int? _previewWeekday;
 
   Routine? _editingBaseline;
 
@@ -63,6 +64,7 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
     _selectedColorArgb = routineColorArgbNormalize(
       routineFormPaletteColors[3].toARGB32(),
     );
+    _previewWeekday = _firstSelectedWeekday(_weekdays);
     if (widget.editRoutineId != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => _loadEditRoutine());
     }
@@ -99,6 +101,7 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
       for (var i = 0; i < 7; i++) {
         _weekdays[i] = r.repeatWeekdays.contains(i + 1);
       }
+      _previewWeekday = _firstSelectedWeekday(_weekdays);
       _selectedColorArgb = normalizedArgb;
       _notificationEnabled = r.notificationEnabled;
     });
@@ -114,6 +117,10 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
     setState(() {
       _weekdays[index] = value;
       _repeatError = _repeatDaysError();
+      _previewWeekday = _normalizedPreviewWeekday(
+        selectedWeekdays: _selectedRepeatDays(),
+        fallbackWeekday: value ? index + 1 : _previewWeekday,
+      );
     });
   }
 
@@ -203,6 +210,25 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
     final startLabel = _startTime.format(context);
     final endLabel = _endTime.format(context);
     return '$startLabel - $endLabel';
+  }
+
+  static int? _firstSelectedWeekday(List<bool> weekdays) {
+    for (var i = 0; i < weekdays.length; i++) {
+      if (weekdays[i]) return i + 1;
+    }
+    return null;
+  }
+
+  static int? _normalizedPreviewWeekday({
+    required Set<int> selectedWeekdays,
+    required int? fallbackWeekday,
+  }) {
+    if (selectedWeekdays.isEmpty) return null;
+    if (fallbackWeekday != null && selectedWeekdays.contains(fallbackWeekday)) {
+      return fallbackWeekday;
+    }
+    final sorted = selectedWeekdays.toList()..sort();
+    return sorted.first;
   }
 
   Future<void> _saveAfterValidation() async {
@@ -593,6 +619,13 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                                         candidate: candidate,
                                         allRoutines: controller.routines,
                                         isEdit: _isEdit,
+                                        selectedWeekday: _normalizedPreviewWeekday(
+                                          selectedWeekdays: repeat,
+                                          fallbackWeekday: _previewWeekday,
+                                        ),
+                                        onWeekdaySelected: (weekday) {
+                                          setState(() => _previewWeekday = weekday);
+                                        },
                                       ),
                                     ],
                                   ),
@@ -625,17 +658,49 @@ class _RoutineSchedulePreview extends StatelessWidget {
     required this.candidate,
     required this.allRoutines,
     required this.isEdit,
+    required this.selectedWeekday,
+    required this.onWeekdaySelected,
   });
 
   final Routine candidate;
   final List<Routine> allRoutines;
   final bool isEdit;
+  final int? selectedWeekday;
+  final ValueChanged<int> onWeekdaySelected;
 
   @override
   Widget build(BuildContext context) {
-    final weekday = candidate.repeatWeekdays.isNotEmpty
-        ? (candidate.repeatWeekdays.toList()..sort()).first
-        : DateTime.now().weekday;
+    final weekdays = candidate.repeatWeekdays.toList()..sort();
+    if (weekdays.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(18),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.52),
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
+            color: AppColors.border.withValues(alpha: 0.5),
+          ),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              '요일별 미리보기',
+              style: AppTextStyles.bodyStrong.copyWith(fontSize: 14),
+            ),
+            const SizedBox(height: 6),
+            Text(
+              '요일을 선택하면 하루 기준으로 원형 일정표를 바로 보여드릴게요.',
+              style: AppTextStyles.caption.copyWith(height: 1.4),
+            ),
+          ],
+        ),
+      );
+    }
+
+    final weekday = selectedWeekday != null && weekdays.contains(selectedWeekday)
+        ? selectedWeekday!
+        : weekdays.first;
     final label = _weekdayName(weekday);
     final selectedCount = candidate.repeatWeekdays.length;
     final previewRoutines = [
@@ -650,6 +715,14 @@ class _RoutineSchedulePreview extends StatelessWidget {
           b.startMinutesFromMidnight,
         ),
       );
+
+    final dayConflicts = allRoutines.where(
+      (routine) =>
+          routine.id != candidate.id &&
+          routine.repeatWeekdays.contains(weekday) &&
+          !(routine.endMinutesFromMidnight <= candidate.startMinutesFromMidnight ||
+              routine.startMinutesFromMidnight >= candidate.endMinutesFromMidnight),
+    ).toList();
 
     final segments = previewRoutines
         .map(
@@ -669,7 +742,7 @@ class _RoutineSchedulePreview extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.52),
+        color: Colors.white.withValues(alpha: 0.58),
         borderRadius: BorderRadius.circular(22),
         border: Border.all(
           color: candidate.color.withValues(alpha: 0.24),
@@ -691,7 +764,7 @@ class _RoutineSchedulePreview extends StatelessWidget {
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
-                  '$label 미리보기',
+                  '요일별 미리보기',
                   style: AppTextStyles.bodyStrong.copyWith(fontSize: 14),
                 ),
               ),
@@ -709,22 +782,175 @@ class _RoutineSchedulePreview extends StatelessWidget {
           ),
           const SizedBox(height: 6),
           Text(
-            '설정한 시간대가 하루 원형 일정표에서 어디에 들어가는지 바로 확인할 수 있어요.',
+            '선택한 요일에 따라 하루 일정표가 달라져요. 원하는 요일을 눌러서 직접 확인해보세요.',
             style: AppTextStyles.caption.copyWith(height: 1.35),
           ),
+          const SizedBox(height: 12),
+          Wrap(
+            spacing: 8,
+            runSpacing: 8,
+            children: weekdays
+                .map(
+                  (day) => _PreviewWeekdayChip(
+                    label: _weekdayShortName(day),
+                    isSelected: day == weekday,
+                    color: candidate.color,
+                    onTap: () => onWeekdaySelected(day),
+                  ),
+                )
+                .toList(),
+          ),
           const SizedBox(height: 14),
-          Center(
-            child: CircularTimetableArea(
-              routines: segments,
-              currentTime: TimeOfDay(
-                hour: candidate.startMinutesFromMidnight ~/ 60,
-                minute: candidate.startMinutesFromMidnight % 60,
+          Row(
+            children: [
+              Expanded(
+                child: _PreviewInfoCard(
+                  label: '기준 요일',
+                  value: label,
+                  tone: candidate.color.withValues(alpha: 0.18),
+                ),
               ),
-              activeRoutine: HomeViewMapper.ringStubFromRoutine(candidate),
-              centerRoutineName: candidate.title.isEmpty ? '새 루틴' : candidate.title,
-              size: 228,
+              const SizedBox(width: 10),
+              Expanded(
+                child: _PreviewInfoCard(
+                  label: '그날 루틴 수',
+                  value: '${previewRoutines.length}개',
+                  tone: const Color(0xFFEFF4FF),
+                ),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: _PreviewInfoCard(
+                  label: '겹침',
+                  value: dayConflicts.isEmpty ? '없음' : '${dayConflicts.length}개',
+                  tone: dayConflicts.isEmpty
+                      ? const Color(0xFFEAF7ED)
+                      : const Color(0xFFFFF2D8),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 14),
+          Container(
+            padding: const EdgeInsets.fromLTRB(14, 16, 14, 14),
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  candidate.color.withValues(alpha: 0.12),
+                  Colors.white.withValues(alpha: 0.82),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: candidate.color.withValues(alpha: 0.22),
+              ),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            '$label 일정 배치',
+                            style: AppTextStyles.bodyStrong.copyWith(fontSize: 15),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            '${TimeOfDay(hour: candidate.startMinutesFromMidnight ~/ 60, minute: candidate.startMinutesFromMidnight % 60).format(context)} - ${TimeOfDay(hour: candidate.endMinutesFromMidnight ~/ 60, minute: candidate.endMinutesFromMidnight % 60).format(context)}',
+                            style: AppTextStyles.caption.copyWith(
+                              fontSize: 13,
+                              color: AppColors.textMuted.withValues(alpha: 0.9),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: candidate.color.withValues(alpha: 0.14),
+                        borderRadius: BorderRadius.circular(999),
+                      ),
+                      child: Text(
+                        candidate.title.isEmpty ? '새 루틴' : candidate.title,
+                        style: AppTextStyles.caption.copyWith(
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textPrimary.withValues(alpha: 0.9),
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 14),
+                Center(
+                  child: CircularTimetableArea(
+                    routines: segments,
+                    currentTime: TimeOfDay(
+                      hour: candidate.startMinutesFromMidnight ~/ 60,
+                      minute: candidate.startMinutesFromMidnight % 60,
+                    ),
+                    activeRoutine: HomeViewMapper.ringStubFromRoutine(candidate),
+                    centerRoutineName:
+                        candidate.title.isEmpty ? '새 루틴' : candidate.title,
+                    size: 228,
+                  ),
+                ),
+                const SizedBox(height: 14),
+                _PreviewDayScheduleList(
+                  weekdayLabel: label,
+                  candidateId: candidate.id,
+                  routines: previewRoutines,
+                ),
+              ],
             ),
           ),
+          const SizedBox(height: 14),
+          if (dayConflicts.isNotEmpty)
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF5DE),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: AppColors.warning.withValues(alpha: 0.4),
+                ),
+              ),
+              child: Text(
+                '$label에는 "${dayConflicts.first.title}"과 시간이 겹쳐요. 이 요일의 홈 화면에서는 어떤 루틴이 먼저 보여야 할지 다시 확인하는 편이 좋습니다.',
+                style: AppTextStyles.caption.copyWith(
+                  fontSize: 13,
+                  height: 1.45,
+                  color: AppColors.textPrimary.withValues(alpha: 0.88),
+                ),
+              ),
+            )
+          else
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFEFF9F1),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: const Color(0xFFA6D1B0).withValues(alpha: 0.7),
+                ),
+              ),
+              child: Text(
+                '$label 일정에서는 새 루틴이 자연스럽게 들어갑니다. 홈에서도 이 요일 기준 흐름이 그대로 반영돼요.',
+                style: AppTextStyles.caption.copyWith(
+                  fontSize: 13,
+                  height: 1.45,
+                  color: AppColors.textPrimary.withValues(alpha: 0.88),
+                ),
+              ),
+            ),
         ],
       ),
     );
@@ -741,6 +967,300 @@ class _RoutineSchedulePreview extends StatelessWidget {
       7: '일요일',
     };
     return map[weekday] ?? '선택한 요일';
+  }
+
+  String _weekdayShortName(int weekday) {
+    const map = {
+      1: '월',
+      2: '화',
+      3: '수',
+      4: '목',
+      5: '금',
+      6: '토',
+      7: '일',
+    };
+    return map[weekday] ?? '';
+  }
+}
+
+class _PreviewWeekdayChip extends StatelessWidget {
+  const _PreviewWeekdayChip({
+    required this.label,
+    required this.isSelected,
+    required this.color,
+    required this.onTap,
+  });
+
+  final String label;
+  final bool isSelected;
+  final Color color;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 180),
+        curve: Curves.easeOut,
+        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
+        decoration: BoxDecoration(
+          gradient: isSelected
+              ? LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    Colors.white.withValues(alpha: 0.94),
+                    color.withValues(alpha: 0.16),
+                    const Color(0xFFE8DDFA).withValues(alpha: 0.28),
+                  ],
+                )
+              : null,
+          color: isSelected ? null : Colors.white.withValues(alpha: 0.7),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isSelected
+                ? color.withValues(alpha: 0.42)
+                : AppColors.border.withValues(alpha: 0.5),
+            width: isSelected ? 1.4 : 1,
+          ),
+          boxShadow: isSelected
+              ? [
+                  BoxShadow(
+                    color: color.withValues(alpha: 0.14),
+                    blurRadius: 14,
+                    offset: const Offset(0, 6),
+                  ),
+                ]
+              : null,
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (isSelected) ...[
+              Container(
+                width: 7,
+                height: 7,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.9),
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 7),
+            ],
+            Text(
+              label,
+              style: AppTextStyles.caption.copyWith(
+                fontSize: 13,
+                fontWeight: FontWeight.w800,
+                color: isSelected ? AppColors.textPrimary : AppColors.textMuted,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _PreviewDayScheduleList extends StatelessWidget {
+  const _PreviewDayScheduleList({
+    required this.weekdayLabel,
+    required this.candidateId,
+    required this.routines,
+  });
+
+  final String weekdayLabel;
+  final String candidateId;
+  final List<Routine> routines;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.fromLTRB(14, 14, 14, 12),
+      decoration: BoxDecoration(
+        color: Colors.white.withValues(alpha: 0.68),
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: AppColors.border.withValues(alpha: 0.5),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Icon(
+                Icons.view_timeline_rounded,
+                size: 16,
+                color: AppColors.textMuted.withValues(alpha: 0.84),
+              ),
+              const SizedBox(width: 6),
+              Text(
+                '$weekdayLabel 일정 순서',
+                style: AppTextStyles.bodyStrong.copyWith(fontSize: 14),
+              ),
+            ],
+          ),
+          const SizedBox(height: 10),
+          ...List.generate(routines.length, (index) {
+            final routine = routines[index];
+            return Padding(
+              padding: EdgeInsets.only(
+                bottom: index == routines.length - 1 ? 0 : 8,
+              ),
+              child: _PreviewScheduleRow(
+                routine: routine,
+                isCandidate: routine.id == candidateId,
+              ),
+            );
+          }),
+        ],
+      ),
+    );
+  }
+}
+
+class _PreviewScheduleRow extends StatelessWidget {
+  const _PreviewScheduleRow({
+    required this.routine,
+    required this.isCandidate,
+  });
+
+  final Routine routine;
+  final bool isCandidate;
+
+  @override
+  Widget build(BuildContext context) {
+    final start = TimeOfDay(
+      hour: routine.startMinutesFromMidnight ~/ 60,
+      minute: routine.startMinutesFromMidnight % 60,
+    ).format(context);
+    final end = TimeOfDay(
+      hour: routine.endMinutesFromMidnight ~/ 60,
+      minute: routine.endMinutesFromMidnight % 60,
+    ).format(context);
+
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 10),
+      decoration: BoxDecoration(
+        color: isCandidate
+            ? routine.color.withValues(alpha: 0.14)
+            : Colors.white.withValues(alpha: 0.75),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isCandidate
+              ? routine.color.withValues(alpha: 0.32)
+              : AppColors.border.withValues(alpha: 0.42),
+        ),
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 10,
+            height: 10,
+            decoration: BoxDecoration(
+              color: routine.color.withValues(alpha: isCandidate ? 0.95 : 0.7),
+              shape: BoxShape.circle,
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        routine.title.isEmpty ? '이름 없는 루틴' : routine.title,
+                        style: AppTextStyles.caption.copyWith(
+                          fontSize: 13,
+                          fontWeight: FontWeight.w800,
+                          color: AppColors.textPrimary.withValues(alpha: 0.92),
+                        ),
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (isCandidate)
+                      Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 8,
+                          vertical: 4,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.white.withValues(alpha: 0.72),
+                          borderRadius: BorderRadius.circular(999),
+                        ),
+                        child: Text(
+                          '새 루틴',
+                          style: AppTextStyles.caption.copyWith(
+                            fontSize: 11,
+                            fontWeight: FontWeight.w800,
+                            color: AppColors.textPrimary.withValues(alpha: 0.86),
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  '$start - $end',
+                  style: AppTextStyles.caption.copyWith(
+                    fontSize: 12,
+                    color: AppColors.textMuted.withValues(alpha: 0.86),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PreviewInfoCard extends StatelessWidget {
+  const _PreviewInfoCard({
+    required this.label,
+    required this.value,
+    required this.tone,
+  });
+
+  final String label;
+  final String value;
+  final Color tone;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
+      decoration: BoxDecoration(
+        color: tone,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(
+          color: Colors.white.withValues(alpha: 0.65),
+        ),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            label,
+            style: AppTextStyles.caption.copyWith(
+              fontSize: 11,
+              color: AppColors.textMuted.withValues(alpha: 0.82),
+            ),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            value,
+            style: AppTextStyles.bodyStrong.copyWith(fontSize: 15),
+          ),
+        ],
+      ),
+    );
   }
 }
 

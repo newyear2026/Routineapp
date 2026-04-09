@@ -36,7 +36,11 @@ class LocalRoutineLogRepository implements RoutineLogRepository {
   @override
   Future<void> upsertLog(RoutineLog log) async {
     final all = await loadAllLogs();
-    final idx = all.indexWhere((l) => l.id == log.id);
+    final idx = all.indexWhere(
+      (l) =>
+          l.id == log.id ||
+          (l.routineId == log.routineId && l.dateYmd == log.dateYmd),
+    );
     if (idx >= 0) {
       all[idx] = log;
     } else {

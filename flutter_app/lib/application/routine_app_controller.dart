@@ -1,4 +1,6 @@
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'dart:async';
+
+import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:flutter/material.dart';
 
 import '../data/local/local_settings_repository.dart';
@@ -23,17 +25,26 @@ class RoutineAppController extends ChangeNotifier {
   RoutineAppController({
     RoutineDataService? dataService,
     RoutineDayService? dayService,
+    DateTime Function()? nowProvider,
+    bool clockAutoRefreshEnabled = true,
   })  : _data = dataService ?? RoutineDataService(),
-        _dayService = dayService ?? const RoutineDayService();
+        _dayService = dayService ?? const RoutineDayService(),
+        _nowProvider = nowProvider ?? DateTime.now,
+        _clockAutoRefreshEnabled = clockAutoRefreshEnabled;
 
   final RoutineDataService _data;
   final RoutineDayService _dayService;
   final LocalSettingsRepository _settings = LocalSettingsRepository.instance;
+  final DateTime Function() _nowProvider;
+  final bool _clockAutoRefreshEnabled;
 
   List<Routine> _routines = [];
   List<RoutineLog> _logsToday = [];
   AppSettings _appSettings = const AppSettings();
   bool _loaded = false;
+  String? _loadedDateYmd;
+  Timer? _clockTimer;
+  bool _clockRefreshInFlight = false;
 
   bool get isLoaded => _loaded;
 
@@ -43,7 +54,7 @@ class RoutineAppController extends ChangeNotifier {
   String get themeId => _appSettings.themeId ?? AppThemePreset.softDay.id;
   AppThemePreset get currentThemePreset => AppThemePreset.byId(themeId);
 
-  DateTime get _now => DateTime.now();
+  DateTime get _now => _nowProvider();
 
   /// Progress — 오늘 요일 스케줄 루틴
   List<Routine> get todayScheduledRoutines =>
@@ -72,10 +83,15 @@ class RoutineAppController extends ChangeNotifier {
 
   /// 로컬 저장소에서 루틴·오늘 로그 로드 (Home 진입·저장 후 등)
   Future<void> load() async {
+    final now = _now;
     _routines = await _data.loadRoutines();
-    _logsToday = await _data.loadLogsForDate(_now);
+    _logsToday = await _data.loadLogsForDate(now);
     _appSettings = await _settings.loadAppSettings();
+    _loadedDateYmd = TimeMinutes.dateYmd(now);
     _loaded = true;
+    if (_clockAutoRefreshEnabled) {
+      _scheduleNextClockTick();
+    }
     notifyListeners();
     if (!kIsWeb) {
       await HomeWidgetSyncService.instance.push(homeSnapshot);
@@ -175,4 +191,57 @@ class RoutineAppController extends ChangeNotifier {
       await HomeWidgetSyncService.instance.push(homeSnapshot);
     }
   }
+
+  void _scheduleNextClockTick() {
+    _clockTimer?.cancel();
+    if (!_loaded) return;
+
+    final now = _now;
+    final nextMinute = DateTime(
+      now.year,
+      now.month,
+      now.day,
+      now.hour,
+      now.minute + 1,
+    );
+    _clockTimer = Timer(nextMinute.difference(now), _handleClockTimerFired);
+  }
+
+  void _handleClockTimerFired() {
+    _refreshClockState();
+  }
+
+  Future<void> _refreshClockState() async {
+    if (_clockRefreshInFlight || !_loaded) {
+      _scheduleNextClockTick();
+      return;
+    }
+
+    _clockRefreshInFlight = true;
+    try {
+      final now = _now;
+      final currentYmd = TimeMinutes.dateYmd(now);
+      if (_loadedDateYmd != currentYmd) {
+        _logsToday = await _data.loadLogsForDate(now);
+        _loadedDateYmd = currentYmd;
+      }
+
+      notifyListeners();
+      if (!kIsWeb) {
+        await HomeWidgetSyncService.instance.push(homeSnapshot);
+      }
+    } finally {
+      _clockRefreshInFlight = false;
+      _scheduleNextClockTick();
+    }
+  }
+
+  @override
+  void dispose() {
+    _clockTimer?.cancel();
+    super.dispose();
+  }
+
+  @visibleForTesting
+  Future<void> refreshClockStateForTest() => _refreshClockState();
 }
