@@ -49,4 +49,11 @@ class LocalRoutineRepository implements RoutineRepository {
     }
     await saveRoutines(all);
   }
+
+  @override
+  Future<void> deleteRoutine(String routineId) async {
+    final all = await loadRoutines();
+    all.removeWhere((routine) => routine.id == routineId);
+    await saveRoutines(all);
+  }
 }

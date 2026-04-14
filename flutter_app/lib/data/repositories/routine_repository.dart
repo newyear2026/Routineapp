@@ -11,4 +11,7 @@ abstract class RoutineRepository {
 
   /// id가 있으면 교체, 없으면 추가
   Future<void> upsertRoutine(Routine routine);
+
+  /// id가 일치하는 루틴을 삭제
+  Future<void> deleteRoutine(String routineId);
 }

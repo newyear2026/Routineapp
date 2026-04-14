@@ -103,6 +103,65 @@ void main() {
 
     controller.dispose();
   });
+
+  test('controller deletes routine and associated logs together', () async {
+    final routineRepository = _FakeRoutineRepository([
+      Routine(
+        id: 'routine_1',
+        title: '아침 루틴',
+        startMinutesFromMidnight: 8 * 60,
+        endMinutesFromMidnight: 9 * 60,
+        repeatWeekdays: const {4},
+        colorValue: const Color(0xFFE91E63).toARGB32(),
+        iconEmoji: '🌤️',
+      ),
+      Routine(
+        id: 'routine_2',
+        title: '점심 루틴',
+        startMinutesFromMidnight: 12 * 60,
+        endMinutesFromMidnight: 13 * 60,
+        repeatWeekdays: const {4},
+        colorValue: const Color(0xFF42A5F5).toARGB32(),
+        iconEmoji: '🍽️',
+      ),
+    ]);
+    final logRepository = _FakeRoutineLogRepository({
+      '2026-04-09': [
+        const RoutineLog(
+          id: 'routine_1_2026-04-09',
+          routineId: 'routine_1',
+          dateYmd: '2026-04-09',
+          status: RoutineLogStatus.completed,
+        ),
+        const RoutineLog(
+          id: 'routine_2_2026-04-09',
+          routineId: 'routine_2',
+          dateYmd: '2026-04-09',
+          status: RoutineLogStatus.scheduled,
+        ),
+      ],
+    });
+    final controller = RoutineAppController(
+      dataService: RoutineDataService(
+        routineRepository: routineRepository,
+        logRepository: logRepository,
+      ),
+      nowProvider: () => DateTime(2026, 4, 9, 8, 30),
+      clockAutoRefreshEnabled: false,
+    );
+
+    await controller.load();
+    final result = await controller.deleteRoutine('routine_1');
+
+    expect(result.ok, isTrue);
+    expect(controller.routines.map((routine) => routine.id), ['routine_2']);
+    expect(
+      controller.todayLogs.map((log) => log.routineId),
+      ['routine_2'],
+    );
+
+    controller.dispose();
+  });
 }
 
 class _FakeRoutineRepository implements RoutineRepository {
@@ -118,6 +177,11 @@ class _FakeRoutineRepository implements RoutineRepository {
   @override
   Future<List<Routine>> loadRoutines() async {
     return List<Routine>.from(_items);
+  }
+
+  @override
+  Future<void> deleteRoutine(String routineId) async {
+    _items.removeWhere((item) => item.id == routineId);
   }
 
   @override
@@ -167,6 +231,13 @@ class _FakeRoutineLogRepository implements RoutineLogRepository {
       list.add(log);
     } else {
       list[index] = log;
+    }
+  }
+
+  @override
+  Future<void> deleteLogsForRoutine(String routineId) async {
+    for (final logs in _logsByDate.values) {
+      logs.removeWhere((log) => log.routineId == routineId);
     }
   }
 }

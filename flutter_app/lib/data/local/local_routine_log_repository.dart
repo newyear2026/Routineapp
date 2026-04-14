@@ -49,4 +49,12 @@ class LocalRoutineLogRepository implements RoutineLogRepository {
     final jsonStr = jsonEncode(all.map((e) => e.toJson()).toList());
     await (await _prefs).setString(_kLogs, jsonStr);
   }
+
+  @override
+  Future<void> deleteLogsForRoutine(String routineId) async {
+    final all = await loadAllLogs();
+    all.removeWhere((log) => log.routineId == routineId);
+    final jsonStr = jsonEncode(all.map((e) => e.toJson()).toList());
+    await (await _prefs).setString(_kLogs, jsonStr);
+  }
 }

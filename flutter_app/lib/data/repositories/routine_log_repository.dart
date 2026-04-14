@@ -9,4 +9,7 @@ abstract class RoutineLogRepository {
 
   /// 마이그레이션·백업·동기화용
   Future<List<RoutineLog>> loadAllLogs();
+
+  /// 루틴 삭제 시 연결된 로그 정리
+  Future<void> deleteLogsForRoutine(String routineId);
 }

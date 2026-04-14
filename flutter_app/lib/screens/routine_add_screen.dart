@@ -50,6 +50,7 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
   String? _timeError;
   String? _repeatError;
   int? _previewWeekday;
+  bool _isDeleting = false;
 
   Routine? _editingBaseline;
 
@@ -317,6 +318,52 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
 
   Future<void> handleSave() => _saveAfterValidation();
 
+  Future<void> _handleDelete() async {
+    if (!_isEdit || _editingBaseline == null || _isDeleting) return;
+
+    FocusScope.of(context).unfocus();
+    final routine = _editingBaseline!;
+    final shouldDelete = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('루틴 삭제'),
+        content: Text(
+          '"${routine.title}" 루틴과 관련 기록을 삭제할까요?\n이 작업은 되돌릴 수 없어요.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(false),
+            child: const Text('취소'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.of(ctx).pop(true),
+            child: const Text('삭제'),
+          ),
+        ],
+      ),
+    );
+
+    if (shouldDelete != true || !mounted) return;
+
+    setState(() => _isDeleting = true);
+    final result =
+        await context.read<RoutineAppController>().deleteRoutine(routine.id);
+    if (!mounted) return;
+    setState(() => _isDeleting = false);
+
+    if (!result.ok) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(result.errorMessage ?? '삭제에 실패했어요.')),
+      );
+      return;
+    }
+
+    appScaffoldMessengerKey.currentState?.showSnackBar(
+      const SnackBar(content: Text('루틴을 삭제했어요')),
+    );
+    context.go('/home');
+  }
+
   @override
   Widget build(BuildContext context) {
     final title = _isEdit ? '루틴 편집' : '루틴 추가';
@@ -366,6 +413,25 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                         AppPageHeader(
                           title: title,
                           onBack: () => context.pop(),
+                          trailing: _isEdit
+                              ? IconButton(
+                                  onPressed: _isDeleting ? null : _handleDelete,
+                                  tooltip: '루틴 삭제',
+                                  icon: _isDeleting
+                                      ? const SizedBox(
+                                          width: 18,
+                                          height: 18,
+                                          child: CircularProgressIndicator(
+                                            strokeWidth: 2,
+                                          ),
+                                        )
+                                      : Icon(
+                                          Icons.delete_outline_rounded,
+                                          color: AppColors.warning
+                                              .withValues(alpha: 0.92),
+                                        ),
+                                )
+                              : null,
                         ),
                         Expanded(
                           child: SingleChildScrollView(
@@ -404,9 +470,11 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                                                 child: PastelTimeField(
                                                   label: '시작',
                                                   value: _startTime,
-                                                  onChanged: (t) => setState(() {
+                                                  onChanged: (t) =>
+                                                      setState(() {
                                                     _startTime = t;
-                                                    _timeError = _timeRangeError();
+                                                    _timeError =
+                                                        _timeRangeError();
                                                   }),
                                                   errorText: _timeError,
                                                   helperText:
@@ -418,9 +486,11 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                                                 child: PastelTimeField(
                                                   label: '종료',
                                                   value: _endTime,
-                                                  onChanged: (t) => setState(() {
+                                                  onChanged: (t) =>
+                                                      setState(() {
                                                     _endTime = t;
-                                                    _timeError = _timeRangeError();
+                                                    _timeError =
+                                                        _timeRangeError();
                                                   }),
                                                   errorText: _timeError,
                                                   helperText:
@@ -441,8 +511,7 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                                     selected: _weekdays,
                                     onChanged: _onWeekdayChanged,
                                     errorText: _repeatError,
-                                    helperText:
-                                        '루틴을 반복할 요일을 1개 이상 골라주세요.',
+                                    helperText: '루틴을 반복할 요일을 1개 이상 골라주세요.',
                                   ),
                                 ),
                                 const SizedBox(height: 16),
@@ -619,18 +688,31 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                                         candidate: candidate,
                                         allRoutines: controller.routines,
                                         isEdit: _isEdit,
-                                        selectedWeekday: _normalizedPreviewWeekday(
+                                        selectedWeekday:
+                                            _normalizedPreviewWeekday(
                                           selectedWeekdays: repeat,
                                           fallbackWeekday: _previewWeekday,
                                         ),
                                         onWeekdaySelected: (weekday) {
-                                          setState(() => _previewWeekday = weekday);
+                                          setState(
+                                              () => _previewWeekday = weekday);
                                         },
                                       ),
                                     ],
                                   ),
                                 ),
                                 const SizedBox(height: 24),
+                                if (_isEdit) ...[
+                                  AppButton(
+                                    label: '루틴 삭제',
+                                    icon: Icons.delete_outline_rounded,
+                                    onPressed:
+                                        _isDeleting ? null : _handleDelete,
+                                    variant: AppButtonVariant.destructive,
+                                    isLoading: _isDeleting,
+                                  ),
+                                  const SizedBox(height: 12),
+                                ],
                                 AppButton(
                                   label: '저장하기',
                                   icon: Icons.check_rounded,
@@ -698,9 +780,10 @@ class _RoutineSchedulePreview extends StatelessWidget {
       );
     }
 
-    final weekday = selectedWeekday != null && weekdays.contains(selectedWeekday)
-        ? selectedWeekday!
-        : weekdays.first;
+    final weekday =
+        selectedWeekday != null && weekdays.contains(selectedWeekday)
+            ? selectedWeekday!
+            : weekdays.first;
     final label = _weekdayName(weekday);
     final selectedCount = candidate.repeatWeekdays.length;
     final previewRoutines = [
@@ -716,13 +799,17 @@ class _RoutineSchedulePreview extends StatelessWidget {
         ),
       );
 
-    final dayConflicts = allRoutines.where(
-      (routine) =>
-          routine.id != candidate.id &&
-          routine.repeatWeekdays.contains(weekday) &&
-          !(routine.endMinutesFromMidnight <= candidate.startMinutesFromMidnight ||
-              routine.startMinutesFromMidnight >= candidate.endMinutesFromMidnight),
-    ).toList();
+    final dayConflicts = allRoutines
+        .where(
+          (routine) =>
+              routine.id != candidate.id &&
+              routine.repeatWeekdays.contains(weekday) &&
+              !(routine.endMinutesFromMidnight <=
+                      candidate.startMinutesFromMidnight ||
+                  routine.startMinutesFromMidnight >=
+                      candidate.endMinutesFromMidnight),
+        )
+        .toList();
 
     final segments = previewRoutines
         .map(
@@ -822,7 +909,8 @@ class _RoutineSchedulePreview extends StatelessWidget {
               Expanded(
                 child: _PreviewInfoCard(
                   label: '겹침',
-                  value: dayConflicts.isEmpty ? '없음' : '${dayConflicts.length}개',
+                  value:
+                      dayConflicts.isEmpty ? '없음' : '${dayConflicts.length}개',
                   tone: dayConflicts.isEmpty
                       ? const Color(0xFFEAF7ED)
                       : const Color(0xFFFFF2D8),
@@ -857,7 +945,8 @@ class _RoutineSchedulePreview extends StatelessWidget {
                         children: [
                           Text(
                             '$label 일정 배치',
-                            style: AppTextStyles.bodyStrong.copyWith(fontSize: 15),
+                            style:
+                                AppTextStyles.bodyStrong.copyWith(fontSize: 15),
                           ),
                           const SizedBox(height: 4),
                           Text(
@@ -897,7 +986,8 @@ class _RoutineSchedulePreview extends StatelessWidget {
                       hour: candidate.startMinutesFromMidnight ~/ 60,
                       minute: candidate.startMinutesFromMidnight % 60,
                     ),
-                    activeRoutine: HomeViewMapper.ringStubFromRoutine(candidate),
+                    activeRoutine:
+                        HomeViewMapper.ringStubFromRoutine(candidate),
                     centerRoutineName:
                         candidate.title.isEmpty ? '새 루틴' : candidate.title,
                     size: 228,
@@ -1198,7 +1288,8 @@ class _PreviewScheduleRow extends StatelessWidget {
                           style: AppTextStyles.caption.copyWith(
                             fontSize: 11,
                             fontWeight: FontWeight.w800,
-                            color: AppColors.textPrimary.withValues(alpha: 0.86),
+                            color:
+                                AppColors.textPrimary.withValues(alpha: 0.86),
                           ),
                         ),
                       ),

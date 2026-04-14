@@ -29,6 +29,11 @@ class RoutineDataService {
   Future<void> upsertRoutine(Routine routine) =>
       _routines.upsertRoutine(routine);
 
+  Future<void> deleteRoutine(String routineId) async {
+    await _routines.deleteRoutine(routineId);
+    await _logs.deleteLogsForRoutine(routineId);
+  }
+
   Future<List<RoutineLog>> loadLogsForDate(DateTime dateLocal) =>
       _logs.loadLogsForDate(dateLocal);
 

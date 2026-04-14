@@ -124,6 +124,19 @@ class RoutineAppController extends ChangeNotifier {
   /// 하위 호환 — [saveRoutine]과 동일
   Future<RoutineSaveResult> addRoutine(Routine routine) => saveRoutine(routine);
 
+  Future<RoutineSaveResult> deleteRoutine(String routineId) async {
+    try {
+      await _data.deleteRoutine(routineId);
+      await load();
+      return RoutineSaveResult.success;
+    } catch (e, st) {
+      debugPrint('deleteRoutine failed: $e\n$st');
+      return RoutineSaveResult.failure(
+        '삭제에 실패했어요. 잠시 후 다시 시도해 주세요.',
+      );
+    }
+  }
+
   bool get canActOnCurrentSlot {
     final c = _currentSlot;
     if (c == null) return false;
