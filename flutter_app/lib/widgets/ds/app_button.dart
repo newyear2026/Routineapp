@@ -91,7 +91,7 @@ class AppButton extends StatelessWidget {
       case AppButtonVariant.secondary:
         return AppColors.textPrimary;
       case AppButtonVariant.ghost:
-        return AppColors.textMuted;
+        return AppColors.textPrimary;
       case AppButtonVariant.destructive:
         return Colors.white;
     }
@@ -102,13 +102,13 @@ class AppButton extends StatelessWidget {
       case AppButtonVariant.primary:
         return BoxDecoration(
           borderRadius: BorderRadius.circular(AppRadii.button),
-          gradient: theme.softAccentGradient,
+          gradient: AppColors.orbitPrimaryGradient,
           border: Border.all(color: Colors.white.withValues(alpha: 0.28)),
           boxShadow: [
             BoxShadow(
-              color: theme.accentLavender.withValues(alpha: 0.32),
-              blurRadius: 18,
-              offset: const Offset(0, 8),
+              color: AppColors.orbitPrimary.withValues(alpha: 0.22),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
             ),
           ],
         );
@@ -117,23 +117,24 @@ class AppButton extends StatelessWidget {
           borderRadius: BorderRadius.circular(AppRadii.button),
           color: Colors.white.withValues(alpha: 0.74),
           border: Border.all(
-            color: AppColors.border.withValues(alpha: 0.7),
+            color: AppColors.orbitBorder.withValues(alpha: 0.9),
           ),
         );
       case AppButtonVariant.ghost:
         return BoxDecoration(
           borderRadius: BorderRadius.circular(AppRadii.button),
+          color: AppColors.orbitSurfaceSoft.withValues(alpha: 0.4),
         );
       case AppButtonVariant.destructive:
         return BoxDecoration(
           borderRadius: BorderRadius.circular(AppRadii.button),
           gradient: const LinearGradient(
-            colors: [Color(0xFFE58EA1), Color(0xFFD96B85)],
+            colors: [Color(0xFFE78D76), Color(0xFFD76A5B)],
           ),
           border: Border.all(color: Colors.white.withValues(alpha: 0.24)),
           boxShadow: [
             BoxShadow(
-              color: const Color(0xFFD96B85).withValues(alpha: 0.24),
+              color: const Color(0xFFD76A5B).withValues(alpha: 0.24),
               blurRadius: 18,
               offset: const Offset(0, 8),
             ),

@@ -5,10 +5,7 @@ import 'package:provider/provider.dart';
 import '../application/mappers/progress_view_mapper.dart';
 import '../application/routine_app_controller.dart';
 import '../domain/progress/daily_progress.dart';
-import '../theme/home_theme.dart';
-import '../theme/app_theme_preset.dart';
 import '../widgets/ds/ds.dart';
-import '../widgets/home/home_decorative_background.dart';
 import '../widgets/progress/progress_character_feedback.dart';
 import '../widgets/progress/progress_mini_stats_row.dart';
 import '../widgets/progress/progress_percent_header.dart';
@@ -48,119 +45,68 @@ class TodayProgressScreen extends StatelessWidget {
           completed: progress.completed,
           total: progress.total,
         );
-        final theme = context.appTheme;
-
         return Scaffold(
-          body: Container(
-            width: double.infinity,
-            height: double.infinity,
-            decoration: BoxDecoration(gradient: theme.pageGradient),
-            child: SafeArea(
-              child: Center(
-                child: ConstrainedBox(
-                  constraints:
-                      const BoxConstraints(maxWidth: HomeTheme.mobileWidth),
-                  child: Container(
-                    margin: const EdgeInsets.all(16),
-                    clipBehavior: Clip.antiAlias,
-                    decoration: BoxDecoration(
-                      borderRadius:
-                          BorderRadius.circular(HomeTheme.shellRadius),
-                      gradient: theme.shellGradient,
-                      boxShadow: [
-                        BoxShadow(
-                          color: Colors.black.withValues(alpha: 0.12),
-                          blurRadius: 40,
-                          offset: const Offset(0, 16),
-                        ),
-                      ],
-                    ),
-                    child: Stack(
+          body: AppScreenShell(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                AppPageHeader(
+                  title: '오늘의 진행',
+                  subtitle: '$dateString $dayOfWeekLabel',
+                  onBack: () {
+                    if (context.canPop()) {
+                      context.pop();
+                    } else {
+                      context.go('/home');
+                    }
+                  },
+                ),
+                Expanded(
+                  child: SingleChildScrollView(
+                    padding: const EdgeInsets.fromLTRB(20, 4, 20, 28),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
-                        const Positioned.fill(
-                            child: HomeDecorativeBackground()),
-                        Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
-                          children: [
-                            AppPageHeader(
-                              title: '오늘의 루틴',
-                              subtitle: '$dateString $dayOfWeekLabel',
-                              onBack: () {
-                                if (context.canPop()) {
-                                  context.pop();
-                                } else {
-                                  context.go('/home');
-                                }
-                              },
-                            ),
-                            Expanded(
-                              child: SingleChildScrollView(
-                                padding:
-                                    const EdgeInsets.fromLTRB(20, 4, 20, 28),
-                                child: Column(
-                                  crossAxisAlignment:
-                                      CrossAxisAlignment.stretch,
-                                  children: [
-                                    ProgressPercentHeader(
-                                      percent: progress.percent,
-                                      completedCount: progress.completed,
-                                      remainingCount: remaining,
-                                      totalCount: progress.total,
-                                    ),
-                                    if (todayRoutines.isEmpty) ...[
-                                      const SizedBox(height: 28),
-                                      Text(
-                                        '오늘 예정된 루틴이 없어요.\n루틴을 추가해 보세요.',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          fontSize: 14,
-                                          height: 1.45,
-                                          color: HomeTheme.textMuted
-                                              .withValues(alpha: 0.92),
-                                        ),
-                                      ),
-                                    ] else ...[
-                                      const SizedBox(height: 22),
-                                      const Align(
-                                        alignment: Alignment.centerLeft,
-                                        child: Padding(
-                                          padding: EdgeInsets.only(
-                                              left: 4, bottom: 10),
-                                          child: Text(
-                                            '상태별 루틴',
-                                            style: TextStyle(
-                                              fontSize: 14,
-                                              fontWeight: FontWeight.w700,
-                                              color: HomeTheme.textPrimary,
-                                            ),
-                                          ),
-                                        ),
-                                      ),
-                                      ...statusGroups.map(
-                                        (g) => Padding(
-                                          padding:
-                                              const EdgeInsets.only(bottom: 12),
-                                          child: ProgressStatusSection(
-                                            group: g,
-                                          ),
-                                        ),
-                                      ),
-                                    ],
-                                    const SizedBox(height: 8),
-                                    ProgressFeedbackCard(content: feedback),
-                                    const SizedBox(height: 16),
-                                    ProgressMiniStatsRow(stats: miniStats),
-                                  ],
-                                ),
+                        ProgressPercentHeader(
+                          percent: progress.percent,
+                          completedCount: progress.completed,
+                          remainingCount: remaining,
+                          totalCount: progress.total,
+                        ),
+                        if (todayRoutines.isEmpty) ...[
+                          const SizedBox(height: 28),
+                          const AppSectionHeader(
+                            eyebrow: 'EMPTY DAY',
+                            title: '오늘 예정된 루틴이 없어요',
+                            subtitle: '새 루틴을 추가하면 이 화면에서 진행 상태를 확인할 수 있어요.',
+                            centered: true,
+                          ),
+                        ] else ...[
+                          const SizedBox(height: 22),
+                          const AppSectionHeader(
+                            eyebrow: 'STATUS GROUPS',
+                            title: '상태별 루틴',
+                            subtitle: '완료, 진행 중, 남은 루틴을 한눈에 정리했습니다.',
+                          ),
+                          const SizedBox(height: 10),
+                          ...statusGroups.map(
+                            (g) => Padding(
+                              padding: const EdgeInsets.only(bottom: 12),
+                              child: ProgressStatusSection(
+                                group: g,
                               ),
                             ),
-                          ],
-                        ),
+                          ),
+                        ],
+                        const SizedBox(height: 8),
+                        ProgressFeedbackCard(content: feedback),
+                        const SizedBox(height: 16),
+                        ProgressMiniStatsRow(stats: miniStats),
                       ],
                     ),
                   ),
                 ),
-              ),
+              ],
             ),
           ),
         );

@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import '../ds/app_icon_button.dart';
 import '../../models/home_models.dart';
-import '../../theme/home_theme.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
 
 class HomeHeaderBar extends StatelessWidget {
   const HomeHeaderBar({
@@ -26,7 +27,7 @@ class HomeHeaderBar extends StatelessWidget {
     final pct = progress.total > 0 ? progress.completed / progress.total : 0.0;
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(24, 44, 24, 8),
+      padding: const EdgeInsets.fromLTRB(24, 28, 24, 10),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -39,22 +40,25 @@ class HomeHeaderBar extends StatelessWidget {
                   children: [
                     Text(
                       '$dateString $dayOfWeekLabel',
-                      style: TextStyle(
-                        fontSize: 13,
-                        fontWeight: FontWeight.w600,
-                        color: HomeTheme.textMuted.withValues(alpha: 0.95),
-                        letterSpacing: 0.2,
+                      style: AppTextStyles.caption.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.textMuted.withValues(alpha: 0.88),
+                        letterSpacing: 0.4,
                       ),
                     ),
                     const SizedBox(height: 6),
                     Text(
-                      '$greeting 👋',
-                      style: const TextStyle(
-                        fontSize: 21,
-                        fontWeight: FontWeight.w700,
-                        height: 1.2,
-                        letterSpacing: -0.3,
-                        color: HomeTheme.textPrimary,
+                      '오늘의 궤도',
+                      style: AppTextStyles.hero.copyWith(
+                        fontSize: 28,
+                      ),
+                    ),
+                    const SizedBox(height: 4),
+                    Text(
+                      '$greeting. 지금 흐름을 바로 확인하세요.',
+                      style: AppTextStyles.caption.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textMuted.withValues(alpha: 0.84),
                       ),
                     ),
                   ],
@@ -63,17 +67,17 @@ class HomeHeaderBar extends StatelessWidget {
               AppIconButton(
                 icon: Icons.insights_rounded,
                 tooltip: '오늘 진행',
-                foregroundColor: HomeTheme.accentPink,
-                backgroundColor: HomeTheme.accentPink.withValues(alpha: 0.22),
+                foregroundColor: AppColors.orbitPrimary,
+                backgroundColor: AppColors.orbitHalo.withValues(alpha: 0.32),
                 onPressed: onProgressTap,
               ),
               const SizedBox(width: 8),
               AppIconButton(
                 icon: Icons.settings_rounded,
                 tooltip: '설정',
-                foregroundColor: const Color(0xFFD4C5F0),
+                foregroundColor: AppColors.textStrong,
                 backgroundColor:
-                    const Color(0xFFD4C5F0).withValues(alpha: 0.22),
+                    AppColors.orbitSurfaceSoft.withValues(alpha: 0.7),
                 onPressed: onSettingsTap,
               ),
             ],
@@ -84,18 +88,16 @@ class HomeHeaderBar extends StatelessWidget {
             children: [
               Text(
                 '오늘의 진행',
-                style: TextStyle(
-                  fontSize: 11,
-                  fontWeight: FontWeight.w500,
-                  color: HomeTheme.textMuted.withValues(alpha: 0.75),
+                style: AppTextStyles.captionTight.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textMuted.withValues(alpha: 0.74),
                 ),
               ),
               Text(
                 '${progress.completed}/${progress.total}',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  color: HomeTheme.textMuted.withValues(alpha: 0.85),
+                style: AppTextStyles.caption.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textMuted.withValues(alpha: 0.82),
                 ),
               ),
             ],
@@ -105,10 +107,10 @@ class HomeHeaderBar extends StatelessWidget {
             borderRadius: BorderRadius.circular(99),
             child: LinearProgressIndicator(
               value: pct,
-              minHeight: 5,
-              backgroundColor: HomeTheme.textMuted.withValues(alpha: 0.08),
+              minHeight: 6,
+              backgroundColor: AppColors.orbitBorder.withValues(alpha: 0.32),
               valueColor: AlwaysStoppedAnimation(
-                HomeTheme.accentPink.withValues(alpha: 0.55),
+                AppColors.orbitPrimary.withValues(alpha: 0.72),
               ),
             ),
           ),

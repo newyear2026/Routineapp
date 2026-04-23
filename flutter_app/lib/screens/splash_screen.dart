@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 
 import '../data/local/onboarding_local_storage.dart';
 import '../domain/onboarding/onboarding_route_selector.dart';
+import '../theme/app_colors.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -58,23 +59,10 @@ class _SplashScreenState extends State<SplashScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       body: Container(
-        decoration: const BoxDecoration(
-          gradient: LinearGradient(
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-            colors: [
-              Color(0xFFFFF8F3),
-              Color(0xFFFFF5F8),
-              Color(0xFFF5F0FF),
-            ],
-          ),
-        ),
+        decoration: const BoxDecoration(gradient: AppColors.pageGradient),
         child: Stack(
           children: [
-            // 배경 데코레이션
-            _buildFloatingEmojis(),
-
-            // 중앙 로고
+            _buildGlowDecorations(),
             Center(
               child: AnimatedBuilder(
                 animation: _controller,
@@ -86,55 +74,46 @@ class _SplashScreenState extends State<SplashScreen>
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          // 로고 아이콘
                           Container(
                             width: 120,
                             height: 120,
                             decoration: BoxDecoration(
                               borderRadius: BorderRadius.circular(40),
-                              gradient: const LinearGradient(
-                                begin: Alignment.topLeft,
-                                end: Alignment.bottomRight,
-                                colors: [
-                                  Color(0xFFFFE4E9),
-                                  Color(0xFFFFD4E0),
-                                ],
-                              ),
+                              gradient: AppColors.orbitPrimaryGradient,
                               boxShadow: [
                                 BoxShadow(
-                                  color: const Color(0xFFFFB8C6)
-                                      .withValues(alpha: 0.4),
+                                  color: AppColors.orbitPrimary
+                                      .withValues(alpha: 0.28),
                                   blurRadius: 30,
                                   offset: const Offset(0, 10),
                                 ),
                               ],
                             ),
                             child: const Center(
-                              child: Text(
-                                '🐻',
-                                style: TextStyle(fontSize: 60),
+                              child: Icon(
+                                Icons.timeline_rounded,
+                                size: 58,
+                                color: Colors.white,
                               ),
                             ),
                           ),
                           const SizedBox(height: 24),
-
-                          // 앱 이름
                           const Text(
                             'Routine Timer',
                             style: TextStyle(
-                              fontSize: 28,
-                              fontWeight: FontWeight.w600,
-                              color: Color(0xFF8B7B9E),
+                              fontSize: 30,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: -0.8,
+                              color: AppColors.textPrimary,
                             ),
                           ),
                           const SizedBox(height: 8),
-
-                          // 서브 텍스트
                           const Text(
-                            '오늘도 함께 해요 💕',
+                            'Design your daily rhythm',
                             style: TextStyle(
                               fontSize: 14,
-                              color: Color(0xFFB8A4C9),
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.textMuted,
                             ),
                           ),
                         ],
@@ -150,21 +129,21 @@ class _SplashScreenState extends State<SplashScreen>
     );
   }
 
-  Widget _buildFloatingEmojis() {
+  Widget _buildGlowDecorations() {
     return Stack(
       children: [
-        _buildFloatingEmoji('⭐', 0.1, 0.2, 2.0, 12),
-        _buildFloatingEmoji('✨', 0.8, 0.3, 2.5, 16),
-        _buildFloatingEmoji('💕', 0.2, 0.7, 3.0, 14),
-        _buildFloatingEmoji('🌟', 0.7, 0.6, 2.2, 18),
-        _buildFloatingEmoji('💫', 0.5, 0.15, 2.8, 14),
-        _buildFloatingEmoji('✨', 0.3, 0.8, 2.4, 12),
+        _buildFloatingDot(AppColors.orbitHalo, 0.08, 0.18, 2.0, 18),
+        _buildFloatingDot(AppColors.orbitSecondary, 0.78, 0.28, 2.5, 22),
+        _buildFloatingDot(AppColors.orbitAccent, 0.24, 0.74, 3.0, 16),
+        _buildFloatingDot(AppColors.orbitHalo, 0.66, 0.62, 2.2, 20),
+        _buildFloatingDot(AppColors.orbitPrimary, 0.48, 0.12, 2.8, 14),
+        _buildFloatingDot(AppColors.orbitSecondary, 0.32, 0.84, 2.4, 12),
       ],
     );
   }
 
-  Widget _buildFloatingEmoji(
-    String emoji,
+  Widget _buildFloatingDot(
+    Color color,
     double left,
     double top,
     double duration,
@@ -181,10 +160,14 @@ class _SplashScreenState extends State<SplashScreen>
           return Transform.translate(
             offset: Offset(0, -20 * (value - 0.5).abs()),
             child: Opacity(
-              opacity: 0.3 + (0.4 * value),
-              child: Text(
-                emoji,
-                style: TextStyle(fontSize: size),
+              opacity: 0.24 + (0.32 * value),
+              child: Container(
+                width: size,
+                height: size,
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.22),
+                  shape: BoxShape.circle,
+                ),
               ),
             ),
           );

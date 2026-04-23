@@ -4,22 +4,30 @@ import 'package:flutter/material.dart';
 ///
 /// Home · Routine Add · Progress 공통 사용.
 abstract final class AppColors {
-  // ── Text (파스텔 톤 유지, 본문 가독성을 위해 1단계만 진하게) ──
-  static const Color textPrimary = Color(0xFF473A57);
-  static const Color textMuted = Color(0xFF6F617F);
+  // ── Text ────────────────────────────────────────
+  static const Color textPrimary = Color(0xFF241F31);
+  static const Color textMuted = Color(0xFF6B6478);
+  static const Color textStrong = Color(0xFF241F31);
 
   // ── Accent & action ──────────────────────────────
-  static const Color accentPink = Color(0xFFFFB8C6);
-  static const Color accentLavender = Color(0xFFD4C5F0);
+  static const Color accentPink = Color(0xFFE5866B);
+  static const Color accentLavender = Color(0xFFD9D1F2);
+  static const Color orbitPrimary = Color(0xFF6C4CF1);
+  static const Color orbitSecondary = Color(0xFFE5866B);
+  static const Color orbitAccent = Color(0xFFF2C14E);
+  static const Color orbitSurface = Color(0xFFFCFAF6);
+  static const Color orbitSurfaceSoft = Color(0xFFF1ECE4);
+  static const Color orbitBorder = Color(0xFFE4DCCF);
+  static const Color orbitHalo = Color(0xFFD9D1F2);
 
-  static const Color actionBlue = Color(0xFF6B8BC9);
-  static const Color actionOrange = Color(0xFFD9A57B);
-  static const Color actionRose = Color(0xFFD99BB0);
+  static const Color actionBlue = Color(0xFF5C72D8);
+  static const Color actionOrange = Color(0xFFE4A165);
+  static const Color actionRose = Color(0xFFD67888);
   static const Color success = Color(0xFF7FDD8F);
   static const Color warning = Color(0xFFD9A57B);
 
   // ── Border / divider ─────────────────────────────
-  static const Color border = Color(0xFFE8DDFA);
+  static const Color border = Color(0xFFE4DCCF);
 
   // ── Surface (알파는 withValues로 조합) ────────────
   static const Color surface = Color(0xFFFFFFFF);
@@ -29,33 +37,60 @@ abstract final class AppColors {
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFFFFF5F5),
-      Color(0xFFFFF9E6),
-      Color(0xFFF0F4FF),
+      Color(0xFFF7F4EE),
+      Color(0xFFFCFAF6),
+      Color(0xFFF2EDF8),
     ],
   );
 
   static const LinearGradient shellGradient = LinearGradient(
-    begin: Alignment.topCenter,
-    end: Alignment.bottomCenter,
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
     colors: [
-      Color(0xFFFFF8F3),
-      Color(0xFFFFF5F8),
-      Color(0xFFF5F0FF),
+      Color(0xFFFFFCF8),
+      Color(0xFFF7F2FB),
+      Color(0xFFF1ECE4),
     ],
   );
 
   /// Primary CTA (저장·완료 등)
   static const LinearGradient primaryButtonGradient = LinearGradient(
-    colors: [Color(0xFFD4E4FF), Color(0xFFC5D5F0)],
+    colors: [Color(0xFF5E43E8), Color(0xFF8E6AF5)],
   );
 
   static const LinearGradient softAccentGradient = LinearGradient(
-    colors: [Color(0xFFD4C5F0), Color(0xFFC4B5E6)],
+    colors: [Color(0xFF5E43E8), Color(0xFF8E6AF5)],
   );
 
   static const LinearGradient highlightGradient = LinearGradient(
-    colors: [Color(0xFFFFE9D4), Color(0xFFFFDDC5)],
+    colors: [Color(0xFFE5866B), Color(0xFFF2C14E)],
+  );
+
+  static const LinearGradient orbitBackgroundGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0xFFF7F4EE),
+      Color(0xFFFCFAF6),
+      Color(0xFFF2EDF8),
+    ],
+  );
+
+  static const LinearGradient orbitCardGradient = LinearGradient(
+    begin: Alignment.topLeft,
+    end: Alignment.bottomRight,
+    colors: [
+      Color(0xFFFFFCF8),
+      Color(0xFFF9F5FF),
+    ],
+  );
+
+  static const LinearGradient orbitPrimaryGradient = LinearGradient(
+    colors: [Color(0xFF5E43E8), Color(0xFF8E6AF5)],
+  );
+
+  static const LinearGradient orbitWarmGradient = LinearGradient(
+    colors: [Color(0xFFE5866B), Color(0xFFF2C14E)],
   );
 
   /// Progress 링 등 강조

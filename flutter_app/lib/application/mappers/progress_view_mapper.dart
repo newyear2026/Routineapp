@@ -77,7 +77,6 @@ abstract final class ProgressViewMapper {
   static ProgressFeedbackContent feedbackForPercent(int percent) {
     if (percent >= 100) {
       return const ProgressFeedbackContent(
-        characterEmoji: '🐻',
         titleEmoji: '🎉',
         title: '오늘 루틴 완료',
         message: '계획한 루틴을 모두 마쳤어요!',
@@ -86,7 +85,6 @@ abstract final class ProgressViewMapper {
     }
     if (percent >= 50) {
       return const ProgressFeedbackContent(
-        characterEmoji: '🐻',
         titleEmoji: '💪',
         title: '절반 넘었어요',
         message: '이대로만 가면 돼요.',
@@ -94,7 +92,6 @@ abstract final class ProgressViewMapper {
       );
     }
     return const ProgressFeedbackContent(
-      characterEmoji: '🐻',
       titleEmoji: '✨',
       title: '오늘 하루',
       message: '조금씩 채워가면 돼요.',

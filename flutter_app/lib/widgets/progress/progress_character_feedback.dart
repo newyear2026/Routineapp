@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../models/progress_models.dart';
-import '../../theme/home_theme.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
 
-/// 하단 캐릭터 피드백 카드
+/// 하단 상태 피드백 카드
 class ProgressFeedbackCard extends StatelessWidget {
   const ProgressFeedbackCard({
     super.key,
@@ -19,18 +20,18 @@ class ProgressFeedbackCard extends StatelessWidget {
       decoration: BoxDecoration(
         gradient: LinearGradient(
           colors: [
-            const Color(0xFFFFF4EB).withValues(alpha: 0.72),
-            const Color(0xFFFFEFF5).withValues(alpha: 0.72),
+            Colors.white.withValues(alpha: 0.9),
+            AppColors.orbitSurfaceSoft.withValues(alpha: 0.76),
           ],
         ),
         borderRadius: BorderRadius.circular(26),
         border: Border.all(
-          color: HomeTheme.accentPink.withValues(alpha: 0.35),
-          width: 2,
+          color: AppColors.orbitBorder.withValues(alpha: 0.94),
+          width: 1.5,
         ),
         boxShadow: [
           BoxShadow(
-            color: HomeTheme.accentPink.withValues(alpha: 0.12),
+            color: AppColors.orbitPrimary.withValues(alpha: 0.08),
             blurRadius: 18,
             offset: const Offset(0, 6),
           ),
@@ -43,13 +44,11 @@ class ProgressFeedbackCard extends StatelessWidget {
             width: 64,
             height: 64,
             decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [Color(0xFFFFE4E9), Color(0xFFFFD4E0)],
-              ),
+              gradient: AppColors.orbitPrimaryGradient,
               borderRadius: BorderRadius.circular(20),
               boxShadow: [
                 BoxShadow(
-                  color: HomeTheme.accentPink.withValues(alpha: 0.35),
+                  color: AppColors.orbitPrimary.withValues(alpha: 0.24),
                   blurRadius: 14,
                   offset: const Offset(0, 4),
                 ),
@@ -57,7 +56,7 @@ class ProgressFeedbackCard extends StatelessWidget {
             ),
             child: Center(
               child: Text(
-                content.characterEmoji,
+                content.titleEmoji,
                 style: const TextStyle(fontSize: 32),
               ),
             ),
@@ -69,15 +68,12 @@ class ProgressFeedbackCard extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    Text(content.titleEmoji,
-                        style: const TextStyle(fontSize: 20)),
-                    const SizedBox(width: 8),
                     Text(
                       content.title,
-                      style: const TextStyle(
+                      style: AppTextStyles.caption.copyWith(
                         fontSize: 13,
-                        fontWeight: FontWeight.w700,
-                        color: HomeTheme.textPrimary,
+                        fontWeight: FontWeight.w800,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                   ],
@@ -85,19 +81,19 @@ class ProgressFeedbackCard extends StatelessWidget {
                 const SizedBox(height: 8),
                 Text(
                   content.message,
-                  style: const TextStyle(
+                  style: AppTextStyles.body.copyWith(
                     fontSize: 15,
                     height: 1.45,
-                    fontWeight: FontWeight.w500,
-                    color: HomeTheme.textPrimary,
+                    fontWeight: FontWeight.w600,
+                    color: AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 6),
                 Text(
                   content.subMessage,
-                  style: TextStyle(
+                  style: AppTextStyles.captionTight.copyWith(
                     fontSize: 12,
-                    color: HomeTheme.textMuted.withValues(alpha: 0.95),
+                    color: AppColors.textMuted.withValues(alpha: 0.95),
                   ),
                 ),
               ],

@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../application/routine_app_controller.dart';
 import '../application/services/notification_permission_service.dart';
+import '../application/services/routine_notification_service.dart';
 import '../data/local/notification_preferences_storage.dart';
 import '../data/local/onboarding_local_storage.dart';
 import '../domain/settings/notification_permission_status.dart';
@@ -21,6 +22,9 @@ class SettingsScreen extends StatefulWidget {
 
 class _SettingsScreenState extends State<SettingsScreen>
     with SingleTickerProviderStateMixin {
+  final RoutineNotificationService _routineNotifications =
+      RoutineNotificationService();
+
   bool _notificationsEnabled = false;
   bool _watchEnabled = false;
   bool _soundEnabled = true;
@@ -37,6 +41,7 @@ class _SettingsScreenState extends State<SettingsScreen>
   }
 
   Future<void> _onPushChanged(bool wantOn) async {
+    final controller = context.read<RoutineAppController>();
     if (!wantOn) {
       final current = await NotificationPreferencesStorage.load();
       await NotificationPreferencesStorage.save(
@@ -51,6 +56,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         _notificationsEnabled = false;
         _soundEnabled = false;
       });
+      await _routineNotifications.syncAll(controller.routines);
       return;
     }
 
@@ -69,6 +75,7 @@ class _SettingsScreenState extends State<SettingsScreen>
         _notificationsEnabled = true;
         _soundEnabled = true;
       });
+      await _routineNotifications.syncAll(controller.routines);
     } else {
       await NotificationPreferencesStorage.save(
         const NotificationPreferences(
@@ -81,17 +88,20 @@ class _SettingsScreenState extends State<SettingsScreen>
         _notificationsEnabled = false;
         _soundEnabled = false;
       });
+      await _routineNotifications.syncAll(controller.routines);
     }
   }
 
   Future<void> _onSoundChanged(bool value) async {
     if (!_notificationsEnabled) return;
+    final controller = context.read<RoutineAppController>();
     final current = await NotificationPreferencesStorage.load();
     await NotificationPreferencesStorage.save(
       current.copyWith(soundEnabled: value),
     );
     if (!mounted) return;
     setState(() => _soundEnabled = value);
+    await _routineNotifications.syncAll(controller.routines);
   }
 
   @override
@@ -112,158 +122,142 @@ class _SettingsScreenState extends State<SettingsScreen>
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.appTheme;
     final controller = context.watch<RoutineAppController>();
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(gradient: theme.pageGradient),
-        child: Stack(
+      body: AppScreenShell(
+        child: Column(
           children: [
-            ..._buildSubtleDecorations(),
-            SafeArea(
-              child: Center(
-                child: ConstrainedBox(
-                  constraints:
-                      const BoxConstraints(maxWidth: AppLayout.maxContentWidth),
-                  child: Column(
-                    children: [
-                  AppPageHeader(
-                    title: '설정',
-                    onBack: () => context.go('/home'),
+            AppPageHeader(
+              title: '설정',
+              subtitle: '알림, 테마, 기기 연동을 한곳에서 관리하세요',
+              onBack: () => context.go('/home'),
+            ),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              child: _buildProfileCard(),
+            ),
+            const SizedBox(height: 22),
+            Expanded(
+              child: ListView(
+                padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
+                children: [
+                  _buildSectionTitle(
+                    '알림 및 소리',
+                    Icons.notifications_active_rounded,
                   ),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 20),
-                    child: _buildProfileCard(),
+                  _buildSettingsList([
+                    _buildToggleItem(
+                      Icons.notifications_rounded,
+                      '푸시 알림',
+                      HomeTheme.accentPink,
+                      _notificationsEnabled,
+                      (value) => _onPushChanged(value),
+                    ),
+                    _buildToggleItem(
+                      Icons.volume_up_rounded,
+                      '알림 소리',
+                      const Color(0xFFFFDDC5),
+                      _notificationsEnabled && _soundEnabled,
+                      (value) => _onSoundChanged(value),
+                      switchEnabled: _notificationsEnabled,
+                      description: '푸시 알림이 켜져 있을 때만 사용할 수 있어요',
+                    ),
+                  ]),
+                  const SizedBox(height: 26),
+                  _buildSectionTitle('기기 연동', Icons.devices_rounded),
+                  _buildSettingsList([
+                    _buildToggleItem(
+                      Icons.watch_rounded,
+                      'Apple Watch 연동',
+                      const Color(0xFFD4E4FF),
+                      _watchEnabled,
+                      (value) => setState(() => _watchEnabled = value),
+                      description: '기본 토글만 먼저 연결되어 있어요',
+                    ),
+                  ]),
+                  const SizedBox(height: 26),
+                  _buildSectionTitle('개인화', Icons.auto_awesome_rounded),
+                  _buildSettingsList([
+                    _buildNavigationItem(
+                      Icons.replay_rounded,
+                      '온보딩 다시 보기',
+                      const Color(0xFFFFE9D4),
+                      () {
+                        OnboardingLocalStorage.resetForReplay().then((_) {
+                          if (!context.mounted) return;
+                          context.go('/onboarding');
+                        });
+                      },
+                      description: '앱의 첫 안내 플로우를 다시 볼 수 있어요',
+                    ),
+                    _buildNavigationItem(
+                      Icons.emoji_emotions_rounded,
+                      '캐릭터 설정',
+                      const Color(0xFFFFE4E9),
+                      null,
+                      statusLabel: '준비 중',
+                      description: '다음 업데이트에서 캐릭터를 고를 수 있어요',
+                    ),
+                    _buildNavigationItem(
+                      Icons.palette_rounded,
+                      '테마 설정',
+                      const Color(0xFFE8DDFA),
+                      null,
+                      statusLabel: '활성',
+                      description: '앱 전체에 적용할 테마 프리셋을 고를 수 있어요',
+                    ),
+                  ]),
+                  const SizedBox(height: 14),
+                  _ThemePresetSection(
+                    currentThemeId: controller.themeId,
+                    onSelected: controller.updateTheme,
                   ),
-                  const SizedBox(height: 22),
-                  Expanded(
-                    child: ListView(
-                      padding: const EdgeInsets.fromLTRB(20, 0, 20, 28),
+                  const SizedBox(height: 26),
+                  _buildSectionTitle('지원', Icons.support_rounded),
+                  _buildSettingsList([
+                    _buildNavigationItem(
+                      Icons.widgets_outlined,
+                      'Medium 위젯 미리보기',
+                      const Color(0xFFFFE9D4),
+                      () => context.push('/widget-medium-preview'),
+                      description: '위젯 톤과 정보를 미리 확인할 수 있어요',
+                    ),
+                    _buildNavigationItem(
+                      Icons.mail_outline_rounded,
+                      '문의하기',
+                      const Color(0xFFD4C5F0),
+                      null,
+                      statusLabel: '준비 중',
+                      description: '지원 채널 연결 전이에요',
+                    ),
+                    _buildInfoItem(
+                      Icons.info_outline_rounded,
+                      '버전 정보',
+                      const Color(0xFFB8A4C9),
+                      'v1.0.0',
+                    ),
+                  ]),
+                  const SizedBox(height: 28),
+                  Center(
+                    child: Column(
                       children: [
-                        _buildSectionTitle(
-                          '알림 및 소리',
-                          Icons.notifications_active_rounded,
+                        Text(
+                          'Designed for your daily rhythm',
+                          style: AppTextStyles.caption.copyWith(
+                            color: HomeTheme.textMuted.withValues(alpha: 0.85),
+                          ),
                         ),
-                        _buildSettingsList([
-                          _buildToggleItem(
-                            Icons.notifications_rounded,
-                            '푸시 알림',
-                            HomeTheme.accentPink,
-                            _notificationsEnabled,
-                            (value) => _onPushChanged(value),
-                          ),
-                          _buildToggleItem(
-                            Icons.volume_up_rounded,
-                            '알림 소리',
-                            const Color(0xFFFFDDC5),
-                            _notificationsEnabled && _soundEnabled,
-                            (value) => _onSoundChanged(value),
-                            switchEnabled: _notificationsEnabled,
-                            description: '푸시 알림이 켜져 있을 때만 사용할 수 있어요',
-                          ),
-                        ]),
-                        const SizedBox(height: 26),
-                        _buildSectionTitle('기기 연동', Icons.devices_rounded),
-                        _buildSettingsList([
-                          _buildToggleItem(
-                            Icons.watch_rounded,
-                            'Apple Watch 연동',
-                            const Color(0xFFD4E4FF),
-                            _watchEnabled,
-                            (value) => setState(() => _watchEnabled = value),
-                            description: '기본 토글만 먼저 연결되어 있어요',
-                          ),
-                        ]),
-                        const SizedBox(height: 26),
-                        _buildSectionTitle('개인화', Icons.auto_awesome_rounded),
-                        _buildSettingsList([
-                          _buildNavigationItem(
-                            Icons.replay_rounded,
-                            '온보딩 다시 보기',
-                            const Color(0xFFFFE9D4),
-                            () {
-                              OnboardingLocalStorage.resetForReplay().then((_) {
-                                if (!context.mounted) return;
-                                context.go('/onboarding');
-                              });
-                            },
-                            description: '앱의 첫 안내 플로우를 다시 볼 수 있어요',
-                          ),
-                          _buildNavigationItem(
-                            Icons.emoji_emotions_rounded,
-                            '캐릭터 설정',
-                            const Color(0xFFFFE4E9),
-                            null,
-                            statusLabel: '준비 중',
-                            description: '다음 업데이트에서 캐릭터를 고를 수 있어요',
-                          ),
-                          _buildNavigationItem(
-                            Icons.palette_rounded,
-                            '테마 설정',
-                            const Color(0xFFE8DDFA),
-                            null,
-                            statusLabel: '활성',
-                            description: '앱 전체에 적용할 테마 프리셋을 고를 수 있어요',
-                          ),
-                        ]),
-                        const SizedBox(height: 14),
-                        _ThemePresetSection(
-                          currentThemeId: controller.themeId,
-                          onSelected: controller.updateTheme,
-                        ),
-                        const SizedBox(height: 26),
-                        _buildSectionTitle('지원', Icons.support_rounded),
-                        _buildSettingsList([
-                          _buildNavigationItem(
-                            Icons.widgets_outlined,
-                            'Medium 위젯 미리보기',
-                            const Color(0xFFFFE9D4),
-                            () => context.push('/widget-medium-preview'),
-                            description: '위젯 톤과 정보를 미리 확인할 수 있어요',
-                          ),
-                          _buildNavigationItem(
-                            Icons.mail_outline_rounded,
-                            '문의하기',
-                            const Color(0xFFD4C5F0),
-                            null,
-                            statusLabel: '준비 중',
-                            description: '지원 채널 연결 전이에요',
-                          ),
-                          _buildInfoItem(
-                            Icons.info_outline_rounded,
-                            '버전 정보',
-                            const Color(0xFFB8A4C9),
-                            'v1.0.0',
-                          ),
-                        ]),
-                        const SizedBox(height: 28),
-                        Center(
-                          child: Column(
-                            children: [
-                              Text(
-                                'Made with 💕',
-                                style: AppTextStyles.caption.copyWith(
-                                  color: HomeTheme.textMuted
-                                      .withValues(alpha: 0.85),
-                                ),
-                              ),
-                              const SizedBox(height: 4),
-                              Text(
-                                'Routine Timer App',
-                                style: AppTextStyles.captionTight.copyWith(
-                                  color: HomeTheme.textMuted
-                                      .withValues(alpha: 0.65),
-                                ),
-                              ),
-                            ],
+                        const SizedBox(height: 4),
+                        Text(
+                          'Routine Timer App',
+                          style: AppTextStyles.captionTight.copyWith(
+                            color: HomeTheme.textMuted.withValues(alpha: 0.65),
                           ),
                         ),
                       ],
                     ),
                   ),
-                    ],
-                  ),
-                ),
+                ],
               ),
             ),
           ],
@@ -313,7 +307,11 @@ class _SettingsScreenState extends State<SettingsScreen>
                         clipBehavior: Clip.none,
                         children: [
                           const Center(
-                            child: Text('🐻', style: TextStyle(fontSize: 40)),
+                            child: Icon(
+                              Icons.track_changes_rounded,
+                              size: 36,
+                              color: AppColors.textPrimary,
+                            ),
                           ),
                           Positioned(
                             bottom: 2,
@@ -341,11 +339,11 @@ class _SettingsScreenState extends State<SettingsScreen>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '나의 루틴 친구',
+                      '오늘의 루틴 상태',
                       style: AppTextStyles.titleSection.copyWith(fontSize: 17),
                     ),
                     const SizedBox(height: 4),
-                    const Text('오늘도 함께해요', style: AppTextStyles.label),
+                    const Text('앱 흐름과 진행 상태를 확인하세요', style: AppTextStyles.label),
                     const SizedBox(height: 10),
                     Wrap(
                       spacing: 6,
@@ -707,24 +705,6 @@ class _SettingsScreenState extends State<SettingsScreen>
         ),
       ),
     );
-  }
-
-  List<Widget> _buildSubtleDecorations() {
-    return [
-      ...List.generate(4, (i) {
-        return Positioned(
-          left: (i * 100.0) % 400,
-          top: (i * 200.0) % 800,
-          child: Opacity(
-            opacity: 0.12,
-            child: Text(
-              '✨',
-              style: TextStyle(fontSize: 10.0 + i * 2),
-            ),
-          ),
-        );
-      }),
-    ];
   }
 }
 

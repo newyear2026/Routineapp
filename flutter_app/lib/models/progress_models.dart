@@ -48,14 +48,12 @@ class ProgressStatusGroup {
 
 class ProgressFeedbackContent {
   const ProgressFeedbackContent({
-    required this.characterEmoji,
     required this.titleEmoji,
     required this.title,
     required this.message,
     required this.subMessage,
   });
 
-  final String characterEmoji;
   final String titleEmoji;
   final String title;
   final String message;

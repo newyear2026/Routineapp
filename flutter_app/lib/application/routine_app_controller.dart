@@ -17,6 +17,7 @@ import 'home/home_snapshot.dart';
 import 'home/home_snapshot_builder.dart';
 import 'home/progress_summary.dart';
 import 'routine_save_result.dart';
+import 'services/routine_notification_service.dart';
 import 'services/routine_data_service.dart';
 import '../widget_home/home_widget_sync_service.dart';
 
@@ -25,15 +26,18 @@ class RoutineAppController extends ChangeNotifier {
   RoutineAppController({
     RoutineDataService? dataService,
     RoutineDayService? dayService,
+    RoutineNotificationService? notificationService,
     DateTime Function()? nowProvider,
     bool clockAutoRefreshEnabled = true,
   })  : _data = dataService ?? RoutineDataService(),
         _dayService = dayService ?? const RoutineDayService(),
+        _notifications = notificationService ?? RoutineNotificationService(),
         _nowProvider = nowProvider ?? DateTime.now,
         _clockAutoRefreshEnabled = clockAutoRefreshEnabled;
 
   final RoutineDataService _data;
   final RoutineDayService _dayService;
+  final RoutineNotificationService _notifications;
   final LocalSettingsRepository _settings = LocalSettingsRepository.instance;
   final DateTime Function() _nowProvider;
   final bool _clockAutoRefreshEnabled;
@@ -43,6 +47,7 @@ class RoutineAppController extends ChangeNotifier {
   AppSettings _appSettings = const AppSettings();
   bool _loaded = false;
   String? _loadedDateYmd;
+  DateTime? _loadedAt;
   Timer? _clockTimer;
   bool _clockRefreshInFlight = false;
 
@@ -88,6 +93,7 @@ class RoutineAppController extends ChangeNotifier {
     _logsToday = await _data.loadLogsForDate(now);
     _appSettings = await _settings.loadAppSettings();
     _loadedDateYmd = TimeMinutes.dateYmd(now);
+    _loadedAt = now;
     _loaded = true;
     if (_clockAutoRefreshEnabled) {
       _scheduleNextClockTick();
@@ -95,7 +101,17 @@ class RoutineAppController extends ChangeNotifier {
     notifyListeners();
     if (!kIsWeb) {
       await HomeWidgetSyncService.instance.push(homeSnapshot);
+      await _notifications.syncAll(_routines);
     }
+  }
+
+  /// 화면 복귀 시 과도한 재로드를 막기 위한 경량 리로드
+  Future<void> reloadOnReturn({Duration minInterval = const Duration(seconds: 2)}) async {
+    final now = _now;
+    if (_loadedAt != null && now.difference(_loadedAt!) < minInterval) {
+      return;
+    }
+    await load();
   }
 
   Future<void> updateTheme(String themeId) async {

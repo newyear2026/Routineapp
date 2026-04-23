@@ -39,15 +39,15 @@ class AppStatusBadge extends StatelessWidget {
     switch (tone) {
       case AppStatusBadgeTone.neutral:
         return (
-          AppColors.textMuted.withValues(alpha: 0.12),
-          AppColors.textMuted.withValues(alpha: 0.18),
+          AppColors.orbitSurfaceSoft.withValues(alpha: 0.8),
+          AppColors.orbitBorder.withValues(alpha: 0.8),
           AppColors.textMuted,
         );
       case AppStatusBadgeTone.info:
         return (
-          const Color(0xFFD4E4FF).withValues(alpha: 0.45),
-          const Color(0xFFB5CBEF),
-          const Color(0xFF4A648F),
+          AppColors.orbitHalo.withValues(alpha: 0.34),
+          AppColors.orbitPrimary.withValues(alpha: 0.18),
+          AppColors.orbitPrimary,
         );
       case AppStatusBadgeTone.success:
         return (
@@ -57,15 +57,15 @@ class AppStatusBadge extends StatelessWidget {
         );
       case AppStatusBadgeTone.warning:
         return (
-          const Color(0xFFFFE9D4).withValues(alpha: 0.65),
-          const Color(0xFFF0CAA8),
+          AppColors.orbitAccent.withValues(alpha: 0.2),
+          AppColors.orbitAccent.withValues(alpha: 0.45),
           const Color(0xFF8C6947),
         );
       case AppStatusBadgeTone.readySoon:
         return (
-          AppColors.accentLavender.withValues(alpha: 0.18),
-          AppColors.accentLavender.withValues(alpha: 0.36),
-          const Color(0xFF6D5D86),
+          AppColors.orbitSecondary.withValues(alpha: 0.1),
+          AppColors.orbitSecondary.withValues(alpha: 0.24),
+          AppColors.orbitSecondary,
         );
     }
   }

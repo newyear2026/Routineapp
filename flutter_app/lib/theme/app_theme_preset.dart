@@ -31,31 +31,31 @@ class AppThemePreset {
 
   static const softDay = AppThemePreset(
     id: 'soft_day',
-    label: '소프트 데이',
-    previewColors: [Color(0xFFFFF5F5), Color(0xFFFFF9E6), Color(0xFFF0F4FF)],
+    label: '오빗 데이',
+    previewColors: [Color(0xFFF7F4EE), Color(0xFFF2EDF8), Color(0xFFF1ECE4)],
     pageGradient: LinearGradient(
       begin: Alignment.topLeft,
       end: Alignment.bottomRight,
-      colors: [Color(0xFFFFF5F5), Color(0xFFFFF9E6), Color(0xFFF0F4FF)],
+      colors: [Color(0xFFF7F4EE), Color(0xFFFCFAF6), Color(0xFFF2EDF8)],
     ),
     shellGradient: LinearGradient(
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-      colors: [Color(0xFFFFF8F3), Color(0xFFFFF5F8), Color(0xFFF5F0FF)],
+      begin: Alignment.topLeft,
+      end: Alignment.bottomRight,
+      colors: [Color(0xFFFFFCF8), Color(0xFFF7F2FB), Color(0xFFF1ECE4)],
     ),
     primaryButtonGradient: LinearGradient(
-      colors: [Color(0xFFD4E4FF), Color(0xFFC5D5F0)],
+      colors: [Color(0xFF5E43E8), Color(0xFF8E6AF5)],
     ),
     softAccentGradient: LinearGradient(
-      colors: [Color(0xFFD4C5F0), Color(0xFFC4B5E6)],
+      colors: [Color(0xFF5E43E8), Color(0xFF8E6AF5)],
     ),
     highlightGradient: LinearGradient(
-      colors: [Color(0xFFFFE9D4), Color(0xFFFFDDC5)],
+      colors: [Color(0xFFE5866B), Color(0xFFF2C14E)],
     ),
-    textPrimary: Color(0xFF473A57),
-    textMuted: Color(0xFF6F617F),
-    accentPink: Color(0xFFFFB8C6),
-    accentLavender: Color(0xFFD4C5F0),
+    textPrimary: Color(0xFF241F31),
+    textMuted: Color(0xFF6B6478),
+    accentPink: Color(0xFFE5866B),
+    accentLavender: Color(0xFFD9D1F2),
   );
 
   static const peachSunset = AppThemePreset(

@@ -7,7 +7,6 @@ import '../application/services/onboarding_routine_setup_service.dart';
 import '../domain/onboarding/recommended_routine_catalog.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
-import '../theme/app_theme_preset.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/ds/ds.dart';
 
@@ -66,86 +65,76 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
   @override
   Widget build(BuildContext context) {
     final selectedCount = _selected.where((s) => s).length;
-    final theme = context.appTheme;
-
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(gradient: theme.pageGradient),
-        child: SafeArea(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: AppLayout.maxContentWidth),
+      body: AppScreenShell(
+        showDecor: false,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(30, 28, 30, 22),
               child: Column(
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(30, 28, 30, 22),
-                    child: Column(
-                      children: [
-                        const Text('루틴 선택', style: AppTextStyles.titleScreen),
-                        const SizedBox(height: 20),
-                        const Text('하루를 시작해볼까요?', style: AppTextStyles.hero),
-                        const SizedBox(height: 10),
-                        const Text(
-                          '처음 시작할 때 넣어둘 기본 루틴만 골라주세요.\n나중에 언제든 수정할 수 있어요.',
-                          style: AppTextStyles.helper,
-                          textAlign: TextAlign.center,
-                        ),
-                        const SizedBox(height: 16),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 16,
-                            vertical: 8,
-                          ),
-                          decoration: BoxDecoration(
-                            color:
-                                AppColors.accentLavender.withValues(alpha: 0.22),
-                            borderRadius: BorderRadius.circular(AppRadii.chip),
-                          ),
-                          child: Text(
-                            '$selectedCount개 선택됨',
-                            style: AppTextStyles.label.copyWith(
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
+                  const Text('루틴 선택', style: AppTextStyles.titleScreen),
+                  const SizedBox(height: 20),
+                  const Text('하루의 첫 블록을 골라보세요', style: AppTextStyles.hero),
+                  const SizedBox(height: 10),
+                  const Text(
+                    '처음 시작할 때 넣어둘 기본 루틴만 골라주세요.\n나중에 언제든 수정할 수 있어요.',
+                    style: AppTextStyles.helper,
+                    textAlign: TextAlign.center,
                   ),
-                  Expanded(
-                    child: ListView.builder(
-                      padding: const EdgeInsets.symmetric(horizontal: 30),
-                      itemCount: _catalog.length,
-                      itemBuilder: (context, index) {
-                        final def = _catalog[index];
-                        return _buildRoutineCard(
-                          def: def,
-                          index: index,
-                          isSelected: _selected[index],
-                        );
-                      },
+                  const SizedBox(height: 16),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 8,
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(30, 0, 30, 12),
-                    child: AppButton(
-                      label: '나중에 설정할게요',
-                      onPressed: _skipRoutineSetup,
-                      variant: AppButtonVariant.ghost,
-                      expand: false,
-                      height: 40,
+                    decoration: BoxDecoration(
+                      color: AppColors.accentLavender.withValues(alpha: 0.22),
+                      borderRadius: BorderRadius.circular(AppRadii.chip),
                     ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(30, 0, 30, 30),
-                    child: AppButton(
-                      label: selectedCount == 0 ? '루틴 없이 시작하기' : '완료하기',
-                      onPressed: _completeSetup,
+                    child: Text(
+                      '$selectedCount개 선택됨',
+                      style: AppTextStyles.label.copyWith(
+                        color: AppColors.textPrimary,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-          ),
+            Expanded(
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(horizontal: 30),
+                itemCount: _catalog.length,
+                itemBuilder: (context, index) {
+                  final def = _catalog[index];
+                  return _buildRoutineCard(
+                    def: def,
+                    index: index,
+                    isSelected: _selected[index],
+                  );
+                },
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(30, 0, 30, 12),
+              child: AppButton(
+                label: '나중에 설정할게요',
+                onPressed: _skipRoutineSetup,
+                variant: AppButtonVariant.ghost,
+                expand: false,
+                height: 40,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(30, 0, 30, 30),
+              child: AppButton(
+                label: selectedCount == 0 ? '루틴 없이 시작하기' : '완료하기',
+                onPressed: _completeSetup,
+              ),
+            ),
+          ],
         ),
       ),
     );

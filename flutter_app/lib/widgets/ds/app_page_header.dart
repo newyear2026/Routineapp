@@ -30,25 +30,31 @@ class AppPageHeader extends StatelessWidget {
         : const SizedBox(width: 40);
 
     return Padding(
-      padding: const EdgeInsets.fromLTRB(8, 10, 12, 8),
+      padding: const EdgeInsets.fromLTRB(8, 14, 12, 12),
       child: Row(
         children: [
           leading,
           Expanded(
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 Text(
                   title,
                   textAlign: TextAlign.center,
-                  style: AppTextStyles.titleSection.copyWith(fontSize: 18),
+                  style: AppTextStyles.titleSection.copyWith(
+                    fontSize: 18,
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: -0.45,
+                  ),
                 ),
                 if (subtitle != null) ...[
-                  const SizedBox(height: 2),
+                  const SizedBox(height: 3),
                   Text(
                     subtitle!,
                     textAlign: TextAlign.center,
                     style: AppTextStyles.caption.copyWith(
-                      color: AppColors.textMuted.withValues(alpha: 0.92),
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.textMuted.withValues(alpha: 0.88),
                     ),
                   ),
                 ],

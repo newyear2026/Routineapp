@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../data/local/onboarding_local_storage.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
-import '../theme/app_theme_preset.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/ds/ds.dart';
 
@@ -21,22 +20,22 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   final List<_OnboardingPage> _pages = const [
     _OnboardingPage(
-      title: '하루가 한눈에 보이도록',
-      description: '원형 타임라인으로 오늘의 흐름과 지금 해야 할 루틴을 바로 확인해요.',
+      title: '지금 할 루틴이 바로 보이게',
+      description: '홈에서 오늘 흐름과 현재 루틴을 바로 확인하고 1탭으로 시작해요.',
       accentLabel: '홈 미리보기',
       gradientColors: [Color(0xFFFFE4E9), Color(0xFFFFD4E0)],
       preview: _OnboardingPreviewType.timeline,
     ),
     _OnboardingPage(
-      title: '루틴 순간마다 바로 반응',
-      description: '알림을 받고 완료, 나중에, 건너뛰기까지 빠르게 처리할 수 있어요.',
+      title: '루틴 순간마다 빠르게 처리',
+      description: '알림에서 바로 완료하고, 필요하면 미루기나 건너뛰기도 즉시 반영돼요.',
       accentLabel: '알림과 액션',
       gradientColors: [Color(0xFFE8DDFA), Color(0xFFD4C5F0)],
       preview: _OnboardingPreviewType.notification,
     ),
     _OnboardingPage(
-      title: '작은 달성도 매일 쌓이도록',
-      description: '오늘의 진행률과 캐릭터 피드백으로 꾸준함을 유지할 수 있어요.',
+      title: '작은 달성을 꾸준함으로',
+      description: '진행률과 피드백으로 오늘 성과를 확인하며 루틴을 오래 유지해요.',
       accentLabel: '진행률 요약',
       gradientColors: [Color(0xFFD4E4FF), Color(0xFFC5D5F0)],
       preview: _OnboardingPreviewType.progress,
@@ -74,83 +73,73 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.appTheme;
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(gradient: theme.pageGradient),
-        child: SafeArea(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: AppLayout.maxContentWidth),
-              child: Column(
+      body: AppScreenShell(
+        showDecor: false,
+        child: Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.xl,
+                AppSpacing.xl,
+                AppSpacing.xl,
+                AppSpacing.md,
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.xl,
-                      AppSpacing.xl,
-                      AppSpacing.xl,
-                      AppSpacing.md,
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        const SizedBox(width: 72),
-                        Text(
-                          'Routine Timer',
-                          style: AppTextStyles.label.copyWith(
-                            color: AppColors.textMuted.withValues(alpha: 0.76),
-                          ),
-                        ),
-                        AppButton(
-                          label: '건너뛰기',
-                          onPressed: _finishIntro,
-                          variant: AppButtonVariant.ghost,
-                          expand: false,
-                          height: 40,
-                        ),
-                      ],
+                  const SizedBox(width: 72),
+                  Text(
+                    'Routine Timer',
+                    style: AppTextStyles.caption.copyWith(
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.textMuted.withValues(alpha: 0.76),
                     ),
                   ),
-                  Expanded(
-                    child: PageView.builder(
-                      controller: _pageController,
-                      onPageChanged: _onPageChanged,
-                      itemCount: _pages.length,
-                      itemBuilder: (context, index) {
-                        return _buildPageContent(_pages[index]);
-                      },
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.fromLTRB(
-                      AppSpacing.xxxl,
-                      AppSpacing.lg,
-                      AppSpacing.xxxl,
-                      AppSpacing.xxxl,
-                    ),
-                    child: Column(
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: List.generate(
-                            _pages.length,
-                            (index) => _buildDot(index),
-                          ),
-                        ),
-                        const SizedBox(height: AppSpacing.xl),
-                        AppButton(
-                          label: _currentPage == _pages.length - 1
-                              ? '시작하기'
-                              : '다음',
-                          onPressed: _nextPage,
-                        ),
-                      ],
-                    ),
+                  AppButton(
+                    label: '건너뛰기',
+                    onPressed: _finishIntro,
+                    variant: AppButtonVariant.ghost,
+                    expand: false,
+                    height: 40,
                   ),
                 ],
               ),
             ),
-          ),
+            Expanded(
+              child: PageView.builder(
+                controller: _pageController,
+                onPageChanged: _onPageChanged,
+                itemCount: _pages.length,
+                itemBuilder: (context, index) =>
+                    _buildPageContent(_pages[index]),
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(
+                AppSpacing.xxxl,
+                AppSpacing.lg,
+                AppSpacing.xxxl,
+                AppSpacing.xxxl,
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(
+                      _pages.length,
+                      (index) => _buildDot(index),
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xl),
+                  AppButton(
+                    label: _currentPage == _pages.length - 1 ? '시작하기' : '다음',
+                    onPressed: _nextPage,
+                  ),
+                ],
+              ),
+            ),
+          ],
         ),
       ),
     );
@@ -172,9 +161,10 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
               child: Text(
                 page.accentLabel,
-                style: AppTextStyles.caption.copyWith(
+                style: AppTextStyles.captionTight.copyWith(
                   color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w700,
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 0.8,
                 ),
               ),
             ),
@@ -431,9 +421,13 @@ class _ProgressPreview extends StatelessWidget {
                 ),
                 child: const Column(
                   children: [
-                    Text('🐻', style: TextStyle(fontSize: 28)),
+                    Icon(
+                      Icons.insights_rounded,
+                      size: 28,
+                      color: AppColors.orbitPrimary,
+                    ),
                     SizedBox(height: 4),
-                    Text('좋은 흐름이에요', style: AppTextStyles.caption),
+                    Text('흐름이 정리돼요', style: AppTextStyles.caption),
                   ],
                 ),
               ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import '../../theme/home_theme.dart';
+import '../../theme/app_colors.dart';
+import '../../theme/app_text_styles.dart';
+import '../ds/ds.dart';
 
 class HomeBottomActions extends StatelessWidget {
   const HomeBottomActions({
@@ -11,6 +13,7 @@ class HomeBottomActions extends StatelessWidget {
     this.primaryEnabled = true,
     this.secondaryEnabled = true,
     this.disabledReason,
+    this.isProcessing = false,
   });
 
   final String completeLabel;
@@ -24,97 +27,60 @@ class HomeBottomActions extends StatelessWidget {
   /// false면 나중에/건너뛰기 비활성
   final bool secondaryEnabled;
   final String? disabledReason;
-
-  void _noop() {}
+  final bool isProcessing;
 
   @override
   Widget build(BuildContext context) {
+    assert(
+      !primaryEnabled || onComplete != null,
+      'primaryEnabled가 true이면 onComplete 콜백이 필요합니다.',
+    );
+    assert(
+      !secondaryEnabled || (onLater != null && onSkip != null),
+      'secondaryEnabled가 true이면 onLater/onSkip 콜백이 모두 필요합니다.',
+    );
+    final primaryInteractive = primaryEnabled && !isProcessing;
+    final secondaryInteractive = secondaryEnabled && !isProcessing;
     return Column(
       children: [
-        Opacity(
-          opacity: primaryEnabled ? 1 : 0.48,
-          child: Material(
-            color: Colors.transparent,
-            child: InkWell(
-              onTap: primaryEnabled ? (onComplete ?? _noop) : null,
-              borderRadius: BorderRadius.circular(28),
-              child: Ink(
-                width: double.infinity,
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(30),
-                  gradient: const LinearGradient(
-                    colors: [Color(0xFF8FA8DC), Color(0xFF6B8BC9)],
-                    begin: Alignment.topLeft,
-                    end: Alignment.bottomRight,
-                  ),
-                  border: Border.all(
-                    color: Colors.white.withValues(alpha: 0.35),
-                    width: 1.5,
-                  ),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF5A7AB8).withValues(alpha: 0.45),
-                      blurRadius: 28,
-                      offset: const Offset(0, 14),
-                    ),
-                  ],
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.check_circle_rounded,
-                        color: Colors.white, size: 26),
-                    const SizedBox(width: 10),
-                    Flexible(
-                      child: Text(
-                        completeLabel,
-                        textAlign: TextAlign.center,
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 19,
-                          fontWeight: FontWeight.w800,
-                          letterSpacing: -0.25,
-                          height: 1.2,
-                        ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
+        AnimatedOpacity(
+          duration: const Duration(milliseconds: 160),
+          opacity: primaryInteractive ? 1 : 0.48,
+          child: AppButton(
+            label: isProcessing ? '처리 중...' : completeLabel,
+            icon: isProcessing ? null : Icons.check_circle_rounded,
+            isLoading: isProcessing,
+            onPressed: primaryInteractive ? onComplete : null,
           ),
         ),
         const SizedBox(height: 12),
-        Opacity(
-          opacity: secondaryEnabled ? 1 : 0.52,
+        AnimatedOpacity(
+          duration: const Duration(milliseconds: 160),
+          opacity: secondaryInteractive ? 1 : 0.52,
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               Expanded(
                 child: _LaterButton(
-                  onTap: secondaryEnabled ? (onLater ?? _noop) : null,
+                  onTap: secondaryInteractive ? onLater : null,
                 ),
               ),
               const SizedBox(width: 8),
               _SkipLinkButton(
-                onTap: secondaryEnabled ? (onSkip ?? _noop) : null,
+                onTap: secondaryInteractive ? onSkip : null,
               ),
             ],
           ),
         ),
-        if ((!primaryEnabled || !secondaryEnabled) && disabledReason != null) ...[
+        if ((!primaryInteractive || !secondaryInteractive) &&
+            disabledReason != null) ...[
           const SizedBox(height: 10),
           Text(
             disabledReason!,
             textAlign: TextAlign.center,
-            style: TextStyle(
-              fontSize: 13,
+            style: AppTextStyles.caption.copyWith(
               fontWeight: FontWeight.w600,
-              height: 1.4,
-              color: HomeTheme.textMuted.withValues(alpha: 0.88),
+              color: AppColors.textMuted.withValues(alpha: 0.88),
             ),
           ),
         ],
@@ -136,13 +102,13 @@ class _LaterButton extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(24),
         child: Ink(
-          height: 50,
+          height: 56,
           padding: const EdgeInsets.symmetric(horizontal: 12),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(25),
-            color: Colors.white.withValues(alpha: 0.62),
+            color: Colors.white.withValues(alpha: 0.7),
             border: Border.all(
-              color: HomeTheme.textMuted.withValues(alpha: 0.18),
+              color: AppColors.orbitBorder.withValues(alpha: 0.9),
             ),
           ),
           child: Row(
@@ -150,16 +116,15 @@ class _LaterButton extends StatelessWidget {
             children: [
               Icon(
                 Icons.schedule_rounded,
-                color: HomeTheme.textMuted.withValues(alpha: 0.88),
+                color: AppColors.textMuted.withValues(alpha: 0.88),
                 size: 20,
               ),
               const SizedBox(width: 8),
               Text(
                 '나중에',
-                style: TextStyle(
-                  color: HomeTheme.textMuted.withValues(alpha: 0.9),
+                style: AppTextStyles.bodyStrong.copyWith(
                   fontSize: 14,
-                  fontWeight: FontWeight.w600,
+                  color: AppColors.textPrimary,
                 ),
               ),
             ],
@@ -178,29 +143,29 @@ class _SkipLinkButton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final enabled = onTap != null;
     return Material(
       color: Colors.transparent,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(20),
-        child: Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 12),
+        borderRadius: BorderRadius.circular(24),
+        child: Container(
+          constraints: const BoxConstraints(minHeight: 56),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 14),
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 Icons.skip_next_rounded,
                 size: 17,
-                color: HomeTheme.textMuted.withValues(alpha: 0.42),
+                color: AppColors.textMuted.withValues(alpha: enabled ? 0.58 : 0.42),
               ),
               const SizedBox(width: 4),
               Text(
                 '건너뛰기',
-                style: TextStyle(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w600,
-                  letterSpacing: -0.15,
-                  color: HomeTheme.textMuted.withValues(alpha: 0.56),
+                style: AppTextStyles.captionTight.copyWith(
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.textMuted.withValues(alpha: enabled ? 0.7 : 0.56),
                 ),
               ),
             ],

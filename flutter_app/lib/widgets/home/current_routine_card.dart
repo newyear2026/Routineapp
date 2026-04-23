@@ -8,6 +8,7 @@ class CurrentRoutineCard extends StatelessWidget {
     required this.routine,
     this.next,
     this.isUpcoming = false,
+    this.onEdit,
   });
 
   final CurrentRoutine routine;
@@ -15,6 +16,7 @@ class CurrentRoutineCard extends StatelessWidget {
 
   /// true면 시간 슬롯 밖에서 보이는 "다가오는" 루틴
   final bool isUpcoming;
+  final VoidCallback? onEdit;
 
   static const _chipMuted = Color(0xFFD4E4FF);
 
@@ -290,6 +292,21 @@ class CurrentRoutineCard extends StatelessWidget {
               ),
             ),
           ),
+          if (onEdit != null) ...[
+            const SizedBox(height: 12),
+            Align(
+              alignment: Alignment.centerRight,
+              child: TextButton.icon(
+                onPressed: onEdit,
+                icon: const Icon(Icons.edit_outlined, size: 18),
+                label: const Text('이 루틴 수정'),
+                style: TextButton.styleFrom(
+                  foregroundColor:
+                      HomeTheme.textPrimary.withValues(alpha: 0.84),
+                ),
+              ),
+            ),
+          ],
         ],
       ),
     );

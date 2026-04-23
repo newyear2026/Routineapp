@@ -4,7 +4,6 @@ import 'package:go_router/go_router.dart';
 import '../application/services/notification_onboarding_actions.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
-import '../theme/app_theme_preset.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/ds/ds.dart';
 
@@ -55,92 +54,83 @@ class _NotificationPermissionScreenState
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.appTheme;
     return Scaffold(
-      body: Container(
-        decoration: BoxDecoration(gradient: theme.pageGradient),
-        child: SafeArea(
-          child: Center(
-            child: ConstrainedBox(
-              constraints: const BoxConstraints(maxWidth: AppLayout.maxContentWidth),
-              child: SingleChildScrollView(
-                padding: const EdgeInsets.all(30),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const SizedBox(height: 12),
-                    const Text('알림 설정', style: AppTextStyles.titleScreen),
-                    const SizedBox(height: 24),
-                    AnimatedBuilder(
-                      animation: _bellController,
-                      builder: (context, child) {
-                        return Transform.rotate(
-                          angle: _bellController.value * 0.3 - 0.15,
-                          child: Container(
-                            width: 132,
-                            height: 132,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(40),
-                              gradient: AppColors.highlightGradient,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.warning
-                                      .withValues(alpha: 0.28),
-                                  blurRadius: 30,
-                                  offset: const Offset(0, 10),
-                                ),
-                              ],
-                            ),
-                            child: const Center(
-                              child: Text('🔔', style: TextStyle(fontSize: 66)),
-                            ),
+      body: AppScreenShell(
+        showDecor: false,
+        child: SingleChildScrollView(
+          padding: const EdgeInsets.all(30),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const SizedBox(height: 12),
+              const Text('알림 설정', style: AppTextStyles.titleScreen),
+              const SizedBox(height: 24),
+              AnimatedBuilder(
+                animation: _bellController,
+                builder: (context, child) {
+                  return Transform.rotate(
+                    angle: _bellController.value * 0.3 - 0.15,
+                    child: Container(
+                      width: 132,
+                      height: 132,
+                      decoration: BoxDecoration(
+                        borderRadius: BorderRadius.circular(40),
+                        gradient: AppColors.highlightGradient,
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.warning.withValues(alpha: 0.28),
+                            blurRadius: 30,
+                            offset: const Offset(0, 10),
                           ),
-                        );
-                      },
+                        ],
+                      ),
+                      child: const Center(
+                        child: Text('🔔', style: TextStyle(fontSize: 66)),
+                      ),
                     ),
-                    const SizedBox(height: 36),
-                    const Text(
-                      '알림을 받으시겠어요?',
-                      style: AppTextStyles.hero,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 12),
-                    const Text(
-                      '루틴 시간에 맞춰 가볍게 알려드릴게요.\n바로 완료하거나 잠시 미룰 수 있어요.',
-                      style: AppTextStyles.helper,
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: AppSpacing.xxl),
-                    _buildNotificationExample(
-                      '🌅',
-                      '07:00',
-                      '기상 시간이에요!',
-                      '상쾌한 아침을 시작해봐요',
-                    ),
-                    const SizedBox(height: 12),
-                    _buildNotificationExample(
-                      '📚',
-                      '14:00',
-                      '공부 시간이에요!',
-                      '집중해서 학습해봐요',
-                    ),
-                    const SizedBox(height: 28),
-                    AppButton(
-                      label: '알림 허용하기',
-                      onPressed: _allowNotifications,
-                    ),
-                    const SizedBox(height: 12),
-                    AppButton(
-                      label: '나중에 설정할게요',
-                      onPressed: _skipNotifications,
-                      variant: AppButtonVariant.ghost,
-                      expand: false,
-                      height: 40,
-                    ),
-                  ],
-                ),
+                  );
+                },
               ),
-            ),
+              const SizedBox(height: 36),
+              const Text(
+                '알림을 받으시겠어요?',
+                style: AppTextStyles.hero,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 12),
+              const Text(
+                '루틴 시간에 맞춰 가볍게 알려드릴게요.\n바로 완료하거나 잠시 미룰 수 있어요.',
+                style: AppTextStyles.helper,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: AppSpacing.xxl),
+              _buildNotificationExample(
+                '🌅',
+                '07:00',
+                '기상 시간이에요!',
+                '상쾌한 아침을 시작해봐요',
+              ),
+              const SizedBox(height: 12),
+              _buildNotificationExample(
+                '📚',
+                '14:00',
+                '공부 시간이에요!',
+                '집중해서 학습해봐요',
+              ),
+              const SizedBox(height: 28),
+              AppButton(
+                label: '알림 허용하기',
+                onPressed: _allowNotifications,
+              ),
+              const SizedBox(height: 12),
+              AppButton(
+                label: '나중에 설정할게요',
+                onPressed: _skipNotifications,
+                variant: AppButtonVariant.ghost,
+                expand: false,
+                height: 40,
+              ),
+            ],
           ),
         ),
       ),

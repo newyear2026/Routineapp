@@ -38,4 +38,31 @@ abstract final class RoutineScheduleOverlap {
     }
     return out;
   }
+
+  /// [weekday] 기준으로 [candidate]와 시간대가 겹치는 루틴
+  static List<Routine> conflictingRoutinesOnWeekday({
+    required Routine candidate,
+    required List<Routine> allRoutines,
+    required int weekday,
+    String? excludeRoutineId,
+  }) {
+    if (!candidate.repeatWeekdays.contains(weekday)) {
+      return const [];
+    }
+
+    final out = <Routine>[];
+    for (final r in allRoutines) {
+      if (excludeRoutineId != null && r.id == excludeRoutineId) continue;
+      if (!r.repeatWeekdays.contains(weekday)) continue;
+      if (timeIntervalsOverlap(
+        candidate.startMinutesFromMidnight,
+        candidate.endMinutesFromMidnight,
+        r.startMinutesFromMidnight,
+        r.endMinutesFromMidnight,
+      )) {
+        out.add(r);
+      }
+    }
+    return out;
+  }
 }
