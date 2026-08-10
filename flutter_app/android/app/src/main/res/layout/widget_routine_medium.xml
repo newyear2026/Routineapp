@@ -1,99 +1,110 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  정보 위계는 Dart/iOS 위젯과 같다: 상태·시간 → 루틴 이름 → 남은 시간 → 다음 일정.
+  글자 크기도 같은 값을 쓴다 (본문 13sp, 캡션 12sp, 제목 20sp).
+  예전에는 9~11sp에 #8B7D72를 써서 대비가 3.46:1이었다.
+-->
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:id="@+id/widget_root"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@drawable/widget_medium_bg"
     android:orientation="horizontal"
-    android:paddingStart="12dp"
-    android:paddingTop="10dp"
-    android:paddingEnd="10dp"
-    android:paddingBottom="10dp">
+    android:paddingStart="14dp"
+    android:paddingTop="12dp"
+    android:paddingEnd="14dp"
+    android:paddingBottom="12dp">
 
     <LinearLayout
         android:layout_width="0dp"
         android:layout_height="match_parent"
-        android:layout_weight="1.1"
+        android:layout_weight="1"
+        android:gravity="center_vertical"
         android:orientation="vertical">
 
+        <!--
+          시작·종료 시각은 싣지 않는다. 실제 위젯 폭에서 이 칸은 130dp 안팎이라
+          배지와 '10:00 – 12:00'을 한 줄에 두면 시간이 잘린다.
+          아래 타이밍 힌트가 같은 것을 더 쓸모 있게 말한다.
+        -->
         <TextView
-            android:id="@+id/widget_header_title"
-            android:layout_width="match_parent"
+            android:id="@+id/widget_status_badge"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textColor="#5C4033"
+            android:background="@drawable/widget_badge_bg"
+            android:paddingHorizontal="9dp"
+            android:paddingVertical="3dp"
+            android:textColor="@android:color/white"
             android:textSize="12sp"
             android:textStyle="bold" />
-
-        <TextView
-            android:id="@+id/widget_subtitle"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="2dp"
-            android:textColor="#8B7D72"
-            android:textSize="9sp" />
 
         <TextView
             android:id="@+id/widget_current_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="8dp"
+            android:layout_marginTop="6dp"
             android:ellipsize="end"
             android:maxLines="1"
-            android:textColor="#5C4033"
-            android:textSize="15sp"
+            android:textColor="@color/widget_text_primary"
+            android:textSize="20sp"
             android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/widget_timing_hint"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textColor="@color/widget_text_muted"
+            android:textSize="13sp" />
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/widget_next_chip_bg"
             android:gravity="center_vertical"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:paddingHorizontal="10dp"
+            android:paddingVertical="7dp">
 
             <TextView
-                android:id="@+id/widget_time_range"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:textColor="#5C4033"
-                android:textSize="11sp"
+                android:text="@string/widget_next_label"
+                android:textColor="@color/widget_text_muted"
+                android:textSize="12sp"
                 android:textStyle="bold" />
 
             <TextView
-                android:id="@+id/widget_status_badge"
+                android:id="@+id/widget_next_title"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="@color/widget_text_primary"
+                android:textSize="13sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/widget_next_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_marginStart="6dp"
-                android:background="@drawable/widget_badge_bg"
-                android:paddingHorizontal="7dp"
-                android:paddingVertical="2dp"
-                android:textColor="#FFFFFF"
-                android:textSize="9sp"
-                android:textStyle="bold" />
+                android:textColor="@color/widget_text_muted"
+                android:textSize="12sp" />
         </LinearLayout>
-
-        <TextView
-            android:id="@+id/widget_next_line"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textColor="#8B7D72"
-            android:textSize="9sp" />
     </LinearLayout>
 
-    <FrameLayout
-        android:layout_width="0dp"
-        android:layout_height="match_parent"
+    <ImageView
+        android:id="@+id/widget_ring"
+        android:layout_width="96dp"
+        android:layout_height="96dp"
         android:layout_gravity="center_vertical"
-        android:layout_weight="1">
-
-        <ImageView
-            android:id="@+id/widget_ring"
-            android:layout_width="120dp"
-            android:layout_height="120dp"
-            android:layout_gravity="center"
-            android:contentDescription="@string/widget_medium_description"
-            android:scaleType="fitCenter" />
-    </FrameLayout>
+        android:layout_marginStart="10dp"
+        android:contentDescription="@string/widget_medium_description"
+        android:scaleType="fitCenter" />
 </LinearLayout>

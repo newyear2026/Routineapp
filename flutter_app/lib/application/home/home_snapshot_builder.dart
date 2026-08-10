@@ -8,6 +8,7 @@ import '../../domain/services/home_routine_schedule.dart';
 import '../../domain/services/routine_day_service.dart';
 import '../../domain/services/routine_progress_service.dart';
 import '../../domain/services/routine_state_resolver.dart';
+import '../../domain/utils/time_minutes.dart';
 import '../../models/home_models.dart';
 import '../mappers/home_view_mapper.dart';
 import 'home_snapshot.dart';
@@ -35,9 +36,11 @@ abstract final class HomeSnapshotBuilder {
     final next = HomeRoutineSchedule.getNextRoutine(nowLocal, todaySorted);
 
     final display = current ?? next;
-    final nextAfterDisplay = display != null
-        ? HomeRoutineSchedule.routineAfter(display, todaySorted)
-        : null;
+    final upcomingRoutines = display != null
+        ? HomeRoutineSchedule.routinesAfter(display, todaySorted)
+        : const <Routine>[];
+    final nextAfterDisplay =
+        upcomingRoutines.isEmpty ? null : upcomingRoutines.first;
 
     // Home 상단·Progress 화면과 동일: [calculateProgress] (DailyProgressCalculator)
     final dayProgress = calculateProgress(todaySorted, logsToday);
@@ -95,12 +98,7 @@ abstract final class HomeSnapshotBuilder {
           log: dayService.logForRoutine(current.id, logsToday),
           nowLocal: nowLocal,
         );
-    final completeLabel = _completeLabel(
-      display,
-      canAct,
-      current,
-      effectiveCurrent,
-    );
+    final completeLabel = _completeLabel(display);
     final disabledMessage = _actionDisabledMessage(
       todaySorted: todaySorted,
       currentSlot: current,
@@ -117,6 +115,7 @@ abstract final class HomeSnapshotBuilder {
       nextRoutine: next,
       displayRoutine: display,
       nextAfterDisplay: nextAfterDisplay,
+      upcomingRoutines: upcomingRoutines,
       dayProgressPercent: dayPct,
       completedCount: completed,
       totalCount: total,
@@ -145,26 +144,12 @@ abstract final class HomeSnapshotBuilder {
     return '좋은 저녁이에요';
   }
 
-  static String _completeLabel(
-    Routine? display,
-    bool canAct,
-    Routine? currentSlot,
-    RoutineLogStatus? effectiveOnCurrent,
-  ) {
-    if (display == null) return '루틴 없음';
-    if (!canAct) {
-      if (currentSlot != null &&
-          display.id == currentSlot.id &&
-          effectiveOnCurrent == RoutineLogStatus.completed) {
-        return '이미 완료했어요';
-      }
-      if (currentSlot != null &&
-          display.id == currentSlot.id &&
-          effectiveOnCurrent == RoutineLogStatus.skipped) {
-        return '건너뛴 루틴이에요';
-      }
-      return '지금은 루틴 시간이 아니에요';
-    }
+  /// 버튼 라벨은 **항상 할 일**을 말한다.
+  ///
+  /// 누를 수 없는 이유는 [_actionDisabledMessage]가 버튼 아래에서 따로 설명한다.
+  /// 라벨까지 사유로 바꾸면 같은 말이 화면에 두 번 남는다.
+  static String _completeLabel(Routine? display) {
+    if (display == null) return '완료하기';
     return '${display.title} 완료하기';
   }
 
@@ -209,13 +194,12 @@ abstract final class HomeSnapshotBuilder {
     }
 
     if (todaySorted.isEmpty) {
-      return '오늘 루틴이 없어요. 오른쪽 아래 + 버튼으로 하나 추가해보세요.';
+      // 홈에는 FAB이 없다. 없는 버튼을 안내하면 그대로 막힌다.
+      // 다음 행동은 홈 화면의 '루틴 추가하기' 버튼이 맡는다.
+      return '오늘 루틴이 없어요.';
     }
     if (nextRoutine != null) {
-      final hour = nextRoutine.startMinutesFromMidnight ~/ 60;
-      final minute = nextRoutine.startMinutesFromMidnight % 60;
-      final time =
-          '${hour.toString().padLeft(2, '0')}:${minute.toString().padLeft(2, '0')}';
+      final time = TimeMinutes.formatHm(nextRoutine.startMinutesFromMidnight);
       return '${nextRoutine.title} 루틴은 $time에 시작해요.';
     }
     return '오늘 예정된 루틴을 모두 마쳤어요.';

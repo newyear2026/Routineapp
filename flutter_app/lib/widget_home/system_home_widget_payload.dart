@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../application/home/home_snapshot.dart';
+import '../domain/utils/time_minutes.dart';
 import '../widget_medium/home_medium_widget_selector.dart';
 import '../widget_medium/home_medium_widget_view_model.dart';
 import '../widget_medium/medium_ring_segment.dart';
@@ -10,13 +11,9 @@ import '../widget_medium/mini_circular_timetable.dart';
 class SystemHomeWidgetPayload {
   const SystemHomeWidgetPayload({
     required this.schemaVersion,
-    required this.headerTitle,
-    required this.subtitle,
     required this.currentRoutineTitle,
-    required this.currentRoutineIconEmoji,
-    required this.currentRoutineTimeRange,
     required this.currentRoutineStatus,
-    required this.nextRoutineLine,
+    required this.currentRoutineTimingHint,
     required this.nextRoutineTitle,
     required this.nextRoutineTime,
     required this.currentTimeHour,
@@ -27,17 +24,16 @@ class SystemHomeWidgetPayload {
     this.activeSegmentId,
   });
 
-  static const currentSchemaVersion = 1;
+  /// v2: 렌더링하지 않는 `headerTitle`·`subtitle`·`nextRoutineLine`·`currentRoutineTimeRange`·`currentRoutineIconEmoji`를 빼고
+  /// `currentRoutineTimingHint`를 넣었다.
+  /// 네이티브 디코더는 없는 필드에 깨지지 않도록 모두 옵셔널로 읽는다.
+  static const currentSchemaVersion = 2;
   static const storageKey = 'routine_widget_payload';
 
   final int schemaVersion;
-  final String headerTitle;
-  final String subtitle;
   final String currentRoutineTitle;
-  final String currentRoutineIconEmoji;
-  final String currentRoutineTimeRange;
   final String currentRoutineStatus;
-  final String nextRoutineLine;
+  final String currentRoutineTimingHint;
   final String nextRoutineTitle;
   final String nextRoutineTime;
   final int currentTimeHour;
@@ -60,7 +56,7 @@ class SystemHomeWidgetPayload {
     final nextR = snapshot.nextRoutine;
     final nextTitle = nextCard?.name ?? nextR?.title ?? '';
     final nextTime = nextCard?.time ??
-        (nextR != null ? _hm(nextR.startMinutesFromMidnight) : '');
+        (nextR != null ? TimeMinutes.formatHm(nextR.startMinutesFromMidnight) : '');
 
     final t = vm.currentTime;
     final ptr =
@@ -68,14 +64,9 @@ class SystemHomeWidgetPayload {
 
     return SystemHomeWidgetPayload(
       schemaVersion: currentSchemaVersion,
-      headerTitle: vm.headerTitle,
-      subtitle: vm.subtitle,
       currentRoutineTitle: vm.currentRoutineTitle,
-      currentRoutineIconEmoji: vm.currentRoutineIconEmoji,
-      currentRoutineTimeRange: vm.currentRoutineTimeRange,
       currentRoutineStatus: vm.currentRoutineStatusLabel,
-      nextRoutineLine:
-          '다음: ${vm.nextRoutineTitle} (${vm.nextRoutineTime})',
+      currentRoutineTimingHint: vm.currentRoutineTimingHint,
       nextRoutineTitle: nextTitle,
       nextRoutineTime: nextTime,
       currentTimeHour: t.hour,
@@ -88,21 +79,12 @@ class SystemHomeWidgetPayload {
     );
   }
 
-  static String _hm(int minutes) {
-    final h = minutes ~/ 60;
-    final m = minutes % 60;
-    return '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}';
-  }
 
   Map<String, dynamic> toJson() => {
         'schemaVersion': schemaVersion,
-        'headerTitle': headerTitle,
-        'subtitle': subtitle,
         'currentRoutineTitle': currentRoutineTitle,
-        'currentRoutineIconEmoji': currentRoutineIconEmoji,
-        'currentRoutineTimeRange': currentRoutineTimeRange,
         'currentRoutineStatus': currentRoutineStatus,
-        'nextRoutineLine': nextRoutineLine,
+        'currentRoutineTimingHint': currentRoutineTimingHint,
         'nextRoutineTitle': nextRoutineTitle,
         'nextRoutineTime': nextRoutineTime,
         'currentTimeHour': currentTimeHour,

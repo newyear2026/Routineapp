@@ -44,17 +44,17 @@ class AppThemePreset {
       colors: [Color(0xFFFFFCF8), Color(0xFFF7F2FB), Color(0xFFF1ECE4)],
     ),
     primaryButtonGradient: LinearGradient(
-      colors: [Color(0xFF5E43E8), Color(0xFF8E6AF5)],
+      colors: [Color(0xFF5C3AF0), Color(0xFF8A63F6)],
     ),
     softAccentGradient: LinearGradient(
-      colors: [Color(0xFF5E43E8), Color(0xFF8E6AF5)],
+      colors: [Color(0xFF5C3AF0), Color(0xFF8A63F6)],
     ),
     highlightGradient: LinearGradient(
-      colors: [Color(0xFFE5866B), Color(0xFFF2C14E)],
+      colors: [Color(0xFFFF746C), Color(0xFFFFAD3D)],
     ),
     textPrimary: Color(0xFF241F31),
     textMuted: Color(0xFF6B6478),
-    accentPink: Color(0xFFE5866B),
+    accentPink: Color(0xFFFF746C),
     accentLavender: Color(0xFFD9D1F2),
   );
 

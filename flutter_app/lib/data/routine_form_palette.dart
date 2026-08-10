@@ -1,16 +1,10 @@
 import 'package:flutter/material.dart';
 
+import '../theme/routine_palette.dart';
+
 /// 루틴 색상 선택 — Home 세그먼트와 동일 팔레트
-const routineFormPaletteColors = <Color>[
-  Color(0xFFFFE4E9),
-  Color(0xFFFFD4E0),
-  Color(0xFFFFE9D4),
-  Color(0xFFE8DDFA),
-  Color(0xFFFFDDC5),
-  Color(0xFFD4E4FF),
-  Color(0xFFFFE8F0),
-  Color(0xFFD4C5F0),
-];
+const routineFormPaletteColors = RoutinePalette.colors;
 
 /// JSON·저장소에서 온 부호 있는 int와 팔레트 [Color] 비교를 맞춘다.
-int routineColorArgbNormalize(int value) => value & 0xFFFFFFFF;
+int routineColorArgbNormalize(int value) =>
+    RoutinePalette.normalizeValue(value);

@@ -62,4 +62,17 @@ abstract final class HomeRoutineSchedule {
     if (i < 0 || i >= sortedToday.length - 1) return null;
     return sortedToday[i + 1];
   }
+
+  /// [anchor] **이후의 모든** 시간순 루틴 (Home '다음 일정' 목록용)
+  ///
+  /// [routineAfter]가 첫 항목만 돌려주기 때문에, 화면에서 여러 개를 보여줄 때
+  /// 같은 루틴을 두 번 넣는 실수를 막으려면 이 목록 하나만 소비한다.
+  static List<Routine> routinesAfter(
+    Routine anchor,
+    List<Routine> sortedToday,
+  ) {
+    final i = sortedToday.indexWhere((e) => e.id == anchor.id);
+    if (i < 0 || i >= sortedToday.length - 1) return const <Routine>[];
+    return List<Routine>.unmodifiable(sortedToday.sublist(i + 1));
+  }
 }

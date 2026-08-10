@@ -2,4 +2,5 @@
 <resources>
     <string name="widget_ring_desc">오늘 루틴 링</string>
     <string name="widget_medium_description">하루 루틴 시간표</string>
+    <string name="widget_next_label">다음</string>
 </resources>

@@ -20,6 +20,7 @@ class HomeSnapshot {
     required this.nextRoutine,
     required this.displayRoutine,
     required this.nextAfterDisplay,
+    required this.upcomingRoutines,
     required this.dayProgressPercent,
     required this.completedCount,
     required this.totalCount,
@@ -58,6 +59,12 @@ class HomeSnapshot {
   /// 카드 중심에 쓸 루틴 (시간대 없으면 다가오는 루틴)
   final Routine? displayRoutine;
   final Routine? nextAfterDisplay;
+
+  /// [displayRoutine] 이후 오늘 남은 루틴 전체 (시간 오름차순).
+  ///
+  /// Home '다음 일정' 목록은 이 값만 쓴다. [nextAfterDisplay]와 함께 그리면
+  /// 첫 항목이 중복된다.
+  final List<Routine> upcomingRoutines;
 
   /// 오늘 전체 진행 0~100 (완료/전체)
   final int dayProgressPercent;

@@ -42,11 +42,14 @@
 
 | Token | Value | Usage |
 |---|---|---|
-| `bg/base` | `#F7F4EE` | 앱 기본 배경 |
-| `bg/elevated` | `#FCFAF6` | 카드, 패널 |
-| `bg/soft` | `#F1ECE4` | 보조 pill, 서브 서피스 |
-| `line/subtle` | `#E4DCCF` | 경계선 |
+| `bg/base` | `#EEE8DE` | 앱 기본 배경 |
+| `bg/elevated` | `#FFFFFF` | 카드, 패널 |
+| `bg/soft` | `#E7E0D4` | 보조 pill, 서브 서피스 |
+| `line/subtle` | `#DCD3C4` | 경계선 |
 | `line/strong` | `#D9D1F2` | 강조 보더 |
+
+`bg/base`와 `bg/elevated`의 명도차는 ΔL\* ≈ 8을 유지한다.
+이보다 좁으면 카드가 배경에 묻혀 그림자로만 구분된다.
 
 ### 2.2 Text
 
@@ -74,12 +77,25 @@
 | `state/sleep` | `#7C67C8` | 수면 |
 | `state/prepare` | `#F2C9A0` | 준비 |
 
+### 2.5 Status Text
+
+상태 색은 **채움용과 글자용을 분리**한다.
+`success`(`#7FDD8F`)·`orbitAccent`(`#F2C14E`) 같은 밝은 톤은 흰 서피스 위에서
+1.6:1 수준이라 글자에 쓸 수 없다.
+
+| Token | Value | 흰 배경 대비 | Usage |
+|---|---|---|---|
+| `text/success` | `#2E7D4F` | 5.0:1 | '완료' 라벨·아이콘 |
+| `text/scheduled` | `#8A6320` | 5.4:1 | '예정' 라벨·아이콘 |
+| `text/active` | `#6C4CF1` | 5.3:1 | '진행 중' 라벨·아이콘 |
+| `text/danger` | `#B03A2E` | 4.8:1 | 에러 문구, 삭제 |
+
 ## 3. Gradient Tokens
 
 | Token | Value | Usage |
 |---|---|---|
-| `gradient/pageSoft` | `#F7F4EE -> #FCFAF6 -> #F2EDF8` | 페이지 배경 |
-| `gradient/cardSoft` | `#FFFCF8 -> #F9F5FF` | 카드 배경 |
+| `gradient/pageSoft` | `#EEE8DE -> #F2ECE3 -> #EBE5F0` | 페이지 배경 |
+| `gradient/cardSoft` | `#FFFFFF -> #FCFAFF` | 카드 배경 |
 | `gradient/orbitPrimary` | `#5E43E8 -> #8E6AF5` | 원형 시간표 active 상태 |
 | `gradient/orbitWarm` | `#E5866B -> #F2C14E` | 현재 시점 glow |
 
@@ -157,10 +173,9 @@
 ### 8.1 Orbit Components
 
 - `CircularTimetableArea`
-- `HomeTimelineSection`
-- `StatusPill`
-- `RoutineSegmentTag`
-- `PrimaryOrbButton`
+
+원형 시간표의 중앙은 **시계 하나만** 맡는다. 현재 루틴 이름은 화면 상단
+포커스 스트립이 이미 말하고 있으므로 중앙에서 반복하지 않는다.
 
 규칙:
 
@@ -169,11 +184,9 @@
 
 ### 8.2 Form Components
 
-- `PastelTextField`
-- `PastelTimeField`
-- `PastelWeekdaySelector`
 - `PastelColorPalette`
 - `PastelSwitchTile`
+- `AppFieldMessage`
 - `AppButton`
 
 규칙:
@@ -183,10 +196,11 @@
 
 ### 8.3 Layout Components
 
+- `AppScreenShell`
 - `AppPageHeader`
-- `AppCard`
-- `SectionHeader`
-- `InlineMetaRow`
+- `AppCard` / `appSurfaceDecoration`
+- `AppStatusBadge`
+- `OrbitBottomNavigation`
 
 규칙:
 
@@ -200,12 +214,14 @@
 
 ```text
 Header
+Focus Strip (NOW / NEXT)
 Hero Orbit
-Current Summary
-Primary Actions
-Support Cards
-Character
+Slot Actions (완료 / 나중에 / 스킵)
+Upcoming List
 ```
+
+포커스 스트립의 배지는 진행 중이면 `NOW`, 아직 시작 전이면 `NEXT`다.
+현재 루틴이 없는데 `NOW`를 붙이면 화면이 사실과 다른 말을 한다.
 
 ### 9.2 Routine Add / Edit
 
@@ -260,11 +276,16 @@ Supporting Breakdown
 
 ## 12. Adoption Plan
 
-1. 홈 hero 구조를 V2 기준으로 고정
-2. 루틴 추가 화면의 preview hero 우선 적용
-3. 색상 토큰을 `AppColors` 에 단계적으로 흡수
-4. 공용 section header / status pill 정리
-5. 진행률 화면과 설정 화면은 마지막에 톤 정렬
+1. 홈 hero 구조를 V2 기준으로 고정 — 완료
+2. 루틴 추가 화면의 preview hero 우선 적용 — 완료
+3. 색상 토큰을 `AppColors` 에 단계적으로 흡수 — 완료
+4. 공용 section header / status pill 정리 — 완료
+5. 진행률 화면과 설정 화면 톤 정렬 — 완료
+6. 온보딩·최초 설정·알림 권한 화면 톤 정렬 — 완료
+
+온보딩 미리보기는 목업을 새로 그리지 않고 실제 화면 위젯
+(`CircularTimetableArea`, `AppButton`)을 그대로 쓴다. 목업을 따로 두면
+화면이 바뀔 때마다 온보딩만 뒤처져 없는 UI를 약속하게 된다.
 
 ## 13. Out of Scope
 

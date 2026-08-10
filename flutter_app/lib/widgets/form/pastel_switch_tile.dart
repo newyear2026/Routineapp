@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../theme/home_theme.dart';
+import '../../theme/app_colors.dart';
 
 /// 알림 등 토글 한 줄
 class PastelSwitchTile extends StatelessWidget {
@@ -23,11 +23,9 @@ class PastelSwitchTile extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.55),
+        color: AppColors.orbitSurface,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(
-          color: const Color(0xFFE8DDFA).withValues(alpha: 0.45),
-        ),
+        border: Border.all(color: AppColors.orbitBorder),
       ),
       child: Row(
         children: [
@@ -36,15 +34,10 @@ class PastelSwitchTile extends StatelessWidget {
             height: 40,
             decoration: BoxDecoration(
               borderRadius: BorderRadius.circular(14),
-              gradient: LinearGradient(
-                colors: [
-                  HomeTheme.accentPink.withValues(alpha: 0.25),
-                  const Color(0xFFD4E4FF).withValues(alpha: 0.35),
-                ],
-              ),
+              color: AppColors.orbitPrimary.withValues(alpha: 0.12),
             ),
             child: const Icon(Icons.notifications_outlined,
-                color: HomeTheme.textPrimary, size: 22),
+                color: AppColors.orbitPrimary, size: 22),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -56,7 +49,7 @@ class PastelSwitchTile extends StatelessWidget {
                   style: const TextStyle(
                     fontSize: 15,
                     fontWeight: FontWeight.w600,
-                    color: HomeTheme.textPrimary,
+                    color: AppColors.textPrimary,
                   ),
                 ),
                 if (subtitle != null) ...[
@@ -65,7 +58,7 @@ class PastelSwitchTile extends StatelessWidget {
                     subtitle!,
                     style: TextStyle(
                       fontSize: 12,
-                      color: HomeTheme.textMuted.withValues(alpha: 0.95),
+                      color: AppColors.textMuted.withValues(alpha: 0.95),
                     ),
                   ),
                 ],
@@ -76,7 +69,7 @@ class PastelSwitchTile extends StatelessWidget {
                     style: TextStyle(
                       fontSize: 11.5,
                       height: 1.35,
-                      color: HomeTheme.textMuted.withValues(alpha: 0.82),
+                      color: AppColors.textMuted.withValues(alpha: 0.82),
                     ),
                   ),
                 ],
@@ -87,9 +80,9 @@ class PastelSwitchTile extends StatelessWidget {
             value: value,
             onChanged: onChanged,
             activeThumbColor: Colors.white,
-            activeTrackColor: HomeTheme.accentPink.withValues(alpha: 0.85),
-            inactiveThumbColor: HomeTheme.textMuted.withValues(alpha: 0.5),
-            inactiveTrackColor: HomeTheme.textMuted.withValues(alpha: 0.2),
+            activeTrackColor: AppColors.orbitPrimary,
+            inactiveThumbColor: Colors.white,
+            inactiveTrackColor: AppColors.orbitSurfaceSoft,
           ),
         ],
       ),

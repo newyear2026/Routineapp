@@ -67,36 +67,43 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
     final selectedCount = _selected.where((s) => s).length;
     return Scaffold(
       body: AppScreenShell(
-        showDecor: false,
         child: Column(
           children: [
             Padding(
-              padding: const EdgeInsets.fromLTRB(30, 28, 30, 22),
+              padding: const EdgeInsets.fromLTRB(24, 28, 24, 20),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text('루틴 선택', style: AppTextStyles.titleScreen),
-                  const SizedBox(height: 20),
-                  const Text('하루의 첫 블록을 골라보세요', style: AppTextStyles.hero),
-                  const SizedBox(height: 10),
+                  const Text('루틴 선택', style: AppTextStyles.caption),
+                  const SizedBox(height: 6),
+                  // hero(32)는 이 문장에서 두 줄로 깨진다. 한 줄에 들어가는 크기를 쓴다.
                   const Text(
-                    '처음 시작할 때 넣어둘 기본 루틴만 골라주세요.\n나중에 언제든 수정할 수 있어요.',
-                    style: AppTextStyles.helper,
-                    textAlign: TextAlign.center,
+                    '하루의 첫 블록을 골라보세요',
+                    style: AppTextStyles.titleScreen,
                   ),
-                  const SizedBox(height: 16),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 8,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.accentLavender.withValues(alpha: 0.22),
-                      borderRadius: BorderRadius.circular(AppRadii.chip),
-                    ),
-                    child: Text(
-                      '$selectedCount개 선택됨',
-                      style: AppTextStyles.label.copyWith(
-                        color: AppColors.textPrimary,
+                  const SizedBox(height: 8),
+                  const Text(
+                    '처음 시작할 때 넣어둘 기본 루틴만 골라주세요. 나중에 언제든 수정할 수 있어요.',
+                    style: AppTextStyles.helper,
+                  ),
+                  const SizedBox(height: 14),
+                  Align(
+                    alignment: Alignment.centerLeft,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 6,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.orbitPrimary.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(AppRadii.chip),
+                      ),
+                      child: Text(
+                        '$selectedCount개 선택됨',
+                        style: AppTextStyles.caption.copyWith(
+                          color: AppColors.orbitPrimary,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
                   ),
@@ -105,7 +112,7 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
             ),
             Expanded(
               child: ListView.builder(
-                padding: const EdgeInsets.symmetric(horizontal: 30),
+                padding: const EdgeInsets.fromLTRB(24, 0, 24, 8),
                 itemCount: _catalog.length,
                 itemBuilder: (context, index) {
                   final def = _catalog[index];
@@ -117,21 +124,22 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
                 },
               ),
             ),
+            // Primary가 먼저, Ghost는 그 아래. 알림 권한 화면과 순서를 맞춘다.
             Padding(
-              padding: const EdgeInsets.fromLTRB(30, 0, 30, 12),
+              padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
+              child: AppButton(
+                label: selectedCount == 0 ? '루틴 없이 시작하기' : '완료하기',
+                onPressed: _completeSetup,
+              ),
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
               child: AppButton(
                 label: '나중에 설정할게요',
                 onPressed: _skipRoutineSetup,
                 variant: AppButtonVariant.ghost,
                 expand: false,
-                height: 40,
-              ),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(30, 0, 30, 30),
-              child: AppButton(
-                label: selectedCount == 0 ? '루틴 없이 시작하기' : '완료하기',
-                onPressed: _completeSetup,
+                height: 44,
               ),
             ),
           ],
@@ -147,87 +155,101 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
   }) {
     final color = Color(def.colorValue);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 12),
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: () => _toggleRoutine(index),
-          borderRadius: BorderRadius.circular(22),
-          child: AppCard(
-            variant:
-                isSelected ? AppCardVariant.elevated : AppCardVariant.standard,
-            padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
-                  width: 24,
-                  height: 24,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isSelected ? color : Colors.transparent,
-                    border: Border.all(
-                      color: isSelected
-                          ? color
-                          : AppColors.textMuted.withValues(alpha: 0.4),
-                      width: 2,
-                    ),
-                  ),
-                  child: isSelected
-                      ? const Icon(
-                          Icons.check,
-                          size: 16,
-                          color: Colors.white,
-                        )
-                      : null,
+      padding: const EdgeInsets.only(bottom: 10),
+      child: Semantics(
+        button: true,
+        selected: isSelected,
+        label: '${def.title} ${def.timeLabel}',
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: () => _toggleRoutine(index),
+            borderRadius: BorderRadius.circular(AppRadii.card),
+            child: AnimatedContainer(
+              key: Key('routine-choice-${def.catalogId}'),
+              duration: const Duration(milliseconds: 180),
+              padding: const EdgeInsets.all(14),
+              // 선택 상태는 카드가 직접 말한다.
+              // AppCard의 variant 차이(모서리·그림자)만으로는 구분되지 않는다.
+              decoration: BoxDecoration(
+                // 반투명 보라를 그대로 두면 페이지 배경과 섞여 선택된 쪽이
+                // 오히려 어둡고 흐려 보인다. 흰 서피스 위에 합성해 밝게 유지한다.
+                color: isSelected
+                    ? Color.alphaBlend(
+                        AppColors.orbitPrimary.withValues(alpha: 0.07),
+                        AppColors.orbitSurface,
+                      )
+                    : AppColors.orbitSurface,
+                borderRadius: BorderRadius.circular(AppRadii.card),
+                border: Border.all(
+                  color: isSelected
+                      ? AppColors.orbitPrimary
+                      : AppColors.orbitBorder,
+                  width: isSelected ? 2 : 1,
                 ),
-                const SizedBox(width: 12),
-                Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(15),
-                    gradient: LinearGradient(
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                      colors: [color, color.withValues(alpha: 0.7)],
-                    ),
-                  ),
-                  child: Center(
-                    child:
-                        Text(def.emoji, style: const TextStyle(fontSize: 24)),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(def.title, style: AppTextStyles.bodyStrong),
-                      const SizedBox(height: 4),
-                      Text(def.timeLabel, style: AppTextStyles.caption),
-                    ],
-                  ),
-                ),
-                if (def.showRecommendedBadge)
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 8,
-                      vertical: 4,
-                    ),
+              ),
+              child: Row(
+                children: [
+                  AnimatedContainer(
+                    duration: const Duration(milliseconds: 180),
+                    width: 24,
+                    height: 24,
                     decoration: BoxDecoration(
-                      color: AppColors.accentPink.withValues(alpha: 0.18),
-                      borderRadius: BorderRadius.circular(10),
-                    ),
-                    child: Text(
-                      '추천',
-                      style: AppTextStyles.captionTight.copyWith(
-                        color: AppColors.accentPink,
-                        fontWeight: FontWeight.w700,
+                      shape: BoxShape.circle,
+                      // 연한 파스텔 위 흰 체크는 보이지 않는다. 브랜드색으로 채운다.
+                      color: isSelected
+                          ? AppColors.orbitPrimary
+                          : Colors.transparent,
+                      border: Border.all(
+                        color: isSelected
+                            ? AppColors.orbitPrimary
+                            : AppColors.textMuted,
+                        width: 2,
                       ),
                     ),
+                    child: isSelected
+                        ? const Icon(Icons.check, size: 16, color: Colors.white)
+                        : null,
                   ),
-              ],
+                  const SizedBox(width: 12),
+                  Container(
+                    key: Key('routine-color-${def.catalogId}'),
+                    width: 36,
+                    height: 36,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: color,
+                      border: Border.all(
+                        color: Colors.white,
+                        width: 3,
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: color.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 3),
+                        ),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(def.title, style: AppTextStyles.bodyStrong),
+                        const SizedBox(height: 2),
+                        Text(def.timeLabel, style: AppTextStyles.caption),
+                      ],
+                    ),
+                  ),
+                  if (def.showRecommendedBadge)
+                    const AppStatusBadge(
+                      label: '추천',
+                      tone: AppStatusBadgeTone.info,
+                    ),
+                ],
+              ),
             ),
           ),
         ),

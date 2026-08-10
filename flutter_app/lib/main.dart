@@ -16,6 +16,8 @@ import 'screens/today_progress_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/routine_add_screen.dart';
 import 'screens/widget_medium_preview_screen.dart';
+import 'screens/routines_screen.dart';
+import 'theme/app_colors.dart';
 import 'theme/app_theme_preset.dart';
 import 'widget_home/home_widget_sync_service.dart';
 
@@ -51,7 +53,9 @@ class RoutineTimerApp extends StatelessWidget {
             debugShowCheckedModeBanner: false,
             theme: ThemeData(
               useMaterial3: true,
-              scaffoldBackgroundColor: Colors.transparent,
+              // 투명으로 두면 Scaffold의 bottomNavigationBar 뒤가 칠해지지 않아
+              // 루트의 검정이 그대로 드러난다. 페이지 배경색을 기본값으로 둔다.
+              scaffoldBackgroundColor: AppColors.pageBackground,
               extensions: <ThemeExtension<dynamic>>[
                 AppThemeTokens(preset: app.currentThemePreset),
               ],
@@ -98,10 +102,19 @@ final GoRouter _router = GoRouter(
       builder: (context, state) => const SettingsScreen(),
     ),
     GoRoute(
+        path: '/routines', builder: (context, state) => const RoutinesScreen()),
+    GoRoute(
       path: '/routine-add',
       builder: (context, state) {
         final id = state.uri.queryParameters['id'];
-        return RoutineAddScreen(editRoutineId: id);
+        final weekday = int.tryParse(
+          state.uri.queryParameters['weekday'] ?? '',
+        );
+        return RoutineAddScreen(
+          editRoutineId: id,
+          initialWeekday: weekday,
+          returnToRoutines: state.uri.queryParameters['returnTo'] == 'routines',
+        );
       },
     ),
     GoRoute(

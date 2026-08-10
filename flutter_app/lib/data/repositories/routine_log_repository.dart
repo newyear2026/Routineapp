@@ -12,4 +12,7 @@ abstract class RoutineLogRepository {
 
   /// 루틴 삭제 시 연결된 로그 정리
   Future<void> deleteLogsForRoutine(String routineId);
+
+  /// 특정 날짜의 실행 기록을 되돌릴 때 사용한다.
+  Future<void> deleteLogForRoutineOnDate(String routineId, String dateYmd);
 }

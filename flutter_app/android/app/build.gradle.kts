@@ -36,6 +36,14 @@ android {
             // TODO: Add your own signing config for the release build.
             // Signing with the debug keys for now, so `flutter run --release` works.
             signingConfig = signingConfigs.getByName("debug")
+
+            // flutter_local_notifications가 Gson TypeToken으로 예약 알림을
+            // 되읽는다. 규칙이 없으면 R8이 제네릭 시그니처를 지워
+            // "Missing type parameter."로 release에서만 터진다.
+            proguardFiles(
+                getDefaultProguardFile("proguard-android-optimize.txt"),
+                "proguard-rules.pro",
+            )
         }
     }
 }

@@ -53,19 +53,20 @@ class AppStatusBadge extends StatelessWidget {
         return (
           AppColors.success.withValues(alpha: 0.18),
           AppColors.success.withValues(alpha: 0.4),
-          const Color(0xFF3F7A4A),
+          AppColors.successText,
         );
       case AppStatusBadgeTone.warning:
         return (
           AppColors.orbitAccent.withValues(alpha: 0.2),
           AppColors.orbitAccent.withValues(alpha: 0.45),
-          const Color(0xFF8C6947),
+          AppColors.scheduledText,
         );
       case AppStatusBadgeTone.readySoon:
         return (
-          AppColors.orbitSecondary.withValues(alpha: 0.1),
-          AppColors.orbitSecondary.withValues(alpha: 0.24),
-          AppColors.orbitSecondary,
+          AppColors.orbitSecondary.withValues(alpha: 0.12),
+          AppColors.orbitSecondary.withValues(alpha: 0.3),
+          // orbitSecondary(#E5866B)는 밝은 배경에서 2.6:1로 본문 대비에 못 미친다.
+          const Color(0xFF9C4A2F),
         );
     }
   }

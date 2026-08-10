@@ -5,6 +5,7 @@ import '../application/services/notification_onboarding_actions.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
+import '../theme/routine_palette.dart';
 import '../widgets/ds/ds.dart';
 
 class NotificationPermissionScreen extends StatefulWidget {
@@ -16,26 +17,9 @@ class NotificationPermissionScreen extends StatefulWidget {
 }
 
 class _NotificationPermissionScreenState
-    extends State<NotificationPermissionScreen>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _bellController;
+    extends State<NotificationPermissionScreen> {
   final NotificationOnboardingActions _actions =
       NotificationOnboardingActions();
-
-  @override
-  void initState() {
-    super.initState();
-    _bellController = AnimationController(
-      duration: const Duration(milliseconds: 500),
-      vsync: this,
-    )..repeat(reverse: true);
-  }
-
-  @override
-  void dispose() {
-    _bellController.dispose();
-    super.dispose();
-  }
 
   Future<void> _goHome() async {
     if (!mounted) return;
@@ -56,63 +40,52 @@ class _NotificationPermissionScreenState
   Widget build(BuildContext context) {
     return Scaffold(
       body: AppScreenShell(
-        showDecor: false,
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(30),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               const SizedBox(height: 12),
-              const Text('알림 설정', style: AppTextStyles.titleScreen),
+              const Text('알림 설정', style: AppTextStyles.caption),
               const SizedBox(height: 24),
-              AnimatedBuilder(
-                animation: _bellController,
-                builder: (context, child) {
-                  return Transform.rotate(
-                    angle: _bellController.value * 0.3 - 0.15,
-                    child: Container(
-                      width: 132,
-                      height: 132,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(40),
-                        gradient: AppColors.highlightGradient,
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.warning.withValues(alpha: 0.28),
-                            blurRadius: 30,
-                            offset: const Offset(0, 10),
-                          ),
-                        ],
-                      ),
-                      child: const Center(
-                        child: Text('🔔', style: TextStyle(fontSize: 66)),
-                      ),
-                    ),
-                  );
-                },
+              // 상시 회전 애니메이션은 design_system_v2 7.2 '장식용 모션 금지'에 어긋난다.
+              // 주황 그라데이션도 앱 어디에도 없는 톤이라 브랜드색으로 맞춘다.
+              Container(
+                key: const Key('notification-permission-hero'),
+                width: 108,
+                height: 108,
+                decoration: BoxDecoration(
+                  borderRadius: BorderRadius.circular(32),
+                  color: AppColors.orbitPrimary.withValues(alpha: 0.1),
+                ),
+                child: const Icon(
+                  Icons.notifications_rounded,
+                  size: 52,
+                  color: AppColors.orbitPrimary,
+                ),
               ),
-              const SizedBox(height: 36),
+              const SizedBox(height: 28),
               const Text(
                 '알림을 받으시겠어요?',
-                style: AppTextStyles.hero,
+                style: AppTextStyles.titleScreen,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
               const Text(
-                '루틴 시간에 맞춰 가볍게 알려드릴게요.\n바로 완료하거나 잠시 미룰 수 있어요.',
+                '루틴 시간에 맞춰 가볍게 알려드릴게요.\n알림을 확인한 뒤 앱에서 완료하거나 잠시 미룰 수 있어요.',
                 style: AppTextStyles.helper,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: AppSpacing.xxl),
               _buildNotificationExample(
-                '🌅',
+                RoutinePalette.coral,
                 '07:00',
                 '기상 시간이에요!',
                 '상쾌한 아침을 시작해봐요',
               ),
               const SizedBox(height: 12),
               _buildNotificationExample(
-                '📚',
+                RoutinePalette.lavender,
                 '14:00',
                 '공부 시간이에요!',
                 '집중해서 학습해봐요',
@@ -128,7 +101,7 @@ class _NotificationPermissionScreenState
                 onPressed: _skipNotifications,
                 variant: AppButtonVariant.ghost,
                 expand: false,
-                height: 40,
+                height: 44,
               ),
             ],
           ),
@@ -138,7 +111,7 @@ class _NotificationPermissionScreenState
   }
 
   Widget _buildNotificationExample(
-    String emoji,
+    Color routineColor,
     String time,
     String title,
     String description,
@@ -148,14 +121,19 @@ class _NotificationPermissionScreenState
       child: Row(
         children: [
           Container(
-            width: 50,
-            height: 50,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(15),
-              color: AppColors.accentPink.withValues(alpha: 0.22),
-            ),
-            child: Center(
-              child: Text(emoji, style: const TextStyle(fontSize: 24)),
+              shape: BoxShape.circle,
+              color: routineColor,
+              border: Border.all(color: Colors.white, width: 3),
+              boxShadow: [
+                BoxShadow(
+                  color: routineColor.withValues(alpha: 0.3),
+                  blurRadius: 8,
+                  offset: const Offset(0, 3),
+                ),
+              ],
             ),
           ),
           const SizedBox(width: 12),

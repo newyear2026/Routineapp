@@ -10,91 +10,57 @@ abstract final class AppColors {
   static const Color textStrong = Color(0xFF241F31);
 
   // ── Accent & action ──────────────────────────────
-  static const Color accentPink = Color(0xFFE5866B);
-  static const Color accentLavender = Color(0xFFD9D1F2);
-  static const Color orbitPrimary = Color(0xFF6C4CF1);
-  static const Color orbitSecondary = Color(0xFFE5866B);
-  static const Color orbitAccent = Color(0xFFF2C14E);
-  static const Color orbitSurface = Color(0xFFFCFAF6);
-  static const Color orbitSurfaceSoft = Color(0xFFF1ECE4);
-  static const Color orbitBorder = Color(0xFFE4DCCF);
+  static const Color orbitPrimary = Color(0xFF6744F4);
+  static const Color orbitSecondary = Color(0xFFFF746C);
+  static const Color orbitAccent = Color(0xFFFFAD3D);
+
+  /// 카드·패널 서피스. 페이지 배경([pageBackground])과 확실히 분리되도록 순백을 쓴다.
+  static const Color orbitSurface = Color(0xFFFFFFFF);
+
+  /// 보조 pill·트랙 등 한 단계 눌린 서피스
+  static const Color orbitSurfaceSoft = Color(0xFFE7E0D4);
+  static const Color orbitBorder = Color(0xFFDCD3C4);
   static const Color orbitHalo = Color(0xFFD9D1F2);
 
-  static const Color actionBlue = Color(0xFF5C72D8);
-  static const Color actionOrange = Color(0xFFE4A165);
-  static const Color actionRose = Color(0xFFD67888);
+  /// 앱 전체 페이지 배경 — 서피스와의 명도차(ΔL* ≈ 8)를 확보한 값
+  static const Color pageBackground = Color(0xFFEEE8DE);
+
+
+  // ── Status: 채움용(fill)과 글자용(text)을 분리한다 ─
+  // fill 계열은 배지 배경·점 등 장식에만 쓰고,
+  // 글자·아이콘에는 반드시 *Text 토큰을 써서 대비 4.5:1 이상을 지킨다.
   static const Color success = Color(0xFF7FDD8F);
   static const Color warning = Color(0xFFD9A57B);
 
-  // ── Border / divider ─────────────────────────────
-  static const Color border = Color(0xFFE4DCCF);
+  /// 흰 서피스 위 5.0:1 — '완료' 라벨
+  static const Color successText = Color(0xFF2E7D4F);
 
-  // ── Surface (알파는 withValues로 조합) ────────────
-  static const Color surface = Color(0xFFFFFFFF);
+  /// 흰 서피스 위 5.4:1 — '예정' 라벨
+  static const Color scheduledText = Color(0xFF8A6320);
+
+  /// 흰 서피스 위 5.3:1 — '진행 중' 라벨 (orbitPrimary와 동일 색)
+  static const Color activeText = orbitPrimary;
+
+  /// 흰 서피스 위 4.8:1 — 삭제·되돌리기 어려운 행동
+  static const Color dangerText = Color(0xFFB03A2E);
+
+  // ── Border / divider ─────────────────────────────
+  static const Color border = Color(0xFFDCD3C4);
 
   // ── Page & shell ─────────────────────────────────
   static const LinearGradient pageGradient = LinearGradient(
     begin: Alignment.topLeft,
     end: Alignment.bottomRight,
     colors: [
-      Color(0xFFF7F4EE),
-      Color(0xFFFCFAF6),
-      Color(0xFFF2EDF8),
-    ],
-  );
-
-  static const LinearGradient shellGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [
-      Color(0xFFFFFCF8),
-      Color(0xFFF7F2FB),
-      Color(0xFFF1ECE4),
-    ],
-  );
-
-  /// Primary CTA (저장·완료 등)
-  static const LinearGradient primaryButtonGradient = LinearGradient(
-    colors: [Color(0xFF5E43E8), Color(0xFF8E6AF5)],
-  );
-
-  static const LinearGradient softAccentGradient = LinearGradient(
-    colors: [Color(0xFF5E43E8), Color(0xFF8E6AF5)],
-  );
-
-  static const LinearGradient highlightGradient = LinearGradient(
-    colors: [Color(0xFFE5866B), Color(0xFFF2C14E)],
-  );
-
-  static const LinearGradient orbitBackgroundGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [
-      Color(0xFFF7F4EE),
-      Color(0xFFFCFAF6),
-      Color(0xFFF2EDF8),
-    ],
-  );
-
-  static const LinearGradient orbitCardGradient = LinearGradient(
-    begin: Alignment.topLeft,
-    end: Alignment.bottomRight,
-    colors: [
-      Color(0xFFFFFCF8),
-      Color(0xFFF9F5FF),
+      Color(0xFFEEE8DE),
+      Color(0xFFF2ECE3),
+      Color(0xFFEBE5F0),
     ],
   );
 
   static const LinearGradient orbitPrimaryGradient = LinearGradient(
-    colors: [Color(0xFF5E43E8), Color(0xFF8E6AF5)],
+    colors: [Color(0xFF5C3AF0), Color(0xFF8A63F6)],
   );
-
-  static const LinearGradient orbitWarmGradient = LinearGradient(
-    colors: [Color(0xFFE5866B), Color(0xFFF2C14E)],
-  );
-
-  /// Progress 링 등 강조
-  static const Color progressRing = accentPink;
 
   // ── Shadow ───────────────────────────────────────
   static Color shellShadow(BuildContext context) =>

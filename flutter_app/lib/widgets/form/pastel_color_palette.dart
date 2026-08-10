@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../../theme/home_theme.dart';
+import '../../theme/app_colors.dart';
 
 /// 가로 스크롤 색상 선택 (원형 스와치)
 class PastelColorPalette extends StatelessWidget {
@@ -28,7 +28,7 @@ class PastelColorPalette extends StatelessWidget {
           style: TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
-            color: HomeTheme.textMuted,
+            color: AppColors.textMuted,
           ),
         ),
         const SizedBox(height: 12),
@@ -41,6 +41,9 @@ class PastelColorPalette extends StatelessWidget {
             itemBuilder: (context, i) {
               final c = colors[i];
               final sel = selectedIndex != null && i == selectedIndex;
+              final checkColor = c.computeLuminance() > 0.48
+                  ? AppColors.textPrimary
+                  : Colors.white;
               return GestureDetector(
                 onTap: () => onSelected(i),
                 child: AnimatedContainer(
@@ -52,7 +55,7 @@ class PastelColorPalette extends StatelessWidget {
                     color: c,
                     border: Border.all(
                       color: sel
-                          ? HomeTheme.textPrimary
+                          ? AppColors.textPrimary
                           : Colors.white.withValues(alpha: 0.6),
                       width: sel ? 3 : 2,
                     ),
@@ -65,7 +68,7 @@ class PastelColorPalette extends StatelessWidget {
                     ],
                   ),
                   child: sel
-                      ? const Icon(Icons.check, size: 18, color: Colors.white)
+                      ? Icon(Icons.check, size: 18, color: checkColor)
                       : null,
                 ),
               );
@@ -80,7 +83,7 @@ class PastelColorPalette extends StatelessWidget {
               fontSize: 12,
               fontWeight: FontWeight.w600,
               height: 1.35,
-              color: HomeTheme.textMuted.withValues(alpha: 0.86),
+              color: AppColors.textMuted.withValues(alpha: 0.86),
             ),
           ),
         ],

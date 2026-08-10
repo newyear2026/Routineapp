@@ -38,4 +38,7 @@ class RoutineDataService {
       _logs.loadLogsForDate(dateLocal);
 
   Future<void> upsertLog(RoutineLog log) => _logs.upsertLog(log);
+
+  Future<void> deleteLogForRoutineOnDate(String routineId, String dateYmd) =>
+      _logs.deleteLogForRoutineOnDate(routineId, dateYmd);
 }

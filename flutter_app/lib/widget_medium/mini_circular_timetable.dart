@@ -2,13 +2,18 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
+import '../domain/utils/time_minutes.dart';
+import '../widgets/orbit_ring_painter.dart';
 import 'medium_ring_segment.dart';
+import 'widget_theme.dart';
 
-/// 미니 **동심원 도넛** 24시간 원형 시간표 — Medium 위젯 전용.
+/// Medium 위젯의 24시간 원형 시간표.
 ///
-/// - 0시 = 12시 방향(위), 시계 방향으로 증가
-/// - 외곽 0 / 6 / 12 / 18 시 라벨
-/// - [currentTime] 기준 포인터(24시간 각도)
+/// 홈 화면과 **같은 [OrbitRingPainter]**를 쓴다. 예전에는 위젯만 두꺼운
+/// 동심원 도넛으로 그려서, 같은 하루를 앱과 위젯이 다른 모양으로 보여줬다.
+///
+/// 위젯 크기(120 안팎)에서는 00·06·12·18 라벨이 4px 남짓으로 줄어 읽히지
+/// 않으므로 라벨을 끄고, 그만큼 링을 키운다. 현재 시각은 중앙 숫자가 말한다.
 class MiniCircularTimetable extends StatelessWidget {
   const MiniCircularTimetable({
     super.key,
@@ -16,13 +21,15 @@ class MiniCircularTimetable extends StatelessWidget {
     required this.currentTime,
     this.activeSegmentId,
     this.pointerAngleRad,
-    this.centerLabel = '현재 시간',
-    this.size = 152,
+    this.centerLabel = '지금',
+    this.size = 120,
   });
 
   final List<MediumRingSegment> segments;
   final TimeOfDay currentTime;
   final String? activeSegmentId;
+
+  /// 페이로드가 각도를 직접 넘길 때 사용. null이면 [currentTime]으로 계산한다.
   final double? pointerAngleRad;
   final String centerLabel;
   final double size;
@@ -32,63 +39,73 @@ class MiniCircularTimetable extends StatelessWidget {
     return (m / (24 * 60)) * 2 * math.pi - math.pi / 2;
   }
 
+  /// 페이로드의 각도를 다시 '자정 기준 분'으로 되돌린다.
+  static int _minutesFromAngle(double angleRad) {
+    final normalized = (angleRad + math.pi / 2) % (2 * math.pi);
+    return ((normalized / (2 * math.pi)) * 24 * 60).round() % (24 * 60);
+  }
+
   @override
   Widget build(BuildContext context) {
-    final angle = pointerAngleRad ?? pointerAngleFromTime(currentTime);
+    final nowMinutes = pointerAngleRad != null
+        ? _minutesFromAngle(pointerAngleRad!)
+        : currentTime.hour * 60 + currentTime.minute;
+    final timeText = TimeMinutes.formatTimeOfDay(currentTime);
 
     return SizedBox(
       width: size,
       height: size,
       child: Stack(
-        clipBehavior: Clip.none,
         alignment: Alignment.center,
         children: [
           Container(
             width: size,
             height: size,
-            decoration: BoxDecoration(
+            decoration: const BoxDecoration(
               shape: BoxShape.circle,
-              gradient: RadialGradient(
-                colors: [
-                  Colors.white.withValues(alpha: 0.92),
-                  const Color(0xFFFFF8F0).withValues(alpha: 0.82),
-                  const Color(0xFFF3ECFF).withValues(alpha: 0.74),
-                ],
-              ),
+              color: WidgetTheme.surface,
             ),
           ),
           CustomPaint(
-            size: Size(size, size),
-            painter: _MiniDonutRingPainter(
-              segments: segments,
-              activeSegmentId: activeSegmentId,
+            size: Size.square(size),
+            painter: OrbitRingPainter(
+              segments: [
+                for (final segment in segments)
+                  OrbitRingSegment(
+                    id: segment.id,
+                    startMinutes: segment.startMinutesFromMidnight,
+                    endMinutes: segment.startMinutesFromMidnight +
+                        segment.sweepMinutes,
+                    color: segment.color,
+                  ),
+              ],
+              activeSegmentId: activeSegmentId ?? '',
+              nowMinutes: nowMinutes,
+              showHourLabels: false,
+              radiusFactor: 0.40,
             ),
           ),
-          CustomPaint(
-            size: Size(size, size),
-            painter: _MiniPointerPainter(angleRad: angle),
-          ),
-          _HourLabels(size: size),
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                '${currentTime.hour.toString().padLeft(2, '0')}:${currentTime.minute.toString().padLeft(2, '0')}',
+                timeText,
                 style: TextStyle(
-                  fontSize: (size * 0.172).clamp(24.0, 30.0),
+                  fontSize: size * 0.19,
                   fontWeight: FontWeight.w800,
-                  letterSpacing: -0.6,
-                  color: const Color(0xFF5C4033),
-                  height: 1.05,
+                  letterSpacing: -0.8,
+                  height: 1,
+                  color: WidgetTheme.textPrimary,
                 ),
               ),
-              SizedBox(height: size * 0.012),
+              SizedBox(height: size * 0.03),
               Text(
                 centerLabel,
                 style: TextStyle(
-                  fontSize: (size * 0.069).clamp(10.0, 12.0),
-                  fontWeight: FontWeight.w600,
-                  color: const Color(0xFF9A8AAC).withValues(alpha: 0.95),
+                  fontSize: math.max(9, size * 0.083),
+                  fontWeight: FontWeight.w800,
+                  letterSpacing: 1.1,
+                  color: WidgetTheme.textMuted,
                 ),
               ),
             ],
@@ -96,172 +113,5 @@ class MiniCircularTimetable extends StatelessWidget {
         ],
       ),
     );
-  }
-}
-
-/// 외곽 0·6·12·18 시 라벨
-class _HourLabels extends StatelessWidget {
-  const _HourLabels({required this.size});
-
-  final double size;
-
-  @override
-  Widget build(BuildContext context) {
-    final c = size / 2;
-    final r = size * 0.52;
-    final labelHalf = size * 0.072;
-    final labelHalfV = size * 0.042;
-    const labels = <(int, double)>[
-      (0, -math.pi / 2),
-      (6, 0),
-      (12, math.pi / 2),
-      (18, math.pi),
-    ];
-
-    return Stack(
-      clipBehavior: Clip.none,
-      children: [
-        for (final (h, ang) in labels)
-          Positioned(
-            left: c + r * math.cos(ang) - labelHalf,
-            top: c + r * math.sin(ang) - labelHalfV,
-            child: Text(
-              '$h시',
-              style: TextStyle(
-                fontSize: (size * 0.066).clamp(9.5, 11.5),
-                fontWeight: FontWeight.w700,
-                color: const Color(0xFF7A6B5A).withValues(alpha: 0.85),
-              ),
-            ),
-          ),
-      ],
-    );
-  }
-}
-
-class _MiniDonutRingPainter extends CustomPainter {
-  _MiniDonutRingPainter({
-    required this.segments,
-    required this.activeSegmentId,
-  });
-
-  final List<MediumRingSegment> segments;
-  final String? activeSegmentId;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final c = Offset(size.width / 2, size.height / 2);
-    final scale = size.width / 200;
-    final innerR = 52 * scale;
-    final outerR = 78 * scale;
-    final midR = (innerR + outerR) / 2;
-    final strokeW = outerR - innerR;
-
-    final track = Paint()
-      ..color = const Color(0xFFF0E8E0).withValues(alpha: 0.52)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = strokeW;
-    canvas.drawArc(
-      Rect.fromCircle(center: c, radius: midR),
-      -math.pi / 2,
-      2 * math.pi,
-      false,
-      track,
-    );
-
-    for (final seg in segments) {
-      final startRad =
-          (seg.startMinutesFromMidnight / (24 * 60)) * 2 * math.pi -
-              math.pi / 2;
-      final sweepRad = (seg.sweepMinutes / (24 * 60)) * 2 * math.pi;
-
-      final isActive = activeSegmentId != null && seg.id == activeSegmentId;
-
-      if (isActive) {
-        final glow = Paint()
-          ..color = const Color(0xFFFF8CA8).withValues(alpha: 0.24)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = strokeW + 8
-          ..strokeCap = StrokeCap.round
-          ..maskFilter = const MaskFilter.blur(BlurStyle.normal, 4);
-        canvas.drawArc(
-          Rect.fromCircle(center: c, radius: midR),
-          startRad,
-          sweepRad,
-          false,
-          glow,
-        );
-      }
-
-      final paint = Paint()
-        ..color = seg.color.withValues(alpha: isActive ? 1.0 : 0.82)
-        ..style = PaintingStyle.stroke
-        ..strokeWidth = strokeW
-        ..strokeCap = StrokeCap.round;
-
-      canvas.drawArc(
-        Rect.fromCircle(center: c, radius: midR),
-        startRad,
-        sweepRad,
-        false,
-        paint,
-      );
-    }
-
-    final hole = Paint()..color = const Color(0xFFFFFBF7);
-    canvas.drawCircle(c, innerR - 1, hole);
-
-    final holeBorder = Paint()
-      ..color = const Color(0xFFE8DED6).withValues(alpha: 0.35)
-      ..style = PaintingStyle.stroke
-      ..strokeWidth = 1;
-    canvas.drawCircle(c, innerR - 1, holeBorder);
-  }
-
-  @override
-  bool shouldRepaint(covariant _MiniDonutRingPainter oldDelegate) {
-    return oldDelegate.segments != segments ||
-        oldDelegate.activeSegmentId != activeSegmentId;
-  }
-}
-
-class _MiniPointerPainter extends CustomPainter {
-  _MiniPointerPainter({required this.angleRad});
-
-  final double angleRad;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final c = Offset(size.width / 2, size.height / 2);
-    final scale = size.width / 200;
-    final innerR = 52 * scale;
-    final outerR = 78 * scale;
-    final midR = (innerR + outerR) / 2;
-    final strokeW = outerR - innerR;
-
-    final r0 = midR - strokeW * 0.42;
-    final r1 = outerR + 3 * scale;
-    final start = Offset(
-      c.dx + r0 * math.cos(angleRad),
-      c.dy + r0 * math.sin(angleRad),
-    );
-    final end = Offset(
-      c.dx + r1 * math.cos(angleRad),
-      c.dy + r1 * math.sin(angleRad),
-    );
-
-    final paint = Paint()
-      ..color = const Color(0xFFE07A5F)
-      ..strokeWidth = math.max(3.0, 5 * scale)
-      ..strokeCap = StrokeCap.round;
-    canvas.drawLine(start, end, paint);
-
-    final dot = Paint()..color = const Color(0xFFE07A5F);
-    canvas.drawCircle(end, 3.8 * scale, dot);
-  }
-
-  @override
-  bool shouldRepaint(covariant _MiniPointerPainter oldDelegate) {
-    return oldDelegate.angleRad != angleRad;
   }
 }

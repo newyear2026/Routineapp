@@ -4,12 +4,15 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import 'app_status_badge.dart';
 
+/// 설정 행 — `아이콘 · 라벨(+배지) · 컨트롤` 한 줄, 설명은 그 아래 전체 폭.
+///
+/// 설명을 컨트롤과 같은 줄에 두면 스위치 옆에서 좁게 접혀 읽기 어려워진다.
 class AppSettingsTile extends StatelessWidget {
   const AppSettingsTile({
     super.key,
     required this.icon,
     required this.label,
-    required this.accent,
+    this.accent = AppColors.orbitPrimary,
     this.description,
     this.onTap,
     this.trailing,
@@ -30,46 +33,47 @@ class AppSettingsTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final description = this.description;
     final content = Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-      child: Row(
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _LeadingIcon(icon: icon, accent: accent, enabled: enabled),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Row(
-                  children: [
-                    Expanded(
-                      child: Text(
-                        label,
-                        style: TextStyle(
-                          fontSize: 15,
-                          color: enabled
-                              ? AppColors.textPrimary
-                              : AppColors.textMuted.withValues(alpha: 0.84),
-                          fontWeight: FontWeight.w600,
-                          letterSpacing: -0.1,
-                        ),
-                      ),
-                    ),
-                    if (statusLabel != null)
-                      AppStatusBadge(label: statusLabel!, tone: statusTone),
-                  ],
-                ),
-                if (description != null) ...[
-                  const SizedBox(height: 3),
-                  Text(
-                    description!,
-                    style: AppTextStyles.caption.copyWith(height: 1.35),
+          Row(
+            children: [
+              _LeadingIcon(icon: icon, accent: accent, enabled: enabled),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  label,
+                  style: TextStyle(
+                    fontSize: 15,
+                    color: enabled
+                        ? AppColors.textPrimary
+                        : AppColors.textMuted,
+                    fontWeight: FontWeight.w600,
+                    letterSpacing: -0.1,
                   ),
-                ],
+                ),
+              ),
+              if (statusLabel != null) ...[
+                AppStatusBadge(label: statusLabel!, tone: statusTone),
+                const SizedBox(width: 8),
               ],
-            ),
+              if (trailing != null) trailing!,
+            ],
           ),
-          if (trailing != null) trailing!,
+          if (description != null) ...[
+            const SizedBox(height: 6),
+            Padding(
+              // 아이콘(42) + 간격(12)만큼 들여써 라벨과 왼쪽을 맞춘다.
+              padding: const EdgeInsets.only(left: 54),
+              child: Text(
+                description,
+                style: AppTextStyles.caption.copyWith(height: 1.35),
+              ),
+            ),
+          ],
         ],
       ),
     );
@@ -82,7 +86,7 @@ class AppSettingsTile extends StatelessWidget {
       child: InkWell(
         onTap: enabled ? onTap : null,
         borderRadius: BorderRadius.circular(18),
-        splashColor: AppColors.accentPink.withValues(alpha: 0.12),
+        splashColor: AppColors.orbitPrimary.withValues(alpha: 0.1),
         highlightColor: AppColors.textMuted.withValues(alpha: 0.06),
         child: content,
       ),
@@ -107,15 +111,12 @@ class _LeadingIcon extends StatelessWidget {
       width: 42,
       height: 42,
       decoration: BoxDecoration(
-        color: accent.withValues(alpha: enabled ? 0.28 : 0.16),
+        color: accent.withValues(alpha: enabled ? 0.12 : 0.07),
         borderRadius: BorderRadius.circular(13),
-        border: Border.all(
-          color: accent.withValues(alpha: enabled ? 0.25 : 0.14),
-        ),
       ),
       child: Icon(
         icon,
-        color: accent.withValues(alpha: enabled ? 0.95 : 0.55),
+        color: enabled ? accent : AppColors.textMuted,
         size: 21,
       ),
     );

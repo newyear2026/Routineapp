@@ -91,7 +91,7 @@ class AppButton extends StatelessWidget {
       case AppButtonVariant.secondary:
         return AppColors.textPrimary;
       case AppButtonVariant.ghost:
-        return AppColors.textPrimary;
+        return AppColors.textMuted;
       case AppButtonVariant.destructive:
         return Colors.white;
     }
@@ -121,9 +121,11 @@ class AppButton extends StatelessWidget {
           ),
         );
       case AppButtonVariant.ghost:
+        // UI_STANDARDS 2: Ghost는 배경 없는 텍스트형 버튼이다.
+        // 옅은 채움을 넣으면 Secondary처럼 보여 위계가 무너진다.
         return BoxDecoration(
           borderRadius: BorderRadius.circular(AppRadii.button),
-          color: AppColors.orbitSurfaceSoft.withValues(alpha: 0.4),
+          color: Colors.transparent,
         );
       case AppButtonVariant.destructive:
         return BoxDecoration(

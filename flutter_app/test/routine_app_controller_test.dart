@@ -244,6 +244,70 @@ void main() {
 
     controller.dispose();
   });
+
+  test('알림 동기화가 실패해도 저장은 성공으로 답한다', () async {
+    // 릴리즈 빌드에서 flutter_local_notifications가
+    // PlatformException(Missing type parameter.)를 던졌다. 예전에는 이 예외가
+    // saveRoutine의 catch까지 올라가 "저장에 실패했어요"가 떴고, 실제로는
+    // 이미 저장된 뒤라 사용자가 다시 눌러 같은 루틴이 여러 개 생겼다.
+    final repository = _FakeRoutineRepository([]);
+    final controller = RoutineAppController(
+      dataService: RoutineDataService(
+        routineRepository: repository,
+        logRepository: _FakeRoutineLogRepository({}),
+      ),
+      notificationService: RoutineNotificationService(
+        gateway: _ThrowingNotificationGateway(),
+        preferencesLoader: () async =>
+            NotificationPreferences.firstLaunchDefaults,
+      ),
+      nowProvider: () => DateTime(2026, 8, 6, 9, 0),
+      clockAutoRefreshEnabled: false,
+    );
+    await controller.load();
+
+    final result = await controller.saveRoutine(
+      Routine.create(
+        title: '아침 산책',
+        startTime: const TimeOfDay(hour: 9, minute: 0),
+        endTime: const TimeOfDay(hour: 10, minute: 0),
+        repeatWeekdays: const {DateTime.thursday},
+        colorValue: 0xFF6C4CF1,
+      ),
+    );
+
+    expect(result.ok, isTrue, reason: result.errorMessage);
+    expect(result.errorMessage, isNull);
+    expect(controller.routines.map((r) => r.title), ['아침 산책']);
+    controller.dispose();
+  });
+
+  test('저장소 쓰기가 실패할 때만 실패로 답한다', () async {
+    final controller = RoutineAppController(
+      dataService: RoutineDataService(
+        routineRepository: _FailingRoutineRepository(),
+        logRepository: _FakeRoutineLogRepository({}),
+      ),
+      notificationService: _testNotificationService(),
+      nowProvider: () => DateTime(2026, 8, 6, 9, 0),
+      clockAutoRefreshEnabled: false,
+    );
+    await controller.load();
+
+    final result = await controller.saveRoutine(
+      Routine.create(
+        title: '아침 산책',
+        startTime: const TimeOfDay(hour: 9, minute: 0),
+        endTime: const TimeOfDay(hour: 10, minute: 0),
+        repeatWeekdays: const {DateTime.thursday},
+        colorValue: 0xFF6C4CF1,
+      ),
+    );
+
+    expect(result.ok, isFalse);
+    expect(result.errorMessage, contains('저장에 실패'));
+    controller.dispose();
+  });
 }
 
 class _FakeRoutineRepository implements RoutineRepository {
@@ -322,6 +386,14 @@ class _FakeRoutineLogRepository implements RoutineLogRepository {
       logs.removeWhere((log) => log.routineId == routineId);
     }
   }
+
+  @override
+  Future<void> deleteLogForRoutineOnDate(
+    String routineId,
+    String dateYmd,
+  ) async {
+    _logsByDate[dateYmd]?.removeWhere((log) => log.routineId == routineId);
+  }
 }
 
 RoutineNotificationService _testNotificationService() {
@@ -357,4 +429,48 @@ class _FakeLocalNotificationGateway implements LocalNotificationGateway {
     required NotificationDetails details,
     required String payload,
   }) async {}
+}
+
+class _ThrowingNotificationGateway implements LocalNotificationGateway {
+  @override
+  Future<void> initialize() async {}
+
+  @override
+  Future<void> cancel(int id) async {}
+
+  @override
+  Future<List<PendingNotificationRequest>> pendingNotificationRequests() async {
+    throw PlatformException(code: 'error', message: 'Missing type parameter.');
+  }
+
+  @override
+  Future<void> scheduleWeekly({
+    required int id,
+    required String title,
+    required String body,
+    required int weekday,
+    required TimeOfDay time,
+    required NotificationDetails details,
+    required String payload,
+  }) async {}
+}
+
+class _FailingRoutineRepository implements RoutineRepository {
+  @override
+  Future<void> addRoutine(Routine routine) async => throw Exception('disk full');
+
+  @override
+  Future<void> deleteRoutine(String routineId) async =>
+      throw Exception('disk full');
+
+  @override
+  Future<List<Routine>> loadRoutines() async => const [];
+
+  @override
+  Future<void> saveRoutines(List<Routine> routines) async =>
+      throw Exception('disk full');
+
+  @override
+  Future<void> upsertRoutine(Routine routine) async =>
+      throw Exception('disk full');
 }

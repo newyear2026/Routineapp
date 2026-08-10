@@ -1,12 +1,12 @@
 import '../models/routine.dart';
 import '../utils/time_minutes.dart';
+import '../../theme/routine_palette.dart';
 
 /// 온보딩 «추천 루틴» 한 줄 — UI·저장 공통 스펙.
 class RecommendedRoutineDefinition {
   const RecommendedRoutineDefinition({
     required this.catalogId,
     required this.title,
-    required this.emoji,
     required this.startMinutesFromMidnight,
     required this.durationMinutes,
     required this.colorValue,
@@ -16,7 +16,6 @@ class RecommendedRoutineDefinition {
   /// 저장 시 Routine.id 접두사와 함께 쓰는 안정 키 (`onboarding_rec_$catalogId`).
   final String catalogId;
   final String title;
-  final String emoji;
   final int startMinutesFromMidnight;
 
   /// 종료 시각 = 시작 + duration (같은 날, 24:00 미만으로 클램프).
@@ -37,7 +36,9 @@ class RecommendedRoutineDefinition {
       endMinutesFromMidnight: end,
       repeatWeekdays: {1, 2, 3, 4, 5, 6, 7},
       colorValue: colorValue,
-      iconEmoji: emoji,
+      // 루틴의 정체성은 색상으로 표현한다. 기존 데이터 모델의 필드는
+      // 마이그레이션 호환성을 위해 유지하되 새 추천 루틴에는 저장하지 않는다.
+      iconEmoji: '',
       notificationEnabled: true,
       updatedAtMs: now,
     );
@@ -52,69 +53,61 @@ abstract final class RecommendedRoutineCatalog {
     RecommendedRoutineDefinition(
       catalogId: 'wake',
       title: '기상',
-      emoji: '🌅',
       startMinutesFromMidnight: 7 * 60,
       durationMinutes: 60,
-      colorValue: 0xFFFFE4E9,
+      colorValue: RoutinePalette.coralValue,
       showRecommendedBadge: true,
     ),
     RecommendedRoutineDefinition(
       catalogId: 'exercise',
       title: '운동',
-      emoji: '💪',
       startMinutesFromMidnight: 7 * 60 + 30,
       durationMinutes: 60,
-      colorValue: 0xFFFFD4E0,
+      colorValue: RoutinePalette.roseValue,
       showRecommendedBadge: true,
     ),
     RecommendedRoutineDefinition(
       catalogId: 'breakfast',
       title: '아침식사',
-      emoji: '🍳',
       startMinutesFromMidnight: 9 * 60,
       durationMinutes: 60,
-      colorValue: 0xFFFFE9D4,
+      colorValue: RoutinePalette.amberValue,
       showRecommendedBadge: true,
     ),
     RecommendedRoutineDefinition(
       catalogId: 'study',
       title: '공부',
-      emoji: '📚',
       startMinutesFromMidnight: 10 * 60,
       durationMinutes: 120,
-      colorValue: 0xFFE8DDFA,
+      colorValue: RoutinePalette.lavenderValue,
     ),
     RecommendedRoutineDefinition(
       catalogId: 'lunch',
       title: '점심식사',
-      emoji: '🍱',
       startMinutesFromMidnight: 12 * 60,
       durationMinutes: 60,
-      colorValue: 0xFFFFDDC5,
+      colorValue: RoutinePalette.orangeValue,
     ),
     RecommendedRoutineDefinition(
       catalogId: 'rest',
       title: '휴식',
-      emoji: '☕',
       startMinutesFromMidnight: 15 * 60,
       durationMinutes: 60,
-      colorValue: 0xFFD4E4FF,
+      colorValue: RoutinePalette.blueValue,
     ),
     RecommendedRoutineDefinition(
       catalogId: 'dinner',
       title: '저녁식사',
-      emoji: '🍽️',
       startMinutesFromMidnight: 18 * 60,
       durationMinutes: 60,
-      colorValue: 0xFFFFE4E9,
+      colorValue: RoutinePalette.greenValue,
     ),
     RecommendedRoutineDefinition(
       catalogId: 'sleep',
       title: '취침',
-      emoji: '🌙',
       startMinutesFromMidnight: 23 * 60,
       durationMinutes: 60,
-      colorValue: 0xFFD4C5F0,
+      colorValue: RoutinePalette.violetValue,
     ),
   ];
 

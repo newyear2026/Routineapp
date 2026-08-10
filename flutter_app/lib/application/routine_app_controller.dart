@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:flutter/material.dart';
 
 import '../data/local/local_settings_repository.dart';
+import '../data/repositories/settings_repository.dart';
 import '../domain/models/routine.dart';
 import '../domain/models/routine_log.dart';
 import '../domain/models/routine_action_source.dart';
@@ -27,18 +28,20 @@ class RoutineAppController extends ChangeNotifier {
     RoutineDataService? dataService,
     RoutineDayService? dayService,
     RoutineNotificationService? notificationService,
+    SettingsRepository? settingsRepository,
     DateTime Function()? nowProvider,
     bool clockAutoRefreshEnabled = true,
   })  : _data = dataService ?? RoutineDataService(),
         _dayService = dayService ?? const RoutineDayService(),
         _notifications = notificationService ?? RoutineNotificationService(),
+        _settings = settingsRepository ?? LocalSettingsRepository.instance,
         _nowProvider = nowProvider ?? DateTime.now,
         _clockAutoRefreshEnabled = clockAutoRefreshEnabled;
 
   final RoutineDataService _data;
   final RoutineDayService _dayService;
   final RoutineNotificationService _notifications;
-  final LocalSettingsRepository _settings = LocalSettingsRepository.instance;
+  final SettingsRepository _settings;
   final DateTime Function() _nowProvider;
   final bool _clockAutoRefreshEnabled;
 
@@ -60,6 +63,9 @@ class RoutineAppController extends ChangeNotifier {
   AppThemePreset get currentThemePreset => AppThemePreset.byId(themeId);
 
   DateTime get _now => _nowProvider();
+
+  /// 모든 화면이 같은 날짜·시간을 표시하도록 제공하는 앱 기준 시각.
+  DateTime get now => _now;
 
   /// Progress — 오늘 요일 스케줄 루틴
   List<Routine> get todayScheduledRoutines =>
@@ -99,14 +105,33 @@ class RoutineAppController extends ChangeNotifier {
       _scheduleNextClockTick();
     }
     notifyListeners();
-    if (!kIsWeb) {
+    await _syncSideEffects();
+  }
+
+  /// 홈 위젯·알림 동기화는 **부수 효과**다. 여기서 터져도 로드나 저장이
+  /// 실패한 것은 아니다.
+  ///
+  /// 예전에는 이 둘을 [load] 본문에서 그대로 await 해서, 알림 플러그인이
+  /// 예외를 던지면 [saveRoutine]의 catch까지 올라가 "저장에 실패했어요"가
+  /// 떴다. 실제로는 이미 저장된 뒤라, 사용자가 다시 눌러 같은 루틴을
+  /// 여러 개 만들었다.
+  Future<void> _syncSideEffects() async {
+    if (kIsWeb) return;
+    try {
       await HomeWidgetSyncService.instance.push(homeSnapshot);
+    } catch (e, st) {
+      debugPrint('home widget sync failed: $e\n$st');
+    }
+    try {
       await _notifications.syncAll(_routines);
+    } catch (e, st) {
+      debugPrint('notification sync failed: $e\n$st');
     }
   }
 
   /// 화면 복귀 시 과도한 재로드를 막기 위한 경량 리로드
-  Future<void> reloadOnReturn({Duration minInterval = const Duration(seconds: 2)}) async {
+  Future<void> reloadOnReturn(
+      {Duration minInterval = const Duration(seconds: 2)}) async {
     final now = _now;
     if (_loadedAt != null && now.difference(_loadedAt!) < minInterval) {
       return;
@@ -121,19 +146,32 @@ class RoutineAppController extends ChangeNotifier {
   }
 
   /// 신규·수정 저장 — [updatedAtMs]는 항상 저장 시각으로 갱신
+  ///
+  /// 실패로 보고하는 것은 **쓰기가 실패했을 때뿐**이다. 쓰기가 끝난 뒤의
+  /// 재로드·동기화가 실패해도 데이터는 이미 남아 있으므로 성공으로 답한다.
+  /// 여기서 실패라고 말하면 사용자가 다시 눌러 중복을 만든다.
   Future<RoutineSaveResult> saveRoutine(Routine routine) async {
     final toSave = routine.copyWith(
-      updatedAtMs: DateTime.now().millisecondsSinceEpoch,
+      updatedAtMs: _now.millisecondsSinceEpoch,
     );
     try {
       await _data.upsertRoutine(toSave);
-      await load();
-      return RoutineSaveResult.success;
     } catch (e, st) {
-      debugPrint('saveRoutine failed: $e\n$st');
+      debugPrint('saveRoutine write failed: $e\n$st');
       return RoutineSaveResult.failure(
         '저장에 실패했어요. 잠시 후 다시 시도해 주세요.',
       );
+    }
+    await _reloadAfterWrite();
+    return RoutineSaveResult.success;
+  }
+
+  /// 쓰기 뒤 재로드. 실패해도 호출자에게 오류로 올리지 않는다.
+  Future<void> _reloadAfterWrite() async {
+    try {
+      await load();
+    } catch (e, st) {
+      debugPrint('reload after write failed: $e\n$st');
     }
   }
 
@@ -143,14 +181,14 @@ class RoutineAppController extends ChangeNotifier {
   Future<RoutineSaveResult> deleteRoutine(String routineId) async {
     try {
       await _data.deleteRoutine(routineId);
-      await load();
-      return RoutineSaveResult.success;
     } catch (e, st) {
-      debugPrint('deleteRoutine failed: $e\n$st');
+      debugPrint('deleteRoutine write failed: $e\n$st');
       return RoutineSaveResult.failure(
         '삭제에 실패했어요. 잠시 후 다시 시도해 주세요.',
       );
     }
+    await _reloadAfterWrite();
+    return RoutineSaveResult.success;
   }
 
   bool get canActOnCurrentSlot {
@@ -164,43 +202,37 @@ class RoutineAppController extends ChangeNotifier {
     );
   }
 
-  Future<void> completeCurrent() async {
-    await _applyForCurrentSlot(
-      (routine, log, ymd) => RoutineLogActionService.complete(
-        routine: routine,
-        dateYmd: ymd,
-        existing: log,
-        nowLocal: _now,
-        source: RoutineActionSource.app,
-      ),
-    );
-  }
+  Future<RoutineActionUndo?> completeCurrent() => _applyForCurrentSlot(
+        (routine, log, ymd) => RoutineLogActionService.complete(
+          routine: routine,
+          dateYmd: ymd,
+          existing: log,
+          nowLocal: _now,
+          source: RoutineActionSource.app,
+        ),
+      );
 
-  Future<void> snoozeCurrent() async {
-    await _applyForCurrentSlot(
-      (routine, log, ymd) => RoutineLogActionService.snooze(
-        routine: routine,
-        dateYmd: ymd,
-        existing: log,
-        nowLocal: _now,
-        source: RoutineActionSource.app,
-      ),
-    );
-  }
+  Future<RoutineActionUndo?> snoozeCurrent() => _applyForCurrentSlot(
+        (routine, log, ymd) => RoutineLogActionService.snooze(
+          routine: routine,
+          dateYmd: ymd,
+          existing: log,
+          nowLocal: _now,
+          source: RoutineActionSource.app,
+        ),
+      );
 
-  Future<void> skipCurrent() async {
-    await _applyForCurrentSlot(
-      (routine, log, ymd) => RoutineLogActionService.skip(
-        routine: routine,
-        dateYmd: ymd,
-        existing: log,
-        nowLocal: _now,
-        source: RoutineActionSource.app,
-      ),
-    );
-  }
+  Future<RoutineActionUndo?> skipCurrent() => _applyForCurrentSlot(
+        (routine, log, ymd) => RoutineLogActionService.skip(
+          routine: routine,
+          dateYmd: ymd,
+          existing: log,
+          nowLocal: _now,
+          source: RoutineActionSource.app,
+        ),
+      );
 
-  Future<void> _applyForCurrentSlot(
+  Future<RoutineActionUndo?> _applyForCurrentSlot(
     RoutineLogApplyOutcome Function(
       Routine routine,
       RoutineLog? log,
@@ -208,12 +240,31 @@ class RoutineAppController extends ChangeNotifier {
     ) action,
   ) async {
     final c = _currentSlot;
-    if (c == null) return;
+    if (c == null) return null;
     final ymd = TimeMinutes.dateYmd(_now);
     final log = _dayService.logForRoutine(c.id, _logsToday);
     final outcome = action(c, log, ymd);
-    if (!outcome.shouldPersist) return;
+    if (!outcome.shouldPersist) return null;
     await _data.upsertLog(outcome.log);
+    _logsToday = await _data.loadLogsForDate(_now);
+    notifyListeners();
+    if (!kIsWeb) {
+      await HomeWidgetSyncService.instance.push(homeSnapshot);
+    }
+    return RoutineActionUndo(
+      routineId: c.id,
+      dateYmd: ymd,
+      previousLog: log,
+    );
+  }
+
+  /// 바로 직전에 기록한 완료·미루기·스킵 동작을 되돌린다.
+  Future<void> undoAction(RoutineActionUndo undo) async {
+    if (undo.previousLog == null) {
+      await _data.deleteLogForRoutineOnDate(undo.routineId, undo.dateYmd);
+    } else {
+      await _data.upsertLog(undo.previousLog!);
+    }
     _logsToday = await _data.loadLogsForDate(_now);
     notifyListeners();
     if (!kIsWeb) {
@@ -273,4 +324,16 @@ class RoutineAppController extends ChangeNotifier {
 
   @visibleForTesting
   Future<void> refreshClockStateForTest() => _refreshClockState();
+}
+
+class RoutineActionUndo {
+  const RoutineActionUndo({
+    required this.routineId,
+    required this.dateYmd,
+    required this.previousLog,
+  });
+
+  final String routineId;
+  final String dateYmd;
+  final RoutineLog? previousLog;
 }

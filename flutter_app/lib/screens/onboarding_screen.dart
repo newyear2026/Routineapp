@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../data/local/onboarding_local_storage.dart';
+import '../models/home_models.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
+import '../theme/routine_palette.dart';
 import '../widgets/ds/ds.dart';
+import '../widgets/home/circular_timetable_area.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -18,26 +21,27 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   final PageController _pageController = PageController();
   int _currentPage = 0;
 
+  /// 카피는 실제 동작만 약속한다.
+  ///
+  /// 알림에는 액션 버튼이 없다 (`RoutineNotificationService`는 예약만 한다).
+  /// "알림에서 바로 완료"처럼 앱이 못 하는 일을 적지 않는다.
   final List<_OnboardingPage> _pages = const [
     _OnboardingPage(
       title: '지금 할 루틴이 바로 보이게',
-      description: '홈에서 오늘 흐름과 현재 루틴을 바로 확인하고 1탭으로 시작해요.',
-      accentLabel: '홈 미리보기',
-      gradientColors: [Color(0xFFFFE4E9), Color(0xFFFFD4E0)],
-      preview: _OnboardingPreviewType.timeline,
+      description: '하루 24시간을 원으로 펼쳐 지금 어디쯤인지 한눈에 보여줘요.',
+      accentLabel: '홈 화면',
+      preview: _OnboardingPreviewType.orbit,
     ),
     _OnboardingPage(
       title: '루틴 순간마다 빠르게 처리',
-      description: '알림에서 바로 완료하고, 필요하면 미루기나 건너뛰기도 즉시 반영돼요.',
+      description: '알림이 때를 알려주면 홈에서 완료·나중에·스킵으로 정리해요.',
       accentLabel: '알림과 액션',
-      gradientColors: [Color(0xFFE8DDFA), Color(0xFFD4C5F0)],
-      preview: _OnboardingPreviewType.notification,
+      preview: _OnboardingPreviewType.actions,
     ),
     _OnboardingPage(
       title: '작은 달성을 꾸준함으로',
-      description: '진행률과 피드백으로 오늘 성과를 확인하며 루틴을 오래 유지해요.',
-      accentLabel: '진행률 요약',
-      gradientColors: [Color(0xFFD4E4FF), Color(0xFFC5D5F0)],
+      description: '완료·진행 중·예정을 나눠 보여줘 오늘 흐름을 놓치지 않아요.',
+      accentLabel: '진행 화면',
       preview: _OnboardingPreviewType.progress,
     ),
   ];
@@ -48,16 +52,12 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     super.dispose();
   }
 
-  void _onPageChanged(int page) {
-    setState(() {
-      _currentPage = page;
-    });
-  }
+  void _onPageChanged(int page) => setState(() => _currentPage = page);
 
   void _nextPage() {
     if (_currentPage < _pages.length - 1) {
       _pageController.nextPage(
-        duration: const Duration(milliseconds: 300),
+        duration: const Duration(milliseconds: 280),
         curve: Curves.easeInOut,
       );
     } else {
@@ -75,25 +75,23 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       body: AppScreenShell(
-        showDecor: false,
         child: Column(
           children: [
             Padding(
               padding: const EdgeInsets.fromLTRB(
-                AppSpacing.xl,
-                AppSpacing.xl,
-                AppSpacing.xl,
+                AppSpacing.xxl,
+                AppSpacing.lg,
                 AppSpacing.md,
+                AppSpacing.sm,
               ),
+              // 좌: 브랜드 / 우: 건너뛰기. 가운데 정렬을 위한 폭 하드코딩을 없앤다.
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  const SizedBox(width: 72),
                   Text(
-                    'Routine Timer',
+                    '하루 루틴 시간표',
                     style: AppTextStyles.caption.copyWith(
                       fontWeight: FontWeight.w700,
-                      color: AppColors.textMuted.withValues(alpha: 0.76),
                     ),
                   ),
                   AppButton(
@@ -101,7 +99,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     onPressed: _finishIntro,
                     variant: AppButtonVariant.ghost,
                     expand: false,
-                    height: 40,
+                    height: 44,
                   ),
                 ],
               ),
@@ -111,28 +109,27 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 controller: _pageController,
                 onPageChanged: _onPageChanged,
                 itemCount: _pages.length,
-                itemBuilder: (context, index) =>
-                    _buildPageContent(_pages[index]),
+                itemBuilder: (context, index) => _PageContent(
+                  page: _pages[index],
+                ),
               ),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(
-                AppSpacing.xxxl,
+                AppSpacing.xxl,
                 AppSpacing.lg,
-                AppSpacing.xxxl,
+                AppSpacing.xxl,
                 AppSpacing.xxxl,
               ),
               child: Column(
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(
-                      _pages.length,
-                      (index) => _buildDot(index),
-                    ),
+                    children: List.generate(_pages.length, _buildDot),
                   ),
                   const SizedBox(height: AppSpacing.xl),
                   AppButton(
+                    key: const Key('onboarding-next-button'),
                     label: _currentPage == _pages.length - 1 ? '시작하기' : '다음',
                     onPressed: _nextPage,
                   ),
@@ -145,61 +142,69 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
     );
   }
 
-  Widget _buildPageContent(_OnboardingPage page) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxxl),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Align(
-            alignment: Alignment.centerLeft,
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-              decoration: BoxDecoration(
-                color: page.gradientColors.first.withValues(alpha: 0.55),
-                borderRadius: BorderRadius.circular(999),
-              ),
-              child: Text(
-                page.accentLabel,
-                style: AppTextStyles.captionTight.copyWith(
-                  color: AppColors.textPrimary,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 0.8,
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(height: AppSpacing.xl),
-          _OnboardingPreviewCard(page: page),
-          const SizedBox(height: 28),
-          Text(
-            page.title,
-            style: AppTextStyles.hero,
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: AppSpacing.lg),
-          Text(
-            page.description,
-            style: AppTextStyles.helper,
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildDot(int index) {
     final isActive = _currentPage == index;
     return AnimatedContainer(
-      duration: const Duration(milliseconds: 300),
+      duration: const Duration(milliseconds: 280),
       margin: const EdgeInsets.symmetric(horizontal: 4),
       width: isActive ? 24 : 8,
       height: 8,
       decoration: BoxDecoration(
+        // orbitBorder도 페이지 배경 위에서 1.22:1이라 비활성 점이 보이지 않는다.
+        // 비텍스트 요소 기준(WCAG 1.4.11) 3:1을 넘기려면 이 정도는 필요하다.
         color: isActive
-            ? AppColors.accentLavender
-            : AppColors.accentLavender.withValues(alpha: 0.3),
+            ? AppColors.orbitPrimary
+            : AppColors.textMuted.withValues(alpha: 0.8),
         borderRadius: BorderRadius.circular(4),
+      ),
+    );
+  }
+}
+
+class _PageContent extends StatelessWidget {
+  const _PageContent({required this.page});
+
+  final _OnboardingPage page;
+
+  @override
+  Widget build(BuildContext context) {
+    // 화면이 남으면 가운데로 모으고, 모자라면 스크롤한다.
+    return LayoutBuilder(
+      builder: (context, constraints) => SingleChildScrollView(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xxl),
+        child: ConstrainedBox(
+          constraints: BoxConstraints(minHeight: constraints.maxHeight),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              Align(
+                alignment: Alignment.centerLeft,
+                child: Container(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: AppColors.orbitPrimary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(999),
+                  ),
+                  child: Text(
+                    page.accentLabel,
+                    style: AppTextStyles.captionTight.copyWith(
+                      color: AppColors.orbitPrimary,
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              _PreviewCard(preview: page.preview),
+              const SizedBox(height: AppSpacing.xxl),
+              Text(page.title, style: AppTextStyles.titleScreen),
+              const SizedBox(height: AppSpacing.sm),
+              Text(page.description, style: AppTextStyles.helper),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -210,168 +215,142 @@ class _OnboardingPage {
     required this.title,
     required this.description,
     required this.accentLabel,
-    required this.gradientColors,
     required this.preview,
   });
 
   final String title;
   final String description;
   final String accentLabel;
-  final List<Color> gradientColors;
   final _OnboardingPreviewType preview;
 }
 
-enum _OnboardingPreviewType { timeline, notification, progress }
+enum _OnboardingPreviewType { orbit, actions, progress }
 
-class _OnboardingPreviewCard extends StatelessWidget {
-  const _OnboardingPreviewCard({required this.page});
+class _PreviewCard extends StatelessWidget {
+  const _PreviewCard({required this.preview});
 
-  final _OnboardingPage page;
+  final _OnboardingPreviewType preview;
 
   @override
   Widget build(BuildContext context) {
-    return AppCard(
-      variant: AppCardVariant.elevated,
-      padding: const EdgeInsets.all(18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Container(
-                width: 42,
-                height: 42,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(colors: page.gradientColors),
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Icon(
-                  Icons.auto_awesome_rounded,
-                  size: 22,
-                  color: Colors.white,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Text(
-                  page.accentLabel,
-                  style: AppTextStyles.titleSection.copyWith(fontSize: 16),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-          switch (page.preview) {
-            _OnboardingPreviewType.timeline => const _TimelinePreview(),
-            _OnboardingPreviewType.notification => const _NotificationPreview(),
-            _OnboardingPreviewType.progress => const _ProgressPreview(),
-          },
-        ],
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: appSurfaceDecoration(radius: AppRadii.cardLarge),
+      child: switch (preview) {
+        _OnboardingPreviewType.orbit => const _OrbitPreview(),
+        _OnboardingPreviewType.actions => const _ActionsPreview(),
+        _OnboardingPreviewType.progress => const _ProgressPreview(),
+      },
+    );
+  }
+}
+
+/// 홈과 **같은 위젯**을 쓴다. 별도 목업을 그리면 실제 화면과 어긋난다.
+class _OrbitPreview extends StatelessWidget {
+  const _OrbitPreview();
+
+  static const _sample = <RoutineSegment>[
+    RoutineSegment(
+      id: 'wake',
+      startMinutesFromMidnight: 7 * 60,
+      endMinutesFromMidnight: 8 * 60,
+      label: '기상',
+      emoji: '',
+      color: RoutinePalette.coral,
+    ),
+    RoutineSegment(
+      id: 'focus',
+      startMinutesFromMidnight: 10 * 60,
+      endMinutesFromMidnight: 12 * 60,
+      label: '집중',
+      emoji: '',
+      color: RoutinePalette.lavender,
+    ),
+    RoutineSegment(
+      id: 'dinner',
+      startMinutesFromMidnight: 18 * 60,
+      endMinutesFromMidnight: 19 * 60,
+      label: '저녁식사',
+      emoji: '',
+      color: RoutinePalette.amber,
+    ),
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    return const Center(
+      child: CircularTimetableArea(
+        routines: _sample,
+        currentTime: TimeOfDay(hour: 10, minute: 40),
+        size: 200,
       ),
     );
   }
 }
 
-class _TimelinePreview extends StatelessWidget {
-  const _TimelinePreview();
+/// 홈 하단 액션 바와 같은 구성 — 라벨도 실제와 동일하게 '스킵'을 쓴다.
+class _ActionsPreview extends StatelessWidget {
+  const _ActionsPreview();
 
   @override
   Widget build(BuildContext context) {
     return Column(
       children: [
         Container(
-          height: 120,
+          padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: Colors.white.withValues(alpha: 0.7),
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(color: AppColors.border.withValues(alpha: 0.5)),
+            color: AppColors.orbitSurfaceSoft,
+            borderRadius: BorderRadius.circular(AppRadii.input),
           ),
-          child: Stack(
-            alignment: Alignment.center,
+          child: Row(
             children: [
-              Container(
-                width: 92,
-                height: 92,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: AppColors.textMuted.withValues(alpha: 0.12),
-                    width: 14,
-                  ),
-                ),
+              const Icon(
+                Icons.notifications_rounded,
+                color: AppColors.orbitPrimary,
+                size: 20,
               ),
-              SizedBox(
-                width: 92,
-                height: 92,
-                child: CircularProgressIndicator(
-                  value: 0.66,
-                  strokeWidth: 14,
-                  backgroundColor: AppColors.textMuted.withValues(alpha: 0.12),
-                  valueColor: AlwaysStoppedAnimation(
-                    AppColors.accentPink.withValues(alpha: 0.92),
-                  ),
-                ),
-              ),
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(16),
-                ),
-                child: const Center(
-                  child: Text('☀️', style: TextStyle(fontSize: 24)),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '기상 시간이에요',
+                      style: AppTextStyles.bodyStrong.copyWith(fontSize: 14),
+                    ),
+                    const SizedBox(height: 2),
+                    const Text('07:00', style: AppTextStyles.captionTight),
+                  ],
                 ),
               ),
             ],
           ),
         ),
         const SizedBox(height: 12),
-        const Row(
-          children: [
-            Expanded(child: _MiniStatChip(label: '07:00 기상')),
-            SizedBox(width: 8),
-            Expanded(child: _MiniStatChip(label: '08:00 스트레칭')),
-          ],
+        AppButton(
+          label: '기상 완료하기',
+          icon: Icons.check_rounded,
+          height: 46,
+          onPressed: () {},
         ),
-      ],
-    );
-  }
-}
-
-class _NotificationPreview extends StatelessWidget {
-  const _NotificationPreview();
-
-  @override
-  Widget build(BuildContext context) {
-    return const Column(
-      children: [
-        _PreviewMessageCard(
-          leading: '🔔',
-          title: '기상 시간이에요!',
-          subtitle: '완료하거나 잠시 미뤄둘 수 있어요',
-        ),
-        SizedBox(height: 10),
+        const SizedBox(height: 8),
         Row(
           children: [
             Expanded(
-              child: _MiniActionButton(
-                label: '완료',
-                color: AppColors.actionBlue,
-              ),
-            ),
-            SizedBox(width: 8),
-            Expanded(
-              child: _MiniActionButton(
+              child: AppButton(
                 label: '나중에',
-                color: AppColors.warning,
+                variant: AppButtonVariant.secondary,
+                height: 40,
+                onPressed: () {},
               ),
             ),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             Expanded(
-              child: _MiniActionButton(
-                label: '건너뛰기',
-                color: AppColors.textMuted,
+              child: AppButton(
+                label: '스킵',
+                variant: AppButtonVariant.ghost,
+                height: 40,
+                onPressed: () {},
               ),
             ),
           ],
@@ -381,6 +360,7 @@ class _NotificationPreview extends StatelessWidget {
   }
 }
 
+/// 진행 화면의 hero + 상태 그룹과 같은 구성.
 class _ProgressPreview extends StatelessWidget {
   const _ProgressPreview();
 
@@ -391,154 +371,102 @@ class _ProgressPreview extends StatelessWidget {
         Row(
           children: [
             Expanded(
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.accentPink.withValues(alpha: 0.14),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: Column(
-                  children: [
-                    Text(
-                      '68%',
-                      style: AppTextStyles.statMedium.copyWith(
-                        color: AppColors.textPrimary,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    const Text('오늘 진행률', style: AppTextStyles.caption),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            Expanded(
-              child: Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: AppColors.accentLavender.withValues(alpha: 0.16),
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: const Column(
-                  children: [
-                    Icon(
-                      Icons.insights_rounded,
-                      size: 28,
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text('3 / 5', style: AppTextStyles.statHero),
+                  const SizedBox(height: 6),
+                  Text(
+                    '좋은 흐름이에요',
+                    style: AppTextStyles.titleSection.copyWith(
+                      fontSize: 15,
                       color: AppColors.orbitPrimary,
                     ),
-                    SizedBox(height: 4),
-                    Text('흐름이 정리돼요', style: AppTextStyles.caption),
-                  ],
-                ),
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(
+              width: 82,
+              height: 82,
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  CircularProgressIndicator(
+                    value: 0.6,
+                    strokeWidth: 8,
+                    backgroundColor: AppColors.orbitHalo,
+                    valueColor: AlwaysStoppedAnimation(AppColors.orbitPrimary),
+                  ),
+                  Text('60%', style: AppTextStyles.captionTight),
+                ],
               ),
             ),
           ],
         ),
-        const SizedBox(height: 12),
-        const _PreviewMessageCard(
-          leading: '✨',
-          title: '3개 완료',
-          subtitle: '남은 루틴도 차분하게 이어가요',
+        const SizedBox(height: 14),
+        const Row(
+          children: [
+            Expanded(
+              child: _StatusChip(
+                label: '완료',
+                count: '3',
+                tint: AppColors.success,
+                textColor: AppColors.successText,
+              ),
+            ),
+            SizedBox(width: 8),
+            Expanded(
+              child: _StatusChip(
+                label: '예정',
+                count: '2',
+                tint: AppColors.orbitAccent,
+                textColor: AppColors.scheduledText,
+              ),
+            ),
+          ],
         ),
       ],
     );
   }
 }
 
-class _PreviewMessageCard extends StatelessWidget {
-  const _PreviewMessageCard({
-    required this.leading,
-    required this.title,
-    required this.subtitle,
+class _StatusChip extends StatelessWidget {
+  const _StatusChip({
+    required this.label,
+    required this.count,
+    required this.tint,
+    required this.textColor,
   });
 
-  final String leading;
-  final String title;
-  final String subtitle;
+  final String label;
+  final String count;
+  final Color tint;
+  final Color textColor;
 
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.all(14),
+      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.72),
-        borderRadius: BorderRadius.circular(18),
-        border: Border.all(color: AppColors.border.withValues(alpha: 0.45)),
+        color: tint.withValues(alpha: 0.18),
+        borderRadius: BorderRadius.circular(AppRadii.chip),
       ),
       child: Row(
         children: [
-          Text(leading, style: const TextStyle(fontSize: 24)),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  style: AppTextStyles.bodyStrong.copyWith(fontSize: 14),
-                ),
-                const SizedBox(height: 2),
-                Text(subtitle, style: AppTextStyles.caption),
-              ],
+          Text(
+            label,
+            style: AppTextStyles.caption.copyWith(
+              color: textColor,
+              fontWeight: FontWeight.w700,
             ),
           ),
+          const Spacer(),
+          Text(
+            count,
+            style: AppTextStyles.bodyStrong.copyWith(color: textColor),
+          ),
         ],
-      ),
-    );
-  }
-}
-
-class _MiniActionButton extends StatelessWidget {
-  const _MiniActionButton({
-    required this.label,
-    required this.color,
-  });
-
-  final String label;
-  final Color color;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      height: 36,
-      decoration: BoxDecoration(
-        color: color.withValues(alpha: 0.14),
-        borderRadius: BorderRadius.circular(14),
-      ),
-      child: Center(
-        child: Text(
-          label,
-          style: AppTextStyles.caption.copyWith(
-            color: color,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-class _MiniStatChip extends StatelessWidget {
-  const _MiniStatChip({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
-      decoration: BoxDecoration(
-        color: AppColors.accentLavender.withValues(alpha: 0.16),
-        borderRadius: BorderRadius.circular(16),
-      ),
-      child: Center(
-        child: Text(
-          label,
-          style: AppTextStyles.caption.copyWith(
-            fontWeight: FontWeight.w700,
-            color: AppColors.textPrimary,
-          ),
-        ),
       ),
     );
   }

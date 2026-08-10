@@ -28,7 +28,7 @@ abstract final class ProgressViewMapper {
     ProgressRoutineItem itemFor(RoutineLog log) {
       final r = byId[log.routineId];
       return ProgressRoutineItem(
-        emoji: r?.iconEmoji ?? '📌',
+        emoji: r?.iconEmoji ?? '',
         name: r?.title ?? '루틴',
         timeLabel: TimeMinutes.formatHm(r?.startMinutesFromMidnight ?? 0),
       );

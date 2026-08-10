@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../theme/routine_palette.dart';
 import '../utils/time_minutes.dart';
 
 /// 루틴 정의 — 저장소·도메인 공통 모델 (UI Color는 [colorValue]로 보관)
@@ -28,6 +29,14 @@ class Routine {
   final Set<int> repeatWeekdays;
 
   final int colorValue;
+
+  /// **현재 화면에 표시하지 않는다.** 루틴의 정체성은 색상으로 표현한다.
+  ///
+  /// 예전에는 온보딩 루틴은 빈 값, 직접 추가한 루틴은 기본값 `📌`가 붙어
+  /// 같은 목록 안에서 어떤 줄에는 압정이 있고 어떤 줄에는 없었다.
+  ///
+  /// 필드는 남긴다 — 저장된 데이터와의 호환, 그리고 나중에 이모지 선택
+  /// UI를 붙일 때 다시 쓰기 위해서다.
   final String iconEmoji;
   final bool notificationEnabled;
   final String? memo;
@@ -35,7 +44,7 @@ class Routine {
   /// 마지막 저장 시각(epoch ms) — 겹침 시 현재 슬롯 우선순위
   final int updatedAtMs;
 
-  Color get color => Color(colorValue);
+  Color get color => Color(RoutinePalette.normalizeValue(colorValue));
 
   /// 루틴 추가 폼에서 새 [Routine] 생성 (로컬 id 자동 부여)
   factory Routine.create({
@@ -45,7 +54,7 @@ class Routine {
     required Set<int> repeatWeekdays,
     required int colorValue,
     bool notificationEnabled = true,
-    String iconEmoji = '📌',
+    String iconEmoji = '',
   }) {
     final id = 'r_${DateTime.now().microsecondsSinceEpoch}';
     final now = DateTime.now().millisecondsSinceEpoch;
@@ -55,7 +64,7 @@ class Routine {
       startMinutesFromMidnight: TimeMinutes.fromTimeOfDay(startTime),
       endMinutesFromMidnight: TimeMinutes.fromTimeOfDay(endTime),
       repeatWeekdays: {...repeatWeekdays},
-      colorValue: colorValue,
+      colorValue: RoutinePalette.normalizeValue(colorValue),
       iconEmoji: iconEmoji,
       notificationEnabled: notificationEnabled,
       updatedAtMs: now,
@@ -113,7 +122,7 @@ class Routine {
       startMinutesFromMidnight: json['startMinutesFromMidnight'] as int,
       endMinutesFromMidnight: json['endMinutesFromMidnight'] as int,
       repeatWeekdays: days,
-      colorValue: rawColor & 0xFFFFFFFF,
+      colorValue: RoutinePalette.normalizeValue(rawColor),
       iconEmoji: json['iconEmoji'] as String,
       notificationEnabled: json['notificationEnabled'] as bool? ?? true,
       memo: json['memo'] as String?,

@@ -1,24 +1,22 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../app_route_observer.dart';
-import '../application/home/home_snapshot.dart';
 import '../application/routine_app_controller.dart';
 import '../domain/models/routine.dart';
-import '../theme/home_theme.dart';
-import '../theme/app_theme_preset.dart';
-import '../widgets/home/current_routine_card.dart';
-import '../widgets/home/home_bottom_actions.dart';
-import '../widgets/home/home_daily_summary_section.dart';
-import '../widgets/home/home_header_bar.dart';
-import '../widgets/home/home_now_focus_banner.dart';
-import '../widgets/home/home_routine_manager_section.dart';
-import '../widgets/home/home_timeline_section.dart';
+import '../domain/utils/time_minutes.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_text_styles.dart';
 import '../widgets/ds/ds.dart';
+import '../widgets/home/circular_timetable_area.dart';
 
-/// Home — [RoutineAppController.homeSnapshot]만 소비. 저장소는 컨트롤러 경유.
+/// 홈에 그리는 '다음 일정' 최대 개수.
+///
+/// 헤더 개수 표기와 실제 타일 수가 어긋나지 않도록 한 곳에서만 정한다.
+const int _maxUpcomingTiles = 3;
+
+/// Figma Orbit 기준의 홈. 중복된 요약/관리 UI 대신 현재 흐름만 보여준다.
 class HomeScreen extends StatefulWidget {
   const HomeScreen({super.key});
 
@@ -27,15 +25,11 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with RouteAware {
-  bool _actionInFlight = false;
-
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final route = ModalRoute.of(context);
-    if (route is PageRoute<void>) {
-      appRouteObserver.subscribe(this, route);
-    }
+    if (route is PageRoute<void>) appRouteObserver.subscribe(this, route);
   }
 
   @override
@@ -44,80 +38,29 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
     super.dispose();
   }
 
-  /// push 로 연 화면에서 pop 으로 돌아올 때 저장소 다시 읽기 (예: 루틴 추가)
   @override
-  void didPopNext() {
-    _reloadStorage();
-  }
+  void didPopNext() => context.read<RoutineAppController>().reloadOnReturn();
 
-  void _reloadStorage() {
-    if (!mounted) return;
-    context.read<RoutineAppController>().reloadOnReturn();
-  }
-
-  Future<void> _confirmDeleteRoutine(RoutineAppController app, String routineId) async {
-    Routine? routine;
-    for (final item in app.routines) {
-      if (item.id == routineId) {
-        routine = item;
-        break;
-      }
-    }
-    if (routine == null || !mounted) return;
-    final targetRoutine = routine;
-
-    final shouldDelete = await showDialog<bool>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('루틴 삭제'),
-        content: Text(
-          '"${targetRoutine.title}" 루틴을 삭제할까요?\n원형 시간표와 관련 기록에도 바로 반영됩니다.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('취소'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('삭제'),
-          ),
-        ],
-      ),
-    );
-
-    if (shouldDelete != true || !mounted) return;
-
-    final result = await app.deleteRoutine(routineId);
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(result.ok ? '루틴을 삭제했어요' : (result.errorMessage ?? '삭제에 실패했어요.')),
-      ),
-    );
-  }
-
-  Future<void> _runHomeAction({
-    required Future<void> Function() action,
-    required String successMessage,
-  }) async {
-    if (_actionInFlight || !mounted) return;
-    setState(() => _actionInFlight = true);
-    await HapticFeedback.lightImpact();
-    try {
-      await action();
-      if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
+  /// 완료·나중에·스킵 실행 후 되돌리기 스낵바를 띄운다.
+  Future<void> _runSlotAction(
+    Future<RoutineActionUndo?> Function() action,
+    String doneMessage,
+  ) async {
+    final controller = context.read<RoutineAppController>();
+    final messenger = ScaffoldMessenger.of(context);
+    final undo = await action();
+    if (!mounted || undo == null) return;
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
         SnackBar(
-          content: Text(successMessage),
-          duration: const Duration(milliseconds: 900),
+          content: Text(doneMessage),
+          action: SnackBarAction(
+            label: '되돌리기',
+            onPressed: () => controller.undoAction(undo),
+          ),
         ),
       );
-    } finally {
-      if (mounted) {
-        setState(() => _actionInFlight = false);
-      }
-    }
   }
 
   @override
@@ -126,149 +69,154 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
       builder: (context, app, _) {
         if (!app.isLoaded) {
           return const Scaffold(
-            body: Center(child: CircularProgressIndicator()),
+            body: Center(
+              child: CircularProgressIndicator(color: AppColors.orbitPrimary),
+            ),
           );
         }
+        final home = app.homeSnapshot;
+        // 다음 일정은 upcomingRoutines 하나만 소비한다.
+        // nextAfterDisplay를 함께 넣으면 첫 항목이 중복된다.
+        final upcoming = home.upcomingRoutines;
 
-        final HomeSnapshot h = app.homeSnapshot;
-        final theme = context.appTheme;
         return Scaffold(
-          floatingActionButton: FloatingActionButton(
-            heroTag: 'home_fab_routine_add',
-            onPressed: () => context.push('/routine-add'),
-            backgroundColor: theme.textPrimary,
-            elevation: 4,
-            foregroundColor: Colors.white,
-            child: const Icon(Icons.add_rounded, size: 26),
+          bottomNavigationBar: OrbitBottomNavigation(
+            currentIndex: 0,
+            onHome: () {},
+            onProgress: () => context.go('/progress'),
+            onRoutines: () => context.go('/routines'),
+            onSettings: () => context.go('/settings'),
           ),
           body: AppScreenShell(
-            child: Column(
-              children: [
-                HomeHeaderBar(
-                  dateString: h.dateLabel,
-                  dayOfWeekLabel: h.dayOfWeekLabel,
-                  greeting: h.greeting,
-                  progress: h.homeProgress,
-                  onProgressTap: () => context.go('/progress'),
-                  onSettingsTap: () => context.go('/settings'),
-                ),
-                Expanded(
-                  child: SingleChildScrollView(
-                    padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        HomeNowFocusBanner(
-                          routineName:
-                              h.currentRoutineCard?.name ??
-                              h.displayRoutine?.title ??
-                              '오늘 루틴',
-                          timingHint:
-                              h.currentRoutineCard?.timingHint ??
-                              h.currentRoutineStatusLabel ??
-                              '오늘의 흐름을 확인해보세요',
-                          progress: h.homeProgress,
-                          nextRoutine: h.nextRoutineCard,
-                          isUpcoming: h.isDisplayUpcoming,
-                          compact: true,
+            child: SingleChildScrollView(
+              // 탭 목적지 4개는 같은 상단 여백을 쓴다. 홈만 다르면
+              // 탭을 옮길 때 제목이 그대로 튄다.
+              padding: const EdgeInsets.fromLTRB(24, 48, 24, 24),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('${home.dateLabel} ${home.dayOfWeekLabel}',
+                                style: AppTextStyles.caption),
+                            const SizedBox(height: 2),
+                            const Text('오늘의 리듬',
+                                style: AppTextStyles.titleScreen),
+                          ],
                         ),
-                        const SizedBox(height: 16),
-                        AppSectionHeader(
-                          eyebrow: 'CURRENT BLOCK',
-                          title: h.isDisplayUpcoming ? '다음 루틴' : '현재 루틴',
-                          subtitle: h.isDisplayUpcoming
-                              ? '곧 시작할 루틴을 먼저 확인해두세요'
-                              : '지금 처리해야 할 루틴부터 빠르게 끝내세요',
-                        ),
-                        const SizedBox(height: 10),
-                        if (h.currentRoutineCard != null)
-                          CurrentRoutineCard(
-                            routine: h.currentRoutineCard!,
-                            next: h.nextRoutineCard,
-                            isUpcoming: h.isDisplayUpcoming,
-                            onEdit: h.displayRoutine == null
-                                ? null
-                                : () => context.push('/routine-add?id=${h.displayRoutine!.id}'),
-                          )
-                        else
-                          const _EmptyRoutineCard(),
-                        if (h.currentRoutineStatusLabel != null) ...[
-                          const SizedBox(height: 10),
-                          Text(
-                            h.currentRoutineStatusLabel!,
-                            textAlign: TextAlign.center,
-                            style: AppTextStyles.caption.copyWith(
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textMuted.withValues(alpha: 0.88),
+                      ),
+                      IconButton(
+                        tooltip: '설정',
+                        onPressed: () => context.go('/settings'),
+                        icon: const Icon(Icons.settings_outlined),
+                        color: AppColors.textMuted,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 20),
+                  _FocusStrip(
+                    routine: home.displayRoutine,
+                    isUpcoming: home.isDisplayUpcoming,
+                    timingHint: home.currentRoutineCard?.timingHint,
+                    onTap: home.displayRoutine == null
+                        ? () => context.push('/routine-add')
+                        : () => context.push(
+                              '/routine-add?id=${home.displayRoutine!.id}',
                             ),
-                          ),
-                        ],
-                        const SizedBox(height: 16),
-                        HomeBottomActions(
-                          completeLabel: h.completeButtonLabel,
-                          isProcessing: _actionInFlight,
-                          primaryEnabled: h.canActOnCurrentSlot,
-                          secondaryEnabled: h.canActOnCurrentSlot,
-                          disabledReason: h.canActOnCurrentSlot
-                              ? null
-                              : h.actionDisabledMessage,
-                          onComplete: h.canActOnCurrentSlot
-                              ? () => _runHomeAction(
-                                    action: app.completeCurrent,
-                                    successMessage: '루틴을 완료했어요',
-                                  )
-                              : null,
-                          onLater: h.canActOnCurrentSlot
-                              ? () => _runHomeAction(
-                                    action: app.snoozeCurrent,
-                                    successMessage: '루틴을 잠시 미뤘어요',
-                                  )
-                              : null,
-                          onSkip: h.canActOnCurrentSlot
-                              ? () => _runHomeAction(
-                                    action: app.skipCurrent,
-                                    successMessage: '루틴을 건너뛰었어요',
-                                  )
-                              : null,
-                        ),
-                        const SizedBox(height: 24),
-                        const AppSectionHeader(
-                          eyebrow: 'TODAY ORBIT',
-                          title: '오늘 흐름',
-                          subtitle: '현재 블록과 다음 전환 시점을 더 또렷한 원형 뷰로 확인해보세요',
-                        ),
-                        const SizedBox(height: 10),
-                        HomeTimelineSection(
-                          segments: h.segments,
-                          clockTime: h.clockTime,
-                          centerRoutineName: h.centerRoutineName,
-                          activeRoutineForRing: h.activeRoutineForRing,
-                          isEmpty: h.isEmptyDay,
-                          statusLabel: h.currentRoutineStatusLabel,
-                          nextRoutine: h.nextRoutineCard,
-                        ),
-                        const SizedBox(height: 18),
-                        HomeDailySummarySection(
-                          progress: h.homeProgress,
-                          statusLabel: h.currentRoutineStatusLabel,
-                          nextRoutine: h.nextRoutineCard,
-                          isUpcoming: h.isDisplayUpcoming,
-                          isEmptyDay: h.isEmptyDay,
-                        ),
-                        const SizedBox(height: 18),
-                        HomeRoutineManagerSection(
-                          routines: app.routines,
-                          onAdd: () => context.push('/routine-add'),
-                          onEdit: (routine) =>
-                              context.push('/routine-add?id=${routine.id}'),
-                          onDelete: (routine) =>
-                              _confirmDeleteRoutine(app, routine.id),
-                        ),
-                      ],
+                  ),
+                  const SizedBox(height: 12),
+                  if (home.segments.isEmpty)
+                    const _EmptyOrbit()
+                  else
+                    Center(
+                      child: CircularTimetableArea(
+                        routines: home.segments,
+                        currentTime: home.clockTime,
+                        activeRoutine: home.activeRoutineForRing,
+                        size: 286,
+                      ),
+                    ),
+                  const SizedBox(height: 18),
+                  _SlotActionBar(
+                    enabled: home.canActOnCurrentSlot,
+                    completeLabel: home.completeButtonLabel,
+                    disabledMessage: home.actionDisabledMessage,
+                    onComplete: () => _runSlotAction(
+                      app.completeCurrent,
+                      '완료로 기록했어요',
+                    ),
+                    onSnooze: () => _runSlotAction(
+                      app.snoozeCurrent,
+                      '나중에로 미뤘어요',
+                    ),
+                    onSkip: () => _runSlotAction(
+                      app.skipCurrent,
+                      '이번 루틴을 건너뛰었어요',
                     ),
                   ),
-                ),
-              ],
+                  // 오늘 루틴이 하나도 없으면 여기가 유일한 다음 행동이다.
+                  // 홈에는 FAB이 없으므로 화면 안에 경로를 둔다.
+                  if (home.isEmptyDay) ...[
+                    const SizedBox(height: 10),
+                    AppButton(
+                      key: const Key('home-add-routine-button'),
+                      label: '루틴 추가하기',
+                      icon: Icons.add_rounded,
+                      variant: AppButtonVariant.secondary,
+                      height: 46,
+                      onPressed: () => context.push('/routine-add'),
+                    ),
+                  ],
+                  // 구분선은 1.22:1로 배경에 묻힌다. 여백으로 나눈다.
+                  const SizedBox(height: 32),
+                  Row(
+                    children: [
+                      const Text('다음 일정', style: AppTextStyles.titleSection),
+                      const Spacer(),
+                      // 목록은 최대 [_maxUpcomingTiles]개만 그린다.
+                      // 전체 개수만 적으면 화면에 보이는 수와 어긋난다.
+                      Text(
+                        upcoming.length > _maxUpcomingTiles
+                            ? '$_maxUpcomingTiles / ${upcoming.length}'
+                            : '${upcoming.length}개',
+                        style: AppTextStyles.caption,
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  if (upcoming.isEmpty)
+                    // 빈 하루의 '무엇을 할지'는 위 액션 영역이 버튼과 함께 말한다.
+                    // 여기서 또 안내하면 한 화면에서 같은 말을 세 번 하게 된다.
+                    const Text(
+                      '오늘 남은 루틴이 없어요.',
+                      style: AppTextStyles.caption,
+                    )
+                  else
+                    ...upcoming.take(_maxUpcomingTiles).map(
+                          (routine) => Padding(
+                            padding: const EdgeInsets.only(bottom: 10),
+                            child: AppRoutineRow(
+                              color: routine.color,
+                              title: routine.title,
+                              subtitle: _timeRange(routine),
+                              onTap: () => context.push(
+                                '/routine-add?id=${routine.id}',
+                              ),
+                            ),
+                          ),
+                        ),
+                  if (upcoming.length > _maxUpcomingTiles)
+                    _MoreUpcomingLink(
+                      remaining: upcoming.length - _maxUpcomingTiles,
+                      onTap: () => context.go('/routines'),
+                    ),
+                ],
+              ),
             ),
           ),
         );
@@ -277,29 +225,210 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
   }
 }
 
-class _EmptyRoutineCard extends StatelessWidget {
-  const _EmptyRoutineCard();
+/// 화면에서 가장 먼저 읽혀야 하는 줄 — 지금(NOW) 또는 다음(NEXT) 루틴.
+class _FocusStrip extends StatelessWidget {
+  const _FocusStrip({
+    required this.routine,
+    required this.isUpcoming,
+    required this.timingHint,
+    required this.onTap,
+  });
+
+  final Routine? routine;
+  final bool isUpcoming;
+  final String? timingHint;
+  final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      width: double.infinity,
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.65),
+    final routine = this.routine;
+    // 진행 중인 루틴이 없을 때 다가오는 루틴을 NOW로 부르면 사실과 달라진다.
+    final badge = routine == null
+        ? '오늘'
+        : isUpcoming
+            ? 'NEXT'
+            : 'NOW';
+    final name = routine?.title ?? '새 루틴을 만들어보세요';
+    final time = routine == null ? '오늘의 흐름을 시작하세요' : _timeRange(routine);
+
+    return Material(
+      color: AppColors.orbitSurface,
+      borderRadius: BorderRadius.circular(24),
+      child: InkWell(
         borderRadius: BorderRadius.circular(24),
-        border: Border.all(
-          color: HomeTheme.accentPink.withValues(alpha: 0.25),
-        ),
-      ),
-      child: Text(
-        '표시할 루틴이 없습니다.',
-        textAlign: TextAlign.center,
-        style: TextStyle(
-          fontSize: 14,
-          color: HomeTheme.textMuted.withValues(alpha: 0.9),
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          decoration: appSurfaceDecoration(radius: 24),
+          child: Row(
+            children: [
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      badge,
+                      style: AppTextStyles.caption.copyWith(
+                        color: AppColors.orbitPrimary,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 0.6,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      name,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.titleSection,
+                    ),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 12),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Text(time, style: AppTextStyles.caption),
+                  if (timingHint != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      timingHint!,
+                      style: AppTextStyles.captionTight.copyWith(
+                        color: AppColors.textMuted,
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );
   }
 }
+
+/// 완료 / 나중에 / 스킵 — MVP 핵심 액션.
+///
+/// 누를 수 없을 때는 버튼을 숨기지 않고 이유를 함께 보여준다 (UI_STANDARDS 4).
+class _SlotActionBar extends StatelessWidget {
+  const _SlotActionBar({
+    required this.enabled,
+    required this.completeLabel,
+    required this.disabledMessage,
+    required this.onComplete,
+    required this.onSnooze,
+    required this.onSkip,
+  });
+
+  final bool enabled;
+  final String completeLabel;
+  final String? disabledMessage;
+  final VoidCallback onComplete;
+  final VoidCallback onSnooze;
+  final VoidCallback onSkip;
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        AppButton(
+          key: const Key('home-complete-button'),
+          label: completeLabel,
+          icon: Icons.check_rounded,
+          onPressed: enabled ? onComplete : null,
+        ),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            Expanded(
+              child: AppButton(
+                key: const Key('home-snooze-button'),
+                label: '나중에',
+                variant: AppButtonVariant.secondary,
+                height: 46,
+                onPressed: enabled ? onSnooze : null,
+              ),
+            ),
+            const SizedBox(width: 10),
+            Expanded(
+              child: AppButton(
+                key: const Key('home-skip-button'),
+                label: '스킵',
+                variant: AppButtonVariant.ghost,
+                height: 46,
+                onPressed: enabled ? onSkip : null,
+              ),
+            ),
+          ],
+        ),
+        if (!enabled && disabledMessage != null) ...[
+          const SizedBox(height: 8),
+          Semantics(
+            liveRegion: true,
+            child: Text(
+              disabledMessage!,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.caption,
+            ),
+          ),
+        ],
+      ],
+    );
+  }
+}
+
+/// 잘려나간 나머지 일정으로 가는 경로.
+///
+/// 헤더가 '3 / 5'라고 말한 뒤 나머지 2개를 볼 방법이 없으면 안 된다.
+class _MoreUpcomingLink extends StatelessWidget {
+  const _MoreUpcomingLink({required this.remaining, required this.onTap});
+
+  final int remaining;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) => Align(
+        alignment: Alignment.center,
+        child: TextButton(
+          key: const Key('home-more-upcoming-link'),
+          onPressed: onTap,
+          style: TextButton.styleFrom(
+            foregroundColor: AppColors.orbitPrimary,
+            minimumSize: const Size(0, 44),
+          ),
+          child: Text(
+            '남은 $remaining개 보기',
+            style: AppTextStyles.caption.copyWith(
+              color: AppColors.orbitPrimary,
+              fontWeight: FontWeight.w700,
+            ),
+          ),
+        ),
+      );
+}
+
+class _EmptyOrbit extends StatelessWidget {
+  const _EmptyOrbit();
+
+  @override
+  Widget build(BuildContext context) => Center(
+        child: Container(
+          width: 286,
+          height: 286,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            border: Border.all(color: AppColors.orbitHalo, width: 9),
+          ),
+          child: const Text('루틴을 추가하면\n하루의 흐름이 보여요',
+              textAlign: TextAlign.center, style: AppTextStyles.body),
+        ),
+      );
+}
+
+String _timeRange(Routine routine) => TimeMinutes.formatRange(
+      routine.startMinutesFromMidnight,
+      routine.endMinutesFromMidnight,
+    );
