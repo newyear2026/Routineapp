@@ -78,4 +78,5 @@ MVP 범위·아키텍처 규칙은 **`PROJECT_RULES.md`** 를 따릅니다.
 ## 문서
 
 - `PROJECT_RULES.md` — 제품 범위, 데이터·아키텍처·시간 계산 규칙
+- `BUSINESS_MODEL.md` — 수익 모델(BM) 방향, Free/Pro 경계, 단계별 로드맵
 - `flutter_app/README.md` — Flutter 앱 상세 안내(실행·구조·디자인 시스템 등)
