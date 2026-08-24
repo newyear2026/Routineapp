@@ -104,7 +104,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('${home.dateLabel} ${home.dayOfWeekLabel}',
+                            Text(home.dateWithWeekdayLabel,
                                 style: AppTextStyles.caption),
                             const SizedBox(height: 2),
                             Text(l10n.homeTitle,
@@ -178,8 +178,15 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                   const SizedBox(height: 32),
                   Row(
                     children: [
-                      Text(l10n.homeUpcomingSection,
-                          style: AppTextStyles.titleSection),
+                      // 제목이 먼저 줄고 개수는 남긴다.
+                      Flexible(
+                        child: Text(
+                          l10n.homeUpcomingSection,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.titleSection,
+                        ),
+                      ),
                       const Spacer(),
                       // 목록은 최대 [_maxUpcomingTiles]개만 그린다.
                       // 전체 개수만 적으면 화면에 보이는 수와 어긋난다.
@@ -289,20 +296,33 @@ class _FocusStrip extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.end,
-                children: [
-                  Text(time, style: AppTextStyles.caption),
-                  if (timingHint != null) ...[
-                    const SizedBox(height: 2),
+              // 시각과 남은 시간은 언어마다 길이가 크게 달라진다.
+              // 폭을 나눠 갖게 하고, 넘치면 오른쪽 열이 줄바꿈하도록 둔다.
+              ConstrainedBox(
+                constraints: const BoxConstraints(maxWidth: 132),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
                     Text(
-                      timingHint!,
-                      style: AppTextStyles.captionTight.copyWith(
-                        color: AppColors.textMuted,
-                      ),
+                      time,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.caption,
                     ),
+                    if (timingHint != null) ...[
+                      const SizedBox(height: 2),
+                      Text(
+                        timingHint!,
+                        maxLines: 2,
+                        textAlign: TextAlign.end,
+                        overflow: TextOverflow.ellipsis,
+                        style: AppTextStyles.captionTight.copyWith(
+                          color: AppColors.textMuted,
+                        ),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ],
           ),

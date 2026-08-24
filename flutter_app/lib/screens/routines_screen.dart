@@ -220,12 +220,17 @@ class _ViewSwitchButton extends StatelessWidget {
                 color: selected ? AppColors.orbitPrimary : AppColors.textMuted,
               ),
               const SizedBox(width: 7),
-              Text(
-                label,
-                style: AppTextStyles.caption.copyWith(
-                  color:
-                      selected ? AppColors.orbitPrimary : AppColors.textMuted,
-                  fontWeight: FontWeight.w700,
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.caption.copyWith(
+                    color: selected
+                        ? AppColors.orbitPrimary
+                        : AppColors.textMuted,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ],
@@ -585,6 +590,5 @@ class _EmptyRoutines extends StatelessWidget {
 }
 
 String _dateLabel(BuildContext context, DateTime date) =>
-    '${AppDateFormats.monthDay(context, date)} · '
-    '${AppDateFormats.weekdayFull(context, date)}';
+    AppDateFormats.monthDayWeekday(context, date);
 

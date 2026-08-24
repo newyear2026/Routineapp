@@ -182,12 +182,22 @@ class RoutineAppController extends ChangeNotifier {
   }
 
   Future<void> updateLanguage(AppLanguage language) async {
+    if (language == this.language) return;
+
+    final previousLocale = resolvedLocale;
     _appSettings = _appSettings.copyWith(
       localeCode: language.code,
       clearLocaleCode: language == AppLanguage.system,
     );
     await _settings.saveAppSettings(_appSettings);
     notifyListeners();
+
+    // 화면은 다시 그려지지만 **앱 밖으로 나간 문자열은 그대로 남는다.**
+    // 알림은 주 단위로 미리 예약돼 있어, 다시 예약하지 않으면 사용자는
+    // 몇 주 동안 옛 언어로 알림을 받는다. 홈 위젯도 마찬가지다.
+    if (resolvedLocale != previousLocale) {
+      await _syncSideEffects();
+    }
   }
 
   Future<void> updateTheme(String themeId) async {

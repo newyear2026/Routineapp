@@ -29,6 +29,8 @@ abstract final class HomeSnapshotBuilder {
     final localeName = l10n.localeName;
     final dateLabel = AppDateFormats.monthDayIn(localeName, nowLocal);
     final dayOfWeekLabel = AppDateFormats.weekdayFullIn(localeName, nowLocal);
+    final dateWithWeekdayLabel =
+        AppDateFormats.monthDayWeekdayIn(localeName, nowLocal);
     final greeting = _greetingForHour(l10n, nowLocal.hour);
 
     final todaySorted =
@@ -119,6 +121,7 @@ abstract final class HomeSnapshotBuilder {
     return HomeSnapshot(
       dateLabel: dateLabel,
       dayOfWeekLabel: dayOfWeekLabel,
+      dateWithWeekdayLabel: dateWithWeekdayLabel,
       greeting: greeting,
       todayRoutines: List<Routine>.unmodifiable(todaySorted),
       currentRoutine: current,

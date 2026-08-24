@@ -39,8 +39,10 @@ class OrbitBottomNavigation extends StatelessWidget {
       ),
       child: SafeArea(
         top: false,
-        child: SizedBox(
-          height: 86,
+        child: ConstrainedBox(
+          // 라틴 문자는 한글보다 행 높이가 크고, 시스템 글꼴을 키우면 더
+          // 늘어난다. 높이를 못 박으면 라벨 아래가 잘린다.
+          constraints: const BoxConstraints(minHeight: 86),
           child: Row(
             children: List.generate(items.length, (index) {
               final selected = index == currentIndex;
@@ -66,6 +68,9 @@ class OrbitBottomNavigation extends StatelessWidget {
                           const SizedBox(height: 5),
                           Text(
                             items[index].label,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            textAlign: TextAlign.center,
                             style: AppTextStyles.caption.copyWith(
                               color: selected
                                   ? AppColors.orbitPrimary

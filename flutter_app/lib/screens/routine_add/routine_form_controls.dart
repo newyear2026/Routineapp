@@ -101,12 +101,16 @@ class RoutineTimeTile extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(
-          height: 84,
+          // 'Hora de inicio'는 '시작 시간'보다 두 배 길다. 높이를 못 박으면
+          // 라벨이 두 줄로 접히면서 타일 아래가 잘린다.
+          constraints: const BoxConstraints(minHeight: 84),
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: AppColors.orbitBorder),
           ),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
@@ -114,7 +118,13 @@ class RoutineTimeTile extends StatelessWidget {
                 style: AppTextStyles.titleSection.copyWith(fontSize: 25),
               ),
               const SizedBox(height: 3),
-              Text(label, style: AppTextStyles.caption),
+              Text(
+                label,
+                maxLines: 2,
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.caption,
+              ),
             ],
           ),
         ),

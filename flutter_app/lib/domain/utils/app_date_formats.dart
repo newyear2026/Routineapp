@@ -29,7 +29,17 @@ class AppDateFormats {
   static String weekdayFull(BuildContext context, DateTime date) =>
       weekdayFullIn(_locale(context), date);
 
+  /// `8월 24일 (월)` · `Mon, Aug 24` · `lun, 24 ago`
+  ///
+  /// 날짜와 요일을 따로 만들어 이어 붙이면 어순이 언어마다 어긋난다
+  /// (한국어는 '24일 월요일', 스페인어는 'lunes 24'). 한 형식으로 맡긴다.
+  static String monthDayWeekday(BuildContext context, DateTime date) =>
+      monthDayWeekdayIn(_locale(context), date);
+
   // --- BuildContext가 없는 곳(스냅샷 조립·위젯 동기화)에서 쓰는 변형 ---
+
+  static String monthDayWeekdayIn(String localeName, DateTime date) =>
+      DateFormat.MMMEd(localeName).format(date);
 
   static String monthDayIn(String localeName, DateTime date) =>
       DateFormat.MMMd(localeName).format(date);

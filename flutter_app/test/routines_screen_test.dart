@@ -95,13 +95,13 @@ void main() {
     await tester.tapAt(Offset(box.center.dx, box.top + 3));
     await tester.pumpAndSettle();
 
-    expect(find.text('8월 6일 · 목요일'), findsOneWidget);
+    expect(find.text('8월 6일 (목)'), findsOneWidget);
     expect(find.text('아침 산책'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('calendar-day-2026-8-7')));
     await tester.pumpAndSettle();
 
-    expect(find.text('8월 7일 · 금요일'), findsOneWidget);
+    expect(find.text('8월 7일 (금)'), findsOneWidget);
     expect(find.text('예정된 루틴이 없어요'), findsOneWidget);
     controller.dispose();
   });

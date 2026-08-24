@@ -21,11 +21,15 @@ class SettingsSectionTitle extends StatelessWidget {
             Icon(icon, size: 16, color: AppColors.textMuted),
             const SizedBox(width: 6),
           ],
-          Text(
-            title,
-            style: AppTextStyles.caption.copyWith(
-              fontWeight: FontWeight.w800,
-              letterSpacing: 0.2,
+          Flexible(
+            child: Text(
+              title,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.caption.copyWith(
+                fontWeight: FontWeight.w800,
+                letterSpacing: 0.2,
+              ),
             ),
           ),
         ],

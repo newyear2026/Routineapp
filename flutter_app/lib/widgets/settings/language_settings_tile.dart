@@ -28,11 +28,16 @@ class LanguageSettingsTile extends StatelessWidget {
       trailing: Row(
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text(
-            languageLabel(l10n, app.language),
-            style: AppTextStyles.caption.copyWith(
-              fontWeight: FontWeight.w700,
-              color: AppColors.orbitPrimary,
+          Flexible(
+            child: Text(
+              languageLabel(l10n, app.language),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              textAlign: TextAlign.end,
+              style: AppTextStyles.caption.copyWith(
+                fontWeight: FontWeight.w700,
+                color: AppColors.orbitPrimary,
+              ),
             ),
           ),
           const SizedBox(width: 4),

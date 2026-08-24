@@ -338,7 +338,16 @@ class _ProgressGroup extends StatelessWidget {
                 child: Icon(group.icon, color: group.textColor, size: 16),
               ),
               const SizedBox(width: 10),
-              Text(group.title, style: AppTextStyles.titleSection),
+              // 제목이 먼저 줄어들고 개수는 끝까지 남는다 — 개수가 잘리면
+              // 그룹이 비었는지 알 수 없다.
+              Flexible(
+                child: Text(
+                  group.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.titleSection,
+                ),
+              ),
               const SizedBox(width: 8),
               // 홈·루틴 화면과 같은 단위를 쓴다. 여기만 숫자만 적으면 어긋난다.
               Text(AppLocalizations.of(context).routineCount(group.items.length),
@@ -412,17 +421,27 @@ class _RoutineStatusTrailing extends StatelessWidget {
         Text(time, style: AppTextStyles.caption),
         const SizedBox(width: 10),
         // 색만으로 구분하지 않도록 배지 형태 + 문구를 함께 쓴다.
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: tint.withValues(alpha: .18),
-            borderRadius: BorderRadius.circular(999),
-          ),
-          child: Text(
-            label,
-            style: AppTextStyles.captionTight.copyWith(
-              color: textColor,
-              fontWeight: FontWeight.w700,
+        //
+        // 상태 이름은 언어마다 길이가 크게 다르다('완료' vs 'Completadas').
+        // 폭을 제한하지 않으면 루틴 이름을 밀어내고 줄 전체가 넘친다.
+        Flexible(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 96),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: tint.withValues(alpha: .18),
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.captionTight.copyWith(
+                  color: textColor,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
           ),
         ),

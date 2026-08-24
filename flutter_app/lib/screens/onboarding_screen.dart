@@ -97,10 +97,16 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    l10n.onboardingAppTitle,
-                    style: AppTextStyles.caption.copyWith(
-                      fontWeight: FontWeight.w700,
+                  // 브랜드 문구는 언어마다 길이가 다르다. 건너뛰기 버튼이
+                  // 밀려나지 않도록 이쪽이 먼저 줄어든다.
+                  Flexible(
+                    child: Text(
+                      l10n.onboardingAppTitle,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.caption.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                   AppButton(
@@ -260,39 +266,40 @@ class _PreviewCard extends StatelessWidget {
 class _OrbitPreview extends StatelessWidget {
   const _OrbitPreview();
 
-  static const _sample = <RoutineSegment>[
-    RoutineSegment(
-      id: 'wake',
-      startMinutesFromMidnight: 7 * 60,
-      endMinutesFromMidnight: 8 * 60,
-      label: '',
-      emoji: '',
-      color: RoutinePalette.coral,
-    ),
-    RoutineSegment(
-      id: 'focus',
-      startMinutesFromMidnight: 10 * 60,
-      endMinutesFromMidnight: 12 * 60,
-      label: '',
-      emoji: '',
-      color: RoutinePalette.lavender,
-    ),
-    RoutineSegment(
-      id: 'dinner',
-      startMinutesFromMidnight: 18 * 60,
-      endMinutesFromMidnight: 19 * 60,
-      label: '',
-      emoji: '',
-      color: RoutinePalette.amber,
-    ),
-  ];
+  /// 이름은 현재 언어를 따른다 — 온보딩은 사용자가 앱을 처음 보는 화면이다.
+  List<RoutineSegment> _sampleFor(AppLocalizations l10n) => [
+        RoutineSegment(
+          id: 'wake',
+          startMinutesFromMidnight: 7 * 60,
+          endMinutesFromMidnight: 8 * 60,
+          label: l10n.onboardingDemoWake,
+          emoji: '',
+          color: RoutinePalette.coral,
+        ),
+        RoutineSegment(
+          id: 'focus',
+          startMinutesFromMidnight: 10 * 60,
+          endMinutesFromMidnight: 12 * 60,
+          label: l10n.onboardingDemoFocus,
+          emoji: '',
+          color: RoutinePalette.lavender,
+        ),
+        RoutineSegment(
+          id: 'dinner',
+          startMinutesFromMidnight: 18 * 60,
+          endMinutesFromMidnight: 19 * 60,
+          label: l10n.onboardingDemoDinner,
+          emoji: '',
+          color: RoutinePalette.amber,
+        ),
+      ];
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: CircularTimetableArea(
-        routines: _sample,
-        currentTime: TimeOfDay(hour: 10, minute: 40),
+        routines: _sampleFor(AppLocalizations.of(context)),
+        currentTime: const TimeOfDay(hour: 10, minute: 40),
         size: 200,
       ),
     );
@@ -465,14 +472,18 @@ class _StatusChip extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Text(
-            label,
-            style: AppTextStyles.caption.copyWith(
-              color: textColor,
-              fontWeight: FontWeight.w700,
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.caption.copyWith(
+                color: textColor,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
-          const Spacer(),
+          const SizedBox(width: 8),
           Text(
             count,
             style: AppTextStyles.bodyStrong.copyWith(color: textColor),
