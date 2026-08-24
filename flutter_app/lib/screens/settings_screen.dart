@@ -5,9 +5,12 @@ import 'package:provider/provider.dart';
 import '../application/routine_app_controller.dart';
 import '../application/settings/settings_controller.dart';
 import '../data/local/onboarding_local_storage.dart';
+import '../domain/settings/settings_error.dart';
+import '../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/ds/ds.dart';
+import '../widgets/settings/language_settings_tile.dart';
 import '../widgets/settings/settings_list_items.dart';
 import '../widgets/settings/settings_section.dart';
 import '../widgets/settings/theme_preset_section.dart';
@@ -31,6 +34,7 @@ class _SettingsScreenContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final appController = context.watch<RoutineAppController>();
     final settings = context.watch<SettingsController>();
     final controlsEnabled = !settings.isLoading && !settings.isUpdating;
@@ -48,27 +52,26 @@ class _SettingsScreenContent extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(24, 48, 24, 28),
           children: [
-            const Text('설정', style: AppTextStyles.titleScreen),
+            Text(l10n.settingsTitle, style: AppTextStyles.titleScreen),
             const SizedBox(height: 3),
-            const Text('알림과 앱 모양을 한곳에서 관리하세요',
-                style: AppTextStyles.caption),
+            Text(l10n.settingsSubtitle, style: AppTextStyles.caption),
             const SizedBox(height: 24),
-            if (settings.errorMessage != null) ...[
+            if (settings.error != null) ...[
               _SettingsErrorBanner(
-                message: settings.errorMessage!,
+                message: _errorMessage(l10n, settings.error!),
                 onRetry: settings.load,
                 onDismiss: settings.clearError,
               ),
               const SizedBox(height: 16),
             ],
-            const SettingsSectionTitle(
-              title: '알림 및 소리',
+            SettingsSectionTitle(
+              title: l10n.settingsSectionNotifications,
               icon: Icons.notifications_active_rounded,
             ),
             SettingsList(children: [
               SettingsToggleTile(
                 icon: Icons.notifications_rounded,
-                label: '푸시 알림',
+                label: l10n.settingsPush,
                 value: settings.notificationsEnabled,
                 enabled: controlsEnabled,
                 onChanged: (value) => settings.setNotificationsEnabled(
@@ -78,10 +81,10 @@ class _SettingsScreenContent extends StatelessWidget {
               ),
               SettingsToggleTile(
                 icon: Icons.volume_up_rounded,
-                label: '알림 소리',
+                label: l10n.settingsSound,
                 value: settings.soundEnabled,
                 enabled: controlsEnabled && settings.notificationsEnabled,
-                description: '푸시 알림이 켜져 있을 때만 쓸 수 있어요',
+                description: l10n.settingsSoundDesc,
                 onChanged: (value) => settings.setSoundEnabled(
                   value,
                   appController.routines,
@@ -89,50 +92,52 @@ class _SettingsScreenContent extends StatelessWidget {
               ),
             ]),
             const SizedBox(height: 26),
-            const SettingsSectionTitle(
-              title: '개인화',
+            SettingsSectionTitle(
+              title: l10n.settingsSectionPersonalize,
               icon: Icons.auto_awesome_rounded,
             ),
             SettingsList(children: [
+              // 언어는 이 섹션에서 유일하게 지금 동작하는 설정이라 맨 위에 둔다.
+              const LanguageSettingsTile(),
               SettingsNavigationTile(
                 icon: Icons.replay_rounded,
-                label: '온보딩 다시 보기',
-                description: '앱의 첫 안내 플로우를 다시 볼 수 있어요',
+                label: l10n.settingsReplayOnboarding,
+                description: l10n.settingsReplayOnboardingDesc,
                 onTap: () async {
                   await OnboardingLocalStorage.resetForReplay();
                   if (context.mounted) context.go('/onboarding');
                 },
               ),
-              const SettingsNavigationTile(
+              SettingsNavigationTile(
                 icon: Icons.emoji_emotions_rounded,
-                label: '캐릭터 설정',
-                statusLabel: '준비 중',
-                description: '다음 업데이트에서 캐릭터를 고를 수 있어요',
+                label: l10n.settingsCharacter,
+                statusLabel: l10n.commonComingSoon,
+                description: l10n.settingsCharacterDesc,
               ),
             ]),
             const SizedBox(height: 14),
             const ThemePresetSection(),
             const SizedBox(height: 26),
-            const SettingsSectionTitle(
-              title: '지원',
+            SettingsSectionTitle(
+              title: l10n.settingsSectionSupport,
               icon: Icons.support_rounded,
             ),
             SettingsList(children: [
               SettingsNavigationTile(
                 icon: Icons.widgets_outlined,
-                label: '위젯 미리보기',
-                description: '홈 화면에 놓을 위젯 모습을 확인할 수 있어요',
+                label: l10n.settingsWidgetPreview,
+                description: l10n.settingsWidgetPreviewDesc,
                 onTap: () => context.push('/widget-medium-preview'),
               ),
-              const SettingsNavigationTile(
+              SettingsNavigationTile(
                 icon: Icons.mail_outline_rounded,
-                label: '문의하기',
-                statusLabel: '준비 중',
-                description: '지원 채널 연결 전이에요',
+                label: l10n.settingsContact,
+                statusLabel: l10n.commonComingSoon,
+                description: l10n.settingsContactDesc,
               ),
-              const SettingsInfoTile(
+              SettingsInfoTile(
                 icon: Icons.info_outline_rounded,
-                label: '버전 정보',
+                label: l10n.settingsVersion,
                 value: 'v1.0.0',
               ),
             ]),
@@ -152,6 +157,17 @@ class _SettingsScreenContent extends StatelessWidget {
   }
 }
 
+String _errorMessage(AppLocalizations l10n, SettingsError error) {
+  switch (error) {
+    case SettingsError.load:
+      return l10n.errorLoadSettings;
+    case SettingsError.saveNotifications:
+      return l10n.errorSaveNotifications;
+    case SettingsError.saveSound:
+      return l10n.errorSaveSound;
+  }
+}
+
 class _SettingsErrorBanner extends StatelessWidget {
   const _SettingsErrorBanner({
     required this.message,
@@ -165,9 +181,10 @@ class _SettingsErrorBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Semantics(
       liveRegion: true,
-      label: '설정 오류: $message',
+      label: l10n.settingsError(message),
       child: AppCard(
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -176,9 +193,9 @@ class _SettingsErrorBanner extends StatelessWidget {
                 color: AppColors.dangerText),
             const SizedBox(width: 10),
             Expanded(child: Text(message, style: AppTextStyles.caption)),
-            TextButton(onPressed: onRetry, child: const Text('재시도')),
+            TextButton(onPressed: onRetry, child: Text(l10n.commonRetry)),
             IconButton(
-              tooltip: '오류 메시지 닫기',
+              tooltip: l10n.settingsErrorDismiss,
               onPressed: onDismiss,
               icon: const Icon(Icons.close_rounded),
             ),

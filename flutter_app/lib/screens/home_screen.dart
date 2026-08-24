@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../app_route_observer.dart';
 import '../application/routine_app_controller.dart';
 import '../domain/models/routine.dart';
+import '../l10n/app_localizations.dart';
 import '../domain/utils/time_minutes.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -56,7 +57,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
         SnackBar(
           content: Text(doneMessage),
           action: SnackBarAction(
-            label: '되돌리기',
+            label: AppLocalizations.of(context).commonUndo,
             onPressed: () => controller.undoAction(undo),
           ),
         ),
@@ -67,6 +68,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
   Widget build(BuildContext context) {
     return Consumer<RoutineAppController>(
       builder: (context, app, _) {
+        final l10n = AppLocalizations.of(context);
         if (!app.isLoaded) {
           return const Scaffold(
             body: Center(
@@ -105,13 +107,13 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                             Text('${home.dateLabel} ${home.dayOfWeekLabel}',
                                 style: AppTextStyles.caption),
                             const SizedBox(height: 2),
-                            const Text('오늘의 리듬',
+                            Text(l10n.homeTitle,
                                 style: AppTextStyles.titleScreen),
                           ],
                         ),
                       ),
                       IconButton(
-                        tooltip: '설정',
+                        tooltip: l10n.commonSettings,
                         onPressed: () => context.go('/settings'),
                         icon: const Icon(Icons.settings_outlined),
                         color: AppColors.textMuted,
@@ -148,15 +150,15 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                     disabledMessage: home.actionDisabledMessage,
                     onComplete: () => _runSlotAction(
                       app.completeCurrent,
-                      '완료로 기록했어요',
+                      l10n.homeMarkedDone,
                     ),
                     onSnooze: () => _runSlotAction(
                       app.snoozeCurrent,
-                      '나중에로 미뤘어요',
+                      l10n.homeMarkedSnoozed,
                     ),
                     onSkip: () => _runSlotAction(
                       app.skipCurrent,
-                      '이번 루틴을 건너뛰었어요',
+                      l10n.homeMarkedSkipped,
                     ),
                   ),
                   // 오늘 루틴이 하나도 없으면 여기가 유일한 다음 행동이다.
@@ -165,7 +167,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                     const SizedBox(height: 10),
                     AppButton(
                       key: const Key('home-add-routine-button'),
-                      label: '루틴 추가하기',
+                      label: l10n.homeAddRoutine,
                       icon: Icons.add_rounded,
                       variant: AppButtonVariant.secondary,
                       height: 46,
@@ -176,14 +178,15 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                   const SizedBox(height: 32),
                   Row(
                     children: [
-                      const Text('다음 일정', style: AppTextStyles.titleSection),
+                      Text(l10n.homeUpcomingSection,
+                          style: AppTextStyles.titleSection),
                       const Spacer(),
                       // 목록은 최대 [_maxUpcomingTiles]개만 그린다.
                       // 전체 개수만 적으면 화면에 보이는 수와 어긋난다.
                       Text(
                         upcoming.length > _maxUpcomingTiles
                             ? '$_maxUpcomingTiles / ${upcoming.length}'
-                            : '${upcoming.length}개',
+                            : l10n.routineCount(upcoming.length),
                         style: AppTextStyles.caption,
                       ),
                     ],
@@ -192,8 +195,8 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                   if (upcoming.isEmpty)
                     // 빈 하루의 '무엇을 할지'는 위 액션 영역이 버튼과 함께 말한다.
                     // 여기서 또 안내하면 한 화면에서 같은 말을 세 번 하게 된다.
-                    const Text(
-                      '오늘 남은 루틴이 없어요.',
+                    Text(
+                      l10n.homeNoRoutinesLeft,
                       style: AppTextStyles.caption,
                     )
                   else
@@ -241,15 +244,16 @@ class _FocusStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final routine = this.routine;
     // 진행 중인 루틴이 없을 때 다가오는 루틴을 NOW로 부르면 사실과 달라진다.
     final badge = routine == null
-        ? '오늘'
+        ? l10n.commonToday
         : isUpcoming
-            ? 'NEXT'
-            : 'NOW';
-    final name = routine?.title ?? '새 루틴을 만들어보세요';
-    final time = routine == null ? '오늘의 흐름을 시작하세요' : _timeRange(routine);
+            ? l10n.homeBadgeNext
+            : l10n.homeBadgeNow;
+    final name = routine?.title ?? l10n.homeCreateFirstRoutine;
+    final time = routine == null ? l10n.homeStartYourDay : _timeRange(routine);
 
     return Material(
       color: AppColors.orbitSurface,
@@ -330,6 +334,7 @@ class _SlotActionBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
@@ -345,7 +350,7 @@ class _SlotActionBar extends StatelessWidget {
             Expanded(
               child: AppButton(
                 key: const Key('home-snooze-button'),
-                label: '나중에',
+                label: l10n.statusSnoozed,
                 variant: AppButtonVariant.secondary,
                 height: 46,
                 onPressed: enabled ? onSnooze : null,
@@ -355,7 +360,7 @@ class _SlotActionBar extends StatelessWidget {
             Expanded(
               child: AppButton(
                 key: const Key('home-skip-button'),
-                label: '스킵',
+                label: l10n.statusSkipped,
                 variant: AppButtonVariant.ghost,
                 height: 46,
                 onPressed: enabled ? onSkip : null,
@@ -399,7 +404,7 @@ class _MoreUpcomingLink extends StatelessWidget {
             minimumSize: const Size(0, 44),
           ),
           child: Text(
-            '남은 $remaining개 보기',
+            AppLocalizations.of(context).homeSeeRemaining(remaining),
             style: AppTextStyles.caption.copyWith(
               color: AppColors.orbitPrimary,
               fontWeight: FontWeight.w700,
@@ -422,7 +427,7 @@ class _EmptyOrbit extends StatelessWidget {
             shape: BoxShape.circle,
             border: Border.all(color: AppColors.orbitHalo, width: 9),
           ),
-          child: const Text('루틴을 추가하면\n하루의 흐름이 보여요',
+          child: Text(AppLocalizations.of(context).homeEmptyRingTitle,
               textAlign: TextAlign.center, style: AppTextStyles.body),
         ),
       );

@@ -9,6 +9,8 @@ environment:
 dependencies:
   flutter:
     sdk: flutter
+  flutter_localizations:
+    sdk: flutter
   
   # UI & 애니메이션
   cupertino_icons: ^1.0.2
@@ -39,6 +41,9 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  # ARB 기반 다국어 코드 생성 (lib/l10n/*.arb -> AppLocalizations)
+  generate: true
   
   # 폰트 (필요시 추가)
   # fonts:

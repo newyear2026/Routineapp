@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
@@ -22,11 +23,12 @@ class OrbitBottomNavigation extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const items = <_OrbitNavItemData>[
-      _OrbitNavItemData(Icons.home_outlined, '홈'),
-      _OrbitNavItemData(Icons.pie_chart_outline_rounded, '진행'),
-      _OrbitNavItemData(Icons.format_list_bulleted_rounded, '루틴'),
-      _OrbitNavItemData(Icons.settings_outlined, '설정'),
+    final l10n = AppLocalizations.of(context);
+    final items = <_OrbitNavItemData>[
+      _OrbitNavItemData(Icons.home_outlined, l10n.navHome),
+      _OrbitNavItemData(Icons.pie_chart_outline_rounded, l10n.navProgress),
+      _OrbitNavItemData(Icons.format_list_bulleted_rounded, l10n.navRoutines),
+      _OrbitNavItemData(Icons.settings_outlined, l10n.navSettings),
     ];
     final callbacks = [onHome, onProgress, onRoutines, onSettings];
 
@@ -46,7 +48,7 @@ class OrbitBottomNavigation extends StatelessWidget {
                 child: Semantics(
                   selected: selected,
                   button: true,
-                  label: '${items[index].label} 탭',
+                  label: l10n.navTabSemantic(items[index].label),
                   child: InkWell(
                     onTap: callbacks[index],
                     child: Padding(

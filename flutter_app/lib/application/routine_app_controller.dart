@@ -8,7 +8,9 @@ import '../data/repositories/settings_repository.dart';
 import '../domain/models/routine.dart';
 import '../domain/models/routine_log.dart';
 import '../domain/models/routine_action_source.dart';
+import '../domain/models/routine_write_error.dart';
 import '../domain/models/app_settings.dart';
+import '../domain/settings/app_language.dart';
 import '../domain/services/routine_day_service.dart';
 import '../domain/services/routine_log_action_service.dart';
 import '../domain/services/routine_state_resolver.dart';
@@ -61,6 +63,12 @@ class RoutineAppController extends ChangeNotifier {
   AppSettings get appSettings => _appSettings;
   String get themeId => _appSettings.themeId ?? AppThemePreset.softDay.id;
   AppThemePreset get currentThemePreset => AppThemePreset.byId(themeId);
+
+  /// 사용자가 설정에서 고른 언어. [AppLanguage.system]이면 기기 언어를 따른다.
+  AppLanguage get language => AppLanguage.fromCode(_appSettings.localeCode);
+
+  /// `MaterialApp.locale`에 그대로 넘긴다. null이면 Flutter가 기기 언어로 고른다.
+  Locale? get locale => language.locale;
 
   DateTime get _now => _nowProvider();
 
@@ -139,6 +147,15 @@ class RoutineAppController extends ChangeNotifier {
     await load();
   }
 
+  Future<void> updateLanguage(AppLanguage language) async {
+    _appSettings = _appSettings.copyWith(
+      localeCode: language.code,
+      clearLocaleCode: language == AppLanguage.system,
+    );
+    await _settings.saveAppSettings(_appSettings);
+    notifyListeners();
+  }
+
   Future<void> updateTheme(String themeId) async {
     _appSettings = _appSettings.copyWith(themeId: themeId);
     await _settings.saveAppSettings(_appSettings);
@@ -158,9 +175,7 @@ class RoutineAppController extends ChangeNotifier {
       await _data.upsertRoutine(toSave);
     } catch (e, st) {
       debugPrint('saveRoutine write failed: $e\n$st');
-      return RoutineSaveResult.failure(
-        '저장에 실패했어요. 잠시 후 다시 시도해 주세요.',
-      );
+      return RoutineSaveResult.failure(RoutineWriteError.save);
     }
     await _reloadAfterWrite();
     return RoutineSaveResult.success;
@@ -183,9 +198,7 @@ class RoutineAppController extends ChangeNotifier {
       await _data.deleteRoutine(routineId);
     } catch (e, st) {
       debugPrint('deleteRoutine write failed: $e\n$st');
-      return RoutineSaveResult.failure(
-        '삭제에 실패했어요. 잠시 후 다시 시도해 주세요.',
-      );
+      return RoutineSaveResult.failure(RoutineWriteError.delete);
     }
     await _reloadAfterWrite();
     return RoutineSaveResult.success;

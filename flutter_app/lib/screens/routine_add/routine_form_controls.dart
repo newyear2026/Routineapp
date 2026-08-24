@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 
 import '../../domain/models/routine.dart';
 import '../../domain/utils/time_minutes.dart';
@@ -27,7 +28,7 @@ class RoutineFormHeader extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
-            tooltip: '뒤로',
+            tooltip: AppLocalizations.of(context).commonBack,
             onPressed: onBack,
             icon: const Icon(Icons.arrow_back_ios_new_rounded),
           ),
@@ -43,7 +44,7 @@ class RoutineFormHeader extends StatelessWidget {
             child: onDelete == null
                 ? null
                 : IconButton(
-                    tooltip: '루틴 삭제',
+                    tooltip: AppLocalizations.of(context).routineDeleteTitle,
                     onPressed: onDelete,
                     icon: const Icon(
                       Icons.delete_outline_rounded,
@@ -140,7 +141,7 @@ class RoutineWeekdayCircle extends StatelessWidget {
     return Semantics(
       selected: selected,
       button: true,
-      label: '$label요일',
+      label: AppLocalizations.of(context).weekdayFullSuffix(label),
       child: InkWell(
         key: Key('routine-weekday-$label'),
         onTap: onTap,
@@ -256,7 +257,7 @@ class RoutineOverlapNotice extends StatelessWidget {
         border: Border.all(color: AppColors.warning.withValues(alpha: .45)),
       ),
       child: Text(
-        '“${routine.title}”과 시간이 겹쳐요. 저장 전에 시간을 확인해보세요.',
+        AppLocalizations.of(context).routineOverlapInline(routine.title),
         style: AppTextStyles.caption.copyWith(color: AppColors.textPrimary),
       ),
     );

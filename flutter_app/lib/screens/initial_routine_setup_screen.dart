@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../application/routine_app_controller.dart';
 import '../application/services/onboarding_routine_setup_service.dart';
 import '../domain/onboarding/recommended_routine_catalog.dart';
+import '../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
@@ -47,8 +48,11 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
   }
 
   Future<void> _completeSetup() async {
+    // 저장되는 이름도 지금 보고 있는 언어로 남는다.
+    final l10n = AppLocalizations.of(context);
     await _onboardingRoutines.completeWithSelectedDefinitions(
       _selectedDefinitions(),
+      (def) => recommendedRoutineTitle(l10n, def),
     );
     if (!mounted) return;
     await context.read<RoutineAppController>().load();
@@ -64,6 +68,7 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final selectedCount = _selected.where((s) => s).length;
     return Scaffold(
       body: AppScreenShell(
@@ -74,16 +79,16 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text('루틴 선택', style: AppTextStyles.caption),
+                  Text(l10n.setupTitle, style: AppTextStyles.caption),
                   const SizedBox(height: 6),
                   // hero(32)는 이 문장에서 두 줄로 깨진다. 한 줄에 들어가는 크기를 쓴다.
-                  const Text(
-                    '하루의 첫 블록을 골라보세요',
+                  Text(
+                    l10n.setupHeadline,
                     style: AppTextStyles.titleScreen,
                   ),
                   const SizedBox(height: 8),
-                  const Text(
-                    '처음 시작할 때 넣어둘 기본 루틴만 골라주세요. 나중에 언제든 수정할 수 있어요.',
+                  Text(
+                    l10n.setupBody,
                     style: AppTextStyles.helper,
                   ),
                   const SizedBox(height: 14),
@@ -99,7 +104,7 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
                         borderRadius: BorderRadius.circular(AppRadii.chip),
                       ),
                       child: Text(
-                        '$selectedCount개 선택됨',
+                        l10n.selectedCount(selectedCount),
                         style: AppTextStyles.caption.copyWith(
                           color: AppColors.orbitPrimary,
                           fontWeight: FontWeight.w700,
@@ -128,14 +133,16 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 12, 24, 8),
               child: AppButton(
-                label: selectedCount == 0 ? '루틴 없이 시작하기' : '완료하기',
+                label: selectedCount == 0
+                    ? l10n.setupStartEmpty
+                    : l10n.setupFinish,
                 onPressed: _completeSetup,
               ),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
               child: AppButton(
-                label: '나중에 설정할게요',
+                label: l10n.setupLater,
                 onPressed: _skipRoutineSetup,
                 variant: AppButtonVariant.ghost,
                 expand: false,
@@ -159,7 +166,8 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
       child: Semantics(
         button: true,
         selected: isSelected,
-        label: '${def.title} ${def.timeLabel}',
+        label: '${recommendedRoutineTitle(AppLocalizations.of(context), def)}'
+            ' ${def.timeLabel}',
         child: Material(
           color: Colors.transparent,
           child: InkWell(
@@ -237,15 +245,21 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(def.title, style: AppTextStyles.bodyStrong),
+                        Text(
+                          recommendedRoutineTitle(
+                            AppLocalizations.of(context),
+                            def,
+                          ),
+                          style: AppTextStyles.bodyStrong,
+                        ),
                         const SizedBox(height: 2),
                         Text(def.timeLabel, style: AppTextStyles.caption),
                       ],
                     ),
                   ),
                   if (def.showRecommendedBadge)
-                    const AppStatusBadge(
-                      label: '추천',
+                    AppStatusBadge(
+                      label: AppLocalizations.of(context).setupRecommended,
                       tone: AppStatusBadgeTone.info,
                     ),
                 ],
@@ -255,5 +269,32 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
         ),
       ),
     );
+  }
+}
+
+/// 추천 루틴 이름 — 카탈로그는 키만 갖고, 이름은 현재 언어에서 고른다.
+String recommendedRoutineTitle(
+  AppLocalizations l10n,
+  RecommendedRoutineDefinition def,
+) {
+  switch (def.catalogId) {
+    case 'wake':
+      return l10n.catalogWakeUp;
+    case 'exercise':
+      return l10n.catalogExercise;
+    case 'breakfast':
+      return l10n.catalogBreakfast;
+    case 'study':
+      return l10n.catalogStudy;
+    case 'lunch':
+      return l10n.catalogLunch;
+    case 'rest':
+      return l10n.catalogBreak;
+    case 'dinner':
+      return l10n.catalogDinner;
+    case 'sleep':
+      return l10n.catalogSleep;
+    default:
+      return def.catalogId;
   }
 }

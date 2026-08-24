@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -24,6 +25,7 @@ class _WidgetMediumPreviewScreenState extends State<WidgetMediumPreviewScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       body: AppScreenShell(
         child: Consumer<RoutineAppController>(
@@ -48,12 +50,12 @@ class _WidgetMediumPreviewScreenState extends State<WidgetMediumPreviewScreen> {
                   child: Row(
                     children: [
                       IconButton(
-                        tooltip: '뒤로',
+                        tooltip: l10n.commonBack,
                         onPressed: () => context.pop(),
                         icon: const Icon(Icons.arrow_back_ios_new_rounded),
                         color: AppColors.textPrimary,
                       ),
-                      const Text('위젯 미리보기',
+                      Text(l10n.widgetPreviewTitle,
                           style: AppTextStyles.titleScreen),
                     ],
                   ),
@@ -73,8 +75,8 @@ class _WidgetMediumPreviewScreenState extends State<WidgetMediumPreviewScreen> {
                 ),
                 const SizedBox(height: 10),
                 // 안내 문구는 패널 밖에 둔다. 패널 위에서는 대비가 2.5:1로 떨어진다.
-                const Text(
-                  '회색 면은 홈 화면 배경을 대신한 자리예요.',
+                Text(
+                  l10n.widgetPreviewNote,
                   textAlign: TextAlign.center,
                   style: AppTextStyles.caption,
                 ),
@@ -82,14 +84,14 @@ class _WidgetMediumPreviewScreenState extends State<WidgetMediumPreviewScreen> {
                 AppCard(
                   child: Row(
                     children: [
-                      const Expanded(
+                      Expanded(
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text('예시 데이터로 보기',
+                            Text(l10n.widgetPreviewSample,
                                 style: AppTextStyles.bodyStrong),
-                            SizedBox(height: 2),
-                            Text('오늘 루틴이 없어도 위젯 모습을 확인할 수 있어요.',
+                            const SizedBox(height: 2),
+                            Text(l10n.widgetPreviewSampleNote,
                                 style: AppTextStyles.caption),
                           ],
                         ),

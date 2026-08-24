@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
 import '../application/services/notification_onboarding_actions.dart';
@@ -38,6 +39,7 @@ class _NotificationPermissionScreenState
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       body: AppScreenShell(
         child: SingleChildScrollView(
@@ -46,7 +48,7 @@ class _NotificationPermissionScreenState
             mainAxisSize: MainAxisSize.min,
             children: [
               const SizedBox(height: 12),
-              const Text('알림 설정', style: AppTextStyles.caption),
+              Text(l10n.permTitle, style: AppTextStyles.caption),
               const SizedBox(height: 24),
               // 상시 회전 애니메이션은 design_system_v2 7.2 '장식용 모션 금지'에 어긋난다.
               // 주황 그라데이션도 앱 어디에도 없는 톤이라 브랜드색으로 맞춘다.
@@ -65,14 +67,14 @@ class _NotificationPermissionScreenState
                 ),
               ),
               const SizedBox(height: 28),
-              const Text(
-                '알림을 받으시겠어요?',
+              Text(
+                l10n.permHeadline,
                 style: AppTextStyles.titleScreen,
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
-              const Text(
-                '루틴 시간에 맞춰 가볍게 알려드릴게요.\n알림을 확인한 뒤 앱에서 완료하거나 잠시 미룰 수 있어요.',
+              Text(
+                l10n.permBody,
                 style: AppTextStyles.helper,
                 textAlign: TextAlign.center,
               ),
@@ -80,24 +82,24 @@ class _NotificationPermissionScreenState
               _buildNotificationExample(
                 RoutinePalette.coral,
                 '07:00',
-                '기상 시간이에요!',
-                '상쾌한 아침을 시작해봐요',
+                l10n.permSampleWakeTitle,
+                l10n.permSampleWakeBody,
               ),
               const SizedBox(height: 12),
               _buildNotificationExample(
                 RoutinePalette.lavender,
                 '14:00',
-                '공부 시간이에요!',
-                '집중해서 학습해봐요',
+                l10n.permSampleStudyTitle,
+                l10n.permSampleStudyBody,
               ),
               const SizedBox(height: 28),
               AppButton(
-                label: '알림 허용하기',
+                label: l10n.permAllow,
                 onPressed: _allowNotifications,
               ),
               const SizedBox(height: 12),
               AppButton(
-                label: '나중에 설정할게요',
+                label: l10n.permLater,
                 onPressed: _skipNotifications,
                 variant: AppButtonVariant.ghost,
                 expand: false,

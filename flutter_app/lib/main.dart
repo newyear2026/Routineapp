@@ -1,12 +1,16 @@
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_localizations/flutter_localizations.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import 'app_route_observer.dart';
 import 'app_scaffold_messenger.dart';
 import 'application/routine_app_controller.dart';
+import 'domain/settings/app_language.dart';
+import 'l10n/app_localizations.dart';
 import 'screens/splash_screen.dart';
 import 'screens/onboarding_screen.dart';
 import 'screens/notification_permission_screen.dart';
@@ -23,6 +27,9 @@ import 'widget_home/home_widget_sync_service.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // 날짜·시간 포맷을 로케일별로 쓰려면 심볼을 먼저 올려야 한다.
+  // 빠뜨리면 ko/es에서 DateFormat이 예외를 던진다.
+  await initializeDateFormatting();
   if (!kIsWeb) {
     await HomeWidgetSyncService.instance.init();
   }
@@ -51,6 +58,15 @@ class RoutineTimerApp extends StatelessWidget {
             scaffoldMessengerKey: appScaffoldMessengerKey,
             title: 'Routine Timer',
             debugShowCheckedModeBanner: false,
+            // null이면 기기 언어를 따른다. 설정에서 언어를 고른 경우에만 값이 온다.
+            locale: app.locale,
+            supportedLocales: AppLanguage.supportedLocales,
+            localizationsDelegates: const [
+              AppLocalizations.delegate,
+              GlobalMaterialLocalizations.delegate,
+              GlobalWidgetsLocalizations.delegate,
+              GlobalCupertinoLocalizations.delegate,
+            ],
             theme: ThemeData(
               useMaterial3: true,
               // 투명으로 두면 Scaffold의 bottomNavigationBar 뒤가 칠해지지 않아
