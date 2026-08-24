@@ -610,23 +610,32 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
   }
 
   Future<void> _pickTime({required bool start}) async {
-    // 다이얼이 아니라 **숫자 입력**으로 연다.
+    // 24시간제 로케일에서는 **다이얼을 아예 열지 못하게 한다.**
     //
-    // 24시간제를 쓰는 로케일에서는 시 다이얼이 바깥 링(0–11)과 안쪽 링(12–23)
-    // 두 겹으로 그려진다. 화면이 좁으면 두 링의 숫자가 서로 겹쳐 읽을 수 없다.
-    // 분 다이얼은 링이 하나라 멀쩡해서, 증상이 '시만 깨진다'로 나타난다.
+    // 24시간제에서는 시 다이얼이 바깥 링(0–11)과 안쪽 링(12–23) 두 겹으로
+    // 그려지고, 화면이 좁으면 두 링의 숫자가 서로 겹쳐 읽을 수 없다.
+    // 분 다이얼은 링이 하나라 멀쩡해서 '시만 깨진다'로 보인다.
     //
-    // 기기 설정이 아니라 **로케일**이 24시간제를 정한다는 점이 함정이다.
-    // 스페인어는 기기가 12시간제여도 항상 `H:mm`이라 늘 두 겹 다이얼이 된다
-    // (한국어·영어는 기기가 12시간제면 한 겹이라 멀쩡해 보인다).
+    // 24시간제 여부는 기기 설정이 아니라 **로케일**이 정한다. 스페인어는
+    // 기기가 12시간제여도 항상 `H:mm`이고, `alwaysUse24HourFormat`으로는
+    // 24시간을 강제할 수만 있지 12시간으로 되돌릴 수 없다. 즉 스페인어에서
+    // 영어처럼 AM/PM 한 겹 다이얼을 띄우는 방법은 없다.
     //
-    // 입력 모드는 어느 언어에서든 `HH : mm` 두 칸으로 같은 모양이고, 07:30
-    // 같은 정확한 시각을 넣는 이 화면에는 더 빠르다. 다이얼이 필요하면
-    // 선택기 안의 시계 아이콘으로 언제든 넘어갈 수 있다.
+    // 그래서 다이얼이 멀쩡한 로케일(12시간제)에서만 전환을 남기고,
+    // 두 겹이 되는 로케일에서는 숫자 입력만 쓴다. 읽을 수 없는 화면으로
+    // 넘어갈 수 있는 버튼을 남겨두는 것 자체가 결함이다.
+    final format = MaterialLocalizations.of(context).timeOfDayFormat(
+      alwaysUse24HourFormat: MediaQuery.of(context).alwaysUse24HourFormat,
+    );
+    final showsAmPm = format == TimeOfDayFormat.h_colon_mm_space_a ||
+        format == TimeOfDayFormat.a_space_h_colon_mm;
+
     final picked = await showTimePicker(
       context: context,
       initialTime: start ? _startTime : _endTime,
-      initialEntryMode: TimePickerEntryMode.input,
+      initialEntryMode: showsAmPm
+          ? TimePickerEntryMode.input
+          : TimePickerEntryMode.inputOnly,
     );
     if (picked == null || !mounted) return;
     setState(() {

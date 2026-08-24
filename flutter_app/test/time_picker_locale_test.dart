@@ -160,19 +160,31 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('$code — 입력에서 다이얼로 넘어갈 수 있다', (tester) async {
+    testWidgets('$code — 겹치는 다이얼로는 넘어갈 수 없다', (tester) async {
       await pumpAddScreen(tester, locale);
       final l10n = lookupAppLocalizations(locale);
+      final materialL10n =
+          await GlobalMaterialLocalizations.delegate.load(locale);
 
       await tapTile(tester, l10n.routineAddStartTime);
 
-      // 다이얼이 필요한 사람은 한 번에 넘어갈 수 있어야 한다.
-      final toDial = find.byIcon(Icons.access_time);
-      expect(toDial, findsOneWidget);
-      await tester.tap(toDial);
-      await tester.pumpAndSettle();
+      final format =
+          materialL10n.timeOfDayFormat(alwaysUse24HourFormat: false);
+      final showsAmPm = format == TimeOfDayFormat.h_colon_mm_space_a ||
+          format == TimeOfDayFormat.a_space_h_colon_mm;
 
-      expect(tester.takeException(), isNull);
+      final toDial = find.byIcon(Icons.access_time);
+      if (showsAmPm) {
+        // 12시간제 다이얼은 링이 하나라 멀쩡하다 — 쓸 사람은 쓸 수 있어야 한다.
+        expect(toDial, findsOneWidget);
+        await tester.tap(toDial);
+        await tester.pumpAndSettle();
+        expect(tester.takeException(), isNull);
+      } else {
+        // 24시간제 다이얼은 시 링이 두 겹으로 겹친다. 넘어갈 길을 두지 않는다.
+        expect(toDial, findsNothing,
+            reason: '$code는 24시간제라 다이얼이 겹친다 — 전환 버튼이 없어야 한다');
+      }
     });
 
     testWidgets('$code — 반복 요일 글자가 원 안에 들어간다', (tester) async {
