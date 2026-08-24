@@ -6,3 +6,6 @@ node_modules/
 flutter_app/.dart_tool/
 flutter_app/build/
 flutter_app/.flutter-plugins-dependencies
+
+# gen-l10n 생성물 — ARB에서 다시 만들어진다 (flutter pub get)
+flutter_app/lib/l10n/app_localizations*.dart

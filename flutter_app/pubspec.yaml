@@ -30,7 +30,9 @@ dependencies:
   go_router: ^13.0.0
   
   # 유틸리티
-  intl: ^0.19.0
+  # flutter_localizations가 SDK 버전마다 intl을 고정한다.
+  # 여기서 범위를 좁히면 Flutter를 올릴 때마다 해석이 깨진다.
+  intl: any
   home_widget: ^0.9.3
   timezone: ^0.9.4
 

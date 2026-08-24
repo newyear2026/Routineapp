@@ -94,16 +94,27 @@ class _LanguageSheet extends StatelessWidget {
           children: [
             Text(l10n.languageSheetTitle, style: AppTextStyles.titleSection),
             const SizedBox(height: 12),
-            for (final language in AppLanguage.values)
-              _LanguageOption(
-                label: languageLabel(l10n, language),
-                // '기기 설정 따르기'만 무엇을 뜻하는지 설명이 필요하다.
-                description: language == AppLanguage.system
-                    ? l10n.languageSystemDesc
-                    : null,
-                selected: language == current,
-                onTap: () => Navigator.of(context).pop(language),
+            // 목록은 스크롤에 실어 둔다. 화면이 짧거나 시스템 글꼴이 크면
+            // 네 항목이 시트 높이를 넘겨 마지막 선택지가 잘린다.
+            Flexible(
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (final language in AppLanguage.values)
+                      _LanguageOption(
+                        label: languageLabel(l10n, language),
+                        // '기기 설정 따르기'만 무엇을 뜻하는지 설명이 필요하다.
+                        description: language == AppLanguage.system
+                            ? l10n.languageSystemDesc
+                            : null,
+                        selected: language == current,
+                        onTap: () => Navigator.of(context).pop(language),
+                      ),
+                  ],
+                ),
               ),
+            ),
           ],
         ),
       ),

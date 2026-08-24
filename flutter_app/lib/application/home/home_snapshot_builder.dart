@@ -66,7 +66,9 @@ abstract final class HomeSnapshotBuilder {
     final centerName = current?.title ?? next?.title ?? l10n.commonRoutine;
 
     final activeRing =
-        current != null ? HomeViewMapper.ringStubFromRoutine(current) : null;
+        current != null
+            ? HomeViewMapper.ringStubFromRoutine(current, localeName)
+            : null;
     final isUpcoming = current == null && display != null;
 
     CurrentRoutine? card;
@@ -85,6 +87,7 @@ abstract final class HomeSnapshotBuilder {
           display: display,
           isUpcoming: isUpcoming,
         ),
+        localeName,
       );
       nextCard = HomeViewMapper.toNextRoutine(nextAfterDisplay);
       character = HomeViewMapper.characterFor(display);

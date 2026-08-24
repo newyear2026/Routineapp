@@ -37,6 +37,9 @@ class AppDateFormats {
   static String weekdayFullIn(String localeName, DateTime date) =>
       DateFormat.EEEE(localeName).format(date);
 
+  static String weekdayShortByIndexIn(String localeName, int weekday) =>
+      DateFormat.E(localeName).format(DateTime(2024, 1, weekday));
+
   /// 월요일=1 … 일요일=7 기준의 요일 약어. 달력 헤더처럼 날짜가 없는 곳에서 쓴다.
   ///
   /// 2024-01-01이 월요일이라 그 주를 기준 주로 삼는다.

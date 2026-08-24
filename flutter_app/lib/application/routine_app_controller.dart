@@ -25,7 +25,7 @@ import 'services/routine_notification_service.dart';
 import 'services/routine_data_service.dart';
 import '../widget_home/home_widget_sync_service.dart';
 
-/// 앱 MVP 상태 — Repository는 [RoutineDataService], Home은 [homeSnapshot] / 슬롯·진행 요약 getter
+/// 앱 MVP 상태 — Repository는 [RoutineDataService], Home은 [homeSnapshotFor] / 슬롯·진행 요약 getter
 class RoutineAppController extends ChangeNotifier {
   RoutineAppController({
     RoutineDataService? dataService,
@@ -107,20 +107,32 @@ class RoutineAppController extends ChangeNotifier {
 
   Routine? get _currentSlot => _dayService.currentRoutineAt(_now, _todaySorted);
 
-  HomeSnapshot get homeSnapshot => HomeSnapshotBuilder.build(
-        l10n: strings,
+  /// 화면이 그리는 스냅샷 — **화면 자신의 [AppLocalizations]로 만든다.**
+  ///
+  /// 컨트롤러가 로케일을 따로 해석해 문자열을 만들면, 위젯 트리가 그리는
+  /// 언어와 어긋날 수 있다(테스트처럼 트리 로케일을 지정한 경우가 그렇다).
+  /// 화면에 보이는 말은 화면의 언어를 따른다.
+  HomeSnapshot homeSnapshotFor(AppLocalizations l10n) =>
+      HomeSnapshotBuilder.build(
+        l10n: l10n,
         nowLocal: _now,
         allRoutines: _routines,
         logsToday: _logsToday,
       );
 
-  /// 위젯 확장용 — [homeSnapshot]과 동일 도메인 루틴
-  Routine? get currentRoutine => homeSnapshot.currentRoutine;
+  /// 위젯 트리 밖(홈 위젯 동기화·알림)에서 쓰는 스냅샷.
+  ///
+  /// 이쪽은 BuildContext가 없으므로 [strings]가 정한 언어를 쓴다.
+  HomeSnapshot get _snapshotForBackground => homeSnapshotFor(strings);
 
-  Routine? get nextRoutine => homeSnapshot.nextRoutine;
+  /// 위젯 확장용 — 화면 스냅샷과 동일 도메인 루틴
+  Routine? get currentRoutine => _snapshotForBackground.currentRoutine;
+
+  Routine? get nextRoutine => _snapshotForBackground.nextRoutine;
 
   /// [calculateProgress] 기준 진행 요약
-  ProgressSummary get progressSummary => homeSnapshot.progressSummary;
+  ProgressSummary get progressSummary =>
+      _snapshotForBackground.progressSummary;
 
   /// 로컬 저장소에서 루틴·오늘 로그 로드 (Home 진입·저장 후 등)
   Future<void> load() async {
@@ -148,7 +160,7 @@ class RoutineAppController extends ChangeNotifier {
   Future<void> _syncSideEffects() async {
     if (kIsWeb) return;
     try {
-      await HomeWidgetSyncService.instance.push(homeSnapshot, strings);
+      await HomeWidgetSyncService.instance.push(_snapshotForBackground, strings);
     } catch (e, st) {
       debugPrint('home widget sync failed: $e\n$st');
     }
@@ -284,7 +296,7 @@ class RoutineAppController extends ChangeNotifier {
     _logsToday = await _data.loadLogsForDate(_now);
     notifyListeners();
     if (!kIsWeb) {
-      await HomeWidgetSyncService.instance.push(homeSnapshot, strings);
+      await HomeWidgetSyncService.instance.push(_snapshotForBackground, strings);
     }
     return RoutineActionUndo(
       routineId: c.id,
@@ -303,7 +315,7 @@ class RoutineAppController extends ChangeNotifier {
     _logsToday = await _data.loadLogsForDate(_now);
     notifyListeners();
     if (!kIsWeb) {
-      await HomeWidgetSyncService.instance.push(homeSnapshot, strings);
+      await HomeWidgetSyncService.instance.push(_snapshotForBackground, strings);
     }
   }
 
@@ -343,7 +355,7 @@ class RoutineAppController extends ChangeNotifier {
 
       notifyListeners();
       if (!kIsWeb) {
-        await HomeWidgetSyncService.instance.push(homeSnapshot, strings);
+        await HomeWidgetSyncService.instance.push(_snapshotForBackground, strings);
       }
     } finally {
       _clockRefreshInFlight = false;

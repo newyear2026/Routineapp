@@ -1,4 +1,5 @@
 import '../../domain/models/routine.dart';
+import '../../domain/utils/app_date_formats.dart';
 import '../../domain/utils/time_minutes.dart';
 import '../../models/home_models.dart';
 
@@ -23,6 +24,7 @@ abstract final class HomeViewMapper {
     Routine r,
     int progressPercent,
     String timingHint,
+    String localeName,
   ) {
     return CurrentRoutine(
       id: r.id,
@@ -32,7 +34,7 @@ abstract final class HomeViewMapper {
       endTime: TimeMinutes.formatHm(r.endMinutesFromMidnight),
       timingHint: timingHint,
       progress: progressPercent.clamp(0, 100),
-      repeatDays: weekdayLabels(r.repeatWeekdays),
+      repeatDays: _weekdayLabels(r.repeatWeekdays, localeName),
       memo: r.memo ?? '',
     );
   }
@@ -55,7 +57,7 @@ abstract final class HomeViewMapper {
   }
 
   /// [CurrentRoutine] id만 링 강조에 사용 (표시용 필드 채움)
-  static CurrentRoutine ringStubFromRoutine(Routine r) {
+  static CurrentRoutine ringStubFromRoutine(Routine r, String localeName) {
     return CurrentRoutine(
       id: r.id,
       name: r.title,
@@ -64,8 +66,16 @@ abstract final class HomeViewMapper {
       endTime: TimeMinutes.formatHm(r.endMinutesFromMidnight),
       timingHint: '',
       progress: 0,
-      repeatDays: weekdayLabels(r.repeatWeekdays),
+      repeatDays: _weekdayLabels(r.repeatWeekdays, localeName),
       memo: r.memo ?? '',
     );
+  }
+
+  /// 반복 요일 약어 목록 — 요일 이름은 로케일에서 가져온다.
+  static List<String> _weekdayLabels(Set<int> weekdays, String localeName) {
+    final sorted = weekdays.where((d) => d >= 1 && d <= 7).toList()..sort();
+    return sorted
+        .map((d) => AppDateFormats.weekdayShortByIndexIn(localeName, d))
+        .toList();
   }
 }

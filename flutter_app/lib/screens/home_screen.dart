@@ -76,7 +76,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
             ),
           );
         }
-        final home = app.homeSnapshot;
+        final home = app.homeSnapshotFor(l10n);
         // 다음 일정은 upcomingRoutines 하나만 소비한다.
         // nextAfterDisplay를 함께 넣으면 첫 항목이 중복된다.
         final upcoming = home.upcomingRoutines;

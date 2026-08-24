@@ -227,7 +227,7 @@ void main() {
       addTearDown(controller.dispose);
 
       // 기상은 NEXT 스트립이 맡고, 남은 5개가 다음 일정이 된다.
-      expect(controller.homeSnapshot.upcomingRoutines.length, 5);
+      expect(controller.homeSnapshotFor(testL10n).upcomingRoutines.length, 5);
       // 전체 개수만 적으면 3개만 그려진 화면과 어긋난다.
       expect(find.text('3 / 5'), findsOneWidget);
       expect(find.text('5개'), findsNothing);
