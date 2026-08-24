@@ -37,6 +37,7 @@ void main() {
     Locale locale, {
     Size size = const Size(390, 844),
     double textScale = 1.0,
+    bool? alwaysUse24HourFormat,
   }) async {
     tester.view.devicePixelRatio = 1.0;
     tester.view.physicalSize = size;
@@ -78,8 +79,10 @@ void main() {
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
           builder: (context, child) => MediaQuery(
-            data: MediaQuery.of(context)
-                .copyWith(textScaler: TextScaler.linear(textScale)),
+            data: MediaQuery.of(context).copyWith(
+              textScaler: TextScaler.linear(textScale),
+              alwaysUse24HourFormat: alwaysUse24HourFormat,
+            ),
             child: child!,
           ),
         ),
@@ -138,18 +141,38 @@ void main() {
       expect(tester.takeException(), isNull);
     });
 
-    testWidgets('$code — 선택기가 24시간제로 뜬다', (tester) async {
+    testWidgets('$code — 선택기는 숫자 입력으로 열린다', (tester) async {
       await pumpAddScreen(tester, locale);
       final l10n = lookupAppLocalizations(locale);
-      final materialL10n =
-          await GlobalMaterialLocalizations.delegate.load(locale);
 
       await tapTile(tester, l10n.routineAddStartTime);
 
-      // 앱은 어디서나 24시간 표기다. 선택기만 12시간이면 사용자가 고른
-      // '9:00 p.m.'이 타일에서 '21:00'으로 나타난다.
-      expect(find.text(materialL10n.anteMeridiemAbbreviation), findsNothing);
-      expect(find.text(materialL10n.postMeridiemAbbreviation), findsNothing);
+      // 다이얼로 열면 24시간제 로케일에서 시 링이 두 겹으로 겹친다.
+      // 입력 모드는 어느 언어에서든 `HH : mm` 두 칸으로 같다.
+      // (뒤 화면의 루틴 이름 입력칸과 섞이지 않도록 선택기 안에서만 센다.)
+      expect(
+        find.descendant(
+          of: find.byType(TimePickerDialog),
+          matching: find.byType(TextField),
+        ),
+        findsNWidgets(2),
+      );
+      expect(tester.takeException(), isNull);
+    });
+
+    testWidgets('$code — 입력에서 다이얼로 넘어갈 수 있다', (tester) async {
+      await pumpAddScreen(tester, locale);
+      final l10n = lookupAppLocalizations(locale);
+
+      await tapTile(tester, l10n.routineAddStartTime);
+
+      // 다이얼이 필요한 사람은 한 번에 넘어갈 수 있어야 한다.
+      final toDial = find.byIcon(Icons.access_time);
+      expect(toDial, findsOneWidget);
+      await tester.tap(toDial);
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
     });
 
     testWidgets('$code — 반복 요일 글자가 원 안에 들어간다', (tester) async {
@@ -198,4 +221,28 @@ void main() {
       expect(tester.takeException(), isNull);
     });
   }
+
+  group('시간 형식은 로케일이 정한다', () {
+    testWidgets('한국어·영어는 기기가 12시간제면 오전/오후가 붙는다', (tester) async {
+      for (final locale in const [Locale('ko'), Locale('en')]) {
+        final m = await GlobalMaterialLocalizations.delegate.load(locale);
+        expect(
+          m.timeOfDayFormat(alwaysUse24HourFormat: false),
+          isNot(TimeOfDayFormat.HH_colon_mm),
+          reason: '${locale.languageCode}는 12시간제를 쓸 수 있어야 한다',
+        );
+      }
+    });
+
+    testWidgets('스페인어는 기기 설정과 무관하게 24시간제다', (tester) async {
+      final m = await GlobalMaterialLocalizations.delegate
+          .load(const Locale('es'));
+      // 이 사실 때문에 스페인어에서만 시 다이얼이 두 겹으로 그려졌다.
+      // 기기를 12시간제로 두어도 마찬가지다.
+      expect(m.timeOfDayFormat(alwaysUse24HourFormat: false),
+          TimeOfDayFormat.H_colon_mm);
+      expect(m.timeOfDayFormat(alwaysUse24HourFormat: true),
+          TimeOfDayFormat.H_colon_mm);
+    });
+  });
 }

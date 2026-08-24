@@ -610,19 +610,23 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
   }
 
   Future<void> _pickTime({required bool start}) async {
+    // 다이얼이 아니라 **숫자 입력**으로 연다.
+    //
+    // 24시간제를 쓰는 로케일에서는 시 다이얼이 바깥 링(0–11)과 안쪽 링(12–23)
+    // 두 겹으로 그려진다. 화면이 좁으면 두 링의 숫자가 서로 겹쳐 읽을 수 없다.
+    // 분 다이얼은 링이 하나라 멀쩡해서, 증상이 '시만 깨진다'로 나타난다.
+    //
+    // 기기 설정이 아니라 **로케일**이 24시간제를 정한다는 점이 함정이다.
+    // 스페인어는 기기가 12시간제여도 항상 `H:mm`이라 늘 두 겹 다이얼이 된다
+    // (한국어·영어는 기기가 12시간제면 한 겹이라 멀쩡해 보인다).
+    //
+    // 입력 모드는 어느 언어에서든 `HH : mm` 두 칸으로 같은 모양이고, 07:30
+    // 같은 정확한 시각을 넣는 이 화면에는 더 빠르다. 다이얼이 필요하면
+    // 선택기 안의 시계 아이콘으로 언제든 넘어갈 수 있다.
     final picked = await showTimePicker(
       context: context,
       initialTime: start ? _startTime : _endTime,
-      // 이 앱은 어디서나 24시간 표기를 쓴다 — 원형 시간표가 하루 24시간을
-      // 한 바퀴로 보여주는 것이 제품의 뼈대다.
-      //
-      // 기본값을 두면 로케일에 따라 선택기만 12시간 AM/PM으로 뜬다.
-      // 스페인어·영어 사용자는 '9:00 p.m.'을 고르고 타일에서 '21:00'을 보게
-      // 되고, AM/PM 칸이 붙어 다이얼도 좁은 화면에서 더 커진다.
-      builder: (context, child) => MediaQuery(
-        data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
-        child: child!,
-      ),
+      initialEntryMode: TimePickerEntryMode.input,
     );
     if (picked == null || !mounted) return;
     setState(() {
