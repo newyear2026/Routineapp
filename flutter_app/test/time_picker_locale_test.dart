@@ -118,17 +118,17 @@ void main() {
       expect(find.byType(TimePickerDialog), findsNothing);
     });
 
-    testWidgets('$code — 시 링은 24칸이고 라벨이 서로 겹치지 않는다', (tester) async {
+    testWidgets('$code — 시 링은 12칸이고 라벨이 서로 겹치지 않는다', (tester) async {
       await pumpAddScreen(tester, locale);
       final l10n = lookupAppLocalizations(locale);
 
       await tapTile(tester, l10n.routineAddStartTime);
 
-      // 00~23이 모두 보인다. Material 기본 선택기는 이걸 두 겹으로 그려서
-      // 좁은 화면에서 숫자가 서로 겹쳤다.
+      // 12, 1~11이 한 겹으로 놓인다. Material 기본 선택기는 24시간제
+      // 로케일에서 0–11과 12–23을 두 겹으로 그려 숫자가 서로 겹쳤다.
       final centers = <String, Offset>{};
-      for (var h = 0; h < 24; h++) {
-        final label = h.toString().padLeft(2, '0');
+      for (var h = 0; h < 12; h++) {
+        final label = h == 0 ? '12' : '$h';
         final finder = find.descendant(
           of: find.byKey(const Key('orbit-time-picker-dial')),
           matching: find.text(label),
@@ -159,19 +159,20 @@ void main() {
       final radius = tester.getSize(dial).width / 2;
       final center = tester.getCenter(dial);
 
-      // 시 링에는 23이 있고 분 링에는 없다 — 무엇을 고르는 중인지 이걸로 안다.
+      // 시 링에는 11이 있고 분 링(00·05·…·55)에는 없다 —
+      // 무엇을 고르는 중인지 이걸로 안다.
       expect(
-        find.descendant(of: dial, matching: find.text('23')),
+        find.descendant(of: dial, matching: find.text('11')),
         findsOneWidget,
       );
 
-      // 링 맨 위(12시 방향)를 눌러 00시를 고른다.
+      // 링 맨 위(12시 방향)를 눌러 12시를 고른다.
       await tester.tapAt(center + Offset(0, -(radius - 25)));
       await tester.pumpAndSettle();
 
       // 이어서 분 선택으로 넘어간다.
       expect(
-        find.descendant(of: dial, matching: find.text('23')),
+        find.descendant(of: dial, matching: find.text('11')),
         findsNothing,
         reason: '시를 고른 뒤 분 선택으로 넘어가야 한다',
       );
@@ -181,7 +182,7 @@ void main() {
       );
     });
 
-    testWidgets('$code — 고른 시각이 타일에 반영된다', (tester) async {
+    testWidgets('$code — 오전에 고른 시각이 타일에 반영된다', (tester) async {
       await pumpAddScreen(tester, locale);
       final l10n = lookupAppLocalizations(locale);
 
@@ -190,14 +191,86 @@ void main() {
       final dial = find.byKey(const Key('orbit-time-picker-dial'));
       final radius = tester.getSize(dial).width / 2;
       final dialCenter = tester.getCenter(dial);
-      // 06시 = 3시 방향.
+      // 링의 3시 방향 = 3시. 기본값이 09:00이라 오전이 골라져 있다.
       await tester.tapAt(dialCenter + Offset(radius - 25, 0));
       await tester.pumpAndSettle();
       await tester.tap(find.byKey(const Key('orbit-time-picker-confirm')));
       await tester.pumpAndSettle();
 
       expect(tester.takeException(), isNull);
-      expect(find.text('06:00'), findsWidgets);
+      // 링은 12시간이지만 앱 표기는 24시간 그대로다.
+      expect(find.text('03:00'), findsWidgets);
+    });
+
+    testWidgets('$code — 오후를 고르면 24시간 값으로 저장된다', (tester) async {
+      await pumpAddScreen(tester, locale);
+      final l10n = lookupAppLocalizations(locale);
+
+      await tapTile(tester, l10n.routineAddStartTime);
+
+      final dial = find.byKey(const Key('orbit-time-picker-dial'));
+      final radius = tester.getSize(dial).width / 2;
+      final dialCenter = tester.getCenter(dial);
+      // 링의 9시 방향 = 9시.
+      await tester.tapAt(dialCenter + Offset(-(radius - 25), 0));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('orbit-time-picker-pm')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('orbit-time-picker-confirm')));
+      await tester.pumpAndSettle();
+
+      expect(tester.takeException(), isNull);
+      expect(find.text('21:00'), findsWidgets);
+    });
+
+    testWidgets('$code — 오전/오후 문구가 언어를 따른다', (tester) async {
+      await pumpAddScreen(tester, locale);
+      final l10n = lookupAppLocalizations(locale);
+
+      await tapTile(tester, l10n.routineAddStartTime);
+
+      final materialL10n =
+          await GlobalMaterialLocalizations.delegate.load(locale);
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('orbit-time-picker-am')),
+          matching: find.text(materialL10n.anteMeridiemAbbreviation),
+        ),
+        findsOneWidget,
+      );
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('orbit-time-picker-pm')),
+          matching: find.text(materialL10n.postMeridiemAbbreviation),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('$code — 자정과 정오가 갈린다', (tester) async {
+      await pumpAddScreen(tester, locale);
+      final l10n = lookupAppLocalizations(locale);
+
+      await tapTile(tester, l10n.routineAddStartTime);
+
+      final dial = find.byKey(const Key('orbit-time-picker-dial'));
+      final radius = tester.getSize(dial).width / 2;
+      final dialCenter = tester.getCenter(dial);
+      // 링 맨 위 = 12. 오전이면 00시, 오후면 12시여야 한다.
+      await tester.tapAt(dialCenter + Offset(0, -(radius - 25)));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('orbit-time-picker-am')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('orbit-time-picker-confirm')));
+      await tester.pumpAndSettle();
+      expect(find.text('00:00'), findsWidgets);
+
+      await tapTile(tester, l10n.routineAddStartTime);
+      await tester.tap(find.byKey(const Key('orbit-time-picker-pm')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('orbit-time-picker-confirm')));
+      await tester.pumpAndSettle();
+      expect(find.text('12:00'), findsWidgets);
     });
 
     testWidgets('$code — 좁은 화면·큰 글꼴에서도 선택기가 넘치지 않는다', (tester) async {

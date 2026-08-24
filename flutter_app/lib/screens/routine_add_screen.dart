@@ -618,8 +618,9 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
     // 게다가 24시간제 여부를 로케일이 정해(스페인어는 늘 24시간) 언어마다
     // 다른 화면이 나왔다 — 앱은 어디서나 24시간 표기인데도.
     //
-    // 직접 만든 선택기는 시를 한 겹 24칸 링으로 그린다. 겹칠 구조가 없고,
-    // 세 언어가 같은 화면을 본다.
+    // 직접 만든 선택기는 시를 한 겹 12칸 링 + 오전/오후로 그린다.
+    // 겹칠 구조가 없고, 세 언어가 같은 화면을 본다. 돌려받는 값은
+    // 24시간 TimeOfDay라 타일·홈 원형 시간표 표기는 그대로다.
     final picked = await showOrbitTimePicker(
       context: context,
       initialTime: start ? _startTime : _endTime,
