@@ -400,7 +400,7 @@ class _MonthCalendar extends StatelessWidget {
                   weekday <= DateTime.sunday;
                   weekday++)
                 _WeekdayHeader(
-                  AppDateFormats.weekdayShortByIndex(context, weekday),
+                  AppDateFormats.weekdayNarrowByIndex(context, weekday),
                   weekend: weekday >= DateTime.saturday,
                 ),
             ],

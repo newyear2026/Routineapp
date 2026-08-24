@@ -135,8 +135,10 @@ void main() {
       ),
     );
 
-    expect(find.byKey(const Key('routine-weekday-목')), findsOneWidget);
-    expect(find.byKey(const Key('routine-weekday-월')), findsOneWidget);
+    expect(find.byKey(const Key('routine-weekday-${DateTime.thursday}')),
+        findsOneWidget);
+    expect(find.byKey(const Key('routine-weekday-${DateTime.monday}')),
+        findsOneWidget);
     expect(find.text('달력에서 선택한 요일을 미리 골랐어요.'), findsOneWidget);
     controller.dispose();
   });

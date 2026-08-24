@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../domain/utils/app_date_formats.dart';
 import '../../l10n/app_localizations.dart';
 
 import '../../domain/models/routine.dart';
@@ -137,23 +138,29 @@ class RoutineTimeTile extends StatelessWidget {
 class RoutineWeekdayCircle extends StatelessWidget {
   const RoutineWeekdayCircle({
     super.key,
-    required this.label,
+    required this.weekday,
     required this.selected,
     required this.onTap,
   });
 
-  final String label;
+  /// 월요일=1 … 일요일=7.
+  ///
+  /// 라벨을 밖에서 받지 않는다 — 표시용 한 글자와 스크린리더용 전체 이름이
+  /// 서로 다른 형식이어서, 한 문자열로 받으면 둘 중 하나가 어색해진다.
+  final int weekday;
   final bool selected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final label = AppDateFormats.weekdayNarrowByIndex(context, weekday);
     return Semantics(
       selected: selected,
       button: true,
-      label: AppLocalizations.of(context).weekdayFullSuffix(label),
+      label: AppDateFormats.weekdayFullByIndex(context, weekday),
       child: InkWell(
-        key: Key('routine-weekday-$label'),
+        // 키는 언어를 타면 안 된다 — 요일 번호로 고정한다.
+        key: Key('routine-weekday-$weekday'),
         onTap: onTap,
         borderRadius: BorderRadius.circular(24),
         child: Center(
@@ -175,6 +182,7 @@ class RoutineWeekdayCircle extends StatelessWidget {
             ),
             child: Text(
               label,
+              maxLines: 1,
               style: AppTextStyles.bodyStrong.copyWith(
                 color:
                     selected ? AppColors.orbitPrimary : AppColors.textPrimary,

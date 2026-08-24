@@ -50,6 +50,13 @@ class AppDateFormats {
   static String weekdayShortByIndexIn(String localeName, int weekday) =>
       DateFormat.E(localeName).format(DateTime(2024, 1, weekday));
 
+  /// 한 글자 요일: `월` · `M` · `L`
+  ///
+  /// 요일 원처럼 폭이 고정된 자리에 쓴다. 약어(`lun`·`Mon`)는 39px 원을
+  /// 거의 다 채워서, 글꼴이 조금만 넓거나 시스템 글꼴을 키우면 잘린다.
+  static String weekdayNarrowByIndex(BuildContext context, int weekday) =>
+      DateFormat('EEEEE', _locale(context)).format(DateTime(2024, 1, weekday));
+
   /// 월요일=1 … 일요일=7 기준의 요일 약어. 달력 헤더처럼 날짜가 없는 곳에서 쓴다.
   ///
   /// 2024-01-01이 월요일이라 그 주를 기준 주로 삼는다.

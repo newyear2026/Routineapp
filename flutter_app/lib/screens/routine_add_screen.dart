@@ -5,7 +5,6 @@ import 'package:provider/provider.dart';
 import '../app_scaffold_messenger.dart';
 import '../application/routine_app_controller.dart';
 import '../domain/models/routine_write_error.dart';
-import '../domain/utils/app_date_formats.dart';
 import '../l10n/app_localizations.dart';
 import '../data/routine_form_palette.dart';
 import '../domain/models/routine.dart';
@@ -491,10 +490,7 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                               DateTime.daysPerWeek,
                               (index) => Expanded(
                                 child: RoutineWeekdayCircle(
-                                  label: AppDateFormats.weekdayShortByIndex(
-                                    context,
-                                    index + 1,
-                                  ),
+                                  weekday: index + 1,
                                   selected: _weekdays[index],
                                   onTap: () => _onWeekdayChanged(
                                     index,
@@ -617,6 +613,16 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
     final picked = await showTimePicker(
       context: context,
       initialTime: start ? _startTime : _endTime,
+      // 이 앱은 어디서나 24시간 표기를 쓴다 — 원형 시간표가 하루 24시간을
+      // 한 바퀴로 보여주는 것이 제품의 뼈대다.
+      //
+      // 기본값을 두면 로케일에 따라 선택기만 12시간 AM/PM으로 뜬다.
+      // 스페인어·영어 사용자는 '9:00 p.m.'을 고르고 타일에서 '21:00'을 보게
+      // 되고, AM/PM 칸이 붙어 다이얼도 좁은 화면에서 더 커진다.
+      builder: (context, child) => MediaQuery(
+        data: MediaQuery.of(context).copyWith(alwaysUse24HourFormat: true),
+        child: child!,
+      ),
     );
     if (picked == null || !mounted) return;
     setState(() {

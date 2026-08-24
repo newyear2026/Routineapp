@@ -35,7 +35,6 @@
   "repeatDaily": "매일",
   "repeatWeekdays": "평일",
   "repeatWeekend": "주말",
-  "weekdayFullSuffix": "{label}요일",
   "homeTitle": "오늘의 리듬",
   "homeUpcomingSection": "다음 일정",
   "homeNoRoutinesLeft": "오늘 남은 루틴이 없어요.",

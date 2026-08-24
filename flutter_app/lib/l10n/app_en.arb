@@ -88,14 +88,6 @@
   "@repeatWeekdays": {},
   "repeatWeekend": "Weekend",
   "@repeatWeekend": {},
-  "weekdayFullSuffix": "{label}",
-  "@weekdayFullSuffix": {
-    "placeholders": {
-      "label": {
-        "type": "String"
-      }
-    }
-  },
   "homeTitle": "Today's rhythm",
   "@homeTitle": {},
   "homeUpcomingSection": "Up next",

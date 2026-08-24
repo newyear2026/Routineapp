@@ -35,7 +35,6 @@
   "repeatDaily": "Todos los días",
   "repeatWeekdays": "Entre semana",
   "repeatWeekend": "Fin de semana",
-  "weekdayFullSuffix": "{label}",
   "homeTitle": "El ritmo de hoy",
   "homeUpcomingSection": "A continuación",
   "homeNoRoutinesLeft": "No queda nada para hoy.",
