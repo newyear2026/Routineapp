@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
+
 import 'home_medium_widget_view_model.dart';
 import 'mini_circular_timetable.dart';
 import 'widget_theme.dart';
@@ -149,9 +151,9 @@ class _NextRoutineChip extends StatelessWidget {
         ),
         child: Row(
           children: [
-            const Text(
-              '다음',
-              style: TextStyle(
+            Text(
+              AppLocalizations.of(context).commonNext,
+              style: const TextStyle(
                 fontSize: WidgetTheme.captionSize,
                 fontWeight: FontWeight.w700,
                 color: WidgetTheme.textMuted,

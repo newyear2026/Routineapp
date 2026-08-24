@@ -4,6 +4,7 @@ import 'package:routine_timer/domain/models/routine.dart';
 import 'package:routine_timer/domain/services/home_routine_schedule.dart';
 
 import 'support/test_doubles.dart';
+import 'support/localization.dart';
 
 void main() {
   final routines = <Routine>[
@@ -36,6 +37,7 @@ void main() {
   group('HomeSnapshot.upcomingRoutines', () {
     test('진행 중인 루틴이 없으면 다음 루틴 이후만 담는다', () {
       final snapshot = HomeSnapshotBuilder.build(
+        l10n: testL10n,
         nowLocal: DateTime(2026, 8, 4, 16, 24),
         allRoutines: routines,
         logsToday: const [],
@@ -50,6 +52,7 @@ void main() {
 
     test('진행 중이면 그 뒤의 루틴들을 담는다', () {
       final snapshot = HomeSnapshotBuilder.build(
+        l10n: testL10n,
         nowLocal: DateTime(2026, 8, 4, 12, 30),
         allRoutines: routines,
         logsToday: const [],
@@ -62,6 +65,7 @@ void main() {
     test('nextAfterDisplay는 항상 upcomingRoutines의 첫 항목이다', () {
       for (final hour in [0, 7, 12, 16, 18, 23]) {
         final snapshot = HomeSnapshotBuilder.build(
+        l10n: testL10n,
           nowLocal: DateTime(2026, 8, 4, hour, 30),
           allRoutines: routines,
           logsToday: const [],
@@ -78,6 +82,7 @@ void main() {
 
     test('오늘 일정이 끝났으면 비어 있다', () {
       final snapshot = HomeSnapshotBuilder.build(
+        l10n: testL10n,
         nowLocal: DateTime(2026, 8, 4, 23, 59),
         allRoutines: routines,
         logsToday: const [],
@@ -87,6 +92,7 @@ void main() {
 
     test('오늘 루틴이 없으면 비어 있고 빈 하루로 표시된다', () {
       final snapshot = HomeSnapshotBuilder.build(
+        l10n: testL10n,
         nowLocal: DateTime(2026, 8, 4, 9, 0),
         allRoutines: const [],
         logsToday: const [],

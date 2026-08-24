@@ -15,6 +15,7 @@ import 'package:routine_timer/widgets/ds/ds.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/test_doubles.dart';
+import 'support/localization.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -71,7 +72,7 @@ void main() {
     await tester.pumpWidget(
       ChangeNotifierProvider.value(
         value: controller,
-        child: MaterialApp.router(routerConfig: router),
+        child: localizedApp(routerConfig: router),
       ),
     );
     await tester.pumpAndSettle();

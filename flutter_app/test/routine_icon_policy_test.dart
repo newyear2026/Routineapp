@@ -5,6 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:routine_timer/data/seed/routine_seed.dart';
 import 'package:routine_timer/domain/models/routine.dart';
 import 'package:routine_timer/domain/onboarding/recommended_routine_catalog.dart';
+import 'support/localization.dart';
 
 /// 루틴의 정체성은 **색상**으로 표현한다.
 ///
@@ -26,9 +27,9 @@ void main() {
 
   test('추천 루틴과 시드 루틴도 이모지를 갖지 않는다', () {
     for (final def in RecommendedRoutineCatalog.items) {
-      expect(def.toRoutine().iconEmoji, isEmpty, reason: def.title);
+      expect(def.toRoutine('x').iconEmoji, isEmpty, reason: def.catalogId);
     }
-    for (final routine in RoutineSeed.defaultRoutines()) {
+    for (final routine in RoutineSeed.defaultRoutines(testL10n)) {
       expect(routine.iconEmoji, isEmpty, reason: routine.title);
     }
   });

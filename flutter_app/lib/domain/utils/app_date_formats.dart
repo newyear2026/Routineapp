@@ -15,7 +15,7 @@ class AppDateFormats {
 
   /// `8월 21일` · `Aug 21` · `21 ago`
   static String monthDay(BuildContext context, DateTime date) =>
-      DateFormat.MMMd(_locale(context)).format(date);
+      monthDayIn(_locale(context), date);
 
   /// `2026년 8월` · `August 2026` · `agosto de 2026`
   static String yearMonth(BuildContext context, DateTime date) =>
@@ -27,7 +27,15 @@ class AppDateFormats {
 
   /// `월요일` · `Monday` · `lunes`
   static String weekdayFull(BuildContext context, DateTime date) =>
-      DateFormat.EEEE(_locale(context)).format(date);
+      weekdayFullIn(_locale(context), date);
+
+  // --- BuildContext가 없는 곳(스냅샷 조립·위젯 동기화)에서 쓰는 변형 ---
+
+  static String monthDayIn(String localeName, DateTime date) =>
+      DateFormat.MMMd(localeName).format(date);
+
+  static String weekdayFullIn(String localeName, DateTime date) =>
+      DateFormat.EEEE(localeName).format(date);
 
   /// 월요일=1 … 일요일=7 기준의 요일 약어. 달력 헤더처럼 날짜가 없는 곳에서 쓴다.
   ///

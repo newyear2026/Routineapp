@@ -39,8 +39,8 @@ class _WidgetMediumPreviewScreenState extends State<WidgetMediumPreviewScreen> {
             }
 
             final HomeMediumWidgetViewModel vm = _useSampleData
-                ? HomeMediumWidgetViewModel.dummy()
-                : HomeMediumWidgetSelector.fromSnapshot(app.homeSnapshot);
+                ? HomeMediumWidgetViewModel.dummy(l10n)
+                : HomeMediumWidgetSelector.fromSnapshot(app.homeSnapshot, l10n);
 
             return ListView(
               padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),

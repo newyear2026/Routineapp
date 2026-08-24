@@ -21,7 +21,7 @@ class MiniCircularTimetable extends StatelessWidget {
     required this.currentTime,
     this.activeSegmentId,
     this.pointerAngleRad,
-    this.centerLabel = '지금',
+    required this.centerLabel,
     this.size = 120,
   });
 

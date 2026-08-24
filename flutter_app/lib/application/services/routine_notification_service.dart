@@ -9,6 +9,7 @@ import '../../domain/models/routine.dart';
 import '../../domain/settings/notification_permission_status.dart';
 import '../../domain/settings/notification_preferences.dart';
 import '../../data/local/notification_preferences_storage.dart';
+import '../../l10n/app_localizations.dart';
 
 class RoutineNotificationService {
   RoutineNotificationService({
@@ -23,7 +24,9 @@ class RoutineNotificationService {
 
   static const managedPayloadPrefix = 'routine_notification:';
 
-  Future<void> syncAll(List<Routine> routines) async {
+  /// [l10n]은 알림 문구에 쓸 현재 언어다. 알림은 위젯 트리 밖에서 예약되므로
+  /// 호출자가 넘겨준다(컨트롤러의 `strings`).
+  Future<void> syncAll(List<Routine> routines, AppLocalizations l10n) async {
     if (kIsWeb) return;
 
     await _gateway.initialize();
@@ -36,7 +39,7 @@ class RoutineNotificationService {
 
     for (final routine in routines) {
       if (!routine.notificationEnabled) continue;
-      await _scheduleRoutine(routine, prefs: prefs);
+      await _scheduleRoutine(routine, prefs: prefs, l10n: l10n);
     }
   }
 
@@ -57,16 +60,18 @@ class RoutineNotificationService {
   Future<void> _scheduleRoutine(
     Routine routine, {
     required NotificationPreferences prefs,
+    required AppLocalizations l10n,
   }) async {
     final notificationDetails = _notificationDetails(
       soundEnabled: prefs.soundEnabled,
+      l10n: l10n,
     );
     final sortedWeekdays = routine.repeatWeekdays.toList()..sort();
     for (final weekday in sortedWeekdays) {
       await _gateway.scheduleWeekly(
         id: notificationIdFor(routine.id, weekday),
         title: routine.title,
-        body: '${routine.title} 시작할 시간이에요.',
+        body: l10n.notificationBody(routine.title),
         weekday: weekday,
         time: TimeOfDay(
           hour: routine.startMinutesFromMidnight ~/ 60,
@@ -78,10 +83,16 @@ class RoutineNotificationService {
     }
   }
 
-  NotificationDetails _notificationDetails({required bool soundEnabled}) {
+  NotificationDetails _notificationDetails({
+    required bool soundEnabled,
+    required AppLocalizations l10n,
+  }) {
+    // 채널 ID는 고정이다. 언어가 바뀌어도 같은 채널을 계속 쓴다 —
+    // ID를 번역하면 언어를 바꿀 때마다 새 채널이 생기고, 사용자가 예전 채널에서
+    // 꺼둔 설정이 조용히 무시된다.
     const androidChannelId = 'routine_schedule';
-    const androidChannelName = '루틴 일정 알림';
-    const androidChannelDescription = '루틴 시작 시각에 맞춰 알려주는 알림';
+    final androidChannelName = l10n.notificationChannelName;
+    final androidChannelDescription = l10n.notificationChannelDesc;
 
     final android = AndroidNotificationDetails(
       androidChannelId,

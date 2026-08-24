@@ -11,6 +11,7 @@ import '../domain/models/routine_action_source.dart';
 import '../domain/models/routine_write_error.dart';
 import '../domain/models/app_settings.dart';
 import '../domain/settings/app_language.dart';
+import '../l10n/app_localizations.dart';
 import '../domain/services/routine_day_service.dart';
 import '../domain/services/routine_log_action_service.dart';
 import '../domain/services/routine_state_resolver.dart';
@@ -70,6 +71,26 @@ class RoutineAppController extends ChangeNotifier {
   /// `MaterialApp.locale`에 그대로 넘긴다. null이면 Flutter가 기기 언어로 고른다.
   Locale? get locale => language.locale;
 
+  /// 실제로 화면에 쓰이는 로케일.
+  ///
+  /// 설정에서 고른 언어가 없으면 기기 언어를 지원 목록과 맞춰보고, 맞는 것이
+  /// 없으면 [AppLanguage.fallback]으로 내린다. 홈 스냅샷과 홈 위젯 동기화는
+  /// BuildContext 없이 문자열을 만들어야 해서 여기서 한 번 정한다.
+  Locale get resolvedLocale {
+    final chosen = language.locale;
+    if (chosen != null) return chosen;
+
+    final deviceLanguage =
+        WidgetsBinding.instance.platformDispatcher.locale.languageCode;
+    for (final supported in AppLanguage.supportedLocales) {
+      if (supported.languageCode == deviceLanguage) return supported;
+    }
+    return Locale(AppLanguage.fallback.code!);
+  }
+
+  /// BuildContext 없이 쓰는 현재 언어의 문자열.
+  AppLocalizations get strings => lookupAppLocalizations(resolvedLocale);
+
   DateTime get _now => _nowProvider();
 
   /// 모든 화면이 같은 날짜·시간을 표시하도록 제공하는 앱 기준 시각.
@@ -87,6 +108,7 @@ class RoutineAppController extends ChangeNotifier {
   Routine? get _currentSlot => _dayService.currentRoutineAt(_now, _todaySorted);
 
   HomeSnapshot get homeSnapshot => HomeSnapshotBuilder.build(
+        l10n: strings,
         nowLocal: _now,
         allRoutines: _routines,
         logsToday: _logsToday,
@@ -126,12 +148,12 @@ class RoutineAppController extends ChangeNotifier {
   Future<void> _syncSideEffects() async {
     if (kIsWeb) return;
     try {
-      await HomeWidgetSyncService.instance.push(homeSnapshot);
+      await HomeWidgetSyncService.instance.push(homeSnapshot, strings);
     } catch (e, st) {
       debugPrint('home widget sync failed: $e\n$st');
     }
     try {
-      await _notifications.syncAll(_routines);
+      await _notifications.syncAll(_routines, strings);
     } catch (e, st) {
       debugPrint('notification sync failed: $e\n$st');
     }
@@ -262,7 +284,7 @@ class RoutineAppController extends ChangeNotifier {
     _logsToday = await _data.loadLogsForDate(_now);
     notifyListeners();
     if (!kIsWeb) {
-      await HomeWidgetSyncService.instance.push(homeSnapshot);
+      await HomeWidgetSyncService.instance.push(homeSnapshot, strings);
     }
     return RoutineActionUndo(
       routineId: c.id,
@@ -281,7 +303,7 @@ class RoutineAppController extends ChangeNotifier {
     _logsToday = await _data.loadLogsForDate(_now);
     notifyListeners();
     if (!kIsWeb) {
-      await HomeWidgetSyncService.instance.push(homeSnapshot);
+      await HomeWidgetSyncService.instance.push(homeSnapshot, strings);
     }
   }
 
@@ -321,7 +343,7 @@ class RoutineAppController extends ChangeNotifier {
 
       notifyListeners();
       if (!kIsWeb) {
-        await HomeWidgetSyncService.instance.push(homeSnapshot);
+        await HomeWidgetSyncService.instance.push(homeSnapshot, strings);
       }
     } finally {
       _clockRefreshInFlight = false;

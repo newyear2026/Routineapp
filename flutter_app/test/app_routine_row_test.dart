@@ -3,6 +3,7 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:routine_timer/widgets/ds/ds.dart';
+import 'support/localization.dart';
 
 /// 루틴 한 줄은 화면마다 다시 만들지 않는다.
 ///
@@ -11,7 +12,7 @@ import 'package:routine_timer/widgets/ds/ds.dart';
 void main() {
   Future<void> pump(WidgetTester tester, Widget child) {
     return tester.pumpWidget(
-      MaterialApp(home: Scaffold(body: child)),
+      localizedApp(home: Scaffold(body: child)),
     );
   }
 

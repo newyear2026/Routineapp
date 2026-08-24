@@ -14,6 +14,7 @@ import 'package:routine_timer/domain/models/routine_log_status.dart';
 import 'package:routine_timer/domain/settings/notification_permission_status.dart';
 import 'package:routine_timer/domain/settings/notification_preferences.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:routine_timer/domain/models/routine_write_error.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -276,8 +277,8 @@ void main() {
       ),
     );
 
-    expect(result.ok, isTrue, reason: result.errorMessage);
-    expect(result.errorMessage, isNull);
+    expect(result.ok, isTrue, reason: result.error?.name);
+    expect(result.error, isNull);
     expect(controller.routines.map((r) => r.title), ['아침 산책']);
     controller.dispose();
   });
@@ -305,7 +306,7 @@ void main() {
     );
 
     expect(result.ok, isFalse);
-    expect(result.errorMessage, contains('저장에 실패'));
+    expect(result.error, RoutineWriteError.save);
     controller.dispose();
   });
 }

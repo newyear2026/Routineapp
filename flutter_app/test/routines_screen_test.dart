@@ -14,6 +14,7 @@ import 'package:routine_timer/domain/settings/notification_preferences.dart';
 import 'package:routine_timer/screens/routine_add_screen.dart';
 import 'package:routine_timer/screens/routines_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'support/localization.dart';
 
 /// 목록·캘린더 전환 칸이 트랙 높이를 다 쓰는지 확인한다.
 ///
@@ -81,7 +82,7 @@ void main() {
     await tester.pumpWidget(
       ChangeNotifierProvider.value(
         value: controller,
-        child: const MaterialApp(home: RoutinesScreen()),
+        child: localizedApp(home: const RoutinesScreen()),
       ),
     );
 
@@ -125,8 +126,8 @@ void main() {
     await tester.pumpWidget(
       ChangeNotifierProvider.value(
         value: controller,
-        child: const MaterialApp(
-          home: RoutineAddScreen(
+        child: localizedApp(
+          home: const RoutineAddScreen(
             initialWeekday: DateTime.thursday,
             returnToRoutines: true,
           ),

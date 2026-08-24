@@ -257,7 +257,7 @@ class _RoutineList extends StatelessWidget {
                 subtitle: '${TimeMinutes.formatRange(
                   routine.startMinutesFromMidnight,
                   routine.endMinutesFromMidnight,
-                )} · ${RepeatDaysLabel.of(routine.repeatWeekdays)}',
+                )} · ${RepeatDaysLabel.of(context, routine.repeatWeekdays)}',
                 onTap: () => context.push(
                   '/routine-add?id=${routine.id}&returnTo=routines',
                 ),

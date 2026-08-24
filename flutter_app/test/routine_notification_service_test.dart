@@ -5,6 +5,7 @@ import 'package:routine_timer/application/services/routine_notification_service.
 import 'package:routine_timer/domain/models/routine.dart';
 import 'package:routine_timer/domain/settings/notification_permission_status.dart';
 import 'package:routine_timer/domain/settings/notification_preferences.dart';
+import 'support/localization.dart';
 
 void main() {
   test('syncAll cancels existing managed notifications and reschedules enabled routines', () async {
@@ -39,7 +40,7 @@ void main() {
       notificationEnabled: true,
     );
 
-    await service.syncAll([routine]);
+    await service.syncAll([routine], testL10n);
 
     expect(gateway.cancelledIds, [10]);
     expect(gateway.scheduled.map((item) => item.id), [
@@ -70,7 +71,7 @@ void main() {
       notificationEnabled: true,
     );
 
-    await service.syncAll([routine]);
+    await service.syncAll([routine], testL10n);
 
     expect(gateway.scheduled, isEmpty);
   });

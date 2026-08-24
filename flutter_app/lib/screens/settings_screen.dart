@@ -77,6 +77,7 @@ class _SettingsScreenContent extends StatelessWidget {
                 onChanged: (value) => settings.setNotificationsEnabled(
                   value,
                   appController.routines,
+                  l10n,
                 ),
               ),
               SettingsToggleTile(
@@ -88,6 +89,7 @@ class _SettingsScreenContent extends StatelessWidget {
                 onChanged: (value) => settings.setSoundEnabled(
                   value,
                   appController.routines,
+                  l10n,
                 ),
               ),
             ]),

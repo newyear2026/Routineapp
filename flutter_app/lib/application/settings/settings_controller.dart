@@ -5,6 +5,7 @@ import '../../data/repositories/settings_repository.dart';
 import '../../domain/models/routine.dart';
 import '../../domain/settings/notification_permission_status.dart';
 import '../../domain/settings/settings_error.dart';
+import '../../l10n/app_localizations.dart';
 import '../../domain/settings/notification_preferences.dart';
 import '../services/notification_permission_service.dart';
 import '../services/routine_notification_service.dart';
@@ -58,8 +59,9 @@ class SettingsController extends ChangeNotifier {
     }
   }
 
+  /// [l10n]은 알림 문구를 만드는 데 쓴다 — 알림은 위젯 트리 밖에서 예약된다.
   Future<void> setNotificationsEnabled(
-      bool enabled, List<Routine> routines) async {
+      bool enabled, List<Routine> routines, AppLocalizations l10n) async {
     if (_isUpdating) return;
     _isUpdating = true;
     _error = null;
@@ -72,6 +74,7 @@ class SettingsController extends ChangeNotifier {
             soundEnabled: false,
           ),
           routines,
+          l10n,
         );
       } else {
         final granted =
@@ -85,6 +88,7 @@ class SettingsController extends ChangeNotifier {
             soundEnabled: granted,
           ),
           routines,
+          l10n,
         );
       }
     } catch (_) {
@@ -95,14 +99,18 @@ class SettingsController extends ChangeNotifier {
     }
   }
 
-  Future<void> setSoundEnabled(bool enabled, List<Routine> routines) async {
+  Future<void> setSoundEnabled(
+      bool enabled, List<Routine> routines, AppLocalizations l10n) async {
     if (_isUpdating || !notificationsEnabled) return;
     _isUpdating = true;
     _error = null;
     notifyListeners();
     try {
       await _saveAndSync(
-          _notificationPreferences.copyWith(soundEnabled: enabled), routines);
+        _notificationPreferences.copyWith(soundEnabled: enabled),
+        routines,
+        l10n,
+      );
     } catch (_) {
       _error = SettingsError.saveSound;
     } finally {
@@ -120,9 +128,10 @@ class SettingsController extends ChangeNotifier {
   Future<void> _saveAndSync(
     NotificationPreferences preferences,
     List<Routine> routines,
+    AppLocalizations l10n,
   ) async {
     await _repository.saveNotificationPreferences(preferences);
     _notificationPreferences = preferences;
-    await _notificationService.syncAll(routines);
+    await _notificationService.syncAll(routines, l10n);
   }
 }

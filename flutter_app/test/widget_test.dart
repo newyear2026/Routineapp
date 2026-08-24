@@ -3,6 +3,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:routine_timer/application/home/home_snapshot_builder.dart';
 import 'package:routine_timer/domain/models/routine.dart';
 import 'package:routine_timer/widget_medium/home_medium_widget_selector.dart';
+import 'support/localization.dart';
 
 void main() {
   test('home segments and medium ring keep routine end times', () {
@@ -28,11 +29,12 @@ void main() {
     ];
 
     final snapshot = HomeSnapshotBuilder.build(
+        l10n: testL10n,
       nowLocal: DateTime(2026, 4, 1, 10, 30),
       allRoutines: routines,
       logsToday: const [],
     );
-    final medium = HomeMediumWidgetSelector.fromSnapshot(snapshot);
+    final medium = HomeMediumWidgetSelector.fromSnapshot(snapshot, testL10n);
 
     expect(snapshot.segments, hasLength(2));
     expect(snapshot.segments[0].startMinutesFromMidnight, 8 * 60);

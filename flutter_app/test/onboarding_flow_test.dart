@@ -14,6 +14,7 @@ import 'package:routine_timer/widgets/home/circular_timetable_area.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/test_doubles.dart';
+import 'support/localization.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -32,7 +33,7 @@ void main() {
   });
 
   Future<void> pumpBare(WidgetTester tester, Widget screen) async {
-    await tester.pumpWidget(MaterialApp(home: screen));
+    await tester.pumpWidget(localizedApp(home: screen));
     await tester.pumpAndSettle();
   }
 
@@ -109,7 +110,7 @@ void main() {
       await tester.pumpWidget(
         ChangeNotifierProvider.value(
           value: controller,
-          child: const MaterialApp(home: InitialRoutineSetupScreen()),
+          child: localizedApp(home: const InitialRoutineSetupScreen()),
         ),
       );
       await tester.pumpAndSettle();
