@@ -10,17 +10,25 @@ import '../../domain/settings/notification_permission_status.dart';
 import '../../domain/settings/notification_preferences.dart';
 import '../../data/local/notification_preferences_storage.dart';
 import '../../l10n/app_localizations.dart';
+import 'exact_alarm_service.dart';
 
 class RoutineNotificationService {
   RoutineNotificationService({
     LocalNotificationGateway? gateway,
     Future<NotificationPreferences> Function()? preferencesLoader,
+    Future<bool> Function()? exactAlarmsAllowed,
   })  : _gateway = gateway ?? FlutterLocalNotificationGateway(),
         _preferencesLoader =
-            preferencesLoader ?? NotificationPreferencesStorage.load;
+            preferencesLoader ?? NotificationPreferencesStorage.load,
+        _exactAlarmsAllowed = exactAlarmsAllowed ??
+            ExactAlarmService.instance.canScheduleExactAlarms;
 
   final LocalNotificationGateway _gateway;
   final Future<NotificationPreferences> Function() _preferencesLoader;
+
+  /// 정확 알람 권한 여부. 매 동기화마다 다시 묻는다 — 사용자가 시스템 설정에서
+  /// 언제든 끌 수 있고, 껐다면 다음 예약부터 부정확 알람으로 후퇴해야 한다.
+  final Future<bool> Function() _exactAlarmsAllowed;
 
   static const managedPayloadPrefix = 'routine_notification:';
 
@@ -37,9 +45,10 @@ class RoutineNotificationService {
       return;
     }
 
+    final exact = await _exactAlarmsAllowed();
     for (final routine in routines) {
       if (!routine.notificationEnabled) continue;
-      await _scheduleRoutine(routine, prefs: prefs, l10n: l10n);
+      await _scheduleRoutine(routine, prefs: prefs, l10n: l10n, exact: exact);
     }
   }
 
@@ -57,10 +66,17 @@ class RoutineNotificationService {
     }
   }
 
+  /// 소리가 켜진 루틴 알림 채널.
+  static const soundChannelId = 'routine_schedule_sound';
+
+  /// 소리를 끈 루틴 알림 채널. 진동은 그대로 울린다.
+  static const silentChannelId = 'routine_schedule_silent';
+
   Future<void> _scheduleRoutine(
     Routine routine, {
     required NotificationPreferences prefs,
     required AppLocalizations l10n,
+    required bool exact,
   }) async {
     final notificationDetails = _notificationDetails(
       soundEnabled: prefs.soundEnabled,
@@ -79,6 +95,7 @@ class RoutineNotificationService {
         ),
         details: notificationDetails,
         payload: payloadFor(routine.id, weekday),
+        exact: exact,
       );
     }
   }
@@ -90,8 +107,15 @@ class RoutineNotificationService {
     // 채널 ID는 고정이다. 언어가 바뀌어도 같은 채널을 계속 쓴다 —
     // ID를 번역하면 언어를 바꿀 때마다 새 채널이 생기고, 사용자가 예전 채널에서
     // 꺼둔 설정이 조용히 무시된다.
-    const androidChannelId = 'routine_schedule';
-    final androidChannelName = l10n.notificationChannelName;
+    //
+    // 소리는 채널당 하나로 고정된다. Android 8.0부터 채널 설정은 만들어진
+    // 시점의 값으로 굳고, 같은 채널에 playSound만 바꿔 걸면 OS가 무시한다.
+    // 그래서 소리용과 무음용을 다른 채널로 나눠 두고 설정에 따라 고른다.
+    // 설정을 바꾸면 SettingsController가 알림을 다시 걸므로 곧바로 반영된다.
+    final androidChannelId = soundEnabled ? soundChannelId : silentChannelId;
+    final androidChannelName = soundEnabled
+        ? l10n.notificationChannelName
+        : l10n.notificationChannelNameSilent;
     final androidChannelDescription = l10n.notificationChannelDesc;
 
     final android = AndroidNotificationDetails(
@@ -143,6 +167,7 @@ abstract class LocalNotificationGateway {
     required TimeOfDay time,
     required NotificationDetails details,
     required String payload,
+    required bool exact,
   });
 
   Future<void> cancel(int id);
@@ -189,6 +214,7 @@ class FlutterLocalNotificationGateway implements LocalNotificationGateway {
     required TimeOfDay time,
     required NotificationDetails details,
     required String payload,
+    required bool exact,
   }) async {
     final scheduledDate = _nextInstanceOfWeekdayTime(
       weekday: weekday,
@@ -202,7 +228,11 @@ class FlutterLocalNotificationGateway implements LocalNotificationGateway {
       details,
       uiLocalNotificationDateInterpretation:
           UILocalNotificationDateInterpretation.wallClockTime,
-      androidScheduleMode: AndroidScheduleMode.inexactAllowWhileIdle,
+      // 정확 알람 권한이 없으면 부정확으로 후퇴한다. 권한 없이 exact 를 쓰면
+      // Android 12+ 에서 SecurityException 으로 예약 자체가 실패한다.
+      androidScheduleMode: exact
+          ? AndroidScheduleMode.exactAllowWhileIdle
+          : AndroidScheduleMode.inexactAllowWhileIdle,
       payload: payload,
       matchDateTimeComponents: DateTimeComponents.dayOfWeekAndTime,
     );

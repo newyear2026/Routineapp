@@ -52,11 +52,60 @@ class RoutineTimerApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => RoutineAppController()..load(),
-      child: Consumer<RoutineAppController>(
-        builder: (context, app, _) {
+      child: const _ExactAlarmPermissionWatcher(child: _AppRoot()),
+    );
+  }
+}
+
+/// 정확 알람 권한은 시스템 설정에서만 바뀐다. 사용자가 그곳을 다녀오면
+/// 앱이 화면에 돌아오는 시점에 대조해, 달라졌으면 알림을 다시 건다.
+/// 화면 단위로 두면 그 화면을 지나지 않은 경로가 새므로 앱 최상단에 둔다.
+class _ExactAlarmPermissionWatcher extends StatefulWidget {
+  const _ExactAlarmPermissionWatcher({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_ExactAlarmPermissionWatcher> createState() =>
+      _ExactAlarmPermissionWatcherState();
+}
+
+class _ExactAlarmPermissionWatcherState
+    extends State<_ExactAlarmPermissionWatcher> with WidgetsBindingObserver {
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    super.dispose();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state != AppLifecycleState.resumed || !mounted) return;
+    context.read<RoutineAppController>().resyncIfExactAlarmPermissionChanged();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
+}
+
+class _AppRoot extends StatelessWidget {
+  const _AppRoot();
+
+  @override
+  Widget build(BuildContext context) {
+    return Consumer<RoutineAppController>(
+      builder: (context, app, _) {
           return MaterialApp.router(
             scaffoldMessengerKey: appScaffoldMessengerKey,
-            title: 'Routine Timer',
+            // 앱 이름은 로케일마다 다르다. 태스크 스위처 제목도 따라가야 하므로
+            // 고정 title 대신 onGenerateTitle을 쓴다.
+            onGenerateTitle: (context) => AppLocalizations.of(context).appName,
             debugShowCheckedModeBanner: false,
             // null이면 기기 언어를 따른다. 설정에서 언어를 고른 경우에만 값이 온다.
             locale: app.locale,
@@ -76,10 +125,9 @@ class RoutineTimerApp extends StatelessWidget {
                 AppThemeTokens(preset: app.currentThemePreset),
               ],
             ),
-            routerConfig: _router,
-          );
-        },
-      ),
+          routerConfig: _router,
+        );
+      },
     );
   }
 }

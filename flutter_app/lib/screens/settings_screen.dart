@@ -10,6 +10,7 @@ import '../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/ds/ds.dart';
+import '../widgets/settings/exact_alarm_tile.dart';
 import '../widgets/settings/language_settings_tile.dart';
 import '../widgets/settings/settings_list_items.dart';
 import '../widgets/settings/settings_section.dart';
@@ -92,6 +93,11 @@ class _SettingsScreenContent extends StatelessWidget {
                   l10n,
                 ),
               ),
+              // 권한이 바뀌면 알림을 다시 걸어야 한다. 예약된 알람은 예약 시점의
+              // 정확/부정확 모드를 그대로 들고 있어서, 재예약 없이는 반영되지 않는다.
+              ExactAlarmTile(
+                onChanged: (_) => appController.resyncNotifications(),
+              ),
             ]),
             const SizedBox(height: 26),
             SettingsSectionTitle(
@@ -146,7 +152,7 @@ class _SettingsScreenContent extends StatelessWidget {
             const SizedBox(height: 28),
             Center(
               child: Text(
-                'Routine Timer',
+                l10n.appName,
                 style: AppTextStyles.captionTight.copyWith(
                   color: AppColors.textMuted,
                 ),

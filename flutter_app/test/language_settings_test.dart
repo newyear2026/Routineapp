@@ -40,6 +40,7 @@ void main() {
         logRepository: MemoryLogRepository(),
       ),
       notificationService: RoutineNotificationService(
+        exactAlarmsAllowed: () async => false,
         gateway: NoopNotificationGateway(),
         preferencesLoader: () async =>
             NotificationPreferences.firstLaunchDefaults,
@@ -65,6 +66,17 @@ void main() {
     );
     await tester.pumpAndSettle();
     return controller;
+  }
+
+  /// [ListView]는 뷰포트 밖 항목을 만들지 않는다. 개인화 섹션은 화면 아래라
+  /// 언어가 길어지면 생성 범위를 벗어난다. 검증 전에 보이게 끌어온다.
+  Future<void> scrollTo(WidgetTester tester, Finder target) async {
+    await tester.scrollUntilVisible(
+      target,
+      200,
+      scrollable: find.byType(Scrollable).first,
+    );
+    await tester.pumpAndSettle();
   }
 
   testWidgets('개인화 섹션에 언어 항목이 보이고 기본값은 기기 설정 따르기다', (tester) async {
@@ -112,6 +124,7 @@ void main() {
 
     // 재시작 없이 반영된다.
     expect(find.text('Ajustes'), findsNWidgets(2));
+    await scrollTo(tester, find.text('Idioma'));
     expect(find.text('Idioma'), findsOneWidget);
     expect(find.text('설정'), findsNothing);
     expect(find.text('언어'), findsNothing);
@@ -125,6 +138,7 @@ void main() {
     await tester.pumpAndSettle();
     expect(controller.appSettings.localeCode, 'en');
 
+    await scrollTo(tester, find.text('Language'));
     await tester.tap(find.text('Language'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Match device'));

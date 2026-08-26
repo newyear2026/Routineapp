@@ -259,6 +259,7 @@ void main() {
         logRepository: _FakeRoutineLogRepository({}),
       ),
       notificationService: RoutineNotificationService(
+        exactAlarmsAllowed: () async => false,
         gateway: _ThrowingNotificationGateway(),
         preferencesLoader: () async =>
             NotificationPreferences.firstLaunchDefaults,
@@ -400,6 +401,7 @@ class _FakeRoutineLogRepository implements RoutineLogRepository {
 
 RoutineNotificationService _testNotificationService() {
   return RoutineNotificationService(
+    exactAlarmsAllowed: () async => false,
     gateway: _FakeLocalNotificationGateway(),
     preferencesLoader: () async => const NotificationPreferences(
       notificationsEnabled: false,
@@ -430,6 +432,7 @@ class _FakeLocalNotificationGateway implements LocalNotificationGateway {
     required TimeOfDay time,
     required NotificationDetails details,
     required String payload,
+    required bool exact,
   }) async {}
 }
 
@@ -454,6 +457,7 @@ class _ThrowingNotificationGateway implements LocalNotificationGateway {
     required TimeOfDay time,
     required NotificationDetails details,
     required String payload,
+    required bool exact,
   }) async {}
 }
 

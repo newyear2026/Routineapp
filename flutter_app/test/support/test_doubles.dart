@@ -108,6 +108,7 @@ class NoopNotificationGateway implements LocalNotificationGateway {
     required TimeOfDay time,
     required NotificationDetails details,
     required String payload,
+    required bool exact,
   }) async {}
 }
 
@@ -158,6 +159,7 @@ class ThrowingNotificationGateway implements LocalNotificationGateway {
     required TimeOfDay time,
     required NotificationDetails details,
     required String payload,
+    required bool exact,
   }) async {}
 }
 
@@ -196,6 +198,7 @@ class RecordingNotificationGateway implements LocalNotificationGateway {
     required TimeOfDay time,
     required NotificationDetails details,
     required String payload,
+    required bool exact,
   }) async {
     scheduled.add(
       ScheduledNotification(title: title, body: body, weekday: weekday),

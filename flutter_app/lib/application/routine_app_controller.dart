@@ -21,6 +21,7 @@ import 'home/home_snapshot.dart';
 import 'home/home_snapshot_builder.dart';
 import 'home/progress_summary.dart';
 import 'routine_save_result.dart';
+import 'services/exact_alarm_service.dart';
 import 'services/routine_notification_service.dart';
 import 'services/routine_data_service.dart';
 import '../widget_home/home_widget_sync_service.dart';
@@ -168,6 +169,34 @@ class RoutineAppController extends ChangeNotifier {
       await _notifications.syncAll(_routines, strings);
     } catch (e, st) {
       debugPrint('notification sync failed: $e\n$st');
+    }
+  }
+
+  /// 마지막으로 알림을 걸 때의 정확 알람 권한. 앱 밖(시스템 설정)에서 바뀌므로
+  /// 복귀할 때마다 대조한다.
+  bool? _exactAlarmsAtLastSync;
+
+  /// 앱이 화면에 돌아왔을 때 정확 알람 권한이 달라졌으면 알림을 다시 건다.
+  ///
+  /// 이 권한은 시스템 설정에서만 바뀌고, 이미 예약된 알람은 예약 시점의
+  /// 정확/부정확 모드를 그대로 들고 있다. 다시 걸지 않으면 사용자가 권한을
+  /// 켜도 그날의 알림은 계속 늦게 온다.
+  Future<void> resyncIfExactAlarmPermissionChanged() async {
+    if (kIsWeb) return;
+    final allowed = await ExactAlarmService.instance.canScheduleExactAlarms();
+    if (allowed == _exactAlarmsAtLastSync) return;
+    _exactAlarmsAtLastSync = allowed;
+    await resyncNotifications();
+  }
+
+  /// 알림만 다시 예약한다. 정확 알람 권한처럼 앱 밖에서 바뀌는 조건은
+  /// 이미 예약된 알람에 반영되지 않으므로, 바뀐 뒤 다시 걸어야 한다.
+  Future<void> resyncNotifications() async {
+    if (kIsWeb) return;
+    try {
+      await _notifications.syncAll(_routines, strings);
+    } catch (e, st) {
+      debugPrint('notification resync failed: $e\n$st');
     }
   }
 

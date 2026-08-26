@@ -38,6 +38,7 @@ void main() {
         logRepository: MemoryLogRepository(),
       ),
       notificationService: RoutineNotificationService(
+        exactAlarmsAllowed: () async => false,
         gateway: NoopNotificationGateway(),
         preferencesLoader: () async =>
             NotificationPreferences.firstLaunchDefaults,
@@ -191,6 +192,7 @@ void main() {
           logRepository: MemoryLogRepository(),
         ),
         notificationService: RoutineNotificationService(
+          exactAlarmsAllowed: () async => false,
           gateway: gateway,
           preferencesLoader: () async => const NotificationPreferences(
             notificationsEnabled: true,
@@ -224,6 +226,7 @@ void main() {
           logRepository: MemoryLogRepository(),
         ),
         notificationService: RoutineNotificationService(
+          exactAlarmsAllowed: () async => false,
           gateway: gateway,
           preferencesLoader: () async => const NotificationPreferences(
             notificationsEnabled: true,
@@ -250,6 +253,7 @@ void main() {
     test('예약되는 문구가 현재 언어를 따른다', () async {
       final gateway = RecordingNotificationGateway();
       final service = RoutineNotificationService(
+        exactAlarmsAllowed: () async => false,
         gateway: gateway,
         preferencesLoader: () async => const NotificationPreferences(
           notificationsEnabled: true,

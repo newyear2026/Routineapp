@@ -26,11 +26,15 @@ class ThemePresetSection extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          // 제목과 배지를 한 줄에 고정하면 번역이 긴 언어(영어·스페인어)에서
+          // 가로로 넘친다. 제목이 남는 폭을 쓰고, 좁으면 배지가 아래로 접힌다.
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
               Text(l10n.settingsThemeSection,
                   style: AppTextStyles.titleSection.copyWith(fontSize: 15)),
-              const SizedBox(width: 8),
               AppStatusBadge(
                 label: l10n.commonComingSoon,
                 tone: AppStatusBadgeTone.readySoon,

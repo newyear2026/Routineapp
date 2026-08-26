@@ -70,6 +70,7 @@ void main() {
         logRepository: _MemoryLogRepository(),
       ),
       notificationService: RoutineNotificationService(
+        exactAlarmsAllowed: () async => false,
         gateway: _NoopNotificationGateway(),
         preferencesLoader: () async =>
             NotificationPreferences.firstLaunchDefaults,
@@ -114,6 +115,7 @@ void main() {
         logRepository: _MemoryLogRepository(),
       ),
       notificationService: RoutineNotificationService(
+        exactAlarmsAllowed: () async => false,
         gateway: _NoopNotificationGateway(),
         preferencesLoader: () async =>
             NotificationPreferences.firstLaunchDefaults,
@@ -232,5 +234,6 @@ class _NoopNotificationGateway implements LocalNotificationGateway {
     required TimeOfDay time,
     required NotificationDetails details,
     required String payload,
+    required bool exact,
   }) async {}
 }

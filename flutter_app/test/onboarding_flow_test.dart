@@ -99,6 +99,7 @@ void main() {
           logRepository: MemoryLogRepository(),
         ),
         notificationService: RoutineNotificationService(
+          exactAlarmsAllowed: () async => false,
           gateway: NoopNotificationGateway(),
           preferencesLoader: () async =>
               NotificationPreferences.firstLaunchDefaults,
