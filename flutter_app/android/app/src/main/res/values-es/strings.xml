@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Vuelta al Día</string>
+    <string name="widget_ring_desc">Anillo de rutinas de hoy</string>
+    <string name="widget_medium_description">Tus rutinas de hoy en un círculo</string>
+    <string name="widget_next_label">Siguiente</string>
+</resources>

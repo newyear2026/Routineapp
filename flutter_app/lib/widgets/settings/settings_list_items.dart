@@ -50,6 +50,7 @@ class SettingsNavigationTile extends StatelessWidget {
     this.accent = AppColors.orbitPrimary,
     this.onTap,
     this.statusLabel,
+    this.statusTone = AppStatusBadgeTone.readySoon,
     this.description,
   });
 
@@ -58,6 +59,7 @@ class SettingsNavigationTile extends StatelessWidget {
   final Color accent;
   final VoidCallback? onTap;
   final String? statusLabel;
+  final AppStatusBadgeTone statusTone;
   final String? description;
 
   @override
@@ -71,7 +73,7 @@ class SettingsNavigationTile extends StatelessWidget {
       onTap: onTap,
       enabled: enabled,
       statusLabel: statusLabel,
-      statusTone: AppStatusBadgeTone.readySoon,
+      statusTone: statusTone,
       // 비활성 항목에는 갈 곳이 없으므로 화살표 자리를 비운다.
       // '준비 중' 배지가 이미 상태를 말한다.
       trailing: enabled

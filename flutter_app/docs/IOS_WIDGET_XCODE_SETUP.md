@@ -5,14 +5,14 @@ Flutter는 `home_widget` + App Group으로 JSON을 저장한다. **시스템 위
 ## 전제
 
 - Xcode 15+ 권장  
-- 번들 ID 예: `com.example.routineTimer` (Runner와 동일 계열)  
-- App Group: `group.com.example.routineTimer` (코드·Runner.entitlements와 동일)
+- 번들 ID 예: `com.dayround.app` (Runner와 동일 계열)  
+- App Group: `group.com.dayround.app` (코드·Runner.entitlements와 동일)
 
 ## 1) App Group (Runner)
 
 1. Xcode에서 `ios/Runner.xcworkspace` 연다.  
 2. **Runner** 타깃 → **Signing & Capabilities** → **+ Capability** → **App Groups**.  
-3. `group.com.example.routineTimer` 추가 (이미 `Runner/Runner.entitlements`에 있으면 확인만).
+3. `group.com.dayround.app` 추가 (이미 `Runner/Runner.entitlements`에 있으면 확인만).
 
 ## 2) Widget Extension 타깃 생성
 

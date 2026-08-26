@@ -1,6 +1,7 @@
 import '../application/home/home_snapshot.dart';
 import '../domain/models/routine_log_status.dart';
 import '../domain/utils/time_minutes.dart';
+import '../l10n/app_localizations.dart';
 import '../models/home_models.dart';
 import 'home_medium_widget_view_model.dart';
 import 'medium_ring_segment.dart';
@@ -10,19 +11,25 @@ import 'medium_ring_segment.dart';
 /// 위젯 확장·iOS WidgetKit 브리지 시 동일 selector를 재사용할 수 있도록 분리.
 abstract final class HomeMediumWidgetSelector {
   /// [HomeSnapshot]이 이미 [currentRoutine]·[segments]·[clockTime] 등을 포함.
-  static HomeMediumWidgetViewModel fromSnapshot(HomeSnapshot h) {
+  /// [l10n]은 현재 언어다. 위젯은 위젯 트리 밖에서도 만들어지므로
+  /// 호출자가 넘긴다(컨트롤러의 `strings`).
+  static HomeMediumWidgetViewModel fromSnapshot(
+    HomeSnapshot h,
+    AppLocalizations l10n,
+  ) {
     final display = h.displayRoutine;
     final next = h.nextRoutine;
 
-    final title = display?.title ?? '오늘 루틴이 없어요';
+    final title = display?.title ?? l10n.widgetNoRoutines;
 
     final status = _statusLabel(
+      l10n: l10n,
       logStatus: h.currentRoutineLogStatus,
       hasDisplay: display != null,
       isUpcomingOnly: h.isDisplayUpcoming,
     );
 
-    var nextTitle = '없음';
+    var nextTitle = l10n.widgetNone;
     var nextTime = '';
     if (h.nextRoutineCard != null) {
       final n = h.nextRoutineCard!;
@@ -41,7 +48,7 @@ abstract final class HomeMediumWidgetSelector {
       // 실제로 계산된 힌트가 없으면 지어내지 않는다.
       // 루틴이 없을 때만 다음 행동을 안내한다.
       currentRoutineTimingHint: display == null
-          ? '루틴 탭에서 추가할 수 있어요'
+          ? l10n.widgetAddHint
           : _timingHint(
               logStatus: h.currentRoutineLogStatus,
               hint: h.currentRoutineCard?.timingHint,
@@ -51,7 +58,7 @@ abstract final class HomeMediumWidgetSelector {
       nextRoutineTime: nextTime,
       currentTime: h.clockTime,
       // 앱 원형 시간표 중앙과 같은 말을 쓴다.
-      centerTimeLabel: '지금',
+      centerTimeLabel: l10n.commonNow,
       ringSegments: ring,
       activeSegmentId: activeId,
     );
@@ -105,6 +112,7 @@ abstract final class HomeMediumWidgetSelector {
   /// 예전에는 위젯만 `종료` · `응답 없음`을 써서, 같은 상태를 앱은 '놓침',
   /// 위젯은 다른 이름으로 불렀다.
   static String _statusLabel({
+    required AppLocalizations l10n,
     required RoutineLogStatus? logStatus,
     required bool hasDisplay,
     required bool isUpcomingOnly,
@@ -112,22 +120,22 @@ abstract final class HomeMediumWidgetSelector {
     // 보여줄 루틴이 없으면 배지 자리를 비운다. '—'는 상태가 아니다.
     if (!hasDisplay) return '';
     if (logStatus == null) {
-      return isUpcomingOnly ? '예정' : '진행 중';
+      return isUpcomingOnly ? l10n.statusUpcoming : l10n.statusInProgress;
     }
     switch (logStatus) {
       case RoutineLogStatus.scheduled:
-        return '예정';
+        return l10n.statusUpcoming;
       case RoutineLogStatus.active:
-        return '진행 중';
+        return l10n.statusInProgress;
       case RoutineLogStatus.completed:
-        return '완료';
+        return l10n.statusCompleted;
       case RoutineLogStatus.snoozed:
-        return '나중에';
+        return l10n.statusSnoozed;
       case RoutineLogStatus.skipped:
-        return '건너뜀';
+        return l10n.statusSkippedShort;
       case RoutineLogStatus.noResponse:
       case RoutineLogStatus.expired:
-        return '놓침';
+        return l10n.statusMissed;
     }
   }
 }

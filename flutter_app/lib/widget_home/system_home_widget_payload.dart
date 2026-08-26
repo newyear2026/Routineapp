@@ -1,6 +1,7 @@
 import 'dart:convert';
 
 import '../application/home/home_snapshot.dart';
+import '../l10n/app_localizations.dart';
 import '../domain/utils/time_minutes.dart';
 import '../widget_medium/home_medium_widget_selector.dart';
 import '../widget_medium/home_medium_widget_view_model.dart';
@@ -43,8 +44,11 @@ class SystemHomeWidgetPayload {
   final List<SystemRingSegmentPayload> ringSegments;
   final String? activeSegmentId;
 
-  factory SystemHomeWidgetPayload.fromHomeSnapshot(HomeSnapshot snapshot) {
-    final vm = HomeMediumWidgetSelector.fromSnapshot(snapshot);
+  factory SystemHomeWidgetPayload.fromHomeSnapshot(
+    HomeSnapshot snapshot,
+    AppLocalizations l10n,
+  ) {
+    final vm = HomeMediumWidgetSelector.fromSnapshot(snapshot, l10n);
     return SystemHomeWidgetPayload.fromViewModel(vm, snapshot);
   }
 

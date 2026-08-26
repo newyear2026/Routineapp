@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
 
 /// 가로 스크롤 색상 선택 (원형 스와치)
@@ -23,9 +24,9 @@ class PastelColorPalette extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Text(
-          '색상',
-          style: TextStyle(
+        Text(
+          AppLocalizations.of(context).commonColor,
+          style: const TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,
             color: AppColors.textMuted,

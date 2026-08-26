@@ -17,11 +17,12 @@ class OnboardingRoutineSetupService {
   /// 이전에 저장된 `onboarding_rec_*` 루틴은 제거 후 재삽입한다.
   Future<void> completeWithSelectedDefinitions(
     List<RecommendedRoutineDefinition> selected,
+    String Function(RecommendedRoutineDefinition) titleOf,
   ) async {
     final existing = await _data.loadRoutines();
     final kept =
         existing.where((r) => !_isOnboardingRecommendedRoutine(r)).toList();
-    final created = selected.map((d) => d.toRoutine()).toList();
+    final created = selected.map((d) => d.toRoutine(titleOf(d))).toList();
     await _data.saveRoutines([...kept, ...created]);
     await OnboardingLocalStorage.markInitialRoutineSetupCompleted();
   }

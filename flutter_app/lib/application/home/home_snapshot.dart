@@ -14,6 +14,7 @@ class HomeSnapshot {
   const HomeSnapshot({
     required this.dateLabel,
     required this.dayOfWeekLabel,
+    required this.dateWithWeekdayLabel,
     required this.greeting,
     required this.todayRoutines,
     required this.currentRoutine,
@@ -45,6 +46,9 @@ class HomeSnapshot {
   // —— 헤더 ——
   final String dateLabel;
   final String dayOfWeekLabel;
+
+  /// 홈 헤더용 — 날짜와 요일을 로케일 어순으로 합친 한 줄.
+  final String dateWithWeekdayLabel;
   final String greeting;
 
   // —— 도메인 지표 (요청 필드) ——

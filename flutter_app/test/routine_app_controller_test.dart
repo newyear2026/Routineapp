@@ -14,6 +14,8 @@ import 'package:routine_timer/domain/models/routine_log_status.dart';
 import 'package:routine_timer/domain/settings/notification_permission_status.dart';
 import 'package:routine_timer/domain/settings/notification_preferences.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:routine_timer/domain/models/routine_write_error.dart';
+import 'support/localization.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -182,8 +184,8 @@ void main() {
     );
 
     await controller.load();
-    expect(controller.homeSnapshot.segments, isEmpty);
-    expect(controller.homeSnapshot.isEmptyDay, isTrue);
+    expect(controller.homeSnapshotFor(testL10n).segments, isEmpty);
+    expect(controller.homeSnapshotFor(testL10n).isEmptyDay, isTrue);
 
     const added = Routine(
       id: 'routine_1',
@@ -198,16 +200,16 @@ void main() {
     final addResult = await controller.saveRoutine(added);
 
     expect(addResult.ok, isTrue);
-    expect(controller.homeSnapshot.segments, hasLength(1));
-    expect(controller.homeSnapshot.isEmptyDay, isFalse);
-    expect(controller.homeSnapshot.segments.single.id, 'routine_1');
-    expect(controller.homeSnapshot.segments.single.label, '아침 산책');
+    expect(controller.homeSnapshotFor(testL10n).segments, hasLength(1));
+    expect(controller.homeSnapshotFor(testL10n).isEmptyDay, isFalse);
+    expect(controller.homeSnapshotFor(testL10n).segments.single.id, 'routine_1');
+    expect(controller.homeSnapshotFor(testL10n).segments.single.label, '아침 산책');
     expect(
-      controller.homeSnapshot.segments.single.startMinutesFromMidnight,
+      controller.homeSnapshotFor(testL10n).segments.single.startMinutesFromMidnight,
       8 * 60,
     );
     expect(
-      controller.homeSnapshot.segments.single.endMinutesFromMidnight,
+      controller.homeSnapshotFor(testL10n).segments.single.endMinutesFromMidnight,
       9 * 60,
     );
 
@@ -224,23 +226,23 @@ void main() {
     final updateResult = await controller.saveRoutine(updated);
 
     expect(updateResult.ok, isTrue);
-    expect(controller.homeSnapshot.segments, hasLength(1));
-    expect(controller.homeSnapshot.segments.single.id, 'routine_1');
-    expect(controller.homeSnapshot.segments.single.label, '아침 독서');
+    expect(controller.homeSnapshotFor(testL10n).segments, hasLength(1));
+    expect(controller.homeSnapshotFor(testL10n).segments.single.id, 'routine_1');
+    expect(controller.homeSnapshotFor(testL10n).segments.single.label, '아침 독서');
     expect(
-      controller.homeSnapshot.segments.single.startMinutesFromMidnight,
+      controller.homeSnapshotFor(testL10n).segments.single.startMinutesFromMidnight,
       10 * 60,
     );
     expect(
-      controller.homeSnapshot.segments.single.endMinutesFromMidnight,
+      controller.homeSnapshotFor(testL10n).segments.single.endMinutesFromMidnight,
       11 * 60,
     );
 
     final deleteResult = await controller.deleteRoutine('routine_1');
 
     expect(deleteResult.ok, isTrue);
-    expect(controller.homeSnapshot.segments, isEmpty);
-    expect(controller.homeSnapshot.isEmptyDay, isTrue);
+    expect(controller.homeSnapshotFor(testL10n).segments, isEmpty);
+    expect(controller.homeSnapshotFor(testL10n).isEmptyDay, isTrue);
 
     controller.dispose();
   });
@@ -257,6 +259,7 @@ void main() {
         logRepository: _FakeRoutineLogRepository({}),
       ),
       notificationService: RoutineNotificationService(
+        exactAlarmsAllowed: () async => false,
         gateway: _ThrowingNotificationGateway(),
         preferencesLoader: () async =>
             NotificationPreferences.firstLaunchDefaults,
@@ -276,8 +279,8 @@ void main() {
       ),
     );
 
-    expect(result.ok, isTrue, reason: result.errorMessage);
-    expect(result.errorMessage, isNull);
+    expect(result.ok, isTrue, reason: result.error?.name);
+    expect(result.error, isNull);
     expect(controller.routines.map((r) => r.title), ['아침 산책']);
     controller.dispose();
   });
@@ -305,7 +308,7 @@ void main() {
     );
 
     expect(result.ok, isFalse);
-    expect(result.errorMessage, contains('저장에 실패'));
+    expect(result.error, RoutineWriteError.save);
     controller.dispose();
   });
 }
@@ -398,6 +401,7 @@ class _FakeRoutineLogRepository implements RoutineLogRepository {
 
 RoutineNotificationService _testNotificationService() {
   return RoutineNotificationService(
+    exactAlarmsAllowed: () async => false,
     gateway: _FakeLocalNotificationGateway(),
     preferencesLoader: () async => const NotificationPreferences(
       notificationsEnabled: false,
@@ -428,6 +432,7 @@ class _FakeLocalNotificationGateway implements LocalNotificationGateway {
     required TimeOfDay time,
     required NotificationDetails details,
     required String payload,
+    required bool exact,
   }) async {}
 }
 
@@ -452,6 +457,7 @@ class _ThrowingNotificationGateway implements LocalNotificationGateway {
     required TimeOfDay time,
     required NotificationDetails details,
     required String payload,
+    required bool exact,
   }) async {}
 }
 

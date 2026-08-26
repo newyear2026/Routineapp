@@ -8,7 +8,10 @@ import '../data/repositories/settings_repository.dart';
 import '../domain/models/routine.dart';
 import '../domain/models/routine_log.dart';
 import '../domain/models/routine_action_source.dart';
+import '../domain/models/routine_write_error.dart';
 import '../domain/models/app_settings.dart';
+import '../domain/settings/app_language.dart';
+import '../l10n/app_localizations.dart';
 import '../domain/services/routine_day_service.dart';
 import '../domain/services/routine_log_action_service.dart';
 import '../domain/services/routine_state_resolver.dart';
@@ -18,11 +21,12 @@ import 'home/home_snapshot.dart';
 import 'home/home_snapshot_builder.dart';
 import 'home/progress_summary.dart';
 import 'routine_save_result.dart';
+import 'services/exact_alarm_service.dart';
 import 'services/routine_notification_service.dart';
 import 'services/routine_data_service.dart';
 import '../widget_home/home_widget_sync_service.dart';
 
-/// 앱 MVP 상태 — Repository는 [RoutineDataService], Home은 [homeSnapshot] / 슬롯·진행 요약 getter
+/// 앱 MVP 상태 — Repository는 [RoutineDataService], Home은 [homeSnapshotFor] / 슬롯·진행 요약 getter
 class RoutineAppController extends ChangeNotifier {
   RoutineAppController({
     RoutineDataService? dataService,
@@ -62,6 +66,32 @@ class RoutineAppController extends ChangeNotifier {
   String get themeId => _appSettings.themeId ?? AppThemePreset.softDay.id;
   AppThemePreset get currentThemePreset => AppThemePreset.byId(themeId);
 
+  /// 사용자가 설정에서 고른 언어. [AppLanguage.system]이면 기기 언어를 따른다.
+  AppLanguage get language => AppLanguage.fromCode(_appSettings.localeCode);
+
+  /// `MaterialApp.locale`에 그대로 넘긴다. null이면 Flutter가 기기 언어로 고른다.
+  Locale? get locale => language.locale;
+
+  /// 실제로 화면에 쓰이는 로케일.
+  ///
+  /// 설정에서 고른 언어가 없으면 기기 언어를 지원 목록과 맞춰보고, 맞는 것이
+  /// 없으면 [AppLanguage.fallback]으로 내린다. 홈 스냅샷과 홈 위젯 동기화는
+  /// BuildContext 없이 문자열을 만들어야 해서 여기서 한 번 정한다.
+  Locale get resolvedLocale {
+    final chosen = language.locale;
+    if (chosen != null) return chosen;
+
+    final deviceLanguage =
+        WidgetsBinding.instance.platformDispatcher.locale.languageCode;
+    for (final supported in AppLanguage.supportedLocales) {
+      if (supported.languageCode == deviceLanguage) return supported;
+    }
+    return Locale(AppLanguage.fallback.code!);
+  }
+
+  /// BuildContext 없이 쓰는 현재 언어의 문자열.
+  AppLocalizations get strings => lookupAppLocalizations(resolvedLocale);
+
   DateTime get _now => _nowProvider();
 
   /// 모든 화면이 같은 날짜·시간을 표시하도록 제공하는 앱 기준 시각.
@@ -78,19 +108,32 @@ class RoutineAppController extends ChangeNotifier {
 
   Routine? get _currentSlot => _dayService.currentRoutineAt(_now, _todaySorted);
 
-  HomeSnapshot get homeSnapshot => HomeSnapshotBuilder.build(
+  /// 화면이 그리는 스냅샷 — **화면 자신의 [AppLocalizations]로 만든다.**
+  ///
+  /// 컨트롤러가 로케일을 따로 해석해 문자열을 만들면, 위젯 트리가 그리는
+  /// 언어와 어긋날 수 있다(테스트처럼 트리 로케일을 지정한 경우가 그렇다).
+  /// 화면에 보이는 말은 화면의 언어를 따른다.
+  HomeSnapshot homeSnapshotFor(AppLocalizations l10n) =>
+      HomeSnapshotBuilder.build(
+        l10n: l10n,
         nowLocal: _now,
         allRoutines: _routines,
         logsToday: _logsToday,
       );
 
-  /// 위젯 확장용 — [homeSnapshot]과 동일 도메인 루틴
-  Routine? get currentRoutine => homeSnapshot.currentRoutine;
+  /// 위젯 트리 밖(홈 위젯 동기화·알림)에서 쓰는 스냅샷.
+  ///
+  /// 이쪽은 BuildContext가 없으므로 [strings]가 정한 언어를 쓴다.
+  HomeSnapshot get _snapshotForBackground => homeSnapshotFor(strings);
 
-  Routine? get nextRoutine => homeSnapshot.nextRoutine;
+  /// 위젯 확장용 — 화면 스냅샷과 동일 도메인 루틴
+  Routine? get currentRoutine => _snapshotForBackground.currentRoutine;
+
+  Routine? get nextRoutine => _snapshotForBackground.nextRoutine;
 
   /// [calculateProgress] 기준 진행 요약
-  ProgressSummary get progressSummary => homeSnapshot.progressSummary;
+  ProgressSummary get progressSummary =>
+      _snapshotForBackground.progressSummary;
 
   /// 로컬 저장소에서 루틴·오늘 로그 로드 (Home 진입·저장 후 등)
   Future<void> load() async {
@@ -118,14 +161,42 @@ class RoutineAppController extends ChangeNotifier {
   Future<void> _syncSideEffects() async {
     if (kIsWeb) return;
     try {
-      await HomeWidgetSyncService.instance.push(homeSnapshot);
+      await HomeWidgetSyncService.instance.push(_snapshotForBackground, strings);
     } catch (e, st) {
       debugPrint('home widget sync failed: $e\n$st');
     }
     try {
-      await _notifications.syncAll(_routines);
+      await _notifications.syncAll(_routines, strings);
     } catch (e, st) {
       debugPrint('notification sync failed: $e\n$st');
+    }
+  }
+
+  /// 마지막으로 알림을 걸 때의 정확 알람 권한. 앱 밖(시스템 설정)에서 바뀌므로
+  /// 복귀할 때마다 대조한다.
+  bool? _exactAlarmsAtLastSync;
+
+  /// 앱이 화면에 돌아왔을 때 정확 알람 권한이 달라졌으면 알림을 다시 건다.
+  ///
+  /// 이 권한은 시스템 설정에서만 바뀌고, 이미 예약된 알람은 예약 시점의
+  /// 정확/부정확 모드를 그대로 들고 있다. 다시 걸지 않으면 사용자가 권한을
+  /// 켜도 그날의 알림은 계속 늦게 온다.
+  Future<void> resyncIfExactAlarmPermissionChanged() async {
+    if (kIsWeb) return;
+    final allowed = await ExactAlarmService.instance.canScheduleExactAlarms();
+    if (allowed == _exactAlarmsAtLastSync) return;
+    _exactAlarmsAtLastSync = allowed;
+    await resyncNotifications();
+  }
+
+  /// 알림만 다시 예약한다. 정확 알람 권한처럼 앱 밖에서 바뀌는 조건은
+  /// 이미 예약된 알람에 반영되지 않으므로, 바뀐 뒤 다시 걸어야 한다.
+  Future<void> resyncNotifications() async {
+    if (kIsWeb) return;
+    try {
+      await _notifications.syncAll(_routines, strings);
+    } catch (e, st) {
+      debugPrint('notification resync failed: $e\n$st');
     }
   }
 
@@ -137,6 +208,25 @@ class RoutineAppController extends ChangeNotifier {
       return;
     }
     await load();
+  }
+
+  Future<void> updateLanguage(AppLanguage language) async {
+    if (language == this.language) return;
+
+    final previousLocale = resolvedLocale;
+    _appSettings = _appSettings.copyWith(
+      localeCode: language.code,
+      clearLocaleCode: language == AppLanguage.system,
+    );
+    await _settings.saveAppSettings(_appSettings);
+    notifyListeners();
+
+    // 화면은 다시 그려지지만 **앱 밖으로 나간 문자열은 그대로 남는다.**
+    // 알림은 주 단위로 미리 예약돼 있어, 다시 예약하지 않으면 사용자는
+    // 몇 주 동안 옛 언어로 알림을 받는다. 홈 위젯도 마찬가지다.
+    if (resolvedLocale != previousLocale) {
+      await _syncSideEffects();
+    }
   }
 
   Future<void> updateTheme(String themeId) async {
@@ -158,9 +248,7 @@ class RoutineAppController extends ChangeNotifier {
       await _data.upsertRoutine(toSave);
     } catch (e, st) {
       debugPrint('saveRoutine write failed: $e\n$st');
-      return RoutineSaveResult.failure(
-        '저장에 실패했어요. 잠시 후 다시 시도해 주세요.',
-      );
+      return RoutineSaveResult.failure(RoutineWriteError.save);
     }
     await _reloadAfterWrite();
     return RoutineSaveResult.success;
@@ -183,9 +271,7 @@ class RoutineAppController extends ChangeNotifier {
       await _data.deleteRoutine(routineId);
     } catch (e, st) {
       debugPrint('deleteRoutine write failed: $e\n$st');
-      return RoutineSaveResult.failure(
-        '삭제에 실패했어요. 잠시 후 다시 시도해 주세요.',
-      );
+      return RoutineSaveResult.failure(RoutineWriteError.delete);
     }
     await _reloadAfterWrite();
     return RoutineSaveResult.success;
@@ -249,7 +335,7 @@ class RoutineAppController extends ChangeNotifier {
     _logsToday = await _data.loadLogsForDate(_now);
     notifyListeners();
     if (!kIsWeb) {
-      await HomeWidgetSyncService.instance.push(homeSnapshot);
+      await HomeWidgetSyncService.instance.push(_snapshotForBackground, strings);
     }
     return RoutineActionUndo(
       routineId: c.id,
@@ -268,7 +354,7 @@ class RoutineAppController extends ChangeNotifier {
     _logsToday = await _data.loadLogsForDate(_now);
     notifyListeners();
     if (!kIsWeb) {
-      await HomeWidgetSyncService.instance.push(homeSnapshot);
+      await HomeWidgetSyncService.instance.push(_snapshotForBackground, strings);
     }
   }
 
@@ -308,7 +394,7 @@ class RoutineAppController extends ChangeNotifier {
 
       notifyListeners();
       if (!kIsWeb) {
-        await HomeWidgetSyncService.instance.push(homeSnapshot);
+        await HomeWidgetSyncService.instance.push(_snapshotForBackground, strings);
       }
     } finally {
       _clockRefreshInFlight = false;

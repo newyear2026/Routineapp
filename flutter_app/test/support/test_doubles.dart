@@ -108,6 +108,7 @@ class NoopNotificationGateway implements LocalNotificationGateway {
     required TimeOfDay time,
     required NotificationDetails details,
     required String payload,
+    required bool exact,
   }) async {}
 }
 
@@ -158,5 +159,49 @@ class ThrowingNotificationGateway implements LocalNotificationGateway {
     required TimeOfDay time,
     required NotificationDetails details,
     required String payload,
+    required bool exact,
   }) async {}
+}
+
+/// 예약된 알림을 기록한다 — 문구가 언어를 따라가는지 확인할 때 쓴다.
+class ScheduledNotification {
+  const ScheduledNotification({
+    required this.title,
+    required this.body,
+    required this.weekday,
+  });
+
+  final String title;
+  final String body;
+  final int weekday;
+}
+
+class RecordingNotificationGateway implements LocalNotificationGateway {
+  final List<ScheduledNotification> scheduled = [];
+
+  @override
+  Future<void> cancel(int id) async {}
+
+  @override
+  Future<void> initialize() async {}
+
+  @override
+  Future<List<PendingNotificationRequest>>
+      pendingNotificationRequests() async => const [];
+
+  @override
+  Future<void> scheduleWeekly({
+    required int id,
+    required String title,
+    required String body,
+    required int weekday,
+    required TimeOfDay time,
+    required NotificationDetails details,
+    required String payload,
+    required bool exact,
+  }) async {
+    scheduled.add(
+      ScheduledNotification(title: title, body: body, weekday: weekday),
+    );
+  }
 }

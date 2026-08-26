@@ -6,7 +6,9 @@ import '../application/routine_app_controller.dart';
 import '../domain/calendar/routine_calendar.dart';
 import '../domain/models/routine.dart';
 import '../domain/utils/repeat_days_label.dart';
+import '../domain/utils/app_date_formats.dart';
 import '../domain/utils/time_minutes.dart';
+import '../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/ds/ds.dart';
@@ -58,7 +60,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
             onPressed: _openAddRoutine,
             backgroundColor: AppColors.orbitPrimary,
             foregroundColor: Colors.white,
-            tooltip: '루틴 추가',
+            tooltip: AppLocalizations.of(context).routinesAdd,
             child: const Icon(Icons.add_rounded),
           ),
           body: AppScreenShell(
@@ -119,13 +121,14 @@ class _RoutineContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return ListView(
       // 마지막 항목이 FAB(56 + 여백) 아래로 숨지 않도록 하단 여백을 넉넉히 둔다.
       padding: const EdgeInsets.fromLTRB(24, 48, 24, 96),
       children: [
-        const Text('루틴', style: AppTextStyles.titleScreen),
+        Text(l10n.routinesTitle, style: AppTextStyles.titleScreen),
         const SizedBox(height: 3),
-        const Text('반복되는 하루의 리듬', style: AppTextStyles.caption),
+        Text(l10n.routinesSubtitle, style: AppTextStyles.caption),
         const SizedBox(height: 18),
         _ViewSwitcher(value: view, onChanged: onViewChanged),
         const SizedBox(height: 22),
@@ -168,13 +171,13 @@ class _ViewSwitcher extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           _ViewSwitchButton(
-            label: '목록',
+            label: AppLocalizations.of(context).routinesViewList,
             icon: Icons.format_list_bulleted_rounded,
             selected: value == _RoutineView.list,
             onTap: () => onChanged(_RoutineView.list),
           ),
           _ViewSwitchButton(
-            label: '캘린더',
+            label: AppLocalizations.of(context).routinesViewCalendar,
             icon: Icons.calendar_month_rounded,
             selected: value == _RoutineView.calendar,
             onTap: () => onChanged(_RoutineView.calendar),
@@ -217,12 +220,17 @@ class _ViewSwitchButton extends StatelessWidget {
                 color: selected ? AppColors.orbitPrimary : AppColors.textMuted,
               ),
               const SizedBox(width: 7),
-              Text(
-                label,
-                style: AppTextStyles.caption.copyWith(
-                  color:
-                      selected ? AppColors.orbitPrimary : AppColors.textMuted,
-                  fontWeight: FontWeight.w700,
+              Flexible(
+                child: Text(
+                  label,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.caption.copyWith(
+                    color: selected
+                        ? AppColors.orbitPrimary
+                        : AppColors.textMuted,
+                    fontWeight: FontWeight.w700,
+                  ),
                 ),
               ),
             ],
@@ -254,7 +262,7 @@ class _RoutineList extends StatelessWidget {
                 subtitle: '${TimeMinutes.formatRange(
                   routine.startMinutesFromMidnight,
                   routine.endMinutesFromMidnight,
-                )} · ${RepeatDaysLabel.of(routine.repeatWeekdays)}',
+                )} · ${RepeatDaysLabel.of(context, routine.repeatWeekdays)}',
                 onTap: () => context.push(
                   '/routine-add?id=${routine.id}&returnTo=routines',
                 ),
@@ -311,14 +319,17 @@ class _CalendarRoutineView extends StatelessWidget {
           children: [
             Flexible(
               child: Text(
-                _dateLabel(selectedDate),
+                _dateLabel(context, selectedDate),
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
                 style: AppTextStyles.titleSection,
               ),
             ),
             const SizedBox(width: 8),
-            Text('${selectedRoutines.length}개', style: AppTextStyles.caption),
+            Text(
+              AppLocalizations.of(context).routineCount(selectedRoutines.length),
+              style: AppTextStyles.caption,
+            ),
           ],
         ),
         const SizedBox(height: 14),
@@ -364,34 +375,34 @@ class _MonthCalendar extends StatelessWidget {
           Row(
             children: [
               IconButton(
-                tooltip: '이전 달',
+                tooltip: AppLocalizations.of(context).routinesPrevMonth,
                 onPressed: onPreviousMonth,
                 icon: const Icon(Icons.chevron_left_rounded),
               ),
               Expanded(
                 child: Text(
-                  '${visibleMonth.year}년 ${visibleMonth.month}월',
+                  AppDateFormats.yearMonth(context, visibleMonth),
                   textAlign: TextAlign.center,
                   style: AppTextStyles.titleSection,
                 ),
               ),
               IconButton(
-                tooltip: '다음 달',
+                tooltip: AppLocalizations.of(context).routinesNextMonth,
                 onPressed: onNextMonth,
                 icon: const Icon(Icons.chevron_right_rounded),
               ),
             ],
           ),
           const SizedBox(height: 8),
-          const Row(
+          Row(
             children: [
-              _WeekdayHeader('월'),
-              _WeekdayHeader('화'),
-              _WeekdayHeader('수'),
-              _WeekdayHeader('목'),
-              _WeekdayHeader('금'),
-              _WeekdayHeader('토', weekend: true),
-              _WeekdayHeader('일', weekend: true),
+              for (var weekday = DateTime.monday;
+                  weekday <= DateTime.sunday;
+                  weekday++)
+                _WeekdayHeader(
+                  AppDateFormats.weekdayNarrowByIndex(context, weekday),
+                  weekend: weekday >= DateTime.saturday,
+                ),
             ],
           ),
           const SizedBox(height: 5),
@@ -467,9 +478,9 @@ class _CalendarDateCell extends StatelessWidget {
     return Semantics(
       button: true,
       selected: selected,
-      label: '${date.month}월 ${date.day}일'
-          '${isToday ? ', 오늘' : ''}'
-          ', 루틴 $count개',
+      label: '${AppDateFormats.monthDay(context, date)}'
+          '${isToday ? AppLocalizations.of(context).routinesDaySemanticToday : ''}'
+          '${AppLocalizations.of(context).routinesDaySemanticCount(count)}',
       child: InkWell(
         key: Key('calendar-day-${date.year}-${date.month}-${date.day}'),
         onTap: onTap,
@@ -548,13 +559,15 @@ class _SelectedDateEmpty extends StatelessWidget {
       constraints: const BoxConstraints(minHeight: 100),
       padding: const EdgeInsets.all(18),
       decoration: appSurfaceDecoration(radius: 18),
-      child: const Column(
+      child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text('예정된 루틴이 없어요', style: AppTextStyles.bodyStrong),
-          SizedBox(height: 3),
-          Text('오른쪽 아래 + 버튼으로 이 요일의 루틴을 추가해보세요.', style: AppTextStyles.caption),
+          Text(AppLocalizations.of(context).routinesNoneForDay,
+              style: AppTextStyles.bodyStrong),
+          const SizedBox(height: 3),
+          Text(AppLocalizations.of(context).routinesNoneForDayHint,
+              style: AppTextStyles.caption),
         ],
       ),
     );
@@ -566,17 +579,16 @@ class _EmptyRoutines extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return const Padding(
-      padding: EdgeInsets.symmetric(vertical: 56),
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 56),
       child: Center(
-        child: Text('첫 루틴을 추가해보세요', style: AppTextStyles.body),
+        child: Text(AppLocalizations.of(context).routinesAddFirst,
+            style: AppTextStyles.body),
       ),
     );
   }
 }
 
-String _dateLabel(DateTime date) {
-  const weekday = ['월요일', '화요일', '수요일', '목요일', '금요일', '토요일', '일요일'];
-  return '${date.month}월 ${date.day}일 · ${weekday[date.weekday - 1]}';
-}
+String _dateLabel(BuildContext context, DateTime date) =>
+    AppDateFormats.monthDayWeekday(context, date);
 

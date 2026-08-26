@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
+
 import '../theme/routine_palette.dart';
 import 'medium_ring_segment.dart';
 
@@ -40,17 +42,17 @@ class HomeMediumWidgetViewModel {
   ///
   /// 색은 앱이 실제로 쓰는 [RoutinePalette]에서 가져온다. 더미만 다른 파스텔을
   /// 쓰면 미리보기가 실물과 다른 인상을 준다.
-  static HomeMediumWidgetViewModel dummy() {
-    return const HomeMediumWidgetViewModel(
-      currentRoutineTitle: '저녁식사',
-      currentRoutineTimingHint: '종료까지 58분 남음',
-      currentRoutineStatusLabel: '진행 중',
-      nextRoutineTitle: '취침',
+  static HomeMediumWidgetViewModel dummy(AppLocalizations l10n) {
+    return HomeMediumWidgetViewModel(
+      currentRoutineTitle: l10n.catalogDinner,
+      currentRoutineTimingHint: l10n.timingUntilEnd(l10n.durationMinutes(58)),
+      currentRoutineStatusLabel: l10n.statusInProgress,
+      nextRoutineTitle: l10n.catalogSleep,
       nextRoutineTime: '23:00',
-      currentTime: TimeOfDay(hour: 18, minute: 2),
-      centerTimeLabel: '지금',
+      currentTime: const TimeOfDay(hour: 18, minute: 2),
+      centerTimeLabel: l10n.commonNow,
       activeSegmentId: 'seg_dinner',
-      ringSegments: [
+      ringSegments: const [
         MediumRingSegment(
           id: 'seg_wake',
           startMinutesFromMidnight: 7 * 60,

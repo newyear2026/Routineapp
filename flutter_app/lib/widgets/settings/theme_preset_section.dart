@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
@@ -20,37 +21,57 @@ class ThemePresetSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return AppCard(
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
+          // 제목과 배지를 한 줄에 고정하면 번역이 긴 언어(영어·스페인어)에서
+          // 가로로 넘친다. 제목이 남는 폭을 쓰고, 좁으면 배지가 아래로 접힌다.
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
             children: [
-              Text('테마 프리셋',
+              Text(l10n.settingsThemeSection,
                   style: AppTextStyles.titleSection.copyWith(fontSize: 15)),
-              const SizedBox(width: 8),
-              const AppStatusBadge(
-                label: '준비 중',
+              AppStatusBadge(
+                label: l10n.commonComingSoon,
                 tone: AppStatusBadgeTone.readySoon,
               ),
             ],
           ),
           const SizedBox(height: 6),
-          const Text('다음 업데이트에서 테마를 고를 수 있어요.',
-              style: AppTextStyles.caption),
+          Text(l10n.settingsThemeComingSoon, style: AppTextStyles.caption),
           const SizedBox(height: 14),
           for (final preset in AppThemePreset.all)
-            _ThemePresetOption(preset: preset),
+            _ThemePresetOption(
+              preset: preset,
+              label: _presetLabel(l10n, preset),
+            ),
         ],
       ),
     );
   }
 }
 
+/// 프리셋 이름은 ARB가 갖는다 — 모델에 두면 언어마다 테마 정의가 갈라진다.
+String _presetLabel(AppLocalizations l10n, AppThemePreset preset) {
+  switch (preset.id) {
+    case 'peach_sunset':
+      return l10n.themePeachSunset;
+    case 'mint_lavender':
+      return l10n.themeMintLavender;
+    default:
+      return l10n.themeSoftDay;
+  }
+}
+
 class _ThemePresetOption extends StatelessWidget {
-  const _ThemePresetOption({required this.preset});
+  const _ThemePresetOption({required this.preset, required this.label});
 
   final AppThemePreset preset;
+  final String label;
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -73,7 +94,7 @@ class _ThemePresetOption extends StatelessWidget {
                   )),
               const SizedBox(width: 8),
               Expanded(
-                  child: Text(preset.label,
+                  child: Text(label,
                       style: AppTextStyles.bodyStrong.copyWith(fontSize: 15))),
             ]),
           ),

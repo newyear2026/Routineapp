@@ -26,6 +26,10 @@ Windows 데스크톱: `flutter run -d windows`
 
 - **데이터·저장**: `Routine` / `RoutineLog` 도메인 모델, **로컬 전용**(`SharedPreferences`) — Repository 계층으로 접근 (`RoutineRepository`, `RoutineLogRepository`, `SettingsRepository`).
 - **앱 상태**: `RoutineAppController`(Provider)에서 로드·저장, 홈/진행/설정과 연동.
+- **다국어**: 한국어·영어·스페인어(`lib/l10n/*.arb`). 기본은 **기기 언어 자동 감지**,
+  지원하지 않는 언어는 영어로 폴백. 설정 > 개인화에서 직접 고를 수도 있다
+  (`AppSettings.localeCode`, null이면 기기 설정을 따름). 날짜·요일 표기는
+  `AppDateFormats`(intl `DateFormat`)가 로케일에서 가져온다.
 - **시간·스케줄**: 분 단위 유틸, 오늘 루틴 필터, **현재/다음 루틴** 계산, 진행률·일별 로그 액션(완료·스누즈·스킵 등).
 - **루틴 편집**: 루틴 **추가·수정** 화면, 시간대 **겹침 경고**(저장 전 확인 가능).
 - **홈 원형 시간표**: 24시간 **동심원 도넛** 링, 시간 가이드선, 루틴 구간 색상, **구간 시작·종료 경계선**(가이드보다 선명하게, 활성 루틴 경계 추가 강조), 현재 시각 표시.
@@ -58,6 +62,7 @@ MVP 범위·아키텍처 규칙은 **`PROJECT_RULES.md`** 를 따릅니다.
 | `shared_preferences` | 로컬 저장 |
 | `flutter_local_notifications` | 로컬 알림 |
 | `intl` | 날짜/시간 포맷 |
+| `flutter_localizations` | 다국어(ko/en/es) |
 | `home_widget` | 홈 화면 위젯 연동 |
 | `flutter_animate`, `lottie` | UI 애니메이션 |
 
@@ -78,4 +83,5 @@ MVP 범위·아키텍처 규칙은 **`PROJECT_RULES.md`** 를 따릅니다.
 ## 문서
 
 - `PROJECT_RULES.md` — 제품 범위, 데이터·아키텍처·시간 계산 규칙
+- `BUSINESS_MODEL.md` — 수익 모델(BM) 방향, Free/Pro 경계, 단계별 로드맵
 - `flutter_app/README.md` — Flutter 앱 상세 안내(실행·구조·디자인 시스템 등)

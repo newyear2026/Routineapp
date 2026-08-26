@@ -14,6 +14,7 @@ import 'package:routine_timer/domain/settings/notification_preferences.dart';
 import 'package:routine_timer/screens/routine_add_screen.dart';
 import 'package:routine_timer/screens/routines_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'support/localization.dart';
 
 /// 목록·캘린더 전환 칸이 트랙 높이를 다 쓰는지 확인한다.
 ///
@@ -69,6 +70,7 @@ void main() {
         logRepository: _MemoryLogRepository(),
       ),
       notificationService: RoutineNotificationService(
+        exactAlarmsAllowed: () async => false,
         gateway: _NoopNotificationGateway(),
         preferencesLoader: () async =>
             NotificationPreferences.firstLaunchDefaults,
@@ -81,7 +83,7 @@ void main() {
     await tester.pumpWidget(
       ChangeNotifierProvider.value(
         value: controller,
-        child: const MaterialApp(home: RoutinesScreen()),
+        child: localizedApp(home: const RoutinesScreen()),
       ),
     );
 
@@ -94,13 +96,13 @@ void main() {
     await tester.tapAt(Offset(box.center.dx, box.top + 3));
     await tester.pumpAndSettle();
 
-    expect(find.text('8월 6일 · 목요일'), findsOneWidget);
+    expect(find.text('8월 6일 (목)'), findsOneWidget);
     expect(find.text('아침 산책'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('calendar-day-2026-8-7')));
     await tester.pumpAndSettle();
 
-    expect(find.text('8월 7일 · 금요일'), findsOneWidget);
+    expect(find.text('8월 7일 (금)'), findsOneWidget);
     expect(find.text('예정된 루틴이 없어요'), findsOneWidget);
     controller.dispose();
   });
@@ -113,6 +115,7 @@ void main() {
         logRepository: _MemoryLogRepository(),
       ),
       notificationService: RoutineNotificationService(
+        exactAlarmsAllowed: () async => false,
         gateway: _NoopNotificationGateway(),
         preferencesLoader: () async =>
             NotificationPreferences.firstLaunchDefaults,
@@ -125,8 +128,8 @@ void main() {
     await tester.pumpWidget(
       ChangeNotifierProvider.value(
         value: controller,
-        child: const MaterialApp(
-          home: RoutineAddScreen(
+        child: localizedApp(
+          home: const RoutineAddScreen(
             initialWeekday: DateTime.thursday,
             returnToRoutines: true,
           ),
@@ -134,8 +137,10 @@ void main() {
       ),
     );
 
-    expect(find.byKey(const Key('routine-weekday-목')), findsOneWidget);
-    expect(find.byKey(const Key('routine-weekday-월')), findsOneWidget);
+    expect(find.byKey(const Key('routine-weekday-${DateTime.thursday}')),
+        findsOneWidget);
+    expect(find.byKey(const Key('routine-weekday-${DateTime.monday}')),
+        findsOneWidget);
     expect(find.text('달력에서 선택한 요일을 미리 골랐어요.'), findsOneWidget);
     controller.dispose();
   });
@@ -229,5 +234,6 @@ class _NoopNotificationGateway implements LocalNotificationGateway {
     required TimeOfDay time,
     required NotificationDetails details,
     required String payload,
+    required bool exact,
   }) async {}
 }

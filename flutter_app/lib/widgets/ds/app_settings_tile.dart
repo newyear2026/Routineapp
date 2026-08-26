@@ -46,6 +46,8 @@ class AppSettingsTile extends StatelessWidget {
               Expanded(
                 child: Text(
                   label,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 15,
                     color: enabled
@@ -60,7 +62,9 @@ class AppSettingsTile extends StatelessWidget {
                 AppStatusBadge(label: statusLabel!, tone: statusTone),
                 const SizedBox(width: 8),
               ],
-              if (trailing != null) trailing!,
+              // 값 표시(예: 현재 언어)는 언어마다 길이가 크게 달라진다.
+              // 고정 폭으로 두면 'Según el dispositivo'에서 줄이 넘친다.
+              if (trailing != null) Flexible(child: trailing!),
             ],
           ),
           if (description != null) ...[

@@ -1,6 +1,10 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <!-- 루틴 알림은 사용자가 정한 시각에 울려야 한다. 이 권한이 없으면 OS 가
+         알림을 최대 10분 이상 미룬다. 사용자가 시스템 설정에서 끌 수 있고,
+         꺼져 있으면 앱은 부정확 알람으로 자동 후퇴한다. -->
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <application
-        android:label="routine_timer"
+        android:label="@string/app_name"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

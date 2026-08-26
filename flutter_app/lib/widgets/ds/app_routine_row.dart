@@ -91,7 +91,8 @@ class AppRoutineRow extends StatelessWidget {
           ),
           if (trailing != null) ...[
             const SizedBox(width: 10),
-            trailing,
+            // trailing(시각·상태 배지)이 길어져도 루틴 이름을 밀어내지 않는다.
+            Flexible(child: trailing),
           ],
         ],
       ),

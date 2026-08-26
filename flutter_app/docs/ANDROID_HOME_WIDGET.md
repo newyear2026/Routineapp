@@ -15,7 +15,7 @@ Provider의 `onUpdate`에서 `widgetData.getString("routine_widget_payload", …
 
 ## 갱신
 
-`flutter` 측에서 `HomeWidget.updateWidget(qualifiedAndroidName: 'com.example.routine_timer.RoutineMediumWidgetProvider')` 호출 시 브로드캐스트로 `onUpdate`가 실행된다.
+`flutter` 측에서 `HomeWidget.updateWidget(qualifiedAndroidName: 'com.dayround.app.RoutineMediumWidgetProvider')` 호출 시 브로드캐스트로 `onUpdate`가 실행된다.
 
 ## 홈 화면에 추가
 

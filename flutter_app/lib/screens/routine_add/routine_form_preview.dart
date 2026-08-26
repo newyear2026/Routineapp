@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 
 import '../../domain/models/routine.dart';
 import '../../domain/utils/time_minutes.dart';
@@ -21,7 +22,10 @@ class RoutineFormPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final title = candidate.title.trim().isEmpty ? '새 루틴' : candidate.title;
+    final l10n = AppLocalizations.of(context);
+    final title = candidate.title.trim().isEmpty
+        ? l10n.routineAddTitleNew
+        : candidate.title;
 
     return Container(
       height: 230,
@@ -37,7 +41,7 @@ class RoutineFormPreview extends StatelessWidget {
             top: 16,
             left: 20,
             child: Text(
-              '미리보기',
+              l10n.commonPreview,
               style: AppTextStyles.caption.copyWith(
                 fontWeight: FontWeight.w700,
               ),

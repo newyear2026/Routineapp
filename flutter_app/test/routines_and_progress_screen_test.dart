@@ -12,6 +12,7 @@ import 'package:routine_timer/screens/today_progress_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/test_doubles.dart';
+import 'support/localization.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -41,6 +42,7 @@ void main() {
         logRepository: MemoryLogRepository(),
       ),
       notificationService: RoutineNotificationService(
+        exactAlarmsAllowed: () async => false,
         gateway: NoopNotificationGateway(),
         preferencesLoader: () async =>
             NotificationPreferences.firstLaunchDefaults,
@@ -52,7 +54,7 @@ void main() {
     await tester.pumpWidget(
       ChangeNotifierProvider.value(
         value: controller,
-        child: MaterialApp(home: screen),
+        child: localizedApp(home: screen),
       ),
     );
     await tester.pumpAndSettle();
@@ -127,7 +129,7 @@ void main() {
       // 다른 날을 골라도 오늘(8/4)은 여전히 표시되어야 한다.
       await tester.tap(find.byKey(const Key('calendar-day-2026-8-12')));
       await tester.pumpAndSettle();
-      expect(find.text('8월 12일 · 수요일'), findsOneWidget);
+      expect(find.text('8월 12일 (수)'), findsOneWidget);
 
       BoxDecoration dateCircle(String key) {
         final container = tester.widget<Container>(

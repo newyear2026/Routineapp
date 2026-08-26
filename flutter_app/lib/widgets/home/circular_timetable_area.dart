@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 
 import '../../domain/utils/time_minutes.dart';
 import '../../models/home_models.dart';
@@ -171,9 +172,9 @@ class _CircularTimetableView extends StatelessWidget {
                     color: AppColors.orbitSurfaceSoft,
                     borderRadius: BorderRadius.circular(999),
                   ),
-                  child: const Text(
-                    '지금',
-                    style: TextStyle(
+                  child: Text(
+                    AppLocalizations.of(context).commonNow,
+                    style: const TextStyle(
                       color: AppColors.textMuted,
                       fontSize: 10,
                       fontWeight: FontWeight.w800,

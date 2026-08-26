@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 class AppThemePreset {
   const AppThemePreset({
     required this.id,
-    required this.label,
     required this.previewColors,
     required this.pageGradient,
     required this.shellGradient,
@@ -17,7 +16,6 @@ class AppThemePreset {
   });
 
   final String id;
-  final String label;
   final List<Color> previewColors;
   final LinearGradient pageGradient;
   final LinearGradient shellGradient;
@@ -31,7 +29,6 @@ class AppThemePreset {
 
   static const softDay = AppThemePreset(
     id: 'soft_day',
-    label: '오빗 데이',
     previewColors: [Color(0xFFF7F4EE), Color(0xFFF2EDF8), Color(0xFFF1ECE4)],
     pageGradient: LinearGradient(
       begin: Alignment.topLeft,
@@ -60,7 +57,6 @@ class AppThemePreset {
 
   static const peachSunset = AppThemePreset(
     id: 'peach_sunset',
-    label: '피치 선셋',
     previewColors: [Color(0xFFFFF0E8), Color(0xFFFFE1D6), Color(0xFFFFF3E6)],
     pageGradient: LinearGradient(
       begin: Alignment.topLeft,
@@ -89,7 +85,6 @@ class AppThemePreset {
 
   static const mintLavender = AppThemePreset(
     id: 'mint_lavender',
-    label: '민트 라벤더',
     previewColors: [Color(0xFFF1FFF8), Color(0xFFF1F7FF), Color(0xFFF7F0FF)],
     pageGradient: LinearGradient(
       begin: Alignment.topLeft,

@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
 import '../data/local/onboarding_local_storage.dart';
@@ -25,26 +26,32 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   ///
   /// 알림에는 액션 버튼이 없다 (`RoutineNotificationService`는 예약만 한다).
   /// "알림에서 바로 완료"처럼 앱이 못 하는 일을 적지 않는다.
-  final List<_OnboardingPage> _pages = const [
-    _OnboardingPage(
-      title: '지금 할 루틴이 바로 보이게',
-      description: '하루 24시간을 원으로 펼쳐 지금 어디쯤인지 한눈에 보여줘요.',
-      accentLabel: '홈 화면',
-      preview: _OnboardingPreviewType.orbit,
-    ),
-    _OnboardingPage(
-      title: '루틴 순간마다 빠르게 처리',
-      description: '알림이 때를 알려주면 홈에서 완료·나중에·스킵으로 정리해요.',
-      accentLabel: '알림과 액션',
-      preview: _OnboardingPreviewType.actions,
-    ),
-    _OnboardingPage(
-      title: '작은 달성을 꾸준함으로',
-      description: '완료·진행 중·예정을 나눠 보여줘 오늘 흐름을 놓치지 않아요.',
-      accentLabel: '진행 화면',
-      preview: _OnboardingPreviewType.progress,
-    ),
+  static const _previews = <_OnboardingPreviewType>[
+    _OnboardingPreviewType.orbit,
+    _OnboardingPreviewType.actions,
+    _OnboardingPreviewType.progress,
   ];
+
+  List<_OnboardingPage> _buildPages(AppLocalizations l10n) => [
+        _OnboardingPage(
+          title: l10n.onboardingPage1Title,
+          description: l10n.onboardingPage1Body,
+          accentLabel: l10n.onboardingPage1Tag,
+          preview: _previews[0],
+        ),
+        _OnboardingPage(
+          title: l10n.onboardingPage2Title,
+          description: l10n.onboardingPage2Body,
+          accentLabel: l10n.onboardingPage2Tag,
+          preview: _previews[1],
+        ),
+        _OnboardingPage(
+          title: l10n.onboardingPage3Title,
+          description: l10n.onboardingPage3Body,
+          accentLabel: l10n.onboardingPage3Tag,
+          preview: _previews[2],
+        ),
+      ];
 
   @override
   void dispose() {
@@ -55,7 +62,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   void _onPageChanged(int page) => setState(() => _currentPage = page);
 
   void _nextPage() {
-    if (_currentPage < _pages.length - 1) {
+    if (_currentPage < _previews.length - 1) {
       _pageController.nextPage(
         duration: const Duration(milliseconds: 280),
         curve: Curves.easeInOut,
@@ -73,6 +80,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final pages = _buildPages(l10n);
     return Scaffold(
       body: AppScreenShell(
         child: Column(
@@ -88,14 +97,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    '하루 루틴 시간표',
-                    style: AppTextStyles.caption.copyWith(
-                      fontWeight: FontWeight.w700,
+                  // 브랜드 문구는 언어마다 길이가 다르다. 건너뛰기 버튼이
+                  // 밀려나지 않도록 이쪽이 먼저 줄어든다.
+                  Flexible(
+                    child: Text(
+                      l10n.appName,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.caption.copyWith(
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                   AppButton(
-                    label: '건너뛰기',
+                    label: l10n.commonSkipStep,
                     onPressed: _finishIntro,
                     variant: AppButtonVariant.ghost,
                     expand: false,
@@ -108,9 +123,9 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: PageView.builder(
                 controller: _pageController,
                 onPageChanged: _onPageChanged,
-                itemCount: _pages.length,
+                itemCount: pages.length,
                 itemBuilder: (context, index) => _PageContent(
-                  page: _pages[index],
+                  page: pages[index],
                 ),
               ),
             ),
@@ -125,12 +140,14 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                 children: [
                   Row(
                     mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(_pages.length, _buildDot),
+                    children: List.generate(pages.length, _buildDot),
                   ),
                   const SizedBox(height: AppSpacing.xl),
                   AppButton(
                     key: const Key('onboarding-next-button'),
-                    label: _currentPage == _pages.length - 1 ? '시작하기' : '다음',
+                    label: _currentPage == pages.length - 1
+                        ? l10n.onboardingStart
+                        : l10n.commonNext,
                     onPressed: _nextPage,
                   ),
                 ],
@@ -249,39 +266,40 @@ class _PreviewCard extends StatelessWidget {
 class _OrbitPreview extends StatelessWidget {
   const _OrbitPreview();
 
-  static const _sample = <RoutineSegment>[
-    RoutineSegment(
-      id: 'wake',
-      startMinutesFromMidnight: 7 * 60,
-      endMinutesFromMidnight: 8 * 60,
-      label: '기상',
-      emoji: '',
-      color: RoutinePalette.coral,
-    ),
-    RoutineSegment(
-      id: 'focus',
-      startMinutesFromMidnight: 10 * 60,
-      endMinutesFromMidnight: 12 * 60,
-      label: '집중',
-      emoji: '',
-      color: RoutinePalette.lavender,
-    ),
-    RoutineSegment(
-      id: 'dinner',
-      startMinutesFromMidnight: 18 * 60,
-      endMinutesFromMidnight: 19 * 60,
-      label: '저녁식사',
-      emoji: '',
-      color: RoutinePalette.amber,
-    ),
-  ];
+  /// 이름은 현재 언어를 따른다 — 온보딩은 사용자가 앱을 처음 보는 화면이다.
+  List<RoutineSegment> _sampleFor(AppLocalizations l10n) => [
+        RoutineSegment(
+          id: 'wake',
+          startMinutesFromMidnight: 7 * 60,
+          endMinutesFromMidnight: 8 * 60,
+          label: l10n.onboardingDemoWake,
+          emoji: '',
+          color: RoutinePalette.coral,
+        ),
+        RoutineSegment(
+          id: 'focus',
+          startMinutesFromMidnight: 10 * 60,
+          endMinutesFromMidnight: 12 * 60,
+          label: l10n.onboardingDemoFocus,
+          emoji: '',
+          color: RoutinePalette.lavender,
+        ),
+        RoutineSegment(
+          id: 'dinner',
+          startMinutesFromMidnight: 18 * 60,
+          endMinutesFromMidnight: 19 * 60,
+          label: l10n.onboardingDemoDinner,
+          emoji: '',
+          color: RoutinePalette.amber,
+        ),
+      ];
 
   @override
   Widget build(BuildContext context) {
-    return const Center(
+    return Center(
       child: CircularTimetableArea(
-        routines: _sample,
-        currentTime: TimeOfDay(hour: 10, minute: 40),
+        routines: _sampleFor(AppLocalizations.of(context)),
+        currentTime: const TimeOfDay(hour: 10, minute: 40),
         size: 200,
       ),
     );
@@ -315,7 +333,7 @@ class _ActionsPreview extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      '기상 시간이에요',
+                      AppLocalizations.of(context).onboardingDemoWakeAlert,
                       style: AppTextStyles.bodyStrong.copyWith(fontSize: 14),
                     ),
                     const SizedBox(height: 2),
@@ -328,7 +346,7 @@ class _ActionsPreview extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         AppButton(
-          label: '기상 완료하기',
+          label: AppLocalizations.of(context).onboardingDemoWakeAction,
           icon: Icons.check_rounded,
           height: 46,
           onPressed: () {},
@@ -338,7 +356,7 @@ class _ActionsPreview extends StatelessWidget {
           children: [
             Expanded(
               child: AppButton(
-                label: '나중에',
+                label: AppLocalizations.of(context).statusSnoozed,
                 variant: AppButtonVariant.secondary,
                 height: 40,
                 onPressed: () {},
@@ -347,7 +365,7 @@ class _ActionsPreview extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: AppButton(
-                label: '스킵',
+                label: AppLocalizations.of(context).statusSkipped,
                 variant: AppButtonVariant.ghost,
                 height: 40,
                 onPressed: () {},
@@ -377,7 +395,7 @@ class _ProgressPreview extends StatelessWidget {
                   const Text('3 / 5', style: AppTextStyles.statHero),
                   const SizedBox(height: 6),
                   Text(
-                    '좋은 흐름이에요',
+                    AppLocalizations.of(context).onboardingDemoGoodFlow,
                     style: AppTextStyles.titleSection.copyWith(
                       fontSize: 15,
                       color: AppColors.orbitPrimary,
@@ -405,20 +423,20 @@ class _ProgressPreview extends StatelessWidget {
           ],
         ),
         const SizedBox(height: 14),
-        const Row(
+        Row(
           children: [
             Expanded(
               child: _StatusChip(
-                label: '완료',
+                label: AppLocalizations.of(context).statusCompleted,
                 count: '3',
                 tint: AppColors.success,
                 textColor: AppColors.successText,
               ),
             ),
-            SizedBox(width: 8),
+            const SizedBox(width: 8),
             Expanded(
               child: _StatusChip(
-                label: '예정',
+                label: AppLocalizations.of(context).statusUpcoming,
                 count: '2',
                 tint: AppColors.orbitAccent,
                 textColor: AppColors.scheduledText,
@@ -454,14 +472,18 @@ class _StatusChip extends StatelessWidget {
       ),
       child: Row(
         children: [
-          Text(
-            label,
-            style: AppTextStyles.caption.copyWith(
-              color: textColor,
-              fontWeight: FontWeight.w700,
+          Flexible(
+            child: Text(
+              label,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: AppTextStyles.caption.copyWith(
+                color: textColor,
+                fontWeight: FontWeight.w700,
+              ),
             ),
           ),
-          const Spacer(),
+          const SizedBox(width: 8),
           Text(
             count,
             style: AppTextStyles.bodyStrong.copyWith(color: textColor),

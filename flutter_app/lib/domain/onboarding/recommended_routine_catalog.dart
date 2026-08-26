@@ -6,7 +6,6 @@ import '../../theme/routine_palette.dart';
 class RecommendedRoutineDefinition {
   const RecommendedRoutineDefinition({
     required this.catalogId,
-    required this.title,
     required this.startMinutesFromMidnight,
     required this.durationMinutes,
     required this.colorValue,
@@ -14,8 +13,10 @@ class RecommendedRoutineDefinition {
   });
 
   /// 저장 시 Routine.id 접두사와 함께 쓰는 안정 키 (`onboarding_rec_$catalogId`).
+  ///
+  /// 이름은 여기 두지 않는다 — 사용자가 고른 언어로 저장되어야 하므로
+  /// 화면이 현재 언어의 이름을 [toRoutine]에 넘긴다.
   final String catalogId;
-  final String title;
   final int startMinutesFromMidnight;
 
   /// 종료 시각 = 시작 + duration (같은 날, 24:00 미만으로 클램프).
@@ -25,7 +26,8 @@ class RecommendedRoutineDefinition {
 
   String get timeLabel => TimeMinutes.formatHm(startMinutesFromMidnight);
 
-  Routine toRoutine() {
+  /// [title]은 화면이 현재 언어로 고른 이름이다.
+  Routine toRoutine(String title) {
     final endRaw = startMinutesFromMidnight + durationMinutes;
     final end = endRaw >= 24 * 60 ? 24 * 60 - 1 : endRaw;
     final now = DateTime.now().millisecondsSinceEpoch;
@@ -52,7 +54,6 @@ abstract final class RecommendedRoutineCatalog {
   static const List<RecommendedRoutineDefinition> items = [
     RecommendedRoutineDefinition(
       catalogId: 'wake',
-      title: '기상',
       startMinutesFromMidnight: 7 * 60,
       durationMinutes: 60,
       colorValue: RoutinePalette.coralValue,
@@ -60,7 +61,6 @@ abstract final class RecommendedRoutineCatalog {
     ),
     RecommendedRoutineDefinition(
       catalogId: 'exercise',
-      title: '운동',
       startMinutesFromMidnight: 7 * 60 + 30,
       durationMinutes: 60,
       colorValue: RoutinePalette.roseValue,
@@ -68,7 +68,6 @@ abstract final class RecommendedRoutineCatalog {
     ),
     RecommendedRoutineDefinition(
       catalogId: 'breakfast',
-      title: '아침식사',
       startMinutesFromMidnight: 9 * 60,
       durationMinutes: 60,
       colorValue: RoutinePalette.amberValue,
@@ -76,35 +75,30 @@ abstract final class RecommendedRoutineCatalog {
     ),
     RecommendedRoutineDefinition(
       catalogId: 'study',
-      title: '공부',
       startMinutesFromMidnight: 10 * 60,
       durationMinutes: 120,
       colorValue: RoutinePalette.lavenderValue,
     ),
     RecommendedRoutineDefinition(
       catalogId: 'lunch',
-      title: '점심식사',
       startMinutesFromMidnight: 12 * 60,
       durationMinutes: 60,
       colorValue: RoutinePalette.orangeValue,
     ),
     RecommendedRoutineDefinition(
       catalogId: 'rest',
-      title: '휴식',
       startMinutesFromMidnight: 15 * 60,
       durationMinutes: 60,
       colorValue: RoutinePalette.blueValue,
     ),
     RecommendedRoutineDefinition(
       catalogId: 'dinner',
-      title: '저녁식사',
       startMinutesFromMidnight: 18 * 60,
       durationMinutes: 60,
       colorValue: RoutinePalette.greenValue,
     ),
     RecommendedRoutineDefinition(
       catalogId: 'sleep',
-      title: '취침',
       startMinutesFromMidnight: 23 * 60,
       durationMinutes: 60,
       colorValue: RoutinePalette.violetValue,

@@ -4,9 +4,11 @@ import 'package:provider/provider.dart';
 
 import '../application/routine_app_controller.dart';
 import '../domain/models/routine.dart';
+import '../l10n/app_localizations.dart';
 import '../domain/models/routine_log.dart';
 import '../domain/models/routine_log_status.dart';
 import '../domain/progress/daily_progress.dart';
+import '../domain/utils/app_date_formats.dart';
 import '../domain/utils/time_minutes.dart';
 import '../domain/services/routine_state_resolver.dart';
 import '../theme/app_colors.dart';
@@ -21,6 +23,7 @@ class TodayProgressScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<RoutineAppController>(
       builder: (context, app, _) {
+        final l10n = AppLocalizations.of(context);
         if (!app.isLoaded) {
           return const Scaffold(
             body: Center(
@@ -33,6 +36,7 @@ class TodayProgressScreen extends StatelessWidget {
         final routines = app.todayScheduledRoutines;
         final progress = calculateProgress(routines, app.todayLogs);
         final groups = _buildProgressGroups(
+          l10n: l10n,
           routines: routines,
           logs: app.todayLogs,
           now: now,
@@ -52,9 +56,9 @@ class TodayProgressScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text('오늘의 진행', style: AppTextStyles.titleScreen),
+                  Text(l10n.progressTitle, style: AppTextStyles.titleScreen),
                   const SizedBox(height: 3),
-                  Text('${now.month}월 ${now.day}일',
+                  Text(AppDateFormats.monthDay(context, now),
                       style: AppTextStyles.caption),
                   const SizedBox(height: 24),
                   _ProgressHero(
@@ -108,6 +112,7 @@ class _ProgressHero extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             _progressMessage(
+              l10n: AppLocalizations.of(context),
               completed: completed,
               total: total,
               percent: percent,
@@ -141,7 +146,7 @@ class _ProgressBar extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Semantics(
-      label: '오늘 진행률 $percent 퍼센트',
+      label: AppLocalizations.of(context).progressSemantic(percent),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(999),
         child: SizedBox(
@@ -172,15 +177,16 @@ class _ProgressBar extends StatelessWidget {
 /// 도넛을 걷어내며 카드 폭을 다 쓸 수 있게 됐지만, 한 줄은 유지한다.
 /// 두 줄이 되면 아래 막대와 붙어 카드가 답답해진다.
 String _progressMessage({
+  required AppLocalizations l10n,
   required int completed,
   required int total,
   required int percent,
 }) {
-  if (total == 0) return '오늘은 루틴이 없어요';
-  if (completed == 0) return '아직 시작 전이에요';
-  if (percent >= 100) return '오늘 다 마쳤어요';
-  if (percent >= 70) return '아주 좋은 흐름이에요';
-  return '좋은 흐름이에요';
+  if (total == 0) return l10n.progressNoRoutines;
+  if (completed == 0) return l10n.progressNotStarted;
+  if (percent >= 100) return l10n.progressAllDone;
+  if (percent >= 70) return l10n.progressGreatFlow;
+  return l10n.progressGoodFlow;
 }
 
 class _ProgressGroupData {
@@ -211,6 +217,7 @@ class _ProgressGroupData {
 }
 
 List<_ProgressGroupData> _buildProgressGroups({
+  required AppLocalizations l10n,
   required List<Routine> routines,
   required List<RoutineLog> logs,
   required DateTime now,
@@ -261,24 +268,24 @@ List<_ProgressGroupData> _buildProgressGroups({
 
   return [
     _ProgressGroupData(
-      title: '완료',
-      emptyMessage: '완료한 루틴이 아직 없어요',
+      title: l10n.progressGroupCompleted,
+      emptyMessage: l10n.progressGroupCompletedEmpty,
       tint: AppColors.success,
       textColor: AppColors.successText,
       icon: Icons.check_rounded,
       items: completed,
     ),
     _ProgressGroupData(
-      title: '진행 중',
-      emptyMessage: '진행 중인 루틴이 없어요',
+      title: l10n.progressGroupActive,
+      emptyMessage: l10n.progressGroupActiveEmpty,
       tint: AppColors.orbitPrimary,
       textColor: AppColors.activeText,
       icon: Icons.play_arrow_rounded,
       items: active,
     ),
     _ProgressGroupData(
-      title: '예정',
-      emptyMessage: '예정된 루틴이 없어요',
+      title: l10n.progressGroupUpcoming,
+      emptyMessage: l10n.progressGroupUpcomingEmpty,
       tint: AppColors.orbitAccent,
       textColor: AppColors.scheduledText,
       icon: Icons.schedule_rounded,
@@ -287,8 +294,8 @@ List<_ProgressGroupData> _buildProgressGroups({
     // 지나간 두 상태는 색으로 다그치지 않는다. 중립 회색 + 제목으로 구분한다.
     // 스킵은 사용자가 고른 결과이고 놓침은 응답이 없던 것이라 섞지 않는다.
     _ProgressGroupData(
-      title: '건너뜀',
-      emptyMessage: '건너뛴 루틴이 없어요',
+      title: l10n.progressGroupSkipped,
+      emptyMessage: l10n.progressGroupSkippedEmpty,
       tint: AppColors.textMuted,
       textColor: AppColors.textMuted,
       icon: Icons.skip_next_rounded,
@@ -296,8 +303,8 @@ List<_ProgressGroupData> _buildProgressGroups({
       hideWhenEmpty: true,
     ),
     _ProgressGroupData(
-      title: '놓침',
-      emptyMessage: '놓친 루틴이 없어요',
+      title: l10n.progressGroupMissed,
+      emptyMessage: l10n.progressGroupMissedEmpty,
       tint: AppColors.textMuted,
       textColor: AppColors.textMuted,
       icon: Icons.history_rounded,
@@ -331,10 +338,20 @@ class _ProgressGroup extends StatelessWidget {
                 child: Icon(group.icon, color: group.textColor, size: 16),
               ),
               const SizedBox(width: 10),
-              Text(group.title, style: AppTextStyles.titleSection),
+              // 제목이 먼저 줄어들고 개수는 끝까지 남는다 — 개수가 잘리면
+              // 그룹이 비었는지 알 수 없다.
+              Flexible(
+                child: Text(
+                  group.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.titleSection,
+                ),
+              ),
               const SizedBox(width: 8),
               // 홈·루틴 화면과 같은 단위를 쓴다. 여기만 숫자만 적으면 어긋난다.
-              Text('${group.items.length}개', style: AppTextStyles.caption),
+              Text(AppLocalizations.of(context).routineCount(group.items.length),
+                  style: AppTextStyles.caption),
             ],
           ),
           const SizedBox(height: 12),
@@ -404,17 +421,27 @@ class _RoutineStatusTrailing extends StatelessWidget {
         Text(time, style: AppTextStyles.caption),
         const SizedBox(width: 10),
         // 색만으로 구분하지 않도록 배지 형태 + 문구를 함께 쓴다.
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(
-            color: tint.withValues(alpha: .18),
-            borderRadius: BorderRadius.circular(999),
-          ),
-          child: Text(
-            label,
-            style: AppTextStyles.captionTight.copyWith(
-              color: textColor,
-              fontWeight: FontWeight.w700,
+        //
+        // 상태 이름은 언어마다 길이가 크게 다르다('완료' vs 'Completadas').
+        // 폭을 제한하지 않으면 루틴 이름을 밀어내고 줄 전체가 넘친다.
+        Flexible(
+          child: ConstrainedBox(
+            constraints: const BoxConstraints(maxWidth: 96),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+              decoration: BoxDecoration(
+                color: tint.withValues(alpha: .18),
+                borderRadius: BorderRadius.circular(999),
+              ),
+              child: Text(
+                label,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.captionTight.copyWith(
+                  color: textColor,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
           ),
         ),

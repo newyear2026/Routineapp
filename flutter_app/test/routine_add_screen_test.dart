@@ -15,6 +15,7 @@ import 'package:routine_timer/widgets/ds/ds.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/test_doubles.dart';
+import 'support/localization.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -45,6 +46,7 @@ void main() {
         logRepository: MemoryLogRepository(),
       ),
       notificationService: RoutineNotificationService(
+        exactAlarmsAllowed: () async => false,
         gateway: NoopNotificationGateway(),
         preferencesLoader: () async =>
             NotificationPreferences.firstLaunchDefaults,
@@ -71,7 +73,7 @@ void main() {
     await tester.pumpWidget(
       ChangeNotifierProvider.value(
         value: controller,
-        child: MaterialApp.router(routerConfig: router),
+        child: localizedApp(routerConfig: router),
       ),
     );
     await tester.pumpAndSettle();
@@ -119,13 +121,15 @@ void main() {
     final controller = await pumpAddScreen(tester);
     addTearDown(controller.dispose);
 
-    await tester.ensureVisible(find.byKey(const Key('routine-weekday-월')));
+    await tester.ensureVisible(
+      find.byKey(const Key('routine-weekday-${DateTime.monday}')),
+    );
     await tester.pumpAndSettle();
 
-    for (final day in ['월', '화', '수', '목', '금']) {
+    for (var day = DateTime.monday; day <= DateTime.friday; day++) {
       expect(_weekdaySelected(tester, day), isTrue, reason: '$day이 꺼져 있다');
     }
-    for (final day in ['토', '일']) {
+    for (final day in [DateTime.saturday, DateTime.sunday]) {
       expect(_weekdaySelected(tester, day), isFalse, reason: '$day이 켜져 있다');
     }
   });
@@ -136,7 +140,7 @@ void main() {
 
     await tester.enterText(find.byType(TextField), '아침 산책');
     // 요일 줄은 미리보기 아래라 기본 뷰포트에서는 접혀 있다.
-    for (final day in ['월', '화', '수', '목', '금']) {
+    for (var day = DateTime.monday; day <= DateTime.friday; day++) {
       final finder = find.byKey(Key('routine-weekday-$day'));
       await tester.ensureVisible(finder);
       await tester.pumpAndSettle();
@@ -189,8 +193,8 @@ void main() {
 }
 
 /// 요일 원의 선택 상태는 Semantics로 노출된다.
-bool _weekdaySelected(WidgetTester tester, String label) {
-  final node = tester.getSemantics(find.byKey(Key('routine-weekday-$label')));
+bool _weekdaySelected(WidgetTester tester, int weekday) {
+  final node = tester.getSemantics(find.byKey(Key('routine-weekday-$weekday')));
   // flagsCollection은 Tristate라 bool 비교가 안 된다. 대체 API가 안정될 때까지 유지.
   // ignore: deprecated_member_use
   return node.hasFlag(SemanticsFlag.isSelected);

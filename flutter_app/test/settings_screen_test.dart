@@ -10,6 +10,7 @@ import 'package:routine_timer/screens/settings_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/test_doubles.dart';
+import 'support/localization.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -36,6 +37,7 @@ void main() {
         logRepository: MemoryLogRepository(),
       ),
       notificationService: RoutineNotificationService(
+        exactAlarmsAllowed: () async => false,
         gateway: NoopNotificationGateway(),
         preferencesLoader: () async =>
             NotificationPreferences.firstLaunchDefaults,
@@ -47,7 +49,7 @@ void main() {
     await tester.pumpWidget(
       ChangeNotifierProvider.value(
         value: controller,
-        child: const MaterialApp(home: SettingsScreen()),
+        child: localizedApp(home: const SettingsScreen()),
       ),
     );
     await tester.pumpAndSettle();

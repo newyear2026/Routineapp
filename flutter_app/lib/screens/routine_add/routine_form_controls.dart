@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import '../../domain/utils/app_date_formats.dart';
+import '../../l10n/app_localizations.dart';
 
 import '../../domain/models/routine.dart';
 import '../../domain/utils/time_minutes.dart';
@@ -27,7 +29,7 @@ class RoutineFormHeader extends StatelessWidget {
       child: Row(
         children: [
           IconButton(
-            tooltip: '뒤로',
+            tooltip: AppLocalizations.of(context).commonBack,
             onPressed: onBack,
             icon: const Icon(Icons.arrow_back_ios_new_rounded),
           ),
@@ -43,7 +45,7 @@ class RoutineFormHeader extends StatelessWidget {
             child: onDelete == null
                 ? null
                 : IconButton(
-                    tooltip: '루틴 삭제',
+                    tooltip: AppLocalizations.of(context).routineDeleteTitle,
                     onPressed: onDelete,
                     icon: const Icon(
                       Icons.delete_outline_rounded,
@@ -100,12 +102,16 @@ class RoutineTimeTile extends StatelessWidget {
         onTap: onTap,
         borderRadius: BorderRadius.circular(16),
         child: Container(
-          height: 84,
+          // 'Hora de inicio'는 '시작 시간'보다 두 배 길다. 높이를 못 박으면
+          // 라벨이 두 줄로 접히면서 타일 아래가 잘린다.
+          constraints: const BoxConstraints(minHeight: 84),
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: AppColors.orbitBorder),
           ),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
@@ -113,7 +119,13 @@ class RoutineTimeTile extends StatelessWidget {
                 style: AppTextStyles.titleSection.copyWith(fontSize: 25),
               ),
               const SizedBox(height: 3),
-              Text(label, style: AppTextStyles.caption),
+              Text(
+                label,
+                maxLines: 2,
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.caption,
+              ),
             ],
           ),
         ),
@@ -126,23 +138,29 @@ class RoutineTimeTile extends StatelessWidget {
 class RoutineWeekdayCircle extends StatelessWidget {
   const RoutineWeekdayCircle({
     super.key,
-    required this.label,
+    required this.weekday,
     required this.selected,
     required this.onTap,
   });
 
-  final String label;
+  /// 월요일=1 … 일요일=7.
+  ///
+  /// 라벨을 밖에서 받지 않는다 — 표시용 한 글자와 스크린리더용 전체 이름이
+  /// 서로 다른 형식이어서, 한 문자열로 받으면 둘 중 하나가 어색해진다.
+  final int weekday;
   final bool selected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final label = AppDateFormats.weekdayNarrowByIndex(context, weekday);
     return Semantics(
       selected: selected,
       button: true,
-      label: '$label요일',
+      label: AppDateFormats.weekdayFullByIndex(context, weekday),
       child: InkWell(
-        key: Key('routine-weekday-$label'),
+        // 키는 언어를 타면 안 된다 — 요일 번호로 고정한다.
+        key: Key('routine-weekday-$weekday'),
         onTap: onTap,
         borderRadius: BorderRadius.circular(24),
         child: Center(
@@ -164,6 +182,7 @@ class RoutineWeekdayCircle extends StatelessWidget {
             ),
             child: Text(
               label,
+              maxLines: 1,
               style: AppTextStyles.bodyStrong.copyWith(
                 color:
                     selected ? AppColors.orbitPrimary : AppColors.textPrimary,
@@ -256,7 +275,7 @@ class RoutineOverlapNotice extends StatelessWidget {
         border: Border.all(color: AppColors.warning.withValues(alpha: .45)),
       ),
       child: Text(
-        '“${routine.title}”과 시간이 겹쳐요. 저장 전에 시간을 확인해보세요.',
+        AppLocalizations.of(context).routineOverlapInline(routine.title),
         style: AppTextStyles.caption.copyWith(color: AppColors.textPrimary),
       ),
     );

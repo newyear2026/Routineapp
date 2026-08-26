@@ -1,4 +1,4 @@
-package com.example.routine_timer
+package com.dayround.app
 
 import android.graphics.Bitmap
 import android.graphics.Canvas

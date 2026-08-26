@@ -12,6 +12,7 @@ import 'package:routine_timer/screens/home_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/test_doubles.dart';
+import 'support/localization.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -47,6 +48,7 @@ void main() {
         logRepository: MemoryLogRepository(),
       ),
       notificationService: RoutineNotificationService(
+        exactAlarmsAllowed: () async => false,
         gateway: NoopNotificationGateway(),
         preferencesLoader: () async =>
             NotificationPreferences.firstLaunchDefaults,
@@ -58,7 +60,7 @@ void main() {
     await tester.pumpWidget(
       ChangeNotifierProvider.value(
         value: controller,
-        child: const MaterialApp(home: HomeScreen()),
+        child: localizedApp(home: const HomeScreen()),
       ),
     );
     await tester.pumpAndSettle();
@@ -226,7 +228,7 @@ void main() {
       addTearDown(controller.dispose);
 
       // 기상은 NEXT 스트립이 맡고, 남은 5개가 다음 일정이 된다.
-      expect(controller.homeSnapshot.upcomingRoutines.length, 5);
+      expect(controller.homeSnapshotFor(testL10n).upcomingRoutines.length, 5);
       // 전체 개수만 적으면 3개만 그려진 화면과 어긋난다.
       expect(find.text('3 / 5'), findsOneWidget);
       expect(find.text('5개'), findsNothing);
