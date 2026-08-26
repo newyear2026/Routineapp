@@ -11,12 +11,12 @@ class HomeWidgetSyncService {
   HomeWidgetSyncService._();
   static final HomeWidgetSyncService instance = HomeWidgetSyncService._();
 
-  static const appGroupId = 'group.com.example.routineTimer';
+  static const appGroupId = 'group.com.dayround.app';
 
   /// Android: [RoutineMediumWidgetProvider] 클래스 단순명, 전체 FQCN도 함께 전달.
   static const androidWidgetName = 'RoutineMediumWidgetProvider';
   static const androidWidgetQualifiedName =
-      'com.example.routine_timer.RoutineMediumWidgetProvider';
+      'com.dayround.app.RoutineMediumWidgetProvider';
 
   static const iosWidgetKind = 'RoutineMediumWidget';
 

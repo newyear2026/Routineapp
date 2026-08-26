@@ -101,7 +101,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   // 밀려나지 않도록 이쪽이 먼저 줄어든다.
                   Flexible(
                     child: Text(
-                      l10n.onboardingAppTitle,
+                      l10n.appName,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: AppTextStyles.caption.copyWith(

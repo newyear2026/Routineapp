@@ -1,7 +1,7 @@
 import WidgetKit
 import SwiftUI
 
-private let kAppGroupId = "group.com.example.routineTimer"
+private let kAppGroupId = "group.com.dayround.app"
 private let kPayloadKey = "routine_widget_payload"
 private let kWidgetKind = "RoutineMediumWidget"
 

@@ -5,7 +5,11 @@ import 'package:go_router/go_router.dart';
 
 import '../data/local/onboarding_local_storage.dart';
 import '../domain/onboarding/onboarding_route_selector.dart';
+import '../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_spacing.dart';
+import '../theme/app_text_styles.dart';
+import '../widgets/brand_mark.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -57,6 +61,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(gradient: AppColors.pageGradient),
@@ -74,47 +79,16 @@ class _SplashScreenState extends State<SplashScreen>
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Container(
-                            width: 120,
-                            height: 120,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(40),
-                              gradient: AppColors.orbitPrimaryGradient,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.orbitPrimary
-                                      .withValues(alpha: 0.28),
-                                  blurRadius: 30,
-                                  offset: const Offset(0, 10),
-                                ),
-                              ],
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.timeline_rounded,
-                                size: 58,
-                                color: Colors.white,
-                              ),
-                            ),
+                          const BrandMark(size: 240),
+                          const SizedBox(height: AppSpacing.xxl),
+                          Text(
+                            l10n.appName,
+                            style: AppTextStyles.hero,
                           ),
-                          const SizedBox(height: 24),
-                          const Text(
-                            'Routine Timer',
-                            style: TextStyle(
-                              fontSize: 30,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: -0.8,
-                              color: AppColors.textPrimary,
-                            ),
-                          ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Design your daily rhythm',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textMuted,
-                            ),
+                          const SizedBox(height: AppSpacing.sm),
+                          Text(
+                            l10n.appTagline,
+                            style: AppTextStyles.label,
                           ),
                         ],
                       ),

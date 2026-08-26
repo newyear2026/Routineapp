@@ -1,6 +1,8 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 기본(무자격) 리소스는 영어다. 한국어·스페인어는 values-ko / values-es 에 둔다. -->
 <resources>
-    <string name="widget_ring_desc">오늘 루틴 링</string>
-    <string name="widget_medium_description">하루 루틴 시간표</string>
-    <string name="widget_next_label">다음</string>
+    <string name="app_name">DayRound</string>
+    <string name="widget_ring_desc">Today\'s routine ring</string>
+    <string name="widget_medium_description">Today\'s routines in a circle</string>
+    <string name="widget_next_label">Next</string>
 </resources>

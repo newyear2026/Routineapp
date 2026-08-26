@@ -1,0 +1,11 @@
+# 이 파일을 key.properties 로 복사한 뒤 실제 값을 채운다.
+# key.properties 와 .jks 는 .gitignore 에 걸려 있다. 절대 커밋하지 않는다.
+#
+# storeFile 은 저장소 밖 절대 경로를 권장한다. 이 파일을 잃어버리면
+# 같은 키로 업데이트를 올릴 수 없다. (Play 앱 서명에 가입했다면
+# 업로드 키 재설정을 요청할 수 있지만, 백업이 우선이다.)
+
+storeFile=/absolute/path/to/dayround-upload.jks
+storePassword=730721
+keyAlias=upload
+keyPassword=730721

@@ -40,6 +40,20 @@ dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
+  flutter_launcher_icons: ^0.14.4
+
+# 원본 PNG는 손으로 만들지 않는다. BrandMark 위젯에서 렌더링한다.
+#   flutter test tool/generate_app_icon.dart
+#   dart run flutter_launcher_icons
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/icon/app_icon.png
+  # 어댑티브 아이콘은 런처가 마스크를 씌우므로 배경과 전경을 나눠 준다.
+  adaptive_icon_background: "#F7F3EE"
+  adaptive_icon_foreground: assets/icon/app_icon_foreground.png
+  # App Store는 알파 채널이 있는 아이콘을 거부한다.
+  remove_alpha_ios: true
 
 flutter:
   uses-material-design: true
