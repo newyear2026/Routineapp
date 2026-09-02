@@ -16,14 +16,17 @@ class NotificationPermissionService {
   Future<void> _ensureInitialized() async {
     if (kIsWeb || _initialized) return;
 
-    const android = AndroidInitializationSettings('@mipmap/ic_launcher');
+    // 런처 아이콘(@mipmap/ic_launcher)은 어댑티브 아이콘이라 이 자리에 쓸 수 없다.
+    // 상태바 아이콘은 알파 채널로 모양만 정의하는 단색 드로어블이어야 하고,
+    // 어댑티브를 주면 알림이 조용히 게시되지 않는다.
+    const android = AndroidInitializationSettings('@drawable/ic_notification');
     const darwin = DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
       requestSoundPermission: false,
     );
     await _plugin.initialize(
-      const InitializationSettings(
+      settings: const InitializationSettings(
         android: android,
         iOS: darwin,
         macOS: darwin,

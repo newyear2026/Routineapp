@@ -188,14 +188,17 @@ class FlutterLocalNotificationGateway implements LocalNotificationGateway {
   Future<void> initialize() async {
     if (kIsWeb || _initialized) return;
 
-    const android = AndroidInitializationSettings('@mipmap/ic_launcher');
+    // 런처 아이콘(@mipmap/ic_launcher)은 어댑티브 아이콘이라 이 자리에 쓸 수 없다.
+    // 상태바 아이콘은 알파 채널로 모양만 정의하는 단색 드로어블이어야 하고,
+    // 어댑티브를 주면 알림이 조용히 게시되지 않는다.
+    const android = AndroidInitializationSettings('@drawable/ic_notification');
     const darwin = DarwinInitializationSettings(
       requestAlertPermission: false,
       requestBadgePermission: false,
       requestSoundPermission: false,
     );
     await _plugin.initialize(
-      const InitializationSettings(
+      settings: const InitializationSettings(
         android: android,
         iOS: darwin,
         macOS: darwin,
@@ -221,13 +224,11 @@ class FlutterLocalNotificationGateway implements LocalNotificationGateway {
       time: time,
     );
     await _plugin.zonedSchedule(
-      id,
-      title,
-      body,
-      scheduledDate,
-      details,
-      uiLocalNotificationDateInterpretation:
-          UILocalNotificationDateInterpretation.wallClockTime,
+      id: id,
+      title: title,
+      body: body,
+      scheduledDate: scheduledDate,
+      notificationDetails: details,
       // 정확 알람 권한이 없으면 부정확으로 후퇴한다. 권한 없이 exact 를 쓰면
       // Android 12+ 에서 SecurityException 으로 예약 자체가 실패한다.
       androidScheduleMode: exact
@@ -239,7 +240,7 @@ class FlutterLocalNotificationGateway implements LocalNotificationGateway {
   }
 
   @override
-  Future<void> cancel(int id) => _plugin.cancel(id);
+  Future<void> cancel(int id) => _plugin.cancel(id: id);
 
   @override
   Future<List<PendingNotificationRequest>> pendingNotificationRequests() =>
