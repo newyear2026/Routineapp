@@ -31,10 +31,20 @@ class _HomeUpcomingAdCardState extends State<HomeUpcomingAdCard> {
   /// 광고를 자르지 않기 위한 높이 범위.
   ///
   /// 고정 높이를 주면 소재에 따라 아래가 잘리는데, **잘린 광고는 AdMob
-  /// 정책 위반**이다(광고의 일부를 가리는 배치). 여백이 조금 남는 쪽이
-  /// 잘리는 쪽보다 안전해서 범위로 준다. 실기기에서 보고 좁힌다.
+  /// 정책 위반**이다(광고의 일부를 가리는 배치). 그래서 범위로 준다.
+  ///
+  /// 상한은 실기기에서 확인하고 좁힌 값이다. small 템플릿은 소재와 무관하게
+  /// 거의 같은 높이로 그려져서, 처음 잡았던 200 은 카드 절반이 흰 여백으로
+  /// 남았다. 아래 조건에서 «Ad» 배지·별점·CTA 가 모두 온전히 보이는 것을
+  /// 확인했다.
+  ///
+  ///   소재     아이콘형(Google Ads) · 이미지형(Flood-It)
+  ///   글꼴     기본 · 1.3 · 1.5 배율
+  ///
+  /// 더 줄이려면 같은 조건을 다시 확인해야 한다. 여백이 남는 쪽이 잘리는
+  /// 쪽보다 언제나 안전하다.
   static const double _minHeight = 90;
-  static const double _maxHeight = 200;
+  static const double _maxHeight = 120;
 
   /// «다음 일정» 카드와 같은 반경 (`AppRoutineRow`).
   static const double _cardRadius = 18;
