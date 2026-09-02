@@ -45,7 +45,7 @@
 
 ### 7. 문의
 
-개인정보처리방침에 관한 문의: **<이메일 주소를 입력하세요>**
+개인정보처리방침에 관한 문의: **jacoboh7307@gmail.com**
 
 ---
 
@@ -85,7 +85,7 @@ Because the App collects no personal information, it collects no information fro
 
 ### 7. Contact
 
-Questions about this policy: **<your email address>**
+Questions about this policy: **jacoboh7307@gmail.com**
 
 ---
 
@@ -125,4 +125,4 @@ Dado que la Aplicación no recopila información personal, tampoco recopila info
 
 ### 7. Contacto
 
-Preguntas sobre esta política: **<tu dirección de correo electrónico>**
+Preguntas sobre esta política: **jacoboh7307@gmail.com**
