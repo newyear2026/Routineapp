@@ -43,6 +43,14 @@
             android:name="flutterEmbedding"
             android:value="2" />
 
+        <!-- AdMob 앱 ID. 이 값이 없으면 SDK 초기화 때 앱이 실행 즉시 죽는다.
+             테스트/실제 구분은 이 값이 아니라 광고 단위 ID에서 갈린다
+             (AdUnitIds 참고) — 여기에는 언제나 실제 앱 ID가 들어간다.
+             INTERNET·AD_ID 권한은 google_mobile_ads 매니페스트가 병합한다. -->
+        <meta-data
+            android:name="com.google.android.gms.ads.APPLICATION_ID"
+            android:value="ca-app-pub-2706404530136726~7407791654" />
+
         <!-- flutter_local_notifications 는 자기 매니페스트에 권한만 선언하고
              수신기는 앱이 직접 등록하게 한다. 이 선언이 없으면 알람은 정상적으로
              예약·발화되는데 안드로이드가 받을 수신기를 찾지 못해 브로드캐스트를

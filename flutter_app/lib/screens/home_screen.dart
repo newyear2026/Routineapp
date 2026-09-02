@@ -8,6 +8,7 @@ import '../domain/models/routine.dart';
 import '../l10n/app_localizations.dart';
 import '../domain/utils/time_minutes.dart';
 import '../theme/app_colors.dart';
+import '../widgets/ads/home_upcoming_ad_card.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/ds/ds.dart';
 import '../widgets/home/circular_timetable_area.dart';
@@ -225,6 +226,16 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                       remaining: upcoming.length - _maxUpcomingTiles,
                       onTap: () => context.go('/routines'),
                     ),
+                  // Slot A — 섹션의 맨 끝이다. «더 보기» 링크보다 뒤에 두어
+                  // 목록과 그 목록의 링크를 광고가 갈라놓지 않게 한다.
+                  // 띄울 수 없으면 높이 0이라 레이아웃은 그대로다.
+                  HomeUpcomingAdCard(
+                    // «더 보기» 링크가 나타났다 사라지면 이 위젯의 형제
+                    // 순번이 바뀐다. 키가 없으면 그때 State가 새로 만들어져
+                    // 같은 세션에 광고를 다시 불러오게 된다.
+                    key: const ValueKey('home-upcoming-ad'),
+                    upcomingCount: upcoming.length,
+                  ),
                 ],
               ),
             ),

@@ -34,6 +34,9 @@ dependencies:
   # 여기서 범위를 좁히면 Flutter를 올릴 때마다 해석이 깨진다.
   intl: any
   home_widget: ^0.9.3
+
+  # 광고 — 자리·상한은 docs/AD_PLACEMENT.md, 판정은 domain/ads/AdSlotPolicy
+  google_mobile_ads: ^6.0.0
   timezone: ^0.11.1
 
 dev_dependencies:

@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -9,6 +11,7 @@ import 'package:provider/provider.dart';
 import 'app_route_observer.dart';
 import 'app_scaffold_messenger.dart';
 import 'application/routine_app_controller.dart';
+import 'application/services/ad_bootstrap.dart';
 import 'domain/settings/app_language.dart';
 import 'l10n/app_localizations.dart';
 import 'screens/splash_screen.dart';
@@ -32,6 +35,9 @@ Future<void> main() async {
   await initializeDateFormatting();
   if (!kIsWeb) {
     await HomeWidgetSyncService.instance.init();
+    // 기다리지 않는다. 광고는 없어도 앱이 돌아가야 하는 기능이라, 여기서
+    // 붙잡으면 SDK가 느린 날 첫 화면이 그만큼 늦게 뜬다.
+    unawaited(AdBootstrap.instance.ensureInitialized());
   }
 
   // 상태바 투명하게
