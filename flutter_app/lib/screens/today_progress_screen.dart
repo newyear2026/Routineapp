@@ -141,35 +141,11 @@ class _ProgressBar extends StatelessWidget {
 
   final int percent;
 
-  static const double _height = 8;
-
   @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      label: AppLocalizations.of(context).progressSemantic(percent),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(999),
-        child: SizedBox(
-          height: _height,
-          child: Stack(
-            children: [
-              const ColoredBox(
-                color: AppColors.orbitHalo,
-                child: SizedBox.expand(),
-              ),
-              FractionallySizedBox(
-                widthFactor: (percent / 100).clamp(0.0, 1.0),
-                child: const ColoredBox(
-                  color: AppColors.orbitPrimary,
-                  child: SizedBox.expand(),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => SegmentedProgress(
+        value: percent / 100,
+        semanticLabel: AppLocalizations.of(context).progressSemantic(percent),
+      );
 }
 
 /// 0%에 '좋은 흐름이에요'가 뜨면 상태를 잘못 말하는 문구가 된다.
@@ -333,7 +309,7 @@ class _ProgressGroup extends StatelessWidget {
                 height: 24,
                 decoration: BoxDecoration(
                   color: group.tint.withValues(alpha: .18),
-                  shape: BoxShape.circle,
+                  shape: BoxShape.rectangle,
                 ),
                 child: Icon(group.icon, color: group.textColor, size: 16),
               ),
@@ -350,7 +326,8 @@ class _ProgressGroup extends StatelessWidget {
               ),
               const SizedBox(width: 8),
               // 홈·루틴 화면과 같은 단위를 쓴다. 여기만 숫자만 적으면 어긋난다.
-              Text(AppLocalizations.of(context).routineCount(group.items.length),
+              Text(
+                  AppLocalizations.of(context).routineCount(group.items.length),
                   style: AppTextStyles.caption),
             ],
           ),
@@ -431,7 +408,7 @@ class _RoutineStatusTrailing extends StatelessWidget {
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
               decoration: BoxDecoration(
                 color: tint.withValues(alpha: .18),
-                borderRadius: BorderRadius.circular(999),
+                borderRadius: BorderRadius.zero,
               ),
               child: Text(
                 label,

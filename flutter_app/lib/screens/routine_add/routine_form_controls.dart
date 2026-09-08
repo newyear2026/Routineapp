@@ -6,6 +6,8 @@ import '../../domain/models/routine.dart';
 import '../../domain/utils/time_minutes.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
+import '../../widgets/ds/app_pixel_hint.dart';
+import '../../widgets/ds/pixel_icon.dart';
 
 /// 루틴 폼의 상단 바.
 ///
@@ -72,8 +74,8 @@ class RoutineFormSurface extends StatelessWidget {
       padding: padding ?? const EdgeInsets.all(20),
       decoration: BoxDecoration(
         color: AppColors.orbitSurface,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: AppColors.orbitBorder),
+        borderRadius: BorderRadius.zero,
+        border: Border.all(color: AppColors.textPrimary, width: 2),
       ),
       child: child,
     );
@@ -97,18 +99,18 @@ class RoutineTimeTile extends StatelessWidget {
   Widget build(BuildContext context) {
     return Material(
       color: AppColors.orbitSurface,
-      borderRadius: BorderRadius.circular(16),
+      borderRadius: BorderRadius.zero,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.zero,
         child: Container(
           // 'Hora de inicio'는 '시작 시간'보다 두 배 길다. 높이를 못 박으면
           // 라벨이 두 줄로 접히면서 타일 아래가 잘린다.
           constraints: const BoxConstraints(minHeight: 84),
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
           decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.orbitBorder),
+            borderRadius: BorderRadius.zero,
+            border: Border.all(color: AppColors.textPrimary, width: 2),
           ),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -162,7 +164,7 @@ class RoutineWeekdayCircle extends StatelessWidget {
         // 키는 언어를 타면 안 된다 — 요일 번호로 고정한다.
         key: Key('routine-weekday-$weekday'),
         onTap: onTap,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.zero,
         child: Center(
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 160),
@@ -173,7 +175,7 @@ class RoutineWeekdayCircle extends StatelessWidget {
               color: selected
                   ? AppColors.orbitPrimary.withValues(alpha: .15)
                   : AppColors.orbitSurface,
-              shape: BoxShape.circle,
+              shape: BoxShape.rectangle,
               border: Border.all(
                 color:
                     selected ? AppColors.orbitPrimary : AppColors.orbitBorder,
@@ -203,32 +205,7 @@ class RoutineFormInfoLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: AppColors.orbitHalo.withValues(alpha: .24),
-        borderRadius: BorderRadius.circular(13),
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.auto_graph_rounded,
-            size: 17,
-            color: AppColors.orbitPrimary,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              text,
-              style: AppTextStyles.caption.copyWith(
-                color: AppColors.orbitPrimary,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+    return AppPixelHint(message: text);
   }
 }
 
@@ -247,7 +224,8 @@ class RoutineSuggestionChip extends StatelessWidget {
   Widget build(BuildContext context) {
     return ActionChip(
       label: Text(label),
-      avatar: const Icon(Icons.add_rounded, size: 16),
+      shape: const RoundedRectangleBorder(),
+      avatar: const AppIcon(Icons.add_rounded, size: 16),
       onPressed: onTap,
       backgroundColor: AppColors.orbitHalo.withValues(alpha: .18),
       side: BorderSide(color: AppColors.orbitPrimary.withValues(alpha: .2)),
@@ -267,17 +245,9 @@ class RoutineOverlapNotice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.orbitAccent.withValues(alpha: .14),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.warning.withValues(alpha: .45)),
-      ),
-      child: Text(
-        AppLocalizations.of(context).routineOverlapInline(routine.title),
-        style: AppTextStyles.caption.copyWith(color: AppColors.textPrimary),
-      ),
+    return AppPixelHint(
+      message: AppLocalizations.of(context).routineOverlapInline(routine.title),
+      isError: true,
     );
   }
 }

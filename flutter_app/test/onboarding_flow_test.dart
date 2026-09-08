@@ -1,3 +1,4 @@
+import 'package:routine_timer/widgets/ds/pixel_steps.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -74,20 +75,21 @@ void main() {
       expect(find.text('건너뛰기'), findsOneWidget); // 헤더의 건너뛰기 버튼 하나뿐
     });
 
-    testWidgets('활성 페이지 인디케이터는 브랜드색으로 보인다', (tester) async {
+    testWidgets('픽셀 단계는 다음 버튼과 뒤로 스와이프에 연결된다', (tester) async {
       await pumpBare(tester, const OnboardingScreen());
-
-      final dots = tester
-          .widgetList<AnimatedContainer>(find.byType(AnimatedContainer))
-          .map((w) => w.decoration)
-          .whereType<BoxDecoration>()
-          .toList();
-
-      expect(
-        dots.any((d) => d.color == AppColors.orbitPrimary),
-        isTrue,
-        reason: '옅은 라벤더 인디케이터는 새 배경에서 1.2:1로 보이지 않는다',
-      );
+      PixelSteps steps() => tester.widget<PixelSteps>(find.byType(PixelSteps));
+      expect(steps().current, 0);
+      expect(steps().total, 3);
+      await tester.tap(find.byKey(const Key('onboarding-next-button')));
+      await tester.pumpAndSettle();
+      expect(steps().current, 1);
+      await tester.tap(find.byKey(const Key('onboarding-next-button')));
+      await tester.pumpAndSettle();
+      expect(steps().current, 2);
+      expect(find.text(testL10n.onboardingStart), findsOneWidget);
+      await tester.drag(find.byType(PageView), const Offset(500, 0));
+      await tester.pumpAndSettle();
+      expect(steps().current, 1);
     });
   });
 

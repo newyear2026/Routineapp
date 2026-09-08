@@ -5,6 +5,7 @@ import '../../application/services/ad_bootstrap.dart';
 import '../../application/services/ad_config.dart';
 import '../../application/services/ad_policy_service.dart';
 import '../../application/services/ad_unit_ids.dart';
+import '../../domain/ads/ad_placement_caps.dart';
 import '../../domain/ads/ad_slot.dart';
 import '../../theme/app_colors.dart';
 import '../ds/app_card.dart';
@@ -58,10 +59,37 @@ class _HomeUpcomingAdCardState extends State<HomeUpcomingAdCard> {
   NativeAd? _ad;
   bool _loaded = false;
 
+  /// 이미 [NativeAd] 를 만들었는가. 한 State 에서 두 번 요청하지 않는다.
+  bool _requested = false;
+
+  /// 판정이 도는 중인가. 판정은 비동기라 두 번 겹쳐 들어올 수 있다.
+  bool _busy = false;
+
+  /// 광고를 얹어도 될 만큼 «다음 일정»이 남아 있는가.
+  ///
+  /// 숫자는 [AdPlacementCaps] 하나가 들고 있다. 여기서 다시 쓰면 정책과
+  /// 화면이 서로 다른 기준으로 갈라진다.
+  bool get _hasEnoughUpcoming =>
+      widget.upcomingCount >= AdPlacementCaps.minUpcomingForHomeSlot;
+
   @override
   void initState() {
     super.initState();
     _maybeLoad();
+  }
+
+  @override
+  void didUpdateWidget(covariant HomeUpcomingAdCard oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // 마운트 시점에 «다음 일정»이 비어 있으면 정책이 slotCondition 으로 막는다.
+    // initState 는 다시 돌지 않으므로, 그 뒤 사용자가 루틴을 추가해 조건이
+    // 채워져도 이 자리는 세션 내내 죽어 있게 된다.
+    //
+    // 조건이 «채워지는 그 순간»에만 다시 묻는다. 매 rebuild 마다 물으면
+    // 상한을 계속 두드리게 되고, 홈은 시계가 갈 때마다 다시 그려진다.
+    final wasEnough =
+        oldWidget.upcomingCount >= AdPlacementCaps.minUpcomingForHomeSlot;
+    if (!wasEnough && _hasEnoughUpcoming) _maybeLoad();
   }
 
   @override
@@ -71,6 +99,18 @@ class _HomeUpcomingAdCardState extends State<HomeUpcomingAdCard> {
   }
 
   Future<void> _maybeLoad() async {
+    // [didUpdateWidget] 이 다시 부를 수 있다. 이미 요청했거나 판정이 도는
+    // 중이면 그냥 돌아간다 — 겹쳐 들어오면 광고 두 개가 뜬다.
+    if (_requested || _busy) return;
+    _busy = true;
+    try {
+      await _load();
+    } finally {
+      _busy = false;
+    }
+  }
+
+  Future<void> _load() async {
     // 플래그만 보고 넘어가면 초기화가 도는 중에 광고를 요청하게 된다.
     // 홈은 스플래시 직후에 뜨므로 실제로 이 경합에 걸린다.
     await AdBootstrap.instance.ensureInitialized();
@@ -117,6 +157,7 @@ class _HomeUpcomingAdCardState extends State<HomeUpcomingAdCard> {
       ),
     );
 
+    _requested = true;
     _ad = ad;
     await ad.load();
   }
@@ -157,7 +198,13 @@ class _HomeUpcomingAdCardState extends State<HomeUpcomingAdCard> {
   @override
   Widget build(BuildContext context) {
     final ad = _ad;
-    if (!_loaded || ad == null) return const SizedBox.shrink();
+    // 판정은 광고를 «불러올 때» 한 번 한다. 하지만 그 뒤 사용자가 마지막
+    // 루틴을 끝내면 목록이 비고, 그러면 캡션 한 줄 밑에 광고만 남아 광고가
+    // 그 섹션의 본문이 된다 — [AdPlacementCaps.minUpcomingForHomeSlot] 이
+    // 막으려던 바로 그 상태다. 그래서 이 조건만은 그릴 때마다 다시 본다.
+    if (!_hasEnoughUpcoming || !_loaded || ad == null) {
+      return const SizedBox.shrink();
+    }
 
     return Padding(
       // 위아래로 넉넉히 띄운다. 위로는 «더 보기» 링크, 아래로는 하단

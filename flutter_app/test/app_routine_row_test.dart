@@ -5,6 +5,10 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:routine_timer/widgets/ds/ds.dart';
 import 'support/localization.dart';
 
+/// chevron은 이제 Material 아이콘이 아니라 픽셀 글리프로 그린다.
+final chevron = find.byWidgetPredicate(
+    (w) => w is PixelIcon && w.glyph == PixelGlyph.chevronRight);
+
 /// 루틴 한 줄은 화면마다 다시 만들지 않는다.
 ///
 /// 예전에는 홈·목록·캘린더·진행이 각자 private 위젯을 들고 있었고
@@ -38,7 +42,7 @@ void main() {
       AppRoutineRow(color: Colors.red, title: '아침 산책', onTap: () {}),
     );
 
-    expect(find.byIcon(Icons.chevron_right_rounded), findsOneWidget);
+    expect(chevron, findsOneWidget);
   });
 
   testWidgets('누를 수 없으면 chevron을 붙이지 않는다', (tester) async {
@@ -47,7 +51,7 @@ void main() {
       const AppRoutineRow(color: Colors.red, title: '아침 산책'),
     );
 
-    expect(find.byIcon(Icons.chevron_right_rounded), findsNothing);
+    expect(chevron, findsNothing);
   });
 
   testWidgets('trailing을 주면 chevron 대신 그것을 쓴다', (tester) async {
@@ -62,7 +66,7 @@ void main() {
     );
 
     expect(find.text('완료'), findsOneWidget);
-    expect(find.byIcon(Icons.chevron_right_rounded), findsNothing);
+    expect(chevron, findsNothing);
   });
 
   testWidgets('화면들이 각자 루틴 줄을 다시 만들지 않는다', (tester) async {

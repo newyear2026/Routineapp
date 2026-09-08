@@ -31,8 +31,8 @@ class RoutineFormPreview extends StatelessWidget {
       height: 230,
       decoration: BoxDecoration(
         color: AppColors.orbitSurface,
-        borderRadius: BorderRadius.circular(26),
-        border: Border.all(color: AppColors.orbitBorder),
+        borderRadius: BorderRadius.zero,
+        border: Border.all(color: AppColors.textPrimary, width: 2),
       ),
       child: Stack(
         alignment: Alignment.center,

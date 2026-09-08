@@ -9,3 +9,7 @@ export 'app_screen_shell.dart';
 export 'app_settings_tile.dart';
 export 'app_status_badge.dart';
 export 'orbit_bottom_navigation.dart';
+export 'pixel_icon.dart';
+
+export 'segmented_progress.dart';
+export 'pixel_steps.dart';

@@ -1,3 +1,4 @@
+import '../widgets/ds/app_pixel_hint.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -61,7 +62,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
             backgroundColor: AppColors.orbitPrimary,
             foregroundColor: Colors.white,
             tooltip: AppLocalizations.of(context).routinesAdd,
-            child: const Icon(Icons.add_rounded),
+            child: const AppIcon(Icons.add_rounded),
           ),
           body: AppScreenShell(
             child: app.isLoaded
@@ -159,16 +160,16 @@ class _ViewSwitcher extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       // 트랙 52 - 안쪽 여백 8 = 각 칸 44. UI_STANDARDS 5의 터치 타깃 최소 높이다.
-      height: 52,
-      padding: const EdgeInsets.all(4),
+      constraints: const BoxConstraints(minHeight: 52),
+      padding: const EdgeInsets.all(2),
       decoration: BoxDecoration(
         color: AppColors.orbitSurfaceSoft,
-        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.textPrimary, width: 2),
       ),
       // stretch가 없으면 각 칸이 내용 높이(약 19)로만 잡힌다. 선택된 흰 pill이
       // 트랙 가운데 떠 있는 것처럼 보이고, 무엇보다 위아래 절반이 눌리지 않는다.
       child: Row(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
+        crossAxisAlignment: CrossAxisAlignment.center,
         children: [
           _ViewSwitchButton(
             label: AppLocalizations.of(context).routinesViewList,
@@ -205,35 +206,36 @@ class _ViewSwitchButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: Material(
-        color: selected ? AppColors.orbitSurface : Colors.transparent,
-        borderRadius: BorderRadius.circular(12),
+        color: selected ? AppColors.orbitPrimary : AppColors.orbitSurface,
+        borderRadius: BorderRadius.zero,
         child: InkWell(
           key: Key('routine-view-$label'),
           onTap: onTap,
-          borderRadius: BorderRadius.circular(12),
-          child: Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                icon,
-                size: 18,
-                color: selected ? AppColors.orbitPrimary : AppColors.textMuted,
-              ),
-              const SizedBox(width: 7),
-              Flexible(
-                child: Text(
-                  label,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppTextStyles.caption.copyWith(
-                    color: selected
-                        ? AppColors.orbitPrimary
-                        : AppColors.textMuted,
-                    fontWeight: FontWeight.w700,
+          borderRadius: BorderRadius.zero,
+          child: Padding(
+            padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 8),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(
+                  icon,
+                  size: 18,
+                  color: selected ? Colors.white : AppColors.textMuted,
+                ),
+                const SizedBox(width: 7),
+                Flexible(
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.caption.copyWith(
+                      color: selected ? Colors.white : AppColors.textMuted,
+                      fontWeight: FontWeight.w700,
+                    ),
                   ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -327,7 +329,8 @@ class _CalendarRoutineView extends StatelessWidget {
             ),
             const SizedBox(width: 8),
             Text(
-              AppLocalizations.of(context).routineCount(selectedRoutines.length),
+              AppLocalizations.of(context)
+                  .routineCount(selectedRoutines.length),
               style: AppTextStyles.caption,
             ),
           ],
@@ -389,7 +392,7 @@ class _MonthCalendar extends StatelessWidget {
               IconButton(
                 tooltip: AppLocalizations.of(context).routinesNextMonth,
                 onPressed: onNextMonth,
-                icon: const Icon(Icons.chevron_right_rounded),
+                icon: const AppIcon(Icons.chevron_right_rounded),
               ),
             ],
           ),
@@ -484,7 +487,7 @@ class _CalendarDateCell extends StatelessWidget {
       child: InkWell(
         key: Key('calendar-day-${date.year}-${date.month}-${date.day}'),
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.zero,
         child: Padding(
           padding: const EdgeInsets.symmetric(vertical: 4),
           child: Column(
@@ -495,7 +498,7 @@ class _CalendarDateCell extends StatelessWidget {
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
                   color: selected ? AppColors.orbitPrimary : Colors.transparent,
-                  shape: BoxShape.circle,
+                  shape: BoxShape.rectangle,
                   // 다른 달로 넘어가도 '오늘'을 잃지 않도록 선택과 별개로 표시한다.
                   border: !selected && isToday
                       ? Border.all(color: AppColors.orbitPrimary, width: 1.5)
@@ -511,9 +514,8 @@ class _CalendarDateCell extends StatelessWidget {
                             : weekend
                                 ? AppColors.dangerText
                                 : AppColors.textPrimary,
-                    fontWeight: selected || isToday
-                        ? FontWeight.w800
-                        : FontWeight.w500,
+                    fontWeight:
+                        selected || isToday ? FontWeight.w800 : FontWeight.w500,
                   ),
                 ),
               ),
@@ -535,7 +537,7 @@ class _CalendarDateCell extends StatelessWidget {
                             color: inMonth
                                 ? routine.color
                                 : routine.color.withValues(alpha: .26),
-                            shape: BoxShape.circle,
+                            shape: BoxShape.rectangle,
                           ),
                         ),
                       )
@@ -555,21 +557,9 @@ class _SelectedDateEmpty extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      constraints: const BoxConstraints(minHeight: 100),
-      padding: const EdgeInsets.all(18),
-      decoration: appSurfaceDecoration(radius: 18),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(AppLocalizations.of(context).routinesNoneForDay,
-              style: AppTextStyles.bodyStrong),
-          const SizedBox(height: 3),
-          Text(AppLocalizations.of(context).routinesNoneForDayHint,
-              style: AppTextStyles.caption),
-        ],
-      ),
+    return AppPixelHint(
+      title: AppLocalizations.of(context).routinesNoneForDay,
+      message: AppLocalizations.of(context).routinesNoneForDayHint,
     );
   }
 }
@@ -582,8 +572,8 @@ class _EmptyRoutines extends StatelessWidget {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 56),
       child: Center(
-        child: Text(AppLocalizations.of(context).routinesAddFirst,
-            style: AppTextStyles.body),
+        child: AppPixelHint(
+            message: AppLocalizations.of(context).routinesAddFirst),
       ),
     );
   }
@@ -591,4 +581,3 @@ class _EmptyRoutines extends StatelessWidget {
 
 String _dateLabel(BuildContext context, DateTime date) =>
     AppDateFormats.monthDayWeekday(context, date);
-

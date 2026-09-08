@@ -24,8 +24,7 @@ import 'screens/settings_screen.dart';
 import 'screens/routine_add_screen.dart';
 import 'screens/widget_medium_preview_screen.dart';
 import 'screens/routines_screen.dart';
-import 'theme/app_colors.dart';
-import 'theme/app_theme_preset.dart';
+import 'theme/app_theme.dart';
 import 'widget_home/home_widget_sync_service.dart';
 
 Future<void> main() async {
@@ -107,30 +106,22 @@ class _AppRoot extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<RoutineAppController>(
       builder: (context, app, _) {
-          return MaterialApp.router(
-            scaffoldMessengerKey: appScaffoldMessengerKey,
-            // 앱 이름은 로케일마다 다르다. 태스크 스위처 제목도 따라가야 하므로
-            // 고정 title 대신 onGenerateTitle을 쓴다.
-            onGenerateTitle: (context) => AppLocalizations.of(context).appName,
-            debugShowCheckedModeBanner: false,
-            // null이면 기기 언어를 따른다. 설정에서 언어를 고른 경우에만 값이 온다.
-            locale: app.locale,
-            supportedLocales: AppLanguage.supportedLocales,
-            localizationsDelegates: const [
-              AppLocalizations.delegate,
-              GlobalMaterialLocalizations.delegate,
-              GlobalWidgetsLocalizations.delegate,
-              GlobalCupertinoLocalizations.delegate,
-            ],
-            theme: ThemeData(
-              useMaterial3: true,
-              // 투명으로 두면 Scaffold의 bottomNavigationBar 뒤가 칠해지지 않아
-              // 루트의 검정이 그대로 드러난다. 페이지 배경색을 기본값으로 둔다.
-              scaffoldBackgroundColor: AppColors.pageBackground,
-              extensions: <ThemeExtension<dynamic>>[
-                AppThemeTokens(preset: app.currentThemePreset),
-              ],
-            ),
+        return MaterialApp.router(
+          scaffoldMessengerKey: appScaffoldMessengerKey,
+          // 앱 이름은 로케일마다 다르다. 태스크 스위처 제목도 따라가야 하므로
+          // 고정 title 대신 onGenerateTitle을 쓴다.
+          onGenerateTitle: (context) => AppLocalizations.of(context).appName,
+          debugShowCheckedModeBanner: false,
+          // null이면 기기 언어를 따른다. 설정에서 언어를 고른 경우에만 값이 온다.
+          locale: app.locale,
+          supportedLocales: AppLanguage.supportedLocales,
+          localizationsDelegates: const [
+            AppLocalizations.delegate,
+            GlobalMaterialLocalizations.delegate,
+            GlobalWidgetsLocalizations.delegate,
+            GlobalCupertinoLocalizations.delegate,
+          ],
+          theme: buildRoutineTheme(preset: app.currentThemePreset),
           routerConfig: _router,
         );
       },

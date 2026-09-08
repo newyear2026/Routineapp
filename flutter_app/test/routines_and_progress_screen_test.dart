@@ -1,3 +1,4 @@
+import 'package:routine_timer/widgets/ds/segmented_progress.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -146,7 +147,8 @@ void main() {
       // 오늘은 선택과 무관하게 테두리로 남는다.
       expect(dateCircle('calendar-day-2026-8-4').border, isNotNull);
       // 선택된 날은 채움으로 구분된다.
-      expect(dateCircle('calendar-day-2026-8-12').color, isNot(Colors.transparent));
+      expect(dateCircle('calendar-day-2026-8-12').color,
+          isNot(Colors.transparent));
       // 그 외 날짜에는 아무 표시도 없다.
       expect(dateCircle('calendar-day-2026-8-5').border, isNull);
 
@@ -159,6 +161,44 @@ void main() {
   });
 
   group('진행 화면', () {
+    testWidgets('실제 완료 처리 후 픽셀 막대가 갱신된다', (tester) async {
+      final controller = await pump(
+        tester,
+        const TodayProgressScreen(),
+        now: DateTime(2026, 8, 4, 7, 30),
+        routines: [
+          dailyRoutine(id: 'wake', title: '기상', startHour: 7, endHour: 8),
+          dailyRoutine(id: 'work', title: '집중', startHour: 9, endHour: 10),
+          dailyRoutine(id: 'gym', title: '운동', startHour: 19, endHour: 20),
+        ],
+      );
+      addTearDown(controller.dispose);
+      expect(
+          tester
+              .widget<SegmentedProgress>(find.byType(SegmentedProgress))
+              .value,
+          0);
+      await controller.completeCurrent();
+      await tester.pumpAndSettle();
+      expect(find.text('1 / 3'), findsOneWidget);
+      expect(
+          tester
+              .widget<SegmentedProgress>(find.byType(SegmentedProgress))
+              .value,
+          0.33);
+      expect(find.bySemanticsLabel('오늘 진행률 33 퍼센트'), findsOneWidget);
+      final fills = tester
+          .widgetList<FractionallySizedBox>(find.descendant(
+            of: find.byType(SegmentedProgress),
+            matching: find.byType(FractionallySizedBox),
+          ))
+          .map((w) => w.widthFactor!)
+          .toList();
+      expect(fills.take(3), everyElement(1.0));
+      expect(fills[3], closeTo(0.3, 0.0001));
+      expect(fills.skip(4), everyElement(0.0));
+    });
+
     testWidgets('완료가 0일 때 진행 중인 것처럼 말하지 않는다', (tester) async {
       final controller = await pump(
         tester,
@@ -166,7 +206,10 @@ void main() {
         routines: [
           dailyRoutine(id: 'wake', title: '기상', startHour: 7, endHour: 8),
           dailyRoutine(
-              id: 'gym', title: '운동', startHour: 19, endHour: 20,
+              id: 'gym',
+              title: '운동',
+              startHour: 19,
+              endHour: 20,
               updatedAtMs: 2),
         ],
       );
@@ -204,7 +247,10 @@ void main() {
         routines: [
           dailyRoutine(id: 'wake', title: '기상', startHour: 7, endHour: 8),
           dailyRoutine(
-              id: 'gym', title: '운동', startHour: 19, endHour: 20,
+              id: 'gym',
+              title: '운동',
+              startHour: 19,
+              endHour: 20,
               updatedAtMs: 2),
         ],
       );

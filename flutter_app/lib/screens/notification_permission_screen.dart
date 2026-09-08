@@ -80,7 +80,7 @@ class _NotificationPermissionScreenState
                 width: 108,
                 height: 108,
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(32),
+                  borderRadius: BorderRadius.zero,
                   color: AppColors.orbitPrimary.withValues(alpha: 0.1),
                 ),
                 child: const Icon(
@@ -142,7 +142,7 @@ class _NotificationPermissionScreenState
       key: const Key('exact-alarm-note'),
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.zero,
         color: AppColors.orbitPrimary.withValues(alpha: 0.07),
       ),
       child: Row(
@@ -186,7 +186,7 @@ class _NotificationPermissionScreenState
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              shape: BoxShape.circle,
+              shape: BoxShape.rectangle,
               color: routineColor,
               border: Border.all(color: Colors.white, width: 3),
               boxShadow: [

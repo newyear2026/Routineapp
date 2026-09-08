@@ -9,6 +9,7 @@ import '../l10n/app_localizations.dart';
 import '../domain/utils/time_minutes.dart';
 import '../theme/app_colors.dart';
 import '../widgets/ads/home_upcoming_ad_card.dart';
+import '../widgets/ds/app_pixel_hint.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/ds/ds.dart';
 import '../widgets/home/circular_timetable_area.dart';
@@ -116,7 +117,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                       IconButton(
                         tooltip: l10n.commonSettings,
                         onPressed: () => context.go('/settings'),
-                        icon: const Icon(Icons.settings_outlined),
+                        icon: const AppIcon(Icons.settings_outlined),
                         color: AppColors.textMuted,
                       ),
                     ],
@@ -275,9 +276,9 @@ class _FocusStrip extends StatelessWidget {
 
     return Material(
       color: AppColors.orbitSurface,
-      borderRadius: BorderRadius.circular(24),
+      borderRadius: BorderRadius.zero,
       child: InkWell(
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.zero,
         onTap: onTap,
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
@@ -449,18 +450,10 @@ class _EmptyOrbit extends StatelessWidget {
   const _EmptyOrbit();
 
   @override
-  Widget build(BuildContext context) => Center(
-        child: Container(
-          width: 286,
-          height: 286,
-          alignment: Alignment.center,
-          decoration: BoxDecoration(
-            shape: BoxShape.circle,
-            border: Border.all(color: AppColors.orbitHalo, width: 9),
-          ),
-          child: Text(AppLocalizations.of(context).homeEmptyRingTitle,
-              textAlign: TextAlign.center, style: AppTextStyles.body),
-        ),
+  Widget build(BuildContext context) => Padding(
+        padding: const EdgeInsets.symmetric(vertical: 32),
+        child: AppPixelHint(
+            message: AppLocalizations.of(context).homeEmptyRingTitle),
       );
 }
 

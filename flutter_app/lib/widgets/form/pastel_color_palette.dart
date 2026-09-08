@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
+import '../ds/pixel_icon.dart';
 
-/// 가로 스크롤 색상 선택 (원형 스와치)
+/// 가로 스크롤 색상 선택 (픽셀 스와치)
 class PastelColorPalette extends StatelessWidget {
   const PastelColorPalette({
     super.key,
@@ -52,7 +53,7 @@ class PastelColorPalette extends StatelessWidget {
                   width: 40,
                   height: 40,
                   decoration: BoxDecoration(
-                    shape: BoxShape.circle,
+                    shape: BoxShape.rectangle,
                     color: c,
                     border: Border.all(
                       color: sel
@@ -60,16 +61,16 @@ class PastelColorPalette extends StatelessWidget {
                           : Colors.white.withValues(alpha: 0.6),
                       width: sel ? 3 : 2,
                     ),
-                    boxShadow: [
+                    boxShadow: const [
                       BoxShadow(
-                        color: c.withValues(alpha: 0.45),
-                        blurRadius: sel ? 12 : 6,
-                        offset: const Offset(0, 4),
+                        color: Color(0x33241F31),
+                        blurRadius: 0,
+                        offset: Offset(2, 2),
                       ),
                     ],
                   ),
                   child: sel
-                      ? Icon(Icons.check, size: 18, color: checkColor)
+                      ? AppIcon(Icons.check, size: 18, color: checkColor)
                       : null,
                 ),
               );

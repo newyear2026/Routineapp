@@ -138,10 +138,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               ),
               child: Column(
                 children: [
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: List.generate(pages.length, _buildDot),
-                  ),
+                  PixelSteps(total: pages.length, current: _currentPage),
                   const SizedBox(height: AppSpacing.xl),
                   AppButton(
                     key: const Key('onboarding-next-button'),
@@ -155,24 +152,6 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
             ),
           ],
         ),
-      ),
-    );
-  }
-
-  Widget _buildDot(int index) {
-    final isActive = _currentPage == index;
-    return AnimatedContainer(
-      duration: const Duration(milliseconds: 280),
-      margin: const EdgeInsets.symmetric(horizontal: 4),
-      width: isActive ? 24 : 8,
-      height: 8,
-      decoration: BoxDecoration(
-        // orbitBorder도 페이지 배경 위에서 1.22:1이라 비활성 점이 보이지 않는다.
-        // 비텍스트 요소 기준(WCAG 1.4.11) 3:1을 넘기려면 이 정도는 필요하다.
-        color: isActive
-            ? AppColors.orbitPrimary
-            : AppColors.textMuted.withValues(alpha: 0.8),
-        borderRadius: BorderRadius.circular(4),
       ),
     );
   }
@@ -202,7 +181,7 @@ class _PageContent extends StatelessWidget {
                       const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                   decoration: BoxDecoration(
                     color: AppColors.orbitPrimary.withValues(alpha: 0.1),
-                    borderRadius: BorderRadius.circular(999),
+                    borderRadius: BorderRadius.zero,
                   ),
                   child: Text(
                     page.accentLabel,
@@ -316,9 +295,9 @@ class _ActionsPreview extends StatelessWidget {
       children: [
         Container(
           padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
+          decoration: const BoxDecoration(
             color: AppColors.orbitSurfaceSoft,
-            borderRadius: BorderRadius.circular(AppRadii.input),
+            borderRadius: BorderRadius.zero,
           ),
           child: Row(
             children: [
@@ -404,24 +383,13 @@ class _ProgressPreview extends StatelessWidget {
                 ],
               ),
             ),
-            const SizedBox(
-              width: 82,
-              height: 82,
-              child: Stack(
-                alignment: Alignment.center,
-                children: [
-                  CircularProgressIndicator(
-                    value: 0.6,
-                    strokeWidth: 8,
-                    backgroundColor: AppColors.orbitHalo,
-                    valueColor: AlwaysStoppedAnimation(AppColors.orbitPrimary),
-                  ),
-                  Text('60%', style: AppTextStyles.captionTight),
-                ],
-              ),
-            ),
+            const Text('60%', style: AppTextStyles.statMedium),
           ],
         ),
+        const SizedBox(height: 14),
+        SegmentedProgress(
+            value: 0.6,
+            semanticLabel: AppLocalizations.of(context).progressSemantic(60)),
         const SizedBox(height: 14),
         Row(
           children: [
@@ -468,7 +436,7 @@ class _StatusChip extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
       decoration: BoxDecoration(
         color: tint.withValues(alpha: 0.18),
-        borderRadius: BorderRadius.circular(AppRadii.chip),
+        borderRadius: BorderRadius.zero,
       ),
       child: Row(
         children: [

@@ -96,6 +96,8 @@ void main() {
     final controller = await pumpSettings(tester);
     addTearDown(controller.dispose);
 
+    // 토글의 48px 터치 영역으로 설정 목록이 길어질 수 있다.
+    await scrollTo(tester, find.text('언어'));
     await tester.tap(find.text('언어'));
     await tester.pumpAndSettle();
 
@@ -114,6 +116,8 @@ void main() {
     // 화면 제목과 하단 탭 두 곳에 나온다.
     expect(find.text('설정'), findsNWidgets(2));
 
+    // 토글의 48px 터치 영역으로 설정 목록이 길어질 수 있다.
+    await scrollTo(tester, find.text('언어'));
     await tester.tap(find.text('언어'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('Español'));
@@ -123,6 +127,9 @@ void main() {
     expect(controller.appSettings.localeCode, 'es');
 
     // 재시작 없이 반영된다.
+    // 언어 항목까지 내린 뒤에는 제목이 뷰포트 밖에 있으므로 위로 복귀한다.
+    await tester.drag(find.byType(Scrollable).first, const Offset(0, 1000));
+    await tester.pumpAndSettle();
     expect(find.text('Ajustes'), findsNWidgets(2));
     await scrollTo(tester, find.text('Idioma'));
     expect(find.text('Idioma'), findsOneWidget);

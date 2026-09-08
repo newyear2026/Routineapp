@@ -81,7 +81,7 @@ class _ThemePresetOption extends StatelessWidget {
           child: Container(
             padding: const EdgeInsets.all(14),
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(18),
+              borderRadius: BorderRadius.zero,
               border: Border.all(color: AppColors.border),
             ),
             child: Row(children: [
@@ -90,7 +90,7 @@ class _ThemePresetOption extends StatelessWidget {
                     height: 22,
                     margin: const EdgeInsets.only(right: 6),
                     decoration:
-                        BoxDecoration(color: color, shape: BoxShape.circle),
+                        BoxDecoration(color: color, shape: BoxShape.rectangle),
                   )),
               const SizedBox(width: 8),
               Expanded(

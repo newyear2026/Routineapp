@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
+import '../../theme/app_pixel_style.dart';
 import 'app_card.dart';
+import 'pixel_icon.dart';
 
 /// 루틴 한 줄 — **홈·루틴 목록·캘린더·진행이 함께 쓰는 하나의 구현**.
 ///
@@ -11,8 +13,8 @@ import 'app_card.dart';
 /// 루틴이 화면에 따라 다른 물건처럼 보였고, 홈만 시각을 이름 위에 올려
 /// 읽는 순서가 뒤집혀 있었다.
 ///
-/// 규칙은 하나다: **색 원 → 이름 → 보조 정보 → 오른쪽 슬롯.**
-/// 루틴의 정체성은 색 원이 맡는다 (`Routine.iconEmoji` 주석 참고).
+/// 규칙은 하나다: **색상 표식 → 이름 → 보조 정보 → 오른쪽 슬롯.**
+/// 루틴의 정체성은 색상 표식이 맡는다 (`Routine.iconEmoji` 주석 참고).
 ///
 /// 도메인 모델 대신 값만 받는다. `ds/`가 도메인에 의존하지 않게 하려는 것이고,
 /// 덕분에 화면마다 필요한 보조 문구를 자유롭게 만들어 넘길 수 있다.
@@ -26,7 +28,7 @@ class AppRoutineRow extends StatelessWidget {
     this.onTap,
   });
 
-  /// 루틴 색 — 왼쪽 원
+  /// 루틴 색 — 왼쪽 픽셀 표식
   final Color color;
 
   final String title;
@@ -42,7 +44,7 @@ class AppRoutineRow extends StatelessWidget {
 
   final VoidCallback? onTap;
 
-  static const double _radius = 18;
+  static const double _radius = 0;
 
   @override
   Widget build(BuildContext context) {
@@ -50,7 +52,7 @@ class AppRoutineRow extends StatelessWidget {
     final trailing = this.trailing ??
         (onTap == null
             ? null
-            : const Icon(
+            : const AppIcon(
                 Icons.chevron_right_rounded,
                 color: AppColors.textMuted,
               ));
@@ -63,7 +65,13 @@ class AppRoutineRow extends StatelessWidget {
           Container(
             width: 32,
             height: 32,
-            decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+            decoration: BoxDecoration(
+              color: color,
+              border: Border.all(
+                color: AppPixelStyle.outline,
+                width: AppPixelStyle.borderWidth,
+              ),
+            ),
           ),
           const SizedBox(width: 14),
           Expanded(

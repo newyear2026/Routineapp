@@ -7,7 +7,6 @@ import '../application/services/onboarding_routine_setup_service.dart';
 import '../domain/onboarding/recommended_routine_catalog.dart';
 import '../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
-import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/ds/ds.dart';
 
@@ -101,7 +100,7 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
                       ),
                       decoration: BoxDecoration(
                         color: AppColors.orbitPrimary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(AppRadii.chip),
+                        borderRadius: BorderRadius.zero,
                       ),
                       child: Text(
                         l10n.selectedCount(selectedCount),
@@ -172,7 +171,7 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
           color: Colors.transparent,
           child: InkWell(
             onTap: () => _toggleRoutine(index),
-            borderRadius: BorderRadius.circular(AppRadii.card),
+            borderRadius: BorderRadius.zero,
             child: AnimatedContainer(
               key: Key('routine-choice-${def.catalogId}'),
               duration: const Duration(milliseconds: 180),
@@ -188,7 +187,7 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
                         AppColors.orbitSurface,
                       )
                     : AppColors.orbitSurface,
-                borderRadius: BorderRadius.circular(AppRadii.card),
+                borderRadius: BorderRadius.zero,
                 border: Border.all(
                   color: isSelected
                       ? AppColors.orbitPrimary
@@ -203,7 +202,7 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
                     width: 24,
                     height: 24,
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
+                      shape: BoxShape.rectangle,
                       // 연한 파스텔 위 흰 체크는 보이지 않는다. 브랜드색으로 채운다.
                       color: isSelected
                           ? AppColors.orbitPrimary
@@ -216,7 +215,8 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
                       ),
                     ),
                     child: isSelected
-                        ? const Icon(Icons.check, size: 16, color: Colors.white)
+                        ? const PixelIcon(PixelGlyph.check,
+                            size: 20, color: Colors.white)
                         : null,
                   ),
                   const SizedBox(width: 12),
@@ -225,7 +225,7 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
                     width: 36,
                     height: 36,
                     decoration: BoxDecoration(
-                      shape: BoxShape.circle,
+                      shape: BoxShape.rectangle,
                       color: color,
                       border: Border.all(
                         color: Colors.white,

@@ -50,9 +50,8 @@ class AppSettingsTile extends StatelessWidget {
                   overflow: TextOverflow.ellipsis,
                   style: TextStyle(
                     fontSize: 15,
-                    color: enabled
-                        ? AppColors.textPrimary
-                        : AppColors.textMuted,
+                    color:
+                        enabled ? AppColors.textPrimary : AppColors.textMuted,
                     fontWeight: FontWeight.w600,
                     letterSpacing: -0.1,
                   ),
@@ -89,7 +88,7 @@ class AppSettingsTile extends StatelessWidget {
       color: Colors.transparent,
       child: InkWell(
         onTap: enabled ? onTap : null,
-        borderRadius: BorderRadius.circular(18),
+        borderRadius: BorderRadius.zero,
         splashColor: AppColors.orbitPrimary.withValues(alpha: 0.1),
         highlightColor: AppColors.textMuted.withValues(alpha: 0.06),
         child: content,
@@ -116,7 +115,7 @@ class _LeadingIcon extends StatelessWidget {
       height: 42,
       decoration: BoxDecoration(
         color: accent.withValues(alpha: enabled ? 0.12 : 0.07),
-        borderRadius: BorderRadius.circular(13),
+        borderRadius: BorderRadius.zero,
       ),
       child: Icon(
         icon,

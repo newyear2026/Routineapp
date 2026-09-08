@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_pixel_style.dart';
 
 /// 24시간 링에 그릴 한 구간.
 ///
@@ -90,10 +91,11 @@ class OrbitRingPainter extends CustomPainter {
       math.pi * 2,
       false,
       Paint()
+        ..isAntiAlias = false
         ..color = AppColors.orbitHalo
         ..style = PaintingStyle.stroke
         ..strokeWidth = trackStroke
-        ..strokeCap = StrokeCap.round,
+        ..strokeCap = StrokeCap.butt,
     );
 
     _paintHourTicks(canvas, center, orbitRadius, trackStroke, scale);
@@ -111,10 +113,11 @@ class OrbitRingPainter extends CustomPainter {
         safeSweep,
         false,
         Paint()
+          ..isAntiAlias = false
           ..color = segment.color
           ..style = PaintingStyle.stroke
           ..strokeWidth = segmentStroke
-          ..strokeCap = StrokeCap.round,
+          ..strokeCap = StrokeCap.butt,
       );
     }
 
@@ -164,9 +167,10 @@ class OrbitRingPainter extends CustomPainter {
           center.dy + math.sin(angle) * (base - tickLength),
         ),
         Paint()
+          ..isAntiAlias = false
           ..color = AppColors.textMuted.withValues(alpha: isMajor ? 0.34 : 0.18)
           ..strokeWidth = isMajor ? 2.4 * scale : 1.3 * scale
-          ..strokeCap = StrokeCap.round,
+          ..strokeCap = StrokeCap.butt,
       );
     }
   }
@@ -187,6 +191,8 @@ class OrbitRingPainter extends CustomPainter {
       text: TextSpan(
         text: text,
         style: TextStyle(
+          fontFamily: AppPixelStyle.numberFont,
+          fontVariations: const [FontVariation('wght', 700)],
           color: AppColors.textStrong.withValues(alpha: 0.82),
           fontSize: 10.5 * scale,
           fontWeight: FontWeight.w700,
@@ -222,17 +228,16 @@ class OrbitRingPainter extends CustomPainter {
       center,
       nowCenter,
       Paint()
+        ..isAntiAlias = false
         ..color = AppColors.orbitPrimary.withValues(alpha: 0.5)
         ..strokeWidth = 1.5 * scale,
     );
-    canvas.drawCircle(
-      nowCenter,
-      7 * scale,
+    canvas.drawRect(
+      Rect.fromCenter(center: nowCenter, width: 14 * scale, height: 14 * scale),
       Paint()..color = AppColors.orbitSurface,
     );
-    canvas.drawCircle(
-      nowCenter,
-      4.5 * scale,
+    canvas.drawRect(
+      Rect.fromCenter(center: nowCenter, width: 9 * scale, height: 9 * scale),
       Paint()..color = AppColors.orbitPrimary,
     );
   }

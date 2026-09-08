@@ -41,7 +41,7 @@ class LanguageSettingsTile extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 4),
-          const Icon(
+          const AppIcon(
             Icons.chevron_right_rounded,
             color: AppColors.textMuted,
             size: 22,
@@ -188,7 +188,7 @@ class _LanguageOption extends StatelessWidget {
                     ),
                   ),
                   if (selected)
-                    const Icon(
+                    const AppIcon(
                       Icons.check_rounded,
                       color: AppColors.orbitPrimary,
                       size: 20,

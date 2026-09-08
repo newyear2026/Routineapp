@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
+import '../ds/app_pixel_switch.dart';
 
 /// 알림 등 토글 한 줄
 class PastelSwitchTile extends StatelessWidget {
@@ -24,7 +25,7 @@ class PastelSwitchTile extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
       decoration: BoxDecoration(
         color: AppColors.orbitSurface,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.zero,
         border: Border.all(color: AppColors.orbitBorder),
       ),
       child: Row(
@@ -33,7 +34,7 @@ class PastelSwitchTile extends StatelessWidget {
             width: 40,
             height: 40,
             decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.zero,
               color: AppColors.orbitPrimary.withValues(alpha: 0.12),
             ),
             child: const Icon(Icons.notifications_outlined,
@@ -76,14 +77,7 @@ class PastelSwitchTile extends StatelessWidget {
               ],
             ),
           ),
-          Switch.adaptive(
-            value: value,
-            onChanged: onChanged,
-            activeThumbColor: Colors.white,
-            activeTrackColor: AppColors.orbitPrimary,
-            inactiveThumbColor: Colors.white,
-            inactiveTrackColor: AppColors.orbitSurfaceSoft,
-          ),
+          AppPixelSwitch(value: value, onChanged: onChanged, label: title),
         ],
       ),
     );

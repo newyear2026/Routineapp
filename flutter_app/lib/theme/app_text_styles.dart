@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
+import 'app_pixel_style.dart';
 
 /// **타이포** 프리셋 — `Theme.of(context).textTheme`과 병행 가능
 abstract final class AppTextStyles {
@@ -66,8 +67,19 @@ abstract final class AppTextStyles {
     height: 1.45,
   );
 
+  /// 시계와 수치에만 픽셀 폰트를 적용한다. 한글 본문은 기존 글꼴을 유지한다.
+  static const TextStyle clock = TextStyle(
+    fontFamily: AppPixelStyle.numberFont,
+    fontVariations: [FontVariation('wght', 700)],
+    fontSize: 40,
+    height: 1,
+    color: AppColors.textStrong,
+  );
+
   /// 진행률 큰 숫자
   static const TextStyle statHero = TextStyle(
+    fontFamily: AppPixelStyle.numberFont,
+    fontVariations: [FontVariation('wght', 700)],
     fontSize: 44,
     fontWeight: FontWeight.w800,
     color: AppColors.textPrimary,
@@ -76,6 +88,8 @@ abstract final class AppTextStyles {
   );
 
   static const TextStyle statMedium = TextStyle(
+    fontFamily: AppPixelStyle.numberFont,
+    fontVariations: [FontVariation('wght', 700)],
     fontSize: 24,
     fontWeight: FontWeight.w700,
   );

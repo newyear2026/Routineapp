@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:routine_timer/l10n/app_localizations.dart';
+import 'package:routine_timer/theme/app_theme.dart';
 
 /// 테스트는 한국어 문구를 검증한다 — 지원 목록의 첫 항목(en)이 기본이 되므로
 /// 로케일을 명시하지 않으면 영어로 렌더링된다.
@@ -13,6 +14,7 @@ final AppLocalizations testL10n = lookupAppLocalizations(testLocale);
 MaterialApp localizedApp({Widget? home, RouterConfig<Object>? routerConfig}) {
   if (routerConfig != null) {
     return MaterialApp.router(
+      theme: buildRoutineTheme(),
       routerConfig: routerConfig,
       locale: testLocale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -20,6 +22,7 @@ MaterialApp localizedApp({Widget? home, RouterConfig<Object>? routerConfig}) {
     );
   }
   return MaterialApp(
+    theme: buildRoutineTheme(),
     home: home,
     locale: testLocale,
     localizationsDelegates: AppLocalizations.localizationsDelegates,

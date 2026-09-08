@@ -227,7 +227,8 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
     if (error != null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context).routineAddCheckInput)),
+        SnackBar(
+            content: Text(AppLocalizations.of(context).routineAddCheckInput)),
       );
       return;
     }
@@ -235,7 +236,8 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
     if (widget.editRoutineId != null && _editingBaseline == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(AppLocalizations.of(context).routineAddNotFound)),
+        SnackBar(
+            content: Text(AppLocalizations.of(context).routineAddNotFound)),
       );
       return;
     }
@@ -382,7 +384,8 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
         child: Column(
           children: [
             RoutineFormHeader(
-              title: _isEdit ? l10n.routineAddTitleEdit : l10n.routineAddTitleNew,
+              title:
+                  _isEdit ? l10n.routineAddTitleEdit : l10n.routineAddTitleNew,
               onBack: () => context.pop(),
               onDelete: _isEdit && !isBusy ? _handleDelete : null,
             ),
@@ -415,10 +418,9 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                                 color:
                                     AppColors.textMuted.withValues(alpha: .7),
                               ),
-                              border: InputBorder.none,
                               contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 4,
-                                vertical: 8,
+                                horizontal: 12,
+                                vertical: 12,
                               ),
                             ),
                           ),
@@ -524,7 +526,7 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                         onTap: () => setState(
                           () => _showMoreSettings = !_showMoreSettings,
                         ),
-                        borderRadius: BorderRadius.circular(22),
+                        borderRadius: BorderRadius.zero,
                         child: Padding(
                           padding: const EdgeInsets.all(18),
                           child: Row(

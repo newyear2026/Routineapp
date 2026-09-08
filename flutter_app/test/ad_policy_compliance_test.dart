@@ -83,6 +83,69 @@ void main() {
     });
   });
 
+  group('개인정보처리방침', () {
+    // 광고 SDK 와 방침이 어긋난 채 출시되면 정책 위반으로 앱이 정지된다.
+    // 코드 리뷰로는 잘 안 잡힌다 — 문서는 코드 diff 에서 조용하기 때문이다.
+    // 그래서 «매니페스트가 광고를 켰으면 방침도 켜져 있어야 한다»를 묶어 둔다.
+    final manifest =
+        File('android/app/src/main/AndroidManifest.xml').readAsStringSync();
+    final adsEnabled =
+        manifest.contains('com.google.android.gms.ads.APPLICATION_ID');
+
+    // 앱 문서와 GitHub Pages 로 나가는 공개 페이지. 둘이 갈라지면
+    // 심사자가 보는 쪽만 틀리게 된다.
+    const policies = [
+      'docs/PRIVACY_POLICY.md',
+      '../docs/privacy/index.html',
+    ];
+
+    test('광고를 켰으면 방침이 AdMob 을 밝힌다', () {
+      if (!adsEnabled) return; // 광고를 뺐다면 이 테스트는 할 말이 없다
+      for (final path in policies) {
+        final text = File(path).readAsStringSync();
+        expect(
+          text.contains('AdMob'),
+          isTrue,
+          reason: '$path 가 광고 네트워크를 밝히지 않는다',
+        );
+        expect(
+          text.toLowerCase().contains('advertising id') ||
+              text.contains('광고 ID') ||
+              text.contains('ID de publicidad'),
+          isTrue,
+          reason: '$path 가 광고 식별자 수집을 밝히지 않는다',
+        );
+      }
+    });
+
+    test('«외부 SDK 없음»·«인터넷 미사용» 문구가 남아 있지 않다', () {
+      if (!adsEnabled) return;
+      // 광고를 넣기 전 문장들이다. 하나라도 남아 있으면 방침이 거짓이 된다.
+      const stale = {
+        '앱은 인터넷 접근 권한을 사용하지 않습니다': '한국어 §4',
+        'The App does not use internet access permission': '영어 §4',
+        'La Aplicación no utiliza el permiso de acceso a internet': '스페인어 §4',
+        '어떠한 광고 네트워크, 분석 도구, 외부 SDK와도': '한국어 §5',
+        'does not exchange data with any advertising network': '영어 §5',
+        'no intercambia datos con ninguna red publicitaria': '스페인어 §5',
+        'does not request internet access': '공개 페이지 §4',
+        'no third-party SDKs of any kind': '공개 페이지 §5',
+        'Since no data leaves your device': '공개 페이지 §8',
+      };
+      for (final path in policies) {
+        final text = File(path).readAsStringSync();
+        for (final entry in stale.entries) {
+          expect(
+            text.contains(entry.key),
+            isFalse,
+            reason: '$path 에 광고 이전 문구가 남았다 (${entry.value}): '
+                '"${entry.key}"',
+          );
+        }
+      }
+    });
+  });
+
   group('광고 표시 방식', () {
     final adWidget =
         File('lib/widgets/ads/home_upcoming_ad_card.dart').readAsStringSync();
@@ -101,6 +164,28 @@ void main() {
 
     test('띄울 수 없으면 자리를 차지하지 않는다', () {
       expect(adWidget.contains('SizedBox.shrink'), isTrue);
+    });
+
+    test('띄운 뒤에도 «다음 일정» 조건을 다시 본다', () {
+      // 판정은 광고를 불러올 때 한 번뿐이다. build 가 조건을 다시 보지 않으면,
+      // 사용자가 마지막 루틴을 끝낸 순간 캡션 한 줄 밑에 광고만 남는다 —
+      // 광고가 그 섹션의 본문이 되는 상태이고, minUpcomingForHomeSlot 이
+      // 막으려던 바로 그것이다.
+      //
+      // 실제로 확인하려면 광고가 떠 있어야 하는데 CI 에는 SDK 가 없다.
+      // 그래서 소스 수준으로 묶어 되돌아가는 것만 막는다.
+      expect(
+        adWidget.contains('AdPlacementCaps.minUpcomingForHomeSlot'),
+        isTrue,
+        reason: '화면이 상한 숫자를 직접 들고 있으면 정책과 갈라진다',
+      );
+
+      final build = adWidget.substring(adWidget.indexOf('Widget build('));
+      expect(
+        build.contains('_hasEnoughUpcoming'),
+        isTrue,
+        reason: 'build() 가 «다음 일정» 조건을 다시 보지 않는다',
+      );
     });
   });
 }
