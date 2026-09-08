@@ -13,6 +13,7 @@ import '../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/ds/ds.dart';
+import '../theme/app_pixel_style.dart';
 
 enum _RoutineView { list, calendar }
 
@@ -162,9 +163,9 @@ class _ViewSwitcher extends StatelessWidget {
       // 트랙 52 - 안쪽 여백 8 = 각 칸 44. UI_STANDARDS 5의 터치 타깃 최소 높이다.
       constraints: const BoxConstraints(minHeight: 52),
       padding: const EdgeInsets.all(2),
-      decoration: BoxDecoration(
+      decoration: ShapeDecoration(
         color: AppColors.orbitSurfaceSoft,
-        border: Border.all(color: AppColors.textPrimary, width: 2),
+        shape: AppPixelStyle.shape(),
       ),
       // stretch가 없으면 각 칸이 내용 높이(약 19)로만 잡힌다. 선택된 흰 pill이
       // 트랙 가운데 떠 있는 것처럼 보이고, 무엇보다 위아래 절반이 눌리지 않는다.

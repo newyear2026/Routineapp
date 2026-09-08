@@ -4,14 +4,14 @@
   값을 바꾸면 Dart와 iOS(RoutineWidgetExtension.swift의 WidgetTokens)도 함께 고쳐야 한다.
 -->
 <resources>
-    <color name="widget_background">#EEE8DE</color>
+    <color name="widget_background">#F5EEDA</color>
     <color name="widget_surface">#FFFFFF</color>
-    <color name="widget_border">#DCD3C4</color>
-    <!-- 배경 위 13.6:1 -->
-    <color name="widget_text_primary">#241F31</color>
-    <!-- 배경 위 4.63:1 -->
-    <color name="widget_text_muted">#6B6478</color>
+    <color name="widget_border">#E5DCC8</color>
+    <!-- 배경 위 13.8:1 -->
+    <color name="widget_text_primary">#221C42</color>
+    <!-- 배경 위 4.77:1 -->
+    <color name="widget_text_muted">#6A6489</color>
     <!-- 흰 글자와 5.66:1 -->
     <color name="widget_accent">#6744F4</color>
-    <color name="widget_ring_track">#D9D1F2</color>
+    <color name="widget_ring_track">#E4DCFB</color>
 </resources>

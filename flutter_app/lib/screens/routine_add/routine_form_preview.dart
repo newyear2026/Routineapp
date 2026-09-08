@@ -6,6 +6,7 @@ import '../../domain/utils/time_minutes.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../widgets/orbit_ring_painter.dart';
+import '../../theme/app_pixel_style.dart';
 
 /// 편집 중인 루틴이 하루 어디에 놓이는지 보여주는 미리보기.
 ///
@@ -29,10 +30,9 @@ class RoutineFormPreview extends StatelessWidget {
 
     return Container(
       height: 230,
-      decoration: BoxDecoration(
+      decoration: ShapeDecoration(
         color: AppColors.orbitSurface,
-        borderRadius: BorderRadius.zero,
-        border: Border.all(color: AppColors.textPrimary, width: 2),
+        shape: AppPixelStyle.shape(),
       ),
       child: Stack(
         alignment: Alignment.center,

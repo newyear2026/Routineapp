@@ -16,6 +16,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/test_doubles.dart';
 import 'support/localization.dart';
+import 'package:routine_timer/theme/pixel_border.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -120,12 +121,16 @@ void main() {
       return controller;
     }
 
-    BoxDecoration cardDecoration(WidgetTester tester, String catalogId) {
+    ShapeDecoration cardDecoration(WidgetTester tester, String catalogId) {
       final container = tester.widget<AnimatedContainer>(
         find.byKey(Key('routine-choice-$catalogId')),
       );
-      return container.decoration! as BoxDecoration;
+      return container.decoration! as ShapeDecoration;
     }
+
+    /// 카드는 이제 픽셀 도형으로 그려진다. 테두리 색은 도형의 side에 있다.
+    Color cardBorderColor(WidgetTester tester, String catalogId) =>
+        (cardDecoration(tester, catalogId).shape as PixelBorder).side.color;
 
     testWidgets('선택된 카드와 선택 안 된 카드가 눈으로 구분된다', (tester) async {
       final controller = await pumpSetup(tester);
@@ -137,16 +142,16 @@ void main() {
 
       expect(selected.color, isNot(unselected.color));
       expect(
-        (selected.border! as Border).top.color,
+        cardBorderColor(tester, 'wake'),
         AppColors.orbitPrimary,
       );
       expect(
-        (unselected.border! as Border).top.color,
+        cardBorderColor(tester, 'study'),
         AppColors.orbitBorder,
       );
       expect(
-        (selected.border! as Border).top.width,
-        greaterThan((unselected.border! as Border).top.width),
+        (selected.shape as PixelBorder).side.width,
+        greaterThan((unselected.shape as PixelBorder).side.width),
       );
     });
 
@@ -173,7 +178,7 @@ void main() {
 
       expect(find.text('7개 선택됨'), findsOneWidget);
       expect(
-        (cardDecoration(tester, 'study').border! as Border).top.color,
+        cardBorderColor(tester, 'study'),
         AppColors.orbitPrimary,
       );
     });

@@ -9,6 +9,7 @@ import '../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/ds/ds.dart';
+import '../theme/app_pixel_style.dart';
 
 class InitialRoutineSetupScreen extends StatefulWidget {
   const InitialRoutineSetupScreen({super.key});
@@ -178,7 +179,7 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
               padding: const EdgeInsets.all(14),
               // 선택 상태는 카드가 직접 말한다.
               // AppCard의 variant 차이(모서리·그림자)만으로는 구분되지 않는다.
-              decoration: BoxDecoration(
+              decoration: ShapeDecoration(
                 // 반투명 보라를 그대로 두면 페이지 배경과 섞여 선택된 쪽이
                 // 오히려 어둡고 흐려 보인다. 흰 서피스 위에 합성해 밝게 유지한다.
                 color: isSelected
@@ -187,8 +188,7 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
                         AppColors.orbitSurface,
                       )
                     : AppColors.orbitSurface,
-                borderRadius: BorderRadius.zero,
-                border: Border.all(
+                shape: AppPixelStyle.shape(
                   color: isSelected
                       ? AppColors.orbitPrimary
                       : AppColors.orbitBorder,

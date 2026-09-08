@@ -6,6 +6,7 @@ import '../../domain/utils/time_minutes.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../ds/ds.dart';
+import '../../theme/app_pixel_style.dart';
 
 /// 앱 전용 **원형 시각 선택기** — 12칸 링 + 오전/오후.
 ///
@@ -353,9 +354,10 @@ class _PeriodButton extends StatelessWidget {
           button: true,
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 9),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.circular(999),
-              border: Border.all(
+            decoration: ShapeDecoration(
+              shape: AppPixelStyle.shape(
+                width: 1,
+                step: AppPixelStyle.cornerStepSmall,
                 color:
                     selected ? AppColors.orbitPrimary : AppColors.orbitBorder,
               ),

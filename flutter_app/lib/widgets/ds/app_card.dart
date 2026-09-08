@@ -7,21 +7,18 @@ import '../../theme/app_pixel_style.dart';
 /// [AppCard]와 같은 서피스를 Container/Material로 직접 만드는 화면에서 쓰는 공통 데코레이션.
 ///
 /// 카드마다 그림자 알파를 따로 적어 톤이 어긋나는 것을 막는다.
-BoxDecoration appSurfaceDecoration({
+ShapeDecoration appSurfaceDecoration({
   double radius = AppRadii.card,
   bool elevated = false,
   Color? color,
   Color? borderColor,
 }) {
-  return BoxDecoration(
+  return ShapeDecoration(
     color: color ?? AppColors.orbitSurface,
-    // radius는 기존 호출부 호환용이다. 공통 카드는 직각으로 통일한다.
-    borderRadius: AppPixelStyle.radius,
-    border: Border.all(
-      color: borderColor ?? AppPixelStyle.outline,
-      width: AppPixelStyle.borderWidth,
-    ),
-    boxShadow: [
+    // radius는 기존 호출부 호환용으로 남겨 둔 자리다. 카드 크기와 상관없이
+    // 모서리 계단은 한 가지로 통일해야 화면 전체가 같은 격자로 읽힌다.
+    shape: AppPixelStyle.shape(color: borderColor),
+    shadows: [
       BoxShadow(
         color: AppPixelStyle.shadow,
         offset: elevated ? AppPixelStyle.heroOffset : AppPixelStyle.cardOffset,

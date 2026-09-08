@@ -75,17 +75,16 @@ class _AppButtonState extends State<AppButton> {
                 width: widget.expand ? double.infinity : null,
                 height: widget.height,
                 padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-                decoration: BoxDecoration(
+                decoration: ShapeDecoration(
                   color: fill,
-                  border: _ghost && !_focused
-                      ? null
-                      : Border.all(
+                  shape: _ghost && !_focused
+                      ? AppPixelStyle.plainShape
+                      : AppPixelStyle.shape(
                           color: _focused
                               ? AppColors.orbitSecondary
                               : AppPixelStyle.outline,
-                          width: AppPixelStyle.borderWidth,
                         ),
-                  boxShadow: _ghost || pressed || !_enabled
+                  shadows: _ghost || pressed || !_enabled
                       ? null
                       : const [
                           BoxShadow(

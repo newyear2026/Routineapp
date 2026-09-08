@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
+import '../../theme/app_pixel_style.dart';
 
 class AppPixelHint extends StatelessWidget {
   const AppPixelHint(
@@ -12,11 +13,10 @@ class AppPixelHint extends StatelessWidget {
   Widget build(BuildContext context) => Container(
         width: double.infinity,
         padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
+        decoration: ShapeDecoration(
           color: isError ? const Color(0xFFFFF0EC) : AppColors.orbitSurface,
-          border: Border.all(
-              color: isError ? AppColors.dangerText : AppColors.textMuted,
-              width: 2),
+          shape: AppPixelStyle.shape(
+              color: isError ? AppColors.dangerText : AppColors.textMuted),
         ),
         child: Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           if (title != null) ...[

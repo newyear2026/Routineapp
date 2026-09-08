@@ -32,10 +32,10 @@ object RoutineWidgetRingBitmap {
 
     private object Tokens {
         const val SURFACE = "#FFFFFF"
-        const val TEXT_PRIMARY = "#241F31"
-        const val TEXT_MUTED = "#6B6478"
+        const val TEXT_PRIMARY = "#221C42"
+        const val TEXT_MUTED = "#6A6489"
         const val ACCENT = "#6744F4"
-        const val RING_TRACK = "#D9D1F2"
+        const val RING_TRACK = "#E4DCFB"
     }
 
     fun create(json: JSONObject, sizePx: Int): Bitmap {

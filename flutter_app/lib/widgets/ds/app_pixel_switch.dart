@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_pixel_style.dart';
-import 'pixel_icon.dart';
 
 /// 56×48 터치 영역과 키보드 조작을 유지하는 사각 토글.
 class AppPixelSwitch extends StatelessWidget {
@@ -33,38 +32,52 @@ class AppPixelSwitch extends StatelessWidget {
           borderRadius: BorderRadius.zero,
           splashFactory: NoSplash.splashFactory,
           child: SizedBox(
-            width: 56,
+            width: 60,
             height: 48,
             child: Center(
-                child: Container(
-              width: 52,
-              height: 30,
+                child: AnimatedContainer(
+              duration: const Duration(milliseconds: 140),
+              curve: Curves.easeOut,
+              width: 56,
+              height: 32,
               padding: const EdgeInsets.all(3),
-              decoration: BoxDecoration(
+              decoration: ShapeDecoration(
                 color: !enabled
                     ? AppColors.orbitSurfaceSoft
                     : value
                         ? accent
                         : AppColors.orbitSurface,
-                border: Border.all(
-                    color:
-                        enabled ? AppPixelStyle.outline : AppColors.textMuted,
-                    width: 2),
+                // 깎는 양이 높이의 절반에 가까워지면 계단이 변을 다 먹어
+                // 알약이 아니라 꼬리표처럼 보인다. 곧은 변을 남길 만큼만 깎는다.
+                shape: AppPixelStyle.shape(
+                  color: enabled ? AppPixelStyle.outline : AppColors.textMuted,
+                  step: 3,
+                  steps: 2,
+                ),
               ),
-              child: Align(
+              child: AnimatedAlign(
+                duration: const Duration(milliseconds: 140),
+                curve: Curves.easeOut,
                 alignment: value ? Alignment.centerRight : Alignment.centerLeft,
                 child: Container(
-                  width: 20,
-                  height: 20,
-                  decoration: BoxDecoration(
-                      color: AppColors.orbitSurface,
-                      border: Border.all(color: AppPixelStyle.outline)),
-                  // 손잡이가 20×20이라 AppIcon의 광학 보정을 받으면 넘친다.
-                  child: value
-                      ? PixelIcon(PixelGlyph.check,
-                          size: 18,
-                          color: enabled ? accent : AppColors.textMuted)
-                      : null,
+                  width: 24,
+                  height: 24,
+                  // 손잡이는 꺼짐일 때 트랙과 같은 흰색이라 사라져 보였다.
+                  // 켜짐은 흰 손잡이, 꺼짐은 잉크 테두리 있는 회색 손잡이로 나눈다.
+                  decoration: ShapeDecoration(
+                    color: !enabled
+                        ? AppColors.orbitSurface
+                        : value
+                            ? AppColors.orbitSurface
+                            : AppColors.orbitSurfaceSoft,
+                    shape: AppPixelStyle.shape(
+                      color: enabled
+                          ? AppPixelStyle.outline
+                          : AppColors.textMuted,
+                      step: 3,
+                      steps: 2,
+                    ),
+                  ),
                 ),
               ),
             )),

@@ -7,6 +7,7 @@ import '../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../ds/ds.dart';
+import '../../theme/app_pixel_style.dart';
 
 /// 언어 설정 행 — 현재 언어를 보여주고, 누르면 선택 시트를 연다.
 ///
@@ -157,9 +158,9 @@ class _LanguageOption extends StatelessWidget {
             selected: selected,
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
+              decoration: ShapeDecoration(
+                shape: AppPixelStyle.shape(
+                  width: 1,
                   color: selected
                       ? AppColors.orbitPrimary
                       : AppColors.orbitBorder,

@@ -8,6 +8,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../widgets/ds/app_pixel_hint.dart';
 import '../../widgets/ds/pixel_icon.dart';
+import '../../theme/app_pixel_style.dart';
 
 /// 루틴 폼의 상단 바.
 ///
@@ -72,10 +73,9 @@ class RoutineFormSurface extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: padding ?? const EdgeInsets.all(20),
-      decoration: BoxDecoration(
+      decoration: ShapeDecoration(
         color: AppColors.orbitSurface,
-        borderRadius: BorderRadius.zero,
-        border: Border.all(color: AppColors.textPrimary, width: 2),
+        shape: AppPixelStyle.shape(),
       ),
       child: child,
     );
@@ -108,10 +108,7 @@ class RoutineTimeTile extends StatelessWidget {
           // 라벨이 두 줄로 접히면서 타일 아래가 잘린다.
           constraints: const BoxConstraints(minHeight: 84),
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.zero,
-            border: Border.all(color: AppColors.textPrimary, width: 2),
-          ),
+          decoration: ShapeDecoration(shape: AppPixelStyle.shape()),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
@@ -171,12 +168,12 @@ class RoutineWeekdayCircle extends StatelessWidget {
             width: 39,
             height: 39,
             alignment: Alignment.center,
-            decoration: BoxDecoration(
+            decoration: ShapeDecoration(
               color: selected
                   ? AppColors.orbitPrimary.withValues(alpha: .15)
                   : AppColors.orbitSurface,
-              shape: BoxShape.rectangle,
-              border: Border.all(
+              shape: AppPixelStyle.shape(
+                step: AppPixelStyle.cornerStepSmall,
                 color:
                     selected ? AppColors.orbitPrimary : AppColors.orbitBorder,
                 width: selected ? 1.8 : 1,
