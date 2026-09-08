@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import 'app_status_badge.dart';
+import 'pixel_icon.dart';
 
 /// 설정 행 — `아이콘 · 라벨(+배지) · 컨트롤` 한 줄, 설명은 그 아래 전체 폭.
 ///
@@ -117,7 +118,7 @@ class _LeadingIcon extends StatelessWidget {
         color: accent.withValues(alpha: enabled ? 0.12 : 0.07),
         borderRadius: BorderRadius.zero,
       ),
-      child: Icon(
+      child: AppIcon(
         icon,
         color: enabled ? accent : AppColors.textMuted,
         size: 21,

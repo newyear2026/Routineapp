@@ -287,14 +287,14 @@ Widget _routineRow({required bool pixel}) {
               crossAxisAlignment: CrossAxisAlignment.start,
               mainAxisSize: MainAxisSize.min,
               children: [
-            Text('Morning',
+            const Text('Morning',
                 style: TextStyle(
                     fontSize: 16, fontWeight: FontWeight.w700, color: _ink)),
             const SizedBox(height: 2),
             Text('07:00-08:00', style: _label),
           ])),
       pixel
-          ? _PixelGlyph('chevron', size: 24, color: _muted)
+          ? const _PixelGlyph('chevron', size: 24, color: _muted)
           : const Icon(Icons.chevron_right_rounded, size: 24, color: _muted),
     ]),
   );
@@ -354,7 +354,7 @@ Widget _header({required bool pixel, String glyph = 'settingsA'}) {
             children: [
           Text('Sep 8 (Tue)', style: _label),
           const SizedBox(height: 2),
-          Text("Today's Rhythm",
+          const Text("Today's Rhythm",
               style: TextStyle(
                   fontSize: 24, fontWeight: FontWeight.w800, color: _ink)),
         ])),
@@ -408,7 +408,7 @@ Widget _beforeAfter(String caption, Widget before, Widget after) {
     Row(crossAxisAlignment: CrossAxisAlignment.center, children: [
       Expanded(child: before),
       const SizedBox(width: 18),
-      _PixelGlyph('chevron', size: 18, color: AppColors.orbitPrimary),
+      const _PixelGlyph('chevron', size: 18, color: AppColors.orbitPrimary),
       const SizedBox(width: 18),
       Expanded(child: after),
     ]),

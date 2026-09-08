@@ -217,7 +217,7 @@ class _ViewSwitchButton extends StatelessWidget {
             child: Row(
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Icon(
+                AppIcon(
                   icon,
                   size: 18,
                   color: selected ? Colors.white : AppColors.textMuted,
@@ -380,7 +380,7 @@ class _MonthCalendar extends StatelessWidget {
               IconButton(
                 tooltip: AppLocalizations.of(context).routinesPrevMonth,
                 onPressed: onPreviousMonth,
-                icon: const Icon(Icons.chevron_left_rounded),
+                icon: const AppIcon(Icons.chevron_left_rounded),
               ),
               Expanded(
                 child: Text(

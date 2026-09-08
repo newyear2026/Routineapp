@@ -311,7 +311,7 @@ class _ProgressGroup extends StatelessWidget {
                   color: group.tint.withValues(alpha: .18),
                   shape: BoxShape.rectangle,
                 ),
-                child: Icon(group.icon, color: group.textColor, size: 16),
+                child: AppIcon(group.icon, color: group.textColor, size: 16),
               ),
               const SizedBox(width: 10),
               // 제목이 먼저 줄어들고 개수는 끝까지 남는다 — 개수가 잘리면

@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../ds/app_card.dart';
+import '../ds/pixel_icon.dart';
 
 /// 설정 섹션 제목 — Calm Editorial 톤의 담백한 라벨.
 class SettingsSectionTitle extends StatelessWidget {
@@ -19,7 +20,7 @@ class SettingsSectionTitle extends StatelessWidget {
       child: Row(
         children: [
           if (icon != null) ...[
-            Icon(icon, size: 16, color: AppColors.textMuted),
+            AppIcon(icon, size: 16, color: AppColors.textMuted),
             const SizedBox(width: 6),
           ],
           Flexible(

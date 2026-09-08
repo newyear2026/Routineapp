@@ -15,6 +15,7 @@ enum PixelGlyph {
   /// 수평선으로 바꿔 같은 '설정' 의미를 전달한다.
   settings,
 
+  chevronLeft,
   chevronRight,
   check,
   add,
@@ -88,6 +89,20 @@ const _patterns = <PixelGlyph, List<String>>{
     '......##....',
     '............',
   ],
+  PixelGlyph.chevronLeft: [
+    '............',
+    '.......##...',
+    '......##....',
+    '.....##.....',
+    '....##......',
+    '...##.......',
+    '...##.......',
+    '....##......',
+    '.....##.....',
+    '......##....',
+    '.......##...',
+    '............',
+  ],
   PixelGlyph.chevronRight: [
     '............',
     '...##.......',
@@ -140,6 +155,11 @@ PixelGlyph? pixelGlyphFor(IconData icon) {
       icon == Icons.chevron_right ||
       icon == Icons.arrow_forward_ios_rounded) {
     return PixelGlyph.chevronRight;
+  }
+  if (icon == Icons.chevron_left_rounded ||
+      icon == Icons.chevron_left ||
+      icon == Icons.arrow_back_ios_rounded) {
+    return PixelGlyph.chevronLeft;
   }
   if (icon == Icons.check_rounded || icon == Icons.check) {
     return PixelGlyph.check;
