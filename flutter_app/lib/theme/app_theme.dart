@@ -12,7 +12,8 @@ ThemeData buildRoutineTheme(
   // 테두리 굵기와 색을 맞춰 두고, 모서리는 직각으로 남긴다.
   const border = OutlineInputBorder(
       borderRadius: BorderRadius.zero,
-      borderSide: BorderSide(color: AppColors.textPrimary, width: 2));
+      borderSide: BorderSide(
+          color: AppColors.textPrimary, width: AppPixelStyle.borderWidth));
   return ThemeData(
     useMaterial3: true,
     fontFamily: fontFamily,
@@ -29,15 +30,21 @@ ThemeData buildRoutineTheme(
       fillColor: AppColors.orbitSurface,
       border: border,
       enabledBorder: border,
+      // 상태는 색으로만 말한다. 굵기까지 바뀌면 포커스가 들고 날 때마다
+      // 테두리가 1.5 ↔ 2 로 튄다.
       focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.zero,
-          borderSide: BorderSide(color: AppColors.orbitPrimary, width: 2)),
+          borderSide: BorderSide(
+              color: AppColors.orbitPrimary,
+              width: AppPixelStyle.borderWidth)),
       errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.zero,
-          borderSide: BorderSide(color: AppColors.dangerText, width: 2)),
+          borderSide: BorderSide(
+              color: AppColors.dangerText, width: AppPixelStyle.borderWidth)),
       focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.zero,
-          borderSide: BorderSide(color: AppColors.dangerText, width: 2)),
+          borderSide: BorderSide(
+              color: AppColors.dangerText, width: AppPixelStyle.borderWidth)),
       contentPadding: EdgeInsets.all(12),
     ),
     dialogTheme: DialogThemeData(
@@ -62,7 +69,8 @@ ThemeData buildRoutineTheme(
     ),
     chipTheme: ChipThemeData(
         shape: AppPixelStyle.shape(),
-        side: const BorderSide(color: AppColors.textPrimary, width: 2)),
+        side: const BorderSide(
+            color: AppColors.textPrimary, width: AppPixelStyle.borderWidth)),
     textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
       shape: const RoundedRectangleBorder(),

@@ -6,19 +6,19 @@ import 'pixel_border.dart';
 /// Sobra의 단색 서피스·직각 테두리·단단한 그림자를 루틴 앱 색상에 맞춘다.
 /// 데이터나 화면 동작에는 관여하지 않는다.
 abstract final class AppPixelStyle {
-  static const borderWidth = 2.0;
+  static const borderWidth = 1.5;
   static const radius = BorderRadius.zero;
 
   /// 모서리 계단 — 한 칸 크기와 칸 수.
-  static const cornerStep = 4.0;
-  static const cornerSteps = 2;
+  static const cornerStep = 3.0;
+  static const cornerSteps = 3;
 
   /// 작은 컨트롤(칩·배지·토글 손잡이)은 같은 칸 수로 깎으면 모서리가 다 먹는다.
   static const cornerStepSmall = 3.0;
   static const outline = AppColors.textPrimary;
-  static const shadow = Color(0x33221C42);
+  static const shadow = Color(0x33948362);
   static const cardOffset = Offset(3, 3);
-  static const heroOffset = Offset(5, 5);
+  static const heroOffset = Offset(4, 4);
   static const buttonOffset = Offset(0, 4);
   static const numberFont = 'PixelifySans';
 
@@ -30,8 +30,7 @@ abstract final class AppPixelStyle {
     int steps = cornerSteps,
   }) =>
       PixelBorder(
-        side: BorderSide(
-            color: color ?? outline, width: width ?? borderWidth),
+        side: BorderSide(color: color ?? outline, width: width ?? borderWidth),
         step: step,
         steps: steps,
       );

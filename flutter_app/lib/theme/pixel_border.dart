@@ -69,24 +69,42 @@ class PixelBorder extends OutlinedBorder {
 
   @override
   Path getInnerPath(Rect rect, {TextDirection? textDirection}) =>
-      _build(rect.deflate(side.strokeInset));
+      insetPath(rect, side.strokeInset);
 
   @override
-  Path getOuterPath(Rect rect, {TextDirection? textDirection}) => _build(rect);
+  Path getOuterPath(Rect rect, {TextDirection? textDirection}) =>
+      _build(rect, _cut(rect));
+
+  /// 이 도형과 **평행하게** [inset] 만큼 안으로 들어간 경로.
+  ///
+  /// 사각형만 줄이면 45° 모서리는 평행해지지 않는다. 변은 [inset] 만큼
+  /// 들어가는데 대각선은 그 절반쯤(inset/√2)밖에 안 들어가서, 모서리에서만
+  /// 간격이 벌어진다. 잘라 내는 길이를 inset × (2 − √2) 만큼 함께 줄여야
+  /// 네 변과 네 모서리의 간격이 같아진다.
+  Path insetPath(Rect rect, double inset) {
+    if (inset <= 0) return _build(rect, _cut(rect));
+    final inner = rect.deflate(inset);
+    if (inner.isEmpty) return Path();
+    final corner = _cut(rect) - inset * (2 - math.sqrt2);
+    return _build(inner, math.max(0, math.min(corner, _cut(inner))));
+  }
 
   @override
   void paint(Canvas canvas, Rect rect, {TextDirection? textDirection}) {
     if (side.style == BorderStyle.none || side.width == 0) return;
     canvas.drawPath(
-      _build(rect.deflate(side.width / 2)),
-      side.toPaint()..isAntiAlias = false,
+      Path.combine(
+          PathOperation.difference, getOuterPath(rect), getInnerPath(rect)),
+      Paint()
+        ..color = side.color
+        ..isAntiAlias = false,
     );
   }
 
-  /// 시계 방향으로 네 변을 잇고, 모서리마다 계단을 놓는다.
-  Path _build(Rect rect) {
+  /// 시계 방향으로 네 변을 잇고, 모서리마다 [c] 길이의 계단을 놓는다.
+  Path _build(Rect rect, double c) {
     if (rect.isEmpty) return Path();
-    final c = _cut(rect);
+    if (c <= 0) return Path()..addRect(rect);
     final unit = c / steps;
     final path = Path()..moveTo(rect.left + c, rect.top);
 
