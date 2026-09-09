@@ -166,6 +166,40 @@ void main() {
       expect(adWidget.contains('SizedBox.shrink'), isTrue);
     });
 
+    test('상한은 로드가 아니라 노출 시점에 센다', () {
+      // 세션 상한의 단위는 «사용자가 본 광고»다. onAdLoaded 에서 세면
+      // 그 정의가 «받아온 광고»로 바뀐다. 둘은 실제로 갈라진다 —
+      // build 는 «다음 일정»이 비면 로드된 광고도 SizedBox.shrink 로 접고,
+      // 이 카드는 홈 맨 아래라 거기까지 안 내려가는 세션도 있다.
+      // 그러면 사용자는 아무것도 못 봤는데 상한(2회)만 깎인다.
+      //
+      // 덤으로 우리 카운트와 AdMob 리포트의 노출 수도 갈라져,
+      // 나중에 숫자가 안 맞는 이유를 추적하는 데 시간이 든다.
+      //
+      // 실제 노출은 SDK 가 있어야 재현되고 CI 에는 없다. 어느 콜백이
+      // 세는지를 소스 수준으로 묶어 되돌아가는 것만 막는다.
+      final loaded = _callbackBody(adWidget, 'onAdLoaded');
+      final impression = _callbackBody(adWidget, 'onAdImpression');
+
+      expect(impression, isNotNull,
+          reason: 'NativeAdListener.onAdImpression 이 노출 시점 콜백이다');
+      expect(
+        loaded!.contains('recordShown'),
+        isFalse,
+        reason: 'onAdLoaded 는 «그릴 수 있게 됐다»일 뿐 노출이 아니다',
+      );
+      expect(
+        impression!.contains('recordShown'),
+        isTrue,
+        reason: '노출을 인정받은 시점에만 상한을 깎는다',
+      );
+      expect(
+        'recordShown'.allMatches(adWidget).length,
+        1,
+        reason: '세는 자리가 둘이면 한 번 본 광고가 상한을 두 번 깎는다',
+      );
+    });
+
     test('띄운 뒤에도 «다음 일정» 조건을 다시 본다', () {
       // 판정은 광고를 불러올 때 한 번뿐이다. build 가 조건을 다시 보지 않으면,
       // 사용자가 마지막 루틴을 끝낸 순간 캡션 한 줄 밑에 광고만 남는다 —
@@ -188,4 +222,23 @@ void main() {
       );
     });
   });
+}
+
+/// `name: (...) { ... }` 콜백의 본문만 잘라 낸다.
+///
+/// 파일 전체에서 문자열을 찾으면 «어느 콜백 안에 있는지»를 구분할 수 없다.
+String? _callbackBody(String source, String name) {
+  final start = source.indexOf('$name:');
+  if (start < 0) return null;
+  final open = source.indexOf('{', start);
+  if (open < 0) return null;
+  var depth = 0;
+  for (var i = open; i < source.length; i++) {
+    if (source[i] == '{') depth++;
+    if (source[i] == '}') {
+      depth--;
+      if (depth == 0) return source.substring(open + 1, i);
+    }
+  }
+  return null;
 }

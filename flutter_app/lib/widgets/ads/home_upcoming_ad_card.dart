@@ -139,10 +139,16 @@ class _HomeUpcomingAdCardState extends State<HomeUpcomingAdCard> {
       listener: NativeAdListener(
         onAdLoaded: (_) {
           if (!mounted) return;
+          // 로드는 «그릴 수 있게 됐다»는 뜻일 뿐이다. 여기서 상한을 세면
+          // 안 된다 — 아래 build 는 «다음 일정»이 비면 로드된 광고도
+          // SizedBox.shrink 로 접는다. 그 경로에서는 사용자가 아무것도
+          // 못 본 채 세션 상한만 깎인다.
           setState(() => _loaded = true);
-          // 요청이 아니라 노출 시점에 센다. 요청할 때 세면 채워지지 않은
-          // 광고까지 상한을 소진해, 사용자는 아무것도 못 봤는데
-          // «오늘은 여기까지»가 되어 버린다.
+        },
+        // 상한의 단위는 «사용자가 본 광고»다. AdMob 이 자기 기준으로
+        // 노출을 인정한 이 시점에만 센다. 로드 시점에 세면 우리 카운트와
+        // AdMob 리포트가 갈라져, 나중에 숫자가 안 맞는 이유를 못 찾는다.
+        onAdImpression: (_) {
           AdPolicyService.instance.recordShown(AdSlot.homeUpcoming);
         },
         onAdFailedToLoad: (ad, error) {
