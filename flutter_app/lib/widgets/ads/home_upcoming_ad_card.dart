@@ -47,13 +47,12 @@ class _HomeUpcomingAdCardState extends State<HomeUpcomingAdCard> {
   static const double _minHeight = 90;
   static const double _maxHeight = 120;
 
-  /// «다음 일정» 카드와 같은 반경 (`AppRoutineRow`).
-  static const double _cardRadius = 18;
-
   /// 광고를 카드 안쪽으로 들여놓는 정도.
   ///
-  /// 반경 18인 모서리에서 (8, 8) 지점은 곡선 **안쪽**이다. 그래서 8이면
-  /// 광고의 네모난 모서리가 둥근 모서리에 완전히 가린다.
+  /// 카드 모서리는 [AppPixelStyle] 의 계단으로 9px 깎인다. 잘려 나가는 영역은
+  /// 모서리에서 x + y < 9 인 삼각형이므로, (8, 8) 지점은 그 바깥 — 카드 면
+  /// **안쪽**이다. 그래서 8이면 광고의 네모난 모서리가 카드를 비어져 나오지
+  /// 않는다. 계단 크기를 키우면 이 값도 같이 봐야 한다.
   static const double _inset = 8;
 
   NativeAd? _ad;
@@ -170,8 +169,9 @@ class _HomeUpcomingAdCardState extends State<HomeUpcomingAdCard> {
 
   /// 광고를 앱 카드처럼 보이게 맞춘다.
   ///
-  /// 네이티브를 고른 이유가 여기 있다. 배너는 색도 모서리도 못 바꾸지만
-  /// 네이티브는 «다음 일정» 카드와 같은 반경·같은 배경을 쓸 수 있다.
+  /// 네이티브를 고른 이유가 여기 있다. 배너는 색을 못 바꾸지만 네이티브는
+  /// «다음 일정» 카드와 같은 배경([AppColors.orbitSurface])을 쓸 수 있다.
+  /// 모서리는 아래 [cornerRadius] 주석대로 색이 대신 처리한다.
   ///
   /// 다만 **콘텐츠로 위장하지는 않는다.** 광고임을 알리는 «Ad» 배지는
   /// 이 템플릿이 직접 그리며, 그래서 커스텀 레이아웃을 쓰지 않는다.
@@ -180,7 +180,12 @@ class _HomeUpcomingAdCardState extends State<HomeUpcomingAdCard> {
     return NativeTemplateStyle(
       templateType: TemplateType.small,
       mainBackgroundColor: AppColors.orbitSurface,
-      cornerRadius: 18,
+      // 이 값은 사실상 보이지 않는다. 광고 면과 뒤에 깔린 카드가 같은 흰색
+      // 이라 템플릿의 모서리가 카드 면에 녹아든다 — 예전 18도 그랬다.
+      //
+      // 그래도 0 으로 둔다. 언젠가 광고 면 색이 카드와 달라지면 그때는
+      // 모서리가 드러나는데, 이 앱의 면은 전부 각져 있다.
+      cornerRadius: 0,
       primaryTextStyle: NativeTemplateTextStyle(
         textColor: AppColors.textPrimary,
         size: 14,
@@ -219,14 +224,14 @@ class _HomeUpcomingAdCardState extends State<HomeUpcomingAdCard> {
       // 위반이다. 아래 24 + 화면 하단 여백 24 = 네비게이션과 48dp.
       padding: const EdgeInsets.only(top: 16, bottom: 24),
       // 광고는 안드로이드 네이티브 뷰라 ClipRRect로 모서리를 깎을 수 없다.
-      // 대신 «다음 일정»과 같은 둥근 카드를 뒤에 깔고, 광고를 그 안쪽으로
-      // 들여놓는다. 광고의 흰 배경과 카드의 흰 배경이 같은 색이라
-      // 네모난 모서리가 둥근 모서리 안쪽에 숨는다.
+      // 대신 «다음 일정»과 같은 카드를 뒤에 깔고 광고를 [_inset] 만큼
+      // 들여놓는다. 두 면이 같은 흰색이라 광고의 모서리가 카드 면에
+      // 녹아들어, 카드의 계단식 모서리만 보인다.
       //
       // 광고를 가리는 게 아니라 뒤에 배경을 깔 뿐이라 정책과 무관하다.
       child: Container(
         padding: const EdgeInsets.all(_inset),
-        decoration: appSurfaceDecoration(radius: _cardRadius),
+        decoration: appSurfaceDecoration(),
         child: ConstrainedBox(
           constraints: const BoxConstraints(
             minHeight: _minHeight,
