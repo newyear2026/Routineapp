@@ -130,10 +130,21 @@ class _ProgressHero extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [count, const SizedBox(height: 16), details]);
         }
+        // 큰 수치는 flex 자식으로 두면 안 된다. Row는 여유 공간을 flex 비율로
+        // 미리 쪼개므로 '12 / 12'(120px)가 배정분(91px)을 넘겨 두 줄로 접혔다.
+        // 숫자는 제 폭을 그대로 쓰고 남는 자리를 설명이 가져간다. 상한은
+        // 설명이 굶지 않게 하는 안전장치이고, 넘칠 때만 글자가 줄어든다.
         return Row(children: [
-          Flexible(child: count),
+          ConstrainedBox(
+            constraints: BoxConstraints(maxWidth: constraints.maxWidth * 0.55),
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: AlignmentDirectional.centerStart,
+              child: count,
+            ),
+          ),
           const SizedBox(width: 20),
-          Expanded(flex: 2, child: details),
+          Expanded(child: details),
         ]);
       }),
     );

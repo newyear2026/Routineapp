@@ -97,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
             child: SingleChildScrollView(
               // 탭 목적지 4개는 같은 상단 여백을 쓴다. 홈만 다르면
               // 탭을 옮길 때 제목이 그대로 튄다.
-              padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
+              padding: const EdgeInsets.fromLTRB(24, 48, 24, 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [

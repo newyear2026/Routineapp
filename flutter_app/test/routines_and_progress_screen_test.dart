@@ -85,7 +85,8 @@ void main() {
       addTearDown(controller.dispose);
 
       // 목록만 보고도 매일인지 평일인지 알 수 있어야 한다.
-      expect(tester.widget<AnimatedCat>(find.byType(AnimatedCat)).pose, CatPose.focus);
+      expect(tester.widget<AnimatedCat>(find.byType(AnimatedCat)).pose,
+          CatPose.focus);
       expect(find.text('07:00–08:00 · 매일'), findsOneWidget);
       expect(find.text('19:00–20:00 · 평일'), findsOneWidget);
     });
@@ -112,7 +113,8 @@ void main() {
       await tester.pumpAndSettle();
 
       // 셀은 색 점만 남기고, 정확한 개수는 선택 날짜 헤더에서 읽는다.
-      expect(tester.widget<AnimatedCat>(find.byType(AnimatedCat)).pose, CatPose.focus);
+      expect(tester.widget<AnimatedCat>(find.byType(AnimatedCat)).pose,
+          CatPose.focus);
       expect(find.text('5개'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
@@ -184,7 +186,8 @@ void main() {
       await controller.completeCurrent();
       await tester.pumpAndSettle();
       expect(find.text('1 / 3'), findsOneWidget);
-      expect(tester.widget<AnimatedCat>(find.byType(AnimatedCat)).pose, CatPose.complete);
+      expect(tester.widget<AnimatedCat>(find.byType(AnimatedCat)).pose,
+          CatPose.complete);
       expect(
           tester
               .widget<SegmentedProgress>(find.byType(SegmentedProgress))
@@ -220,7 +223,8 @@ void main() {
       addTearDown(controller.dispose);
 
       expect(find.text('0 / 2'), findsOneWidget);
-      expect(tester.widget<AnimatedCat>(find.byType(AnimatedCat)).pose, CatPose.idle);
+      expect(tester.widget<AnimatedCat>(find.byType(AnimatedCat)).pose,
+          CatPose.idle);
       expect(find.text('아직 시작 전이에요'), findsOneWidget);
       expect(find.text('좋은 흐름이에요'), findsNothing);
       // 좁은 칸에 들어가므로 한 줄을 넘기면 안 된다.
@@ -312,6 +316,38 @@ void main() {
       expect(find.text('건너뜀'), findsNothing);
       // 개수 단위는 홈·루틴 화면과 같게 쓴다.
       expect(find.text('1개'), findsOneWidget);
+    });
+
+    testWidgets('루틴이 두 자리 수여도 진행 수치가 한 줄로 남는다', (tester) async {
+      // 히어로 수치를 flex 자식으로 두면 Row가 여유 공간을 비율로 미리
+      // 쪼개서, 390pt 폰에서 '0 / 12'(103px)가 배정분(91px)을 넘겨 두 줄로
+      // 접혔다. 자릿수가 늘어도 한 줄이어야 한다.
+      tester.view
+        ..physicalSize = const Size(390, 844)
+        ..devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      final controller = await pump(
+        tester,
+        const TodayProgressScreen(),
+        now: DateTime(2026, 8, 4, 12, 0),
+        routines: [
+          for (var hour = 0; hour < 12; hour++)
+            dailyRoutine(
+              id: 'r$hour',
+              title: '루틴 $hour',
+              startHour: hour,
+              endHour: hour + 1,
+              updatedAtMs: hour + 1,
+            ),
+        ],
+      );
+      addTearDown(controller.dispose);
+
+      final count = find.text('0 / 12');
+      expect(count, findsOneWidget);
+      // 한 줄이면 글자 크기(40) 언저리, 접히면 두 배가 된다.
+      expect(tester.getSize(count).height, lessThan(60));
     });
   });
 }

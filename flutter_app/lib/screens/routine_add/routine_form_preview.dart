@@ -37,12 +37,15 @@ class RoutineFormPreview extends StatelessWidget {
         shape: AppPixelStyle.shape(),
       ),
       child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
-        const CatDetailAccent(pose: CatPose.focus, size: 64),
+        const CatDetailAccent(pose: CatPose.focus, size: 48),
         const SizedBox(height: 8),
         Row(children: [
+          // 이 카드의 일이 '하루 어디에 놓이는지'를 보여주는 것이므로 링이
+          // 가장 큰 자리를 갖는다. 64에서는 한 시간짜리 구간이 7×2.4px
+          // 실오라기가 되어 아무것도 읽히지 않았다.
           SizedBox(
-            width: 64,
-            height: 64,
+            width: 124,
+            height: 124,
             child: CustomPaint(
                 painter: OrbitRingPainter(
               segments: [

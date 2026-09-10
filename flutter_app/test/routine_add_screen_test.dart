@@ -9,9 +9,11 @@ import 'package:routine_timer/application/services/routine_data_service.dart';
 import 'package:routine_timer/application/services/routine_notification_service.dart';
 import 'package:routine_timer/domain/models/routine.dart';
 import 'package:routine_timer/domain/settings/notification_preferences.dart';
+import 'package:routine_timer/screens/routine_add/routine_form_preview.dart';
 import 'package:routine_timer/screens/routine_add_screen.dart';
 import 'package:routine_timer/theme/app_colors.dart';
 import 'package:routine_timer/widgets/ds/ds.dart';
+import 'package:routine_timer/widgets/orbit_ring_painter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/test_doubles.dart';
@@ -228,6 +230,22 @@ void main() {
     addTearDown(controller.dispose);
 
     expect(find.textContaining('“공부”과 시간이 겹쳐요'), findsOneWidget);
+  });
+
+  testWidgets('미리보기 링은 구간이 보일 만큼 크게 그린다', (tester) async {
+    // 64px에서는 scale이 64/292라 선 굵기가 2.4px이 되고, 한 시간짜리
+    // 구간은 호 길이 7px짜리 실오라기가 된다. 시각 라벨도 꺼 두어서
+    // '하루 어디에 놓이는지'를 보여준다는 이 카드의 일이 사라졌었다.
+    final controller = await pumpAddScreen(tester);
+    addTearDown(controller.dispose);
+
+    final ring = find.descendant(
+      of: find.byType(RoutineFormPreview),
+      matching: find.byWidgetPredicate(
+          (w) => w is CustomPaint && w.painter is OrbitRingPainter),
+    );
+    expect(ring, findsOneWidget);
+    expect(tester.getSize(ring).width, greaterThanOrEqualTo(100));
   });
 }
 

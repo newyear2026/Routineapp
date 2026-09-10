@@ -151,17 +151,24 @@ class _NextRoutineChip extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Flexible(
-                child: Text(
-              AppLocalizations.of(context).commonNext,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: const TextStyle(
-                fontSize: WidgetTheme.captionSize,
-                fontWeight: FontWeight.w700,
-                color: WidgetTheme.textMuted,
+            // 라벨을 Flexible로 두면 안 된다. Row는 여유 공간을 flex 비율로
+            // 미리 쪼개므로, 라벨이 제 몫을 다 안 쓰면 남은 폭이 칩 오른쪽
+            // 끝에 죽은 공간으로 남고 시각이 테두리에서 떨어져 떴다.
+            // 대신 상한만 씌운다 — 라벨은 셋 중 가장 덜 중요하므로 아주 긴
+            // 번역일 때만 줄어들고, 나머지 폭은 제목이 가져간다.
+            ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 72),
+              child: Text(
+                AppLocalizations.of(context).commonNext,
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: const TextStyle(
+                  fontSize: WidgetTheme.captionSize,
+                  fontWeight: FontWeight.w700,
+                  color: WidgetTheme.textMuted,
+                ),
               ),
-            )),
+            ),
             const SizedBox(width: 8),
             Expanded(
               child: Text(
