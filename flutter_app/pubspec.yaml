@@ -60,9 +60,20 @@ flutter_launcher_icons:
 
 flutter:
   uses-material-design: true
+  # 디렉터리째 올리면 옆에 둔 README·manifest까지 앱에 실린다. 쓰는 그림만 적는다.
+  # 그림은 384px로 내보낸다 — 화면에서 가장 큰 자리가 108이고 코드도
+  # cacheWidth 384/256으로 디코딩하므로 3x 기기까지 이 크기면 충분하다.
+  # 1254px 원본은 design/decorations-src 와 characters/cat_starlight/v1 에 있다.
   assets:
-    - assets/decorations/
-    - assets/characters/cat_starlight/v1/approved/
+    - assets/decorations/bell.png
+    - assets/decorations/plant.png
+    - assets/decorations/sleeping-cat.png
+    - assets/characters/cat_starlight/v1/approved/idle.png
+    - assets/characters/cat_starlight/v1/approved/activity.png
+    - assets/characters/cat_starlight/v1/approved/focus.png
+    - assets/characters/cat_starlight/v1/approved/complete.png
+    - assets/characters/cat_starlight/v1/approved/rest.png
+    - assets/characters/cat_starlight/v1/approved/guide.png
 
   # ARB 기반 다국어 코드 생성 (lib/l10n/*.arb -> AppLocalizations)
   generate: true
