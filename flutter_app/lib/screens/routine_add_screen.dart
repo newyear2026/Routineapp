@@ -14,6 +14,8 @@ import '../domain/validation/routine_form_validator.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/ds/ds.dart';
+import '../widgets/ds/animated_cat.dart';
+import '../widgets/ds/cat_detail_accent.dart';
 import '../widgets/time/orbit_time_picker.dart';
 import '../widgets/form/pastel_color_palette.dart';
 import '../widgets/form/pastel_switch_tile.dart';
@@ -259,8 +261,13 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
           builder: (ctx) {
             final dialogL10n = AppLocalizations.of(ctx);
             return AlertDialog(
+              scrollable: true,
               title: Text(dialogL10n.routineOverlapTitle),
-              content: Text(dialogL10n.routineOverlapBody),
+              content: Column(mainAxisSize: MainAxisSize.min, children: [
+                const CatDetailAccent(pose: CatPose.guide),
+                const SizedBox(height: 12),
+                Text(dialogL10n.routineOverlapBody),
+              ]),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(ctx).pop(false),
@@ -306,8 +313,13 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
       builder: (ctx) {
         final dialogL10n = AppLocalizations.of(ctx);
         return AlertDialog(
+          scrollable: true,
           title: Text(dialogL10n.routineDeleteTitle),
-          content: Text(dialogL10n.routineDeleteBody(routine.title)),
+          content: Column(mainAxisSize: MainAxisSize.min, children: [
+            const CatDetailAccent(pose: CatPose.guide),
+            const SizedBox(height: 12),
+            Text(dialogL10n.routineDeleteBody(routine.title)),
+          ]),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(false),
@@ -372,7 +384,7 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
         color: AppColors.pageBackground,
         child: SafeArea(
           top: false,
-          minimum: const EdgeInsets.fromLTRB(28, 10, 28, 16),
+          minimum: const EdgeInsets.fromLTRB(24, 10, 24, 16),
           child: AppButton(
             label: _isEdit ? l10n.routineAddSaveEdit : l10n.routineAddSaveNew,
             onPressed: isBusy ? null : _saveAfterValidation,
@@ -391,7 +403,7 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
             ),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(28, 4, 28, 28),
+                padding: const EdgeInsets.fromLTRB(24, 4, 24, 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
@@ -400,7 +412,8 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                     Text(l10n.routineAddWhatSection,
                         style: AppTextStyles.titleSection),
                     const SizedBox(height: 10),
-                    RoutineFormSurface(
+                    Padding(
+                      padding: EdgeInsets.zero,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
@@ -454,7 +467,8 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                     Text(l10n.routineAddWhenSection,
                         style: AppTextStyles.titleSection),
                     const SizedBox(height: 10),
-                    RoutineFormSurface(
+                    Padding(
+                      padding: EdgeInsets.zero,
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [

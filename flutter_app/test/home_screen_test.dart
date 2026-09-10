@@ -9,6 +9,7 @@ import 'package:routine_timer/domain/models/routine.dart';
 import 'package:routine_timer/domain/models/routine_log_status.dart';
 import 'package:routine_timer/domain/settings/notification_preferences.dart';
 import 'package:routine_timer/screens/home_screen.dart';
+import 'package:routine_timer/widgets/ds/animated_cat.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/test_doubles.dart';
@@ -115,6 +116,41 @@ void main() {
     expect(find.text('점심식사'), findsOneWidget);
   });
 
+  testWidgets('작은 화면에서도 시간표와 고양이가 버튼을 가리지 않는다', (tester) async {
+    tester.view
+      ..physicalSize = const Size(320, 700)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    final controller = await pumpHome(
+      tester,
+      now: DateTime(2026, 8, 4, 12, 30),
+    );
+    addTearDown(controller.dispose);
+
+    final ring = tester.getRect(
+      find.byKey(const Key('home-timetable-ring')),
+    );
+    final characterRail = tester.getRect(
+      find.byKey(const Key('home-timetable-character-rail')),
+    );
+    final scene = tester.getRect(
+      find.byKey(const Key('home-timetable-scene')),
+    );
+    final completeButton = tester.getRect(
+      find.byKey(const Key('home-complete-button')),
+    );
+
+    expect(find.byKey(const Key('home-timetable-cat')), findsOneWidget);
+    expect(find.byKey(const Key('home-timetable-moon')), findsOneWidget);
+    expect(ring.center.dx, closeTo(scene.center.dx, 0.1));
+    expect(ring.width, closeTo(ring.height, 0.1));
+    expect(characterRail.top, greaterThan(ring.center.dy));
+    expect(characterRail.right, lessThanOrEqualTo(scene.right));
+    expect(scene.bottom, lessThanOrEqualTo(completeButton.top));
+    expect(scene.width, lessThanOrEqualTo(272));
+  });
+
   testWidgets('현재 루틴을 완료로 기록하고 되돌릴 수 있다', (tester) async {
     final controller = await pumpHome(
       tester,
@@ -123,6 +159,9 @@ void main() {
     addTearDown(controller.dispose);
 
     expect(controller.canActOnCurrentSlot, isTrue);
+    expect(tester.widget<AnimatedCat>(find.byType(AnimatedCat)).pose,
+        CatPose.activity);
+    final originalSize = tester.getSize(find.byType(AnimatedCat));
 
     await tapAction(tester, 'home-complete-button');
 
@@ -130,6 +169,9 @@ void main() {
     expect(controller.todayLogs.single.routineId, 'lunch');
     expect(controller.todayLogs.single.status, RoutineLogStatus.completed);
     expect(controller.progressSummary.completed, 1);
+    expect(tester.widget<AnimatedCat>(find.byType(AnimatedCat)).pose,
+        CatPose.complete);
+    expect(tester.getSize(find.byType(AnimatedCat)), originalSize);
 
     // 되돌리기 스낵바로 원상복구된다.
     expect(find.text('되돌리기'), findsOneWidget);
@@ -138,6 +180,8 @@ void main() {
 
     expect(controller.todayLogs, isEmpty);
     expect(controller.progressSummary.completed, 0);
+    expect(tester.widget<AnimatedCat>(find.byType(AnimatedCat)).pose,
+        CatPose.activity);
   });
 
   testWidgets('스킵과 나중에도 홈에서 기록된다', (tester) async {

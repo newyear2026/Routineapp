@@ -17,17 +17,55 @@ ThemeData buildRoutineTheme(
   return ThemeData(
     useMaterial3: true,
     fontFamily: fontFamily,
+    textTheme: AppTextStyles.theme.apply(fontFamily: fontFamily),
     scaffoldBackgroundColor: AppColors.pageBackground,
     extensions: [AppThemeTokens(preset: preset)],
     colorScheme: ColorScheme.fromSeed(
         seedColor: AppColors.orbitPrimary,
         primary: AppColors.orbitPrimary,
+        onPrimary: Colors.white,
+        onSurface: AppColors.textPrimary,
+        onSurfaceVariant: AppColors.textMuted,
+        outline: AppColors.orbitBorder,
         surface: AppColors.orbitSurface,
         error: AppColors.dangerText),
     splashFactory: NoSplash.splashFactory,
+    iconTheme: const IconThemeData(color: AppColors.textMuted, size: 24),
+    dividerTheme: const DividerThemeData(
+        color: AppColors.orbitBorder, thickness: 1, space: 16),
+    appBarTheme: const AppBarTheme(
+      backgroundColor: AppColors.pageBackground,
+      foregroundColor: AppColors.textPrimary,
+      surfaceTintColor: Colors.transparent,
+      elevation: 0,
+      titleTextStyle: AppTextStyles.titleScreen,
+    ),
+    elevatedButtonTheme: ElevatedButtonThemeData(
+        style: ElevatedButton.styleFrom(
+      backgroundColor: AppColors.orbitPrimary,
+      foregroundColor: Colors.white,
+      elevation: 0,
+      shape: shape,
+      minimumSize: const Size(48, 48),
+      textStyle: AppTextStyles.button,
+    )),
+    outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+      foregroundColor: AppColors.textPrimary,
+      backgroundColor: AppColors.orbitSurface,
+      shape: shape,
+      side: const BorderSide(
+          color: AppPixelStyle.outline, width: AppPixelStyle.borderWidth),
+      minimumSize: const Size(48, 48),
+      textStyle: AppTextStyles.control,
+    )),
     inputDecorationTheme: const InputDecorationTheme(
       filled: true,
       fillColor: AppColors.orbitSurface,
+      labelStyle: AppTextStyles.label,
+      hintStyle: AppTextStyles.caption,
+      helperStyle: AppTextStyles.captionTight,
+      errorStyle: TextStyle(fontSize: 12, color: AppColors.dangerText),
       border: border,
       enabledBorder: border,
       // 상태는 색으로만 말한다. 굵기까지 바뀌면 포커스가 들고 날 때마다
@@ -35,8 +73,7 @@ ThemeData buildRoutineTheme(
       focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.zero,
           borderSide: BorderSide(
-              color: AppColors.orbitPrimary,
-              width: AppPixelStyle.borderWidth)),
+              color: AppColors.orbitPrimary, width: AppPixelStyle.borderWidth)),
       errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.zero,
           borderSide: BorderSide(
@@ -73,7 +110,7 @@ ThemeData buildRoutineTheme(
             color: AppColors.textPrimary, width: AppPixelStyle.borderWidth)),
     textButtonTheme: TextButtonThemeData(
         style: TextButton.styleFrom(
-      shape: const RoundedRectangleBorder(),
+      shape: AppPixelStyle.plainShape,
       foregroundColor: AppColors.orbitPrimary,
       minimumSize: const Size(48, 48),
       textStyle: AppTextStyles.button,

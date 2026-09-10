@@ -132,7 +132,7 @@ class OrbitRingPainter extends CustomPainter {
         _paintHourLabel(
           canvas,
           center,
-          orbitRadius + 34 * scale,
+          math.min(orbitRadius + 34 * scale, size.width * 0.448),
           angle,
           text,
           scale,
@@ -168,7 +168,7 @@ class OrbitRingPainter extends CustomPainter {
         ),
         Paint()
           ..isAntiAlias = false
-          ..color = AppColors.textMuted.withValues(alpha: isMajor ? 0.34 : 0.18)
+          ..color = AppColors.textMuted.withValues(alpha: isMajor ? 0.65 : 0.45)
           ..strokeWidth = isMajor ? 2.4 * scale : 1.3 * scale
           ..strokeCap = StrokeCap.butt,
       );

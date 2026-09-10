@@ -39,7 +39,7 @@ class RoutineFormHeader extends StatelessWidget {
           Expanded(
             child: Text(
               title,
-              textAlign: TextAlign.center,
+              textAlign: TextAlign.start,
               style: AppTextStyles.titleScreen,
             ),
           ),
@@ -98,7 +98,7 @@ class RoutineTimeTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.orbitSurface,
+      color: Colors.transparent,
       borderRadius: BorderRadius.zero,
       child: InkWell(
         onTap: onTap,
@@ -106,16 +106,17 @@ class RoutineTimeTile extends StatelessWidget {
         child: Container(
           // 'Hora de inicio'는 '시작 시간'보다 두 배 길다. 높이를 못 박으면
           // 라벨이 두 줄로 접히면서 타일 아래가 잘린다.
-          constraints: const BoxConstraints(minHeight: 84),
+          constraints: const BoxConstraints(minHeight: 72),
           padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-          decoration: ShapeDecoration(shape: AppPixelStyle.shape()),
+          decoration: ShapeDecoration(
+              color: AppColors.orbitSurface, shape: AppPixelStyle.shape()),
           child: Column(
             mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
                 TimeMinutes.formatTimeOfDay(value),
-                style: AppTextStyles.titleSection.copyWith(fontSize: 25),
+                style: AppTextStyles.titleSection.copyWith(fontSize: 22),
               ),
               const SizedBox(height: 3),
               Text(

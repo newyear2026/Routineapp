@@ -100,7 +100,10 @@ class AppRoutineRow extends StatelessWidget {
           if (trailing != null) ...[
             const SizedBox(width: 10),
             // trailing(시각·상태 배지)이 길어져도 루틴 이름을 밀어내지 않는다.
-            Flexible(child: trailing),
+            Flexible(
+                child: Align(
+                    alignment: AlignmentDirectional.centerEnd,
+                    child: trailing)),
           ],
         ],
       ),
@@ -109,7 +112,7 @@ class AppRoutineRow extends StatelessWidget {
     if (onTap == null) return content;
 
     return Material(
-      color: AppColors.orbitSurface,
+      color: Colors.transparent,
       borderRadius: BorderRadius.circular(_radius),
       child: InkWell(
         onTap: onTap,

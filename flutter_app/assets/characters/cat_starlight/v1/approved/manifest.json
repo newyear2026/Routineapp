@@ -1,0 +1,49 @@
+{
+  "version": 1,
+  "theme": "cat_starlight",
+  "canvas": {
+    "width": 1254,
+    "height": 1254,
+    "format": "png",
+    "transparent": true
+  },
+  "rendering": {
+    "fit": "contain",
+    "alignment": "bottomCenter",
+    "heroSizeDp": [96, 120],
+    "cardSizeDp": [56, 80]
+  },
+  "poses": {
+    "idle": {
+      "file": "idle.png",
+      "label": "대기",
+      "usage": ["home_default", "empty_state"]
+    },
+    "activity": {
+      "file": "activity.png",
+      "label": "활동",
+      "usage": ["home_current_routine", "today_progress"]
+    },
+    "focus": {
+      "file": "focus.png",
+      "label": "집중",
+      "usage": ["routine_add", "routine_edit", "focus_routine"]
+    },
+    "complete": {
+      "file": "complete.png",
+      "label": "완료",
+      "variant": "upper_body",
+      "usage": ["completion_feedback", "progress_result"]
+    },
+    "rest": {
+      "file": "rest.png",
+      "label": "휴식",
+      "usage": ["rest_routine", "sleep_routine"]
+    },
+    "guide": {
+      "file": "guide.png",
+      "label": "안내",
+      "usage": ["onboarding", "permission_prompt", "conflict_warning"]
+    }
+  }
+}

@@ -61,6 +61,9 @@ void main() {
     addTearDown(controller.dispose);
 
     expect(find.text('설정'), findsWidgets);
+    expect(find.text('고양이 별빛 테마'), findsOneWidget);
+    expect(find.text('기본 제공'), findsOneWidget);
+    expect(find.text('사용 중'), findsOneWidget);
     expect(find.byTooltip('뒤로'), findsNothing);
     expect(find.byIcon(Icons.arrow_back_ios_new_rounded), findsNothing);
   });
@@ -80,6 +83,9 @@ void main() {
     final controller = await pumpSettings(tester);
     addTearDown(controller.dispose);
 
+    await tester.scrollUntilVisible(find.text('캐릭터 설정'), 200,
+        scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
     expect(find.text('준비 중'), findsWidgets);
     // 갈 곳이 없는 행에 화살표/줄표를 남기지 않는다.
     expect(find.byIcon(Icons.remove_rounded), findsNothing);

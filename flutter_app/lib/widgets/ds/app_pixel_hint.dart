@@ -14,7 +14,7 @@ class AppPixelHint extends StatelessWidget {
         width: double.infinity,
         padding: const EdgeInsets.all(12),
         decoration: ShapeDecoration(
-          color: isError ? const Color(0xFFFFF0EC) : AppColors.orbitSurface,
+          color: isError ? AppColors.errorSurface : AppColors.orbitSurface,
           shape: AppPixelStyle.shape(
               color: isError ? AppColors.dangerText : AppColors.textMuted),
         ),

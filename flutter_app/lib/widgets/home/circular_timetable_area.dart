@@ -84,6 +84,7 @@ class _CircularTimetableView extends StatelessWidget {
                     color: segment.color,
                   ),
               ],
+              radiusFactor: 0.39,
               activeSegmentId: activeSegmentId,
               nowMinutes: nowMinutesFromMidnight,
             ),
@@ -93,38 +94,46 @@ class _CircularTimetableView extends StatelessWidget {
               painter: const PixelOrbitPlate(centerOnly: true)),
           // 중앙은 '시계' 하나만 맡는다. 루틴 이름은 화면 상단 스트립이 이미
           // 말하고 있으므로 여기서 반복하지 않는다 (One Strong Object).
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 22),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  timeText,
-                  style: AppTextStyles.clock.copyWith(
-                    fontSize: size >= 300 ? 40 : 36,
-                  ),
-                ),
-                const SizedBox(height: 6),
-                Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 10,
-                    vertical: 4,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.orbitSurfaceSoft,
-                    border: Border.all(color: AppColors.orbitBorder),
-                  ),
-                  child: Text(
-                    AppLocalizations.of(context).commonNow,
-                    style: const TextStyle(
-                      color: AppColors.textMuted,
-                      fontSize: 10,
-                      fontWeight: FontWeight.w800,
-                      letterSpacing: 1.1,
+          SizedBox(
+            width: size * .44,
+            height: size * .44,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    timeText,
+                    style: AppTextStyles.clock.copyWith(
+                      fontSize: size >= 280
+                          ? 38
+                          : size >= 232
+                              ? 32
+                              : 28,
                     ),
                   ),
-                ),
-              ],
+                  const SizedBox(height: 6),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.orbitSurfaceSoft,
+                      border: Border.all(color: AppColors.orbitBorder),
+                    ),
+                    child: Text(
+                      AppLocalizations.of(context).commonNow,
+                      style: const TextStyle(
+                        color: AppColors.textMuted,
+                        fontSize: 10,
+                        fontWeight: FontWeight.w800,
+                        letterSpacing: 1.1,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
             ),
           ),
         ],

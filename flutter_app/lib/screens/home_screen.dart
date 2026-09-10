@@ -13,6 +13,8 @@ import '../widgets/ds/app_pixel_hint.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/ds/ds.dart';
 import '../widgets/home/circular_timetable_area.dart';
+import '../widgets/home/home_timetable_scene.dart';
+import '../widgets/ds/animated_cat.dart';
 
 /// 홈에 그리는 '다음 일정' 최대 개수.
 ///
@@ -95,7 +97,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
             child: SingleChildScrollView(
               // 탭 목적지 4개는 같은 상단 여백을 쓴다. 홈만 다르면
               // 탭을 옮길 때 제목이 그대로 튄다.
-              padding: const EdgeInsets.fromLTRB(24, 48, 24, 24),
+              padding: const EdgeInsets.fromLTRB(24, 24, 24, 24),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
@@ -137,13 +139,13 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                   if (home.segments.isEmpty)
                     const _EmptyOrbit()
                   else
-                    Center(
-                      child: CircularTimetableArea(
-                        routines: home.segments,
-                        currentTime: home.clockTime,
-                        activeRoutine: home.activeRoutineForRing,
-                        size: 286,
-                      ),
+                    HomeTimetableScene(
+                      pose: homeCatPose(home),
+                      timetableBuilder: (size) => CircularTimetableArea(
+                          routines: home.segments,
+                          currentTime: home.clockTime,
+                          activeRoutine: home.activeRoutineForRing,
+                          size: size),
                     ),
                   const SizedBox(height: 18),
                   _SlotActionBar(
@@ -275,7 +277,7 @@ class _FocusStrip extends StatelessWidget {
     final time = routine == null ? l10n.homeStartYourDay : _timeRange(routine);
 
     return Material(
-      color: AppColors.orbitSurface,
+      color: Colors.transparent,
       borderRadius: BorderRadius.zero,
       child: InkWell(
         borderRadius: BorderRadius.zero,

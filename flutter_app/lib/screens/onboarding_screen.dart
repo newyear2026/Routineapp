@@ -1,3 +1,6 @@
+import '../widgets/ds/pixel_decoration.dart';
+import '../widgets/ds/animated_cat.dart';
+import '../widgets/ds/cat_detail_accent.dart';
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
@@ -171,7 +174,7 @@ class _PageContent extends StatelessWidget {
         child: ConstrainedBox(
           constraints: BoxConstraints(minHeight: constraints.maxHeight),
           child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
+            mainAxisAlignment: MainAxisAlignment.start,
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Align(
@@ -193,11 +196,19 @@ class _PageContent extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: AppSpacing.lg),
-              _PreviewCard(preview: page.preview),
-              const SizedBox(height: AppSpacing.xxl),
-              Text(page.title, style: AppTextStyles.titleScreen),
+              Text(page.title, style: AppTextStyles.hero),
               const SizedBox(height: AppSpacing.sm),
               Text(page.description, style: AppTextStyles.helper),
+              const SizedBox(height: AppSpacing.xxl),
+              CatDetailAccent(
+                  pose: switch (page.preview) {
+                _OnboardingPreviewType.orbit => CatPose.idle,
+                _OnboardingPreviewType.actions => CatPose.guide,
+                _OnboardingPreviewType.progress => CatPose.complete,
+              }),
+              const SizedBox(height: AppSpacing.sm),
+              _PreviewCard(preview: page.preview),
+              const SizedBox(height: AppSpacing.lg),
             ],
           ),
         ),
@@ -229,6 +240,11 @@ class _PreviewCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (preview == _OnboardingPreviewType.orbit) {
+      return LayoutBuilder(
+          builder: (context, constraints) => _OrbitPreview(
+              size: constraints.maxWidth.clamp(0, 300).toDouble()));
+    }
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: appSurfaceDecoration(radius: AppRadii.cardLarge),
@@ -243,7 +259,8 @@ class _PreviewCard extends StatelessWidget {
 
 /// 홈과 **같은 위젯**을 쓴다. 별도 목업을 그리면 실제 화면과 어긋난다.
 class _OrbitPreview extends StatelessWidget {
-  const _OrbitPreview();
+  const _OrbitPreview({this.size = 200});
+  final double size;
 
   /// 이름은 현재 언어를 따른다 — 온보딩은 사용자가 앱을 처음 보는 화면이다.
   List<RoutineSegment> _sampleFor(AppLocalizations l10n) => [
@@ -276,11 +293,12 @@ class _OrbitPreview extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Center(
-      child: CircularTimetableArea(
+      child: DecoratedTimetable(
+          child: CircularTimetableArea(
         routines: _sampleFor(AppLocalizations.of(context)),
         currentTime: const TimeOfDay(hour: 10, minute: 40),
-        size: 200,
-      ),
+        size: size,
+      )),
     );
   }
 }
@@ -301,11 +319,7 @@ class _ActionsPreview extends StatelessWidget {
           ),
           child: Row(
             children: [
-              const Icon(
-                Icons.notifications_rounded,
-                color: AppColors.orbitPrimary,
-                size: 20,
-              ),
+              const PixelDecoration(asset: 'bell', size: 40),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
@@ -313,7 +327,7 @@ class _ActionsPreview extends StatelessWidget {
                   children: [
                     Text(
                       AppLocalizations.of(context).onboardingDemoWakeAlert,
-                      style: AppTextStyles.bodyStrong.copyWith(fontSize: 14),
+                      style: AppTextStyles.smallStrong,
                     ),
                     const SizedBox(height: 2),
                     const Text('07:00', style: AppTextStyles.captionTight),

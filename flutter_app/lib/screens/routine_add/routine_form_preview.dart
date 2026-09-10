@@ -7,6 +7,8 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../widgets/orbit_ring_painter.dart';
 import '../../theme/app_pixel_style.dart';
+import '../../widgets/ds/animated_cat.dart';
+import '../../widgets/ds/cat_detail_accent.dart';
 
 /// 편집 중인 루틴이 하루 어디에 놓이는지 보여주는 미리보기.
 ///
@@ -29,63 +31,55 @@ class RoutineFormPreview extends StatelessWidget {
         : candidate.title;
 
     return Container(
-      height: 230,
+      padding: const EdgeInsets.all(16),
       decoration: ShapeDecoration(
         color: AppColors.orbitSurface,
         shape: AppPixelStyle.shape(),
       ),
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          Positioned(
-            top: 16,
-            left: 20,
-            child: Text(
-              l10n.commonPreview,
-              style: AppTextStyles.caption.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
+      child: Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+        const CatDetailAccent(pose: CatPose.focus, size: 64),
+        const SizedBox(height: 8),
+        Row(children: [
           SizedBox(
-            width: 190,
-            height: 190,
+            width: 64,
+            height: 64,
             child: CustomPaint(
-              painter: OrbitRingPainter(
-                segments: [
-                  OrbitRingSegment(
-                    id: candidate.id,
-                    startMinutes: candidate.startMinutesFromMidnight,
-                    endMinutes: candidate.endMinutesFromMidnight,
-                    color: candidate.color,
-                  ),
-                ],
-                nowMinutes: candidate.startMinutesFromMidnight,
-                showNowPointer: false,
-              ),
-            ),
+                painter: OrbitRingPainter(
+              segments: [
+                OrbitRingSegment(
+                  id: candidate.id,
+                  startMinutes: candidate.startMinutesFromMidnight,
+                  endMinutes: candidate.endMinutesFromMidnight,
+                  color: candidate.color,
+                )
+              ],
+              nowMinutes: candidate.startMinutesFromMidnight,
+              showNowPointer: false,
+              showHourLabels: false,
+              radiusFactor: 0.43,
+            )),
           ),
-          Column(
-            mainAxisSize: MainAxisSize.min,
+          const SizedBox(width: 16),
+          Expanded(
+              child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Text(l10n.commonPreview, style: AppTextStyles.caption),
+              const SizedBox(height: 4),
+              Text(title,
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.titleSection),
+              const SizedBox(height: 4),
               Text(
-                title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.titleSection,
-              ),
-              const SizedBox(height: 5),
-              Text(
-                TimeMinutes.formatRange(
-                  candidate.startMinutesFromMidnight,
-                  candidate.endMinutesFromMidnight,
-                ),
-                style: AppTextStyles.body.copyWith(color: AppColors.textMuted),
-              ),
+                  TimeMinutes.formatRange(candidate.startMinutesFromMidnight,
+                      candidate.endMinutesFromMidnight),
+                  style:
+                      AppTextStyles.body.copyWith(color: AppColors.textMuted)),
             ],
-          ),
-        ],
-      ),
+          )),
+        ]),
+      ]),
     );
   }
 }

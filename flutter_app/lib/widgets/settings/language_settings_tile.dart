@@ -150,10 +150,10 @@ class _LanguageOption extends StatelessWidget {
         color: selected
             ? AppColors.orbitPrimary.withValues(alpha: 0.08)
             : Colors.transparent,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: AppPixelStyle.radius,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(16),
+          borderRadius: AppPixelStyle.radius,
           child: Semantics(
             selected: selected,
             child: Container(
@@ -161,9 +161,8 @@ class _LanguageOption extends StatelessWidget {
               decoration: ShapeDecoration(
                 shape: AppPixelStyle.shape(
                   width: 1,
-                  color: selected
-                      ? AppColors.orbitPrimary
-                      : AppColors.orbitBorder,
+                  color:
+                      selected ? AppColors.orbitPrimary : AppColors.orbitBorder,
                 ),
               ),
               child: Row(
@@ -174,8 +173,7 @@ class _LanguageOption extends StatelessWidget {
                       children: [
                         Text(
                           label,
-                          style: AppTextStyles.bodyStrong.copyWith(
-                            fontSize: 15,
+                          style: AppTextStyles.control.copyWith(
                             color: selected
                                 ? AppColors.orbitPrimary
                                 : AppColors.textPrimary,

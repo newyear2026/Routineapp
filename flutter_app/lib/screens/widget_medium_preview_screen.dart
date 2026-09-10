@@ -5,11 +5,15 @@ import 'package:provider/provider.dart';
 
 import '../application/routine_app_controller.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_pixel_style.dart';
 import '../theme/app_text_styles.dart';
 import '../widget_medium/home_medium_widget.dart';
 import '../widget_medium/home_medium_widget_selector.dart';
 import '../widget_medium/home_medium_widget_view_model.dart';
 import '../widgets/ds/ds.dart';
+import '../widgets/ds/app_pixel_switch.dart';
+import '../widgets/ds/animated_cat.dart';
+import '../widgets/ds/cat_detail_accent.dart';
 
 /// 홈 화면 위젯이 지금 어떻게 보이는지 확인하는 화면.
 class WidgetMediumPreviewScreen extends StatefulWidget {
@@ -40,13 +44,14 @@ class _WidgetMediumPreviewScreenState extends State<WidgetMediumPreviewScreen> {
 
             final HomeMediumWidgetViewModel vm = _useSampleData
                 ? HomeMediumWidgetViewModel.dummy(l10n)
-                : HomeMediumWidgetSelector.fromSnapshot(app.homeSnapshotFor(l10n), l10n);
+                : HomeMediumWidgetSelector.fromSnapshot(
+                    app.homeSnapshotFor(l10n), l10n);
 
             return ListView(
               padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
               children: [
-                SizedBox(
-                  height: 56,
+                ConstrainedBox(
+                  constraints: const BoxConstraints(minHeight: 56),
                   child: Row(
                     children: [
                       IconButton(
@@ -55,11 +60,14 @@ class _WidgetMediumPreviewScreenState extends State<WidgetMediumPreviewScreen> {
                         icon: const Icon(Icons.arrow_back_ios_new_rounded),
                         color: AppColors.textPrimary,
                       ),
-                      Text(l10n.widgetPreviewTitle,
-                          style: AppTextStyles.titleScreen),
+                      Expanded(
+                          child: Text(l10n.widgetPreviewTitle,
+                              style: AppTextStyles.titleScreen)),
                     ],
                   ),
                 ),
+                const SizedBox(height: 12),
+                const CatDetailAccent(pose: CatPose.guide),
                 const SizedBox(height: 12),
                 // 위젯 바탕은 앱 페이지 배경과 같은 색이라 이 화면에 그대로
                 // 얹으면 경계가 사라진다. orbitBorder로 테두리를 둘러도
@@ -67,11 +75,17 @@ class _WidgetMediumPreviewScreenState extends State<WidgetMediumPreviewScreen> {
                 // 홈 화면 배경 역할의 패널을 깔아 위젯 면적을 드러낸다.
                 Container(
                   padding: const EdgeInsets.all(18),
-                  decoration: BoxDecoration(
+                  decoration: ShapeDecoration(
                     color: AppColors.textMuted.withValues(alpha: 0.5),
-                    borderRadius: BorderRadius.circular(28),
+                    shape: AppPixelStyle.shape(),
                   ),
-                  child: HomeMediumWidget(viewModel: vm),
+                  child: FittedBox(
+                    fit: BoxFit.scaleDown,
+                    child: SizedBox(
+                        width: 340,
+                        child: MediaQuery.withNoTextScaling(
+                            child: HomeMediumWidget(viewModel: vm))),
+                  ),
                 ),
                 const SizedBox(height: 10),
                 // 안내 문구는 패널 밖에 둔다. 패널 위에서는 대비가 2.5:1로 떨어진다.
@@ -96,10 +110,9 @@ class _WidgetMediumPreviewScreenState extends State<WidgetMediumPreviewScreen> {
                           ],
                         ),
                       ),
-                      Switch.adaptive(
+                      AppPixelSwitch(
+                        label: l10n.widgetPreviewSample,
                         value: _useSampleData,
-                        activeThumbColor: Colors.white,
-                        activeTrackColor: AppColors.orbitPrimary,
                         onChanged: (value) =>
                             setState(() => _useSampleData = value),
                       ),

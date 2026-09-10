@@ -1,5 +1,8 @@
 {
   "@@locale": "en",
+  "catStarlightTheme": "Cat Starlight Theme",
+  "themeIncluded": "Included",
+  "themeInUse": "In use",
   "commonBack": "Back",
   "@commonBack": {},
   "commonGoBack": "Go back",

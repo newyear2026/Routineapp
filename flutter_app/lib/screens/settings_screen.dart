@@ -15,6 +15,7 @@ import '../widgets/settings/language_settings_tile.dart';
 import '../widgets/settings/settings_list_items.dart';
 import '../widgets/settings/settings_section.dart';
 import '../widgets/settings/theme_preset_section.dart';
+import '../widgets/settings/cat_theme_card.dart';
 
 /// 설정 화면은 섹션 배치와 화면 전환만 담당한다.
 /// 알림 설정의 로드·저장·권한 요청은 [SettingsController]에 둔다.
@@ -56,6 +57,8 @@ class _SettingsScreenContent extends StatelessWidget {
             Text(l10n.settingsTitle, style: AppTextStyles.titleScreen),
             const SizedBox(height: 3),
             Text(l10n.settingsSubtitle, style: AppTextStyles.caption),
+            const SizedBox(height: 24),
+            const CatThemeCard(),
             const SizedBox(height: 24),
             if (settings.error != null) ...[
               _SettingsErrorBanner(

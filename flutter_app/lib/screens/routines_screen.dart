@@ -13,6 +13,8 @@ import '../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/ds/ds.dart';
+import '../widgets/ds/animated_cat.dart';
+import '../widgets/ds/cat_menu_header.dart';
 import '../theme/app_pixel_style.dart';
 
 enum _RoutineView { list, calendar }
@@ -128,9 +130,10 @@ class _RoutineContent extends StatelessWidget {
       // 마지막 항목이 FAB(56 + 여백) 아래로 숨지 않도록 하단 여백을 넉넉히 둔다.
       padding: const EdgeInsets.fromLTRB(24, 48, 24, 96),
       children: [
-        Text(l10n.routinesTitle, style: AppTextStyles.titleScreen),
-        const SizedBox(height: 3),
-        Text(l10n.routinesSubtitle, style: AppTextStyles.caption),
+        CatMenuHeader(
+            title: l10n.routinesTitle,
+            subtitle: l10n.routinesSubtitle,
+            pose: CatPose.focus),
         const SizedBox(height: 18),
         _ViewSwitcher(value: view, onChanged: onViewChanged),
         const SizedBox(height: 22),

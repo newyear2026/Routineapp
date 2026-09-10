@@ -17,6 +17,8 @@ import 'package:routine_timer/screens/routine_add_screen.dart';
 import 'package:routine_timer/screens/routines_screen.dart';
 import 'package:routine_timer/screens/settings_screen.dart';
 import 'package:routine_timer/screens/today_progress_screen.dart';
+import 'package:routine_timer/screens/widget_medium_preview_screen.dart';
+import 'package:routine_timer/theme/app_theme.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/test_doubles.dart';
@@ -49,7 +51,8 @@ void main() {
 
   List<Routine> sampleRoutines() => [
         dailyRoutine(id: 'wake', title: 'Despertar', startHour: 7, endHour: 8),
-        dailyRoutine(id: 'focus', title: 'Concentración', startHour: 14, endHour: 16),
+        dailyRoutine(
+            id: 'focus', title: 'Concentración', startHour: 14, endHour: 16),
         dailyRoutine(id: 'walk', title: 'Caminata', startHour: 18, endHour: 19),
         dailyRoutine(id: 'read', title: 'Lectura', startHour: 21, endHour: 22),
       ];
@@ -78,11 +81,12 @@ void main() {
     Widget screen,
     Locale locale, {
     required double textScale,
+    Size size = smallPhone,
     RouterConfig<Object>? routerConfig,
   }) async {
     tester.view.physicalSize = smallPhone * tester.view.devicePixelRatio;
     tester.view.devicePixelRatio = 1.0;
-    tester.view.physicalSize = smallPhone;
+    tester.view.physicalSize = size;
     addTearDown(tester.view.resetPhysicalSize);
     addTearDown(tester.view.resetDevicePixelRatio);
 
@@ -91,7 +95,7 @@ void main() {
 
     Widget wrap(Widget child) => MediaQuery(
           data: MediaQueryData(
-            size: smallPhone,
+            size: size,
             textScaler: TextScaler.linear(textScale),
           ),
           child: child,
@@ -102,6 +106,7 @@ void main() {
         value: controller,
         child: routerConfig != null
             ? MaterialApp.router(
+                theme: buildRoutineTheme(),
                 routerConfig: routerConfig,
                 locale: locale,
                 localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -109,6 +114,7 @@ void main() {
                 builder: (context, child) => wrap(child!),
               )
             : MaterialApp(
+                theme: buildRoutineTheme(),
                 locale: locale,
                 localizationsDelegates: AppLocalizations.localizationsDelegates,
                 supportedLocales: AppLocalizations.supportedLocales,
@@ -140,6 +146,50 @@ void main() {
   screenGroup('온보딩', () => const OnboardingScreen());
   screenGroup('알림 권한', () => const NotificationPermissionScreen());
   screenGroup('초기 루틴 설정', () => const InitialRoutineSetupScreen());
+  screenGroup('위젯 미리보기', () => const WidgetMediumPreviewScreen());
+
+  for (final size in [
+    const Size(320, 568),
+    const Size(390, 844),
+    const Size(844, 390),
+    const Size(768, 1024)
+  ]) {
+    for (final scale in [1.0, 2.0]) {
+      testWidgets('기기 ${size.width}x${size.height} 글자 $scale 스크롤',
+          (tester) async {
+        for (final screen in <Widget>[
+          const HomeScreen(),
+          const TodayProgressScreen(),
+          const RoutinesScreen(),
+          const SettingsScreen(),
+          const RoutineAddScreen(),
+          const RoutineAddScreen(editRoutineId: 'focus'),
+          const OnboardingScreen(),
+          const WidgetMediumPreviewScreen(),
+        ]) {
+          await pumpScreen(tester, screen, const Locale('ko'),
+              textScale: scale, size: size);
+          if (tester.binding.hasScheduledFrame) await tester.pump();
+          expect(tester.takeException(), isNull, reason: '$screen initial');
+          final scrolls = find.byType(Scrollable);
+          if (scrolls.evaluate().isNotEmpty) {
+            final state = tester.state<ScrollableState>(scrolls.first);
+            if (state.position.axis == Axis.vertical) {
+              for (var step = 0; step < 12; step++) {
+                final position = state.position;
+                if (position.pixels >= position.maxScrollExtent) break;
+                position.jumpTo((position.pixels + size.height / 2)
+                    .clamp(0, position.maxScrollExtent));
+                await tester.pumpAndSettle();
+                expect(tester.takeException(), isNull,
+                    reason: '$screen scroll $step');
+              }
+            }
+          }
+        }
+      });
+    }
+  }
 
   // 루틴 추가는 라우터를 통해서만 뒤로가기가 성립한다.
   for (final locale in locales) {

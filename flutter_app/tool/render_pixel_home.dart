@@ -1,5 +1,7 @@
+import 'package:routine_timer/screens/notification_permission_screen.dart';
 import 'package:routine_timer/screens/today_progress_screen.dart';
 import 'package:routine_timer/screens/onboarding_screen.dart';
+import 'package:routine_timer/screens/widget_medium_preview_screen.dart';
 // 실제 HomeScreen을 예시 데이터로 렌더링한다. 앱 저장소는 변경하지 않는다.
 // flutter test tool/render_pixel_home.dart --dart-define=PREVIEW_FONT=/path/to/korean.ttf
 import 'dart:io';
@@ -114,8 +116,36 @@ void main() {
         child: RepaintBoundary(key: key, child: const HomeScreen()),
       )),
     ));
+    // 이미지 디코딩은 실제 비동기 작업이므로 완료 후 화면을 캡처한다.
+    await tester.runAsync(() async {
+      for (final asset in ['plant', 'bell', 'sleeping-cat']) {
+        await precacheImage(
+            ResizeImage(AssetImage('assets/decorations/$asset.png'),
+                width: 256),
+            key.currentContext!);
+      }
+      for (final pose in [
+        'idle',
+        'activity',
+        'focus',
+        'complete',
+        'rest',
+        'guide'
+      ]) {
+        await precacheImage(
+          ResizeImage(
+            AssetImage('assets/characters/cat_starlight/v1/approved/$pose.png'),
+            width: 384,
+          ),
+          key.currentContext!,
+        );
+      }
+    });
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
+    for (final image in tester.widgetList<RawImage>(find.byType(RawImage))) {
+      expect(image.image, isNotNull);
+    }
     final boundary =
         key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
     final bytes = await tester.runAsync(() async {
@@ -128,13 +158,16 @@ void main() {
     out.parent.createSync(recursive: true);
     out.writeAsBytesSync(bytes!);
     // 공통 컨트롤이 쓰이는 실제 화면도 같은 테마로 확인한다.
-    tester.view.physicalSize = const Size(390, 1100);
+    tester.view.physicalSize = const Size(390, 844);
     for (final page in <String, Widget>{
       'routines': const RoutinesScreen(),
       'routine-add': const RoutineAddScreen(),
+      'routine-edit': const RoutineAddScreen(editRoutineId: 'focus'),
       'settings': const SettingsScreen(),
       'progress': const TodayProgressScreen(),
+      'notification-permission': const NotificationPermissionScreen(),
       'onboarding': const OnboardingScreen(),
+      'widget-preview': const WidgetMediumPreviewScreen(),
     }.entries) {
       final pageKey = GlobalKey();
       await tester.pumpWidget(ChangeNotifierProvider.value(
@@ -165,17 +198,26 @@ void main() {
     }
     // 작은 화면 / 큰 글씨에서도 레이아웃이 깨지지 않는지 확인한다.
     tester.view.physicalSize = const Size(320, 700);
-    await tester.pumpWidget(ChangeNotifierProvider.value(
-      value: app,
-      child: localizedApp(
-          home: const MediaQuery(
-        data: MediaQueryData(
-            size: Size(320, 700), textScaler: TextScaler.linear(1.5)),
-        child: HomeScreen(),
-      )),
-    ));
-    await tester.pumpAndSettle();
-    expect(tester.takeException(), isNull);
+    for (final screen in <Widget>[
+      const HomeScreen(),
+      const RoutineAddScreen(),
+      const RoutineAddScreen(editRoutineId: 'focus'),
+      const TodayProgressScreen(),
+      const OnboardingScreen(),
+      const WidgetMediumPreviewScreen(),
+    ]) {
+      await tester.pumpWidget(ChangeNotifierProvider.value(
+        value: app,
+        child: localizedApp(
+            home: MediaQuery(
+          data: const MediaQueryData(
+              size: Size(320, 700), textScaler: TextScaler.linear(1.5)),
+          child: screen,
+        )),
+      ));
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+    }
     await tester.pumpWidget(const SizedBox());
     app.dispose();
   });

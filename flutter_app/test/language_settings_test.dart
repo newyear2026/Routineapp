@@ -83,6 +83,7 @@ void main() {
     final controller = await pumpSettings(tester);
     addTearDown(controller.dispose);
 
+    await scrollTo(tester, find.text('언어'));
     expect(find.text('언어'), findsOneWidget);
     expect(find.text('앱에서 사용할 언어를 고르세요'), findsOneWidget);
     // 고른 적이 없으면 저장값은 비어 있어야 한다 — 기기 언어를 복사해 두면

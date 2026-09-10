@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
+import '../../theme/app_pixel_style.dart';
 
 enum AppStatusBadgeTone { neutral, info, success, warning, readySoon }
 
@@ -20,10 +21,9 @@ class AppStatusBadge extends StatelessWidget {
     final scheme = _schemeForTone(tone);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-      decoration: BoxDecoration(
+      decoration: ShapeDecoration(
         color: scheme.$1,
-        borderRadius: BorderRadius.zero,
-        border: Border.all(color: scheme.$2),
+        shape: AppPixelStyle.shape(color: scheme.$2, steps: 1),
       ),
       child: Text(
         label,
@@ -66,7 +66,7 @@ class AppStatusBadge extends StatelessWidget {
           AppColors.orbitSecondary.withValues(alpha: 0.12),
           AppColors.orbitSecondary.withValues(alpha: 0.3),
           // orbitSecondary(#E5866B)는 밝은 배경에서 2.6:1로 본문 대비에 못 미친다.
-          const Color(0xFF9C4A2F),
+          AppColors.readySoonText,
         );
     }
   }

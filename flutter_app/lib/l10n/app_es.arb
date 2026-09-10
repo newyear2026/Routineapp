@@ -1,5 +1,8 @@
 {
   "@@locale": "es",
+  "catStarlightTheme": "Tema Gato Estelar",
+  "themeIncluded": "Incluido",
+  "themeInUse": "En uso",
   "commonBack": "Atrás",
   "commonGoBack": "Volver",
   "commonCancel": "Cancelar",

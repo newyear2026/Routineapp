@@ -8,19 +8,21 @@ class PixelOrbitPlate extends CustomPainter {
   const PixelOrbitPlate({this.centerOnly = false});
   final bool centerOnly;
   Path _disk(Offset center, double radius, double step) {
-    final rows = (radius * 2 / step).round();
-    final h = radius * 2 / rows;
+    // 양 축에 같은 격자를 써서 네 방향의 곡률과 계단 크기를 맞춘다.
+    final halfRows = (radius / step).ceil();
     final right = <Offset>[];
     final left = <Offset>[];
-    for (var i = 0; i < rows; i++) {
-      final y = -radius + i * h;
+    for (var i = -halfRows; i < halfRows; i++) {
+      final y = i * step;
+      final midY = y + step / 2;
       final half =
-          (math.sqrt(math.max(0, radius * radius - math.pow(y + h / 2, 2))) /
-                      step)
-                  .round() *
+          (math.sqrt(math.max(0, radius * radius - midY * midY)) / step + 0.5)
+                  .floor() *
               step;
-      right.addAll([center + Offset(half, y), center + Offset(half, y + h)]);
-      left.addAll([center + Offset(-half, y), center + Offset(-half, y + h)]);
+      if (half == 0) continue;
+      right.addAll([center + Offset(half, y), center + Offset(half, y + step)]);
+      left.addAll(
+          [center + Offset(-half, y), center + Offset(-half, y + step)]);
     }
     return Path()..addPolygon([...right, ...left.reversed], true);
   }
@@ -28,8 +30,9 @@ class PixelOrbitPlate extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
+    final step = size.width / 146;
     if (!centerOnly) {
-      final plate = _disk(center, size.width * 0.48, size.width / 64);
+      final plate = _disk(center, size.width * 0.48, step);
       canvas.drawPath(
           plate.shift(AppPixelStyle.cardOffset),
           Paint()
@@ -38,7 +41,7 @@ class PixelOrbitPlate extends CustomPainter {
       canvas.drawPath(
           plate,
           Paint()
-            ..color = const Color(0xFFF3EDF9)
+            ..color = AppColors.dialSurface
             ..isAntiAlias = false);
       canvas.drawPath(
           plate,
@@ -47,9 +50,22 @@ class PixelOrbitPlate extends CustomPainter {
             ..style = PaintingStyle.stroke
             ..strokeWidth = 1.5
             ..isAntiAlias = false);
+      // 시간 링 안쪽은 밝은 시계 면, 링 둘레에는 가는 흰 테두리.
+      canvas.drawPath(
+        _disk(center, size.width * 0.417, step),
+        Paint()
+          ..color = Colors.white
+          ..isAntiAlias = false,
+      );
+      canvas.drawPath(
+        _disk(center, size.width * 0.373, step),
+        Paint()
+          ..color = AppColors.orbitSurface
+          ..isAntiAlias = false,
+      );
       return;
     }
-    final inner = _disk(center, size.width * 0.24, size.width / 64);
+    final inner = _disk(center, size.width * 0.215, step);
     canvas.drawPath(
         inner,
         Paint()

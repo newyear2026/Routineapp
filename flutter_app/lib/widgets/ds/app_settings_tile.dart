@@ -49,12 +49,9 @@ class AppSettingsTile extends StatelessWidget {
                   label,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
-                  style: TextStyle(
-                    fontSize: 15,
+                  style: AppTextStyles.control.copyWith(
                     color:
                         enabled ? AppColors.textPrimary : AppColors.textMuted,
-                    fontWeight: FontWeight.w600,
-                    letterSpacing: -0.1,
                   ),
                 ),
               ),

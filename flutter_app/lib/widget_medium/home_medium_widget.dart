@@ -151,14 +151,17 @@ class _NextRoutineChip extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Text(
+            Flexible(
+                child: Text(
               AppLocalizations.of(context).commonNext,
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
               style: const TextStyle(
                 fontSize: WidgetTheme.captionSize,
                 fontWeight: FontWeight.w700,
                 color: WidgetTheme.textMuted,
               ),
-            ),
+            )),
             const SizedBox(width: 8),
             Expanded(
               child: Text(

@@ -1,5 +1,8 @@
 {
   "@@locale": "ko",
+  "catStarlightTheme": "고양이 별빛 테마",
+  "themeIncluded": "기본 제공",
+  "themeInUse": "사용 중",
   "commonBack": "뒤로",
   "commonGoBack": "뒤로 가기",
   "commonCancel": "취소",

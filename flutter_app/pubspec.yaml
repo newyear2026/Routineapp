@@ -60,6 +60,9 @@ flutter_launcher_icons:
 
 flutter:
   uses-material-design: true
+  assets:
+    - assets/decorations/
+    - assets/characters/cat_starlight/v1/approved/
 
   # ARB 기반 다국어 코드 생성 (lib/l10n/*.arb -> AppLocalizations)
   generate: true

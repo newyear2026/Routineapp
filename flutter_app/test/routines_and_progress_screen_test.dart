@@ -1,4 +1,5 @@
 import 'package:routine_timer/widgets/ds/segmented_progress.dart';
+import 'package:routine_timer/widgets/ds/animated_cat.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -84,6 +85,7 @@ void main() {
       addTearDown(controller.dispose);
 
       // 목록만 보고도 매일인지 평일인지 알 수 있어야 한다.
+      expect(tester.widget<AnimatedCat>(find.byType(AnimatedCat)).pose, CatPose.focus);
       expect(find.text('07:00–08:00 · 매일'), findsOneWidget);
       expect(find.text('19:00–20:00 · 평일'), findsOneWidget);
     });
@@ -110,6 +112,7 @@ void main() {
       await tester.pumpAndSettle();
 
       // 셀은 색 점만 남기고, 정확한 개수는 선택 날짜 헤더에서 읽는다.
+      expect(tester.widget<AnimatedCat>(find.byType(AnimatedCat)).pose, CatPose.focus);
       expect(find.text('5개'), findsOneWidget);
       expect(tester.takeException(), isNull);
     });
@@ -181,6 +184,7 @@ void main() {
       await controller.completeCurrent();
       await tester.pumpAndSettle();
       expect(find.text('1 / 3'), findsOneWidget);
+      expect(tester.widget<AnimatedCat>(find.byType(AnimatedCat)).pose, CatPose.complete);
       expect(
           tester
               .widget<SegmentedProgress>(find.byType(SegmentedProgress))
@@ -216,6 +220,7 @@ void main() {
       addTearDown(controller.dispose);
 
       expect(find.text('0 / 2'), findsOneWidget);
+      expect(tester.widget<AnimatedCat>(find.byType(AnimatedCat)).pose, CatPose.idle);
       expect(find.text('아직 시작 전이에요'), findsOneWidget);
       expect(find.text('좋은 흐름이에요'), findsNothing);
       // 좁은 칸에 들어가므로 한 줄을 넘기면 안 된다.

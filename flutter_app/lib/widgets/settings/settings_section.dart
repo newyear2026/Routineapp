@@ -28,7 +28,7 @@ class SettingsSectionTitle extends StatelessWidget {
               title,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.caption.copyWith(
+              style: AppTextStyles.bodyStrong.copyWith(
                 fontWeight: FontWeight.w800,
                 letterSpacing: 0.2,
               ),

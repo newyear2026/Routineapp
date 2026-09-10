@@ -14,6 +14,8 @@ import '../domain/services/routine_state_resolver.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/ds/ds.dart';
+import '../widgets/ds/animated_cat.dart';
+import '../widgets/ds/cat_menu_header.dart';
 
 /// Figma 기준 진행 화면: 완료 · 진행 중 · 예정의 세 상태를 항상 보여준다.
 class TodayProgressScreen extends StatelessWidget {
@@ -56,10 +58,13 @@ class TodayProgressScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Text(l10n.progressTitle, style: AppTextStyles.titleScreen),
-                  const SizedBox(height: 3),
-                  Text(AppDateFormats.monthDay(context, now),
-                      style: AppTextStyles.caption),
+                  CatMenuHeader(
+                    title: l10n.progressTitle,
+                    subtitle: AppDateFormats.monthDay(context, now),
+                    pose: progress.completed > 0
+                        ? CatPose.complete
+                        : CatPose.idle,
+                  ),
                   const SizedBox(height: 24),
                   _ProgressHero(
                     completed: progress.completed,
@@ -96,38 +101,41 @@ class _ProgressHero extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 22),
       decoration: appSurfaceDecoration(radius: 24, elevated: true),
-      // 진행률은 '$completed / $total' 하나로만 말한다.
-      //
-      // 예전에는 옆에 도넛을 두고 그 안에 '$percent%'를 또 적었다. 같은 사실을
-      // 두 번 말하는 데다(UI_STANDARDS 7), 0%에서는 호가 그려지지 않아 카드
-      // 오른쪽 절반이 비어 보였다 — 앱을 여는 아침마다 보게 되는 상태다.
-      //
-      // 원은 이 앱에서 '하루 24시간'을 뜻한다(홈 시간표·홈 위젯).
-      // 비율까지 원으로 그리면 같은 형태가 두 가지 뜻을 갖는다.
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Text('$completed / $total', style: AppTextStyles.statHero),
-          const SizedBox(height: 8),
-          Text(
-            _progressMessage(
-              l10n: AppLocalizations.of(context),
-              completed: completed,
-              total: total,
-              percent: percent,
-            ),
-            style: AppTextStyles.titleSection.copyWith(
-              color: AppColors.orbitPrimary,
-            ),
-          ),
-          // 오늘 루틴이 없으면 채울 것도 없다. 빈 막대를 남기지 않는다.
-          if (total > 0) ...[
-            const SizedBox(height: 16),
-            _ProgressBar(percent: percent),
+      child: LayoutBuilder(builder: (context, constraints) {
+        final count =
+            Text('$completed / $total', style: AppTextStyles.statHero);
+        final details = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (total > 0) ...[
+              _ProgressBar(percent: percent),
+              const SizedBox(height: 12),
+            ],
+            Text(
+                _progressMessage(
+                  l10n: AppLocalizations.of(context),
+                  completed: completed,
+                  total: total,
+                  percent: percent,
+                ),
+                style: AppTextStyles.bodyStrong
+                    .copyWith(color: AppColors.orbitPrimary)),
           ],
-        ],
-      ),
+        );
+        // 큰 글씨·좁은 화면에서는 설명을 아래로 내려 온전히 읽게 한다.
+        if (constraints.maxWidth < 280 ||
+            MediaQuery.textScalerOf(context).scale(16) > 20) {
+          return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [count, const SizedBox(height: 16), details]);
+        }
+        return Row(children: [
+          Flexible(child: count),
+          const SizedBox(width: 20),
+          Expanded(flex: 2, child: details),
+        ]);
+      }),
     );
   }
 }
@@ -392,35 +400,19 @@ class _RoutineStatusTrailing extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
+    return Wrap(
+      alignment: WrapAlignment.end,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      spacing: 10,
+      runSpacing: 4,
       children: [
         Text(time, style: AppTextStyles.caption),
-        const SizedBox(width: 10),
-        // 색만으로 구분하지 않도록 배지 형태 + 문구를 함께 쓴다.
-        //
-        // 상태 이름은 언어마다 길이가 크게 다르다('완료' vs 'Completadas').
-        // 폭을 제한하지 않으면 루틴 이름을 밀어내고 줄 전체가 넘친다.
-        Flexible(
-          child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: 96),
-            child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-              decoration: BoxDecoration(
-                color: tint.withValues(alpha: .18),
-                borderRadius: BorderRadius.zero,
-              ),
-              child: Text(
-                label,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.captionTight.copyWith(
-                  color: textColor,
-                  fontWeight: FontWeight.w700,
-                ),
-              ),
-            ),
-          ),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          decoration: BoxDecoration(color: tint.withValues(alpha: .18)),
+          child: Text(label,
+              style: AppTextStyles.captionTight
+                  .copyWith(color: textColor, fontWeight: FontWeight.w700)),
         ),
       ],
     );

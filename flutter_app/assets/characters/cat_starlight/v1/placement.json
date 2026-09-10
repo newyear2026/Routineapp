@@ -1,0 +1,110 @@
+{
+  "version": 1,
+  "canvas": [
+    1254,
+    1254
+  ],
+  "displayAnchor": [
+    627,
+    1080
+  ],
+  "alphaBoundsThreshold": 128,
+  "poses": [
+    {
+      "id": "idle",
+      "label": "대기",
+      "file": "approved/idle.png",
+      "bounds": [
+        286,
+        213,
+        1054,
+        1083
+      ],
+      "scale": 1,
+      "translate": [
+        -43,
+        -3
+      ]
+    },
+    {
+      "id": "activity",
+      "label": "활동",
+      "file": "approved/activity.png",
+      "bounds": [
+        148,
+        248,
+        1120,
+        1072
+      ],
+      "scale": 1.07,
+      "translate": [
+        -51.379999999999995,
+        -67.03999999999996
+      ]
+    },
+    {
+      "id": "focus",
+      "label": "집중",
+      "file": "approved/focus.png",
+      "bounds": [
+        175,
+        186,
+        962,
+        1113
+      ],
+      "scale": 0.94,
+      "translate": [
+        92.61000000000001,
+        33.77999999999997
+      ]
+    },
+    {
+      "id": "complete",
+      "label": "완료",
+      "file": "approved/complete.png",
+      "bounds": [
+        73,
+        144,
+        1181,
+        1064
+      ],
+      "scale": 0.97,
+      "translate": [
+        18.81000000000006,
+        47.92000000000007
+      ]
+    },
+    {
+      "id": "rest",
+      "label": "휴식",
+      "file": "approved/rest.png",
+      "bounds": [
+        219,
+        438,
+        1058,
+        969
+      ],
+      "scale": 1.15,
+      "translate": [
+        -107.27499999999998,
+        -34.34999999999991
+      ]
+    },
+    {
+      "id": "guide",
+      "label": "안내",
+      "file": "approved/guide.png",
+      "bounds": [
+        193,
+        158,
+        1034,
+        1105
+      ],
+      "scale": 0.92,
+      "translate": [
+        62.57999999999993,
+        63.39999999999998
+      ]
+    }
+  ]
+}

@@ -22,7 +22,7 @@ abstract final class AppPixelStyle {
   static const buttonOffset = Offset(0, 4);
   static const numberFont = 'PixelifySans';
 
-  /// 공통 외곽선 도형. [color]/[width]를 주지 않으면 기본 잉크 2px.
+  /// 공통 외곽선 도형. 기본 잉크 두께는 1.5px.
   static PixelBorder shape({
     Color? color,
     double? width,

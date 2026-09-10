@@ -36,6 +36,7 @@ void main() {
   Future<RoutineAppController> pumpAddScreen(
     WidgetTester tester, {
     List<Routine>? routines,
+    String? editId,
   }) async {
     final controller = RoutineAppController(
       dataService: RoutineDataService(
@@ -61,7 +62,7 @@ void main() {
       routes: [
         GoRoute(
           path: '/routine-add',
-          builder: (_, __) => const RoutineAddScreen(),
+          builder: (_, __) => RoutineAddScreen(editRoutineId: editId),
         ),
         GoRoute(
           path: '/home',
@@ -168,6 +169,44 @@ void main() {
     expect(controller.routines.map((r) => r.title), contains('아침 산책'));
     // 저장 후에는 홈으로 돌아간다.
     expect(find.text('홈'), findsOneWidget);
+  });
+
+  testWidgets('충돌 확인창은 조정 취소와 확인 저장을 유지한다', (tester) async {
+    final controller = await pumpAddScreen(tester, routines: [
+      dailyRoutine(id: 'study', title: '공부', startHour: 9, endHour: 10),
+    ]);
+    addTearDown(controller.dispose);
+    await tester.enterText(find.byType(TextField).first, '새 루틴');
+    await tester.tap(find.text('루틴 저장하기'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.byType(AlertDialog), findsOneWidget);
+    await tester.tap(find.text('시간 다시 조정'));
+    await tester.pumpAndSettle();
+    expect(controller.routines, hasLength(1));
+    await tester.tap(find.text('루틴 저장하기'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.tap(find.text('그래도 저장'));
+    await tester.pumpAndSettle();
+    expect(controller.routines, hasLength(2));
+  });
+
+  testWidgets('삭제 확인창은 취소 후 유지하고 확인 후 삭제한다', (tester) async {
+    final controller = await pumpAddScreen(tester, editId: 'wake');
+    addTearDown(controller.dispose);
+    await tester.scrollUntilVisible(find.text('이 루틴 삭제'), 250,
+        scrollable: find.byType(Scrollable).first);
+    await tester.tap(find.text('이 루틴 삭제'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('취소'));
+    await tester.pumpAndSettle();
+    expect(controller.routines, hasLength(1));
+    await tester.tap(find.text('이 루틴 삭제'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('삭제'));
+    await tester.pumpAndSettle();
+    expect(controller.routines, isEmpty);
   });
 
   testWidgets('겹치지 않으면 경고를 띄우지 않는다', (tester) async {

@@ -1,3 +1,4 @@
+import '../widgets/ds/pixel_decoration.dart';
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
@@ -83,11 +84,7 @@ class _NotificationPermissionScreenState
                   borderRadius: BorderRadius.zero,
                   color: AppColors.orbitPrimary.withValues(alpha: 0.1),
                 ),
-                child: const Icon(
-                  Icons.notifications_rounded,
-                  size: 52,
-                  color: AppColors.orbitPrimary,
-                ),
+                child: const PixelDecoration(asset: 'bell', size: 108),
               ),
               const SizedBox(height: 28),
               Text(
@@ -157,7 +154,7 @@ class _NotificationPermissionScreenState
               children: [
                 Text(
                   l10n.permExactTitle,
-                  style: AppTextStyles.bodyStrong.copyWith(fontSize: 14),
+                  style: AppTextStyles.smallStrong,
                 ),
                 const SizedBox(height: 4),
                 Text(
@@ -210,7 +207,7 @@ class _NotificationPermissionScreenState
                     Expanded(
                       child: Text(
                         title,
-                        style: AppTextStyles.bodyStrong.copyWith(fontSize: 14),
+                        style: AppTextStyles.smallStrong,
                         overflow: TextOverflow.ellipsis,
                       ),
                     ),
