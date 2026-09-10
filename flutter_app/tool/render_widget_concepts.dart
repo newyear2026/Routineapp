@@ -13,7 +13,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
-import 'package:routine_timer/l10n/app_localizations.dart';
 import 'package:routine_timer/theme/app_colors.dart';
 import 'package:routine_timer/theme/app_pixel_style.dart';
 import 'package:routine_timer/theme/app_text_styles.dart';
