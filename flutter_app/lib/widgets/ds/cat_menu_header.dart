@@ -4,14 +4,19 @@ import 'animated_cat.dart';
 
 /// Keeps the illustration in its own space, including at large text scales.
 class CatMenuHeader extends StatelessWidget {
-  const CatMenuHeader(
-      {super.key,
-      required this.title,
-      required this.subtitle,
-      required this.pose});
+  const CatMenuHeader({
+    super.key,
+    this.caption,
+    required this.title,
+    required this.subtitle,
+    required this.pose,
+    this.catKey,
+  });
+  final String? caption;
   final String title;
   final String subtitle;
   final CatPose pose;
+  final Key? catKey;
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(builder: (context, box) {
@@ -19,11 +24,16 @@ class CatMenuHeader extends StatelessWidget {
             MediaQuery.textScalerOf(context).scale(16) > 20;
         final text =
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+          if (caption != null) ...[
+            Text(caption!, style: AppTextStyles.caption),
+            const SizedBox(height: 2),
+          ],
           Text(title, style: AppTextStyles.titleScreen),
           const SizedBox(height: 3),
           Text(subtitle, style: AppTextStyles.caption),
         ]);
         final cat = SizedBox(
+            key: catKey,
             width: compact ? 80 : 104,
             height: compact ? 80 : 104,
             child: AnimatedCat(pose: pose));

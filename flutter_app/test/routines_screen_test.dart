@@ -21,7 +21,7 @@ import 'support/localization.dart';
 /// Row에 stretch가 없으면 각 칸이 내용 높이(약 19)로만 잡혀, 선택된 흰 pill이
 /// 가운데 떠 보이고 트랙 위아래 절반이 눌리지 않았다.
 void _expectSwitchFillsTrack(WidgetTester tester) {
-  for (final label in ['목록', '캘린더']) {
+  for (final label in ['목록', '달력']) {
     final size = tester.getSize(find.byKey(Key('routine-view-$label')));
     expect(
       size.height,
@@ -32,7 +32,7 @@ void _expectSwitchFillsTrack(WidgetTester tester) {
   // 두 칸은 같은 폭이어야 한다.
   expect(
     tester.getSize(find.byKey(const Key('routine-view-목록'))).width,
-    tester.getSize(find.byKey(const Key('routine-view-캘린더'))).width,
+    tester.getSize(find.byKey(const Key('routine-view-달력'))).width,
   );
 }
 
@@ -91,12 +91,12 @@ void main() {
     _expectSwitchFillsTrack(tester);
 
     // 트랙 맨 윗줄을 눌러도 전환돼야 한다 (예전에는 가운데만 눌렸다).
-    final calendarTab = find.byKey(const Key('routine-view-캘린더'));
+    final calendarTab = find.byKey(const Key('routine-view-달력'));
     final box = tester.getRect(calendarTab);
     await tester.tapAt(Offset(box.center.dx, box.top + 3));
     await tester.pumpAndSettle();
 
-    expect(find.text('8월 6일 (목)'), findsOneWidget);
+    expect(find.text('8월 6일 (목)'), findsWidgets);
     expect(find.text('아침 산책'), findsOneWidget);
 
     await tester.tap(find.byKey(const Key('calendar-day-2026-8-7')));

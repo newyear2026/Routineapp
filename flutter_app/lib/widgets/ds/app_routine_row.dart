@@ -2,34 +2,29 @@ import 'package:flutter/material.dart';
 
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
-import '../../theme/app_pixel_style.dart';
+import '../../domain/models/routine_icon_id.dart';
 import 'app_card.dart';
 import 'pixel_icon.dart';
+import 'routine_mark.dart';
 
 /// 루틴 한 줄 — **홈·루틴 목록·캘린더·진행이 함께 쓰는 하나의 구현**.
 ///
-/// 예전에는 네 화면이 각자 private 위젯을 들고 있었고, 서피스·라운드·글자
-/// 크기·정보 순서가 제각각이었다. 캘린더만 루틴 색을 배경 틴트로 써서 같은
-/// 루틴이 화면에 따라 다른 물건처럼 보였고, 홈만 시각을 이름 위에 올려
-/// 읽는 순서가 뒤집혀 있었다.
-///
-/// 규칙은 하나다: **색상 표식 → 이름 → 보조 정보 → 오른쪽 슬롯.**
-/// 루틴의 정체성은 색상 표식이 맡는다 (`Routine.iconEmoji` 주석 참고).
-///
-/// 도메인 모델 대신 값만 받는다. `ds/`가 도메인에 의존하지 않게 하려는 것이고,
-/// 덕분에 화면마다 필요한 보조 문구를 자유롭게 만들어 넘길 수 있다.
+/// 규칙은 하나다: **픽셀 아이콘 → 이름 → 보조 정보 → 오른쪽 슬롯.**
 class AppRoutineRow extends StatelessWidget {
   const AppRoutineRow({
     super.key,
     required this.color,
     required this.title,
+    this.icon = RoutineIconId.coffee,
     this.subtitle,
     this.trailing,
     this.onTap,
   });
 
-  /// 루틴 색 — 왼쪽 픽셀 표식
+  /// 아이콘 배경·강조색
   final Color color;
+
+  final RoutineIconId icon;
 
   final String title;
 
@@ -62,17 +57,7 @@ class AppRoutineRow extends StatelessWidget {
       decoration: appSurfaceDecoration(radius: _radius),
       child: Row(
         children: [
-          Container(
-            width: 32,
-            height: 32,
-            decoration: BoxDecoration(
-              color: color,
-              border: Border.all(
-                color: AppPixelStyle.outline,
-                width: AppPixelStyle.borderWidth,
-              ),
-            ),
-          ),
+          RoutineMark(icon: icon, color: color, size: 36),
           const SizedBox(width: 14),
           Expanded(
             child: Column(

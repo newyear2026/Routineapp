@@ -9,13 +9,14 @@ import '../domain/settings/settings_error.dart';
 import '../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
+import '../domain/utils/app_date_formats.dart';
 import '../widgets/ds/ds.dart';
+import '../widgets/settings/cat_theme_card.dart';
 import '../widgets/settings/exact_alarm_tile.dart';
 import '../widgets/settings/language_settings_tile.dart';
 import '../widgets/settings/settings_list_items.dart';
 import '../widgets/settings/settings_section.dart';
 import '../widgets/settings/theme_preset_section.dart';
-import '../widgets/settings/cat_theme_card.dart';
 
 /// 설정 화면은 섹션 배치와 화면 전환만 담당한다.
 /// 알림 설정의 로드·저장·권한 요청은 [SettingsController]에 둔다.
@@ -54,10 +55,18 @@ class _SettingsScreenContent extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(24, 48, 24, 28),
           children: [
+            Text(
+              AppDateFormats.monthDayWeekday(
+                context,
+                appController.now,
+              ),
+              style: AppTextStyles.caption,
+            ),
+            const SizedBox(height: 2),
             Text(l10n.settingsTitle, style: AppTextStyles.titleScreen),
             const SizedBox(height: 3),
             Text(l10n.settingsSubtitle, style: AppTextStyles.caption),
-            const SizedBox(height: 24),
+            const SizedBox(height: 18),
             const CatThemeCard(),
             const SizedBox(height: 24),
             if (settings.error != null) ...[

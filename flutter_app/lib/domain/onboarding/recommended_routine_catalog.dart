@@ -1,6 +1,7 @@
 import '../models/routine.dart';
 import '../utils/time_minutes.dart';
 import '../../theme/routine_palette.dart';
+import '../models/routine_icon_id.dart';
 
 /// 온보딩 «추천 루틴» 한 줄 — UI·저장 공통 스펙.
 class RecommendedRoutineDefinition {
@@ -38,9 +39,8 @@ class RecommendedRoutineDefinition {
       endMinutesFromMidnight: end,
       repeatWeekdays: {1, 2, 3, 4, 5, 6, 7},
       colorValue: colorValue,
-      // 루틴의 정체성은 색상으로 표현한다. 기존 데이터 모델의 필드는
-      // 마이그레이션 호환성을 위해 유지하되 새 추천 루틴에는 저장하지 않는다.
       iconEmoji: '',
+      iconId: RoutineIconId.fromCatalogId(catalogId),
       notificationEnabled: true,
       updatedAtMs: now,
     );
@@ -55,27 +55,24 @@ abstract final class RecommendedRoutineCatalog {
     RecommendedRoutineDefinition(
       catalogId: 'wake',
       startMinutesFromMidnight: 7 * 60,
-      durationMinutes: 60,
+      durationMinutes: 30,
       colorValue: RoutinePalette.coralValue,
-      showRecommendedBadge: true,
     ),
     RecommendedRoutineDefinition(
       catalogId: 'exercise',
       startMinutesFromMidnight: 7 * 60 + 30,
-      durationMinutes: 60,
+      durationMinutes: 30,
       colorValue: RoutinePalette.roseValue,
-      showRecommendedBadge: true,
     ),
     RecommendedRoutineDefinition(
       catalogId: 'breakfast',
-      startMinutesFromMidnight: 9 * 60,
-      durationMinutes: 60,
+      startMinutesFromMidnight: 8 * 60,
+      durationMinutes: 30,
       colorValue: RoutinePalette.amberValue,
-      showRecommendedBadge: true,
     ),
     RecommendedRoutineDefinition(
       catalogId: 'study',
-      startMinutesFromMidnight: 10 * 60,
+      startMinutesFromMidnight: 9 * 60,
       durationMinutes: 120,
       colorValue: RoutinePalette.lavenderValue,
     ),
@@ -105,15 +102,15 @@ abstract final class RecommendedRoutineCatalog {
     ),
   ];
 
-  /// 기존 UI와 동일한 기본 선택 (공부·휴식 미선택).
+  /// 시안과 같은 기본 선택: 기상 · 아침 식사 · 휴식 · 저녁 식사.
   static const List<bool> defaultSelection = [
     true,
-    true,
-    true,
     false,
     true,
     false,
+    false,
     true,
     true,
+    false,
   ];
 }

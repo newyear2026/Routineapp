@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
 
+import '../domain/models/routine_icon_id.dart';
 import '../theme/routine_palette.dart';
 import 'medium_ring_segment.dart';
 
@@ -18,6 +19,9 @@ class HomeMediumWidgetViewModel {
     required this.currentTime,
     required this.centerTimeLabel,
     required this.ringSegments,
+    this.currentRoutineIconId = RoutineIconId.coffee,
+    this.currentRoutineColor = RoutinePalette.blue,
+    this.currentRoutineTimeRange = '',
     this.activeSegmentId,
     this.pointerAngleRad,
   });
@@ -25,6 +29,9 @@ class HomeMediumWidgetViewModel {
   final String currentRoutineTitle;
   final String currentRoutineTimingHint;
   final String currentRoutineStatusLabel;
+  final RoutineIconId currentRoutineIconId;
+  final Color currentRoutineColor;
+  final String currentRoutineTimeRange;
 
   final String nextRoutineTitle;
   final String nextRoutineTime;
@@ -44,14 +51,17 @@ class HomeMediumWidgetViewModel {
   /// 쓰면 미리보기가 실물과 다른 인상을 준다.
   static HomeMediumWidgetViewModel dummy(AppLocalizations l10n) {
     return HomeMediumWidgetViewModel(
-      currentRoutineTitle: l10n.catalogDinner,
-      currentRoutineTimingHint: l10n.timingUntilEnd(l10n.durationMinutes(58)),
+      currentRoutineTitle: l10n.catalogBreak,
+      currentRoutineTimingHint: l10n.timingUntilEnd(l10n.durationMinutes(46)),
       currentRoutineStatusLabel: l10n.statusInProgress,
-      nextRoutineTitle: l10n.catalogSleep,
-      nextRoutineTime: '23:00',
-      currentTime: const TimeOfDay(hour: 18, minute: 2),
+      currentRoutineIconId: RoutineIconId.coffee,
+      currentRoutineColor: RoutinePalette.blue,
+      currentRoutineTimeRange: '15:00-16:00',
+      nextRoutineTitle: l10n.catalogDinner,
+      nextRoutineTime: '18:00',
+      currentTime: const TimeOfDay(hour: 15, minute: 14),
       centerTimeLabel: l10n.commonNow,
-      activeSegmentId: 'seg_dinner',
+      activeSegmentId: 'seg_rest',
       ringSegments: const [
         MediumRingSegment(
           id: 'seg_wake',
@@ -70,6 +80,12 @@ class HomeMediumWidgetViewModel {
           startMinutesFromMidnight: 12 * 60,
           sweepMinutes: 60,
           color: RoutinePalette.amber,
+        ),
+        MediumRingSegment(
+          id: 'seg_rest',
+          startMinutesFromMidnight: 15 * 60,
+          sweepMinutes: 60,
+          color: RoutinePalette.blue,
         ),
         MediumRingSegment(
           id: 'seg_dinner',

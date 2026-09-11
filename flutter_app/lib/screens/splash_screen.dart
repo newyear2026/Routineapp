@@ -9,7 +9,8 @@ import '../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
-import '../widgets/brand_mark.dart';
+import '../widgets/ds/pixel_steps.dart';
+import '../widgets/home/orbit_brand_mark.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -79,7 +80,7 @@ class _SplashScreenState extends State<SplashScreen>
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          const BrandMark(size: 240),
+                          const OrbitBrandMark(size: 228),
                           const SizedBox(height: AppSpacing.xxl),
                           Text(
                             l10n.appName,
@@ -90,6 +91,8 @@ class _SplashScreenState extends State<SplashScreen>
                             l10n.appTagline,
                             style: AppTextStyles.label,
                           ),
+                          const SizedBox(height: AppSpacing.xl),
+                          const PixelSteps(total: 3, current: 0),
                         ],
                       ),
                     ),

@@ -87,6 +87,40 @@ class _CloudPainter extends CustomPainter {
   bool shouldRepaint(_CloudPainter oldDelegate) => false;
 }
 
+/// 온보딩·알림 화면의 구름 장식.
+class PixelCloud extends StatelessWidget {
+  const PixelCloud({super.key, this.width = 32});
+
+  final double width;
+
+  @override
+  Widget build(BuildContext context) => IgnorePointer(
+        child: ExcludeSemantics(
+          child: CustomPaint(
+            size: Size(width, width * 0.62),
+            painter: const _CloudPainter(),
+          ),
+        ),
+      );
+}
+
+/// 십자 반짝임.
+class PixelSpark extends StatelessWidget {
+  const PixelSpark({super.key, this.size = 12});
+
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => IgnorePointer(
+        child: ExcludeSemantics(
+          child: CustomPaint(
+            size: Size.square(size),
+            painter: const _SparkPainter(),
+          ),
+        ),
+      );
+}
+
 class _SparkPainter extends CustomPainter {
   const _SparkPainter();
   @override

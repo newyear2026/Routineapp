@@ -7,6 +7,7 @@ import 'package:routine_timer/application/services/routine_data_service.dart';
 import 'package:routine_timer/application/services/routine_notification_service.dart';
 import 'package:routine_timer/domain/settings/notification_preferences.dart';
 import 'package:routine_timer/screens/settings_screen.dart';
+import 'package:routine_timer/widgets/ds/animated_cat.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/test_doubles.dart';
@@ -61,9 +62,6 @@ void main() {
     addTearDown(controller.dispose);
 
     expect(find.text('설정'), findsWidgets);
-    expect(find.text('고양이 별빛 테마'), findsOneWidget);
-    expect(find.text('기본 제공'), findsOneWidget);
-    expect(find.text('사용 중'), findsOneWidget);
     expect(find.byTooltip('뒤로'), findsNothing);
     expect(find.byIcon(Icons.arrow_back_ios_new_rounded), findsNothing);
   });
@@ -83,12 +81,30 @@ void main() {
     final controller = await pumpSettings(tester);
     addTearDown(controller.dispose);
 
-    await tester.scrollUntilVisible(find.text('캐릭터 설정'), 200,
+    await tester.scrollUntilVisible(find.text('캐릭터'), 200,
         scrollable: find.byType(Scrollable).first);
     await tester.pumpAndSettle();
     expect(find.text('준비 중'), findsWidgets);
     // 갈 곳이 없는 행에 화살표/줄표를 남기지 않는다.
     expect(find.byIcon(Icons.remove_rounded), findsNothing);
+  });
+
+  testWidgets('테마 카드에 앉아 있는 고양이를 보여 준다', (tester) async {
+    final controller = await pumpSettings(tester);
+    addTearDown(controller.dispose);
+
+    expect(find.text('고양이 별빛 테마'), findsOneWidget);
+    expect(find.text('사용 중'), findsOneWidget);
+    expect(find.byKey(const Key('settings-theme-cat')), findsOneWidget);
+    expect(
+      tester
+          .widget<AnimatedCat>(find.descendant(
+            of: find.byKey(const Key('settings-theme-cat')),
+            matching: find.byType(AnimatedCat),
+          ))
+          .pose,
+      CatPose.idle,
+    );
   });
 
   testWidgets('알림 소리는 푸시 알림이 꺼져 있으면 함께 비활성된다', (tester) async {

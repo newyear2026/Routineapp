@@ -13,8 +13,6 @@ import '../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/ds/ds.dart';
-import '../widgets/ds/animated_cat.dart';
-import '../widgets/ds/cat_menu_header.dart';
 import '../theme/app_pixel_style.dart';
 
 enum _RoutineView { list, calendar }
@@ -59,14 +57,23 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
             onRoutines: () {},
             onSettings: () => context.go('/settings'),
           ),
-          floatingActionButton: FloatingActionButton(
-            key: const Key('routine-add-button'),
-            onPressed: _openAddRoutine,
-            backgroundColor: AppColors.orbitPrimary,
-            foregroundColor: Colors.white,
-            tooltip: AppLocalizations.of(context).routinesAdd,
-            child: const AppIcon(Icons.add_rounded),
-          ),
+          floatingActionButton: _view == _RoutineView.list
+              ? Material(
+                  color: AppColors.orbitPrimary,
+                  shape: AppPixelStyle.shape(),
+                  child: InkWell(
+                    key: const Key('routine-add-button'),
+                    onTap: _openAddRoutine,
+                    child: const SizedBox(
+                      width: 56,
+                      height: 56,
+                      child: Center(
+                        child: AppIcon(Icons.add_rounded, color: Colors.white),
+                      ),
+                    ),
+                  ),
+                )
+              : null,
           body: AppScreenShell(
             child: app.isLoaded
                 ? _RoutineContent(
@@ -75,6 +82,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                     selectedDate: _selectedDate!,
                     visibleMonth: _visibleMonth!,
                     routines: app.routines,
+                    onAdd: _openAddRoutine,
                     onViewChanged: (view) => setState(() => _view = view),
                     onSelectedDateChanged: (date) => setState(() {
                       _selectedDate = date;
@@ -107,6 +115,7 @@ class _RoutineContent extends StatelessWidget {
     required this.selectedDate,
     required this.visibleMonth,
     required this.routines,
+    required this.onAdd,
     required this.onViewChanged,
     required this.onSelectedDateChanged,
     required this.onPreviousMonth,
@@ -118,6 +127,7 @@ class _RoutineContent extends StatelessWidget {
   final DateTime selectedDate;
   final DateTime visibleMonth;
   final List<Routine> routines;
+  final VoidCallback onAdd;
   final ValueChanged<_RoutineView> onViewChanged;
   final ValueChanged<DateTime> onSelectedDateChanged;
   final VoidCallback onPreviousMonth;
@@ -131,9 +141,12 @@ class _RoutineContent extends StatelessWidget {
       padding: const EdgeInsets.fromLTRB(24, 48, 24, 96),
       children: [
         CatMenuHeader(
-            title: l10n.routinesTitle,
-            subtitle: l10n.routinesSubtitle,
-            pose: CatPose.focus),
+          caption: AppDateFormats.monthDayWeekday(context, today),
+          title: l10n.routinesTitle,
+          subtitle: l10n.routinesSubtitle,
+          pose: CatPose.focus,
+          catKey: const Key('routines-menu-cat'),
+        ),
         const SizedBox(height: 18),
         _ViewSwitcher(value: view, onChanged: onViewChanged),
         const SizedBox(height: 22),
@@ -148,6 +161,7 @@ class _RoutineContent extends StatelessWidget {
             onDateSelected: onSelectedDateChanged,
             onPreviousMonth: onPreviousMonth,
             onNextMonth: onNextMonth,
+            onAdd: onAdd,
           ),
       ],
     );
@@ -262,6 +276,7 @@ class _RoutineList extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 12),
               child: AppRoutineRow(
                 color: routine.color,
+                icon: routine.iconId,
                 title: routine.title,
                 // 목록에서 '매일'인지 '평일'인지 알 수 없으면
                 // 카드를 열어봐야만 판단할 수 있다.
@@ -289,6 +304,7 @@ class _CalendarRoutineView extends StatelessWidget {
     required this.onDateSelected,
     required this.onPreviousMonth,
     required this.onNextMonth,
+    required this.onAdd,
   });
 
   final DateTime today;
@@ -298,9 +314,11 @@ class _CalendarRoutineView extends StatelessWidget {
   final ValueChanged<DateTime> onDateSelected;
   final VoidCallback onPreviousMonth;
   final VoidCallback onNextMonth;
+  final VoidCallback onAdd;
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final selectedRoutines = RoutineCalendar.routinesForDate(
       selectedDate,
       routines,
@@ -347,6 +365,13 @@ class _CalendarRoutineView extends StatelessWidget {
           // 틴트로 칠하고 왼쪽에 시각·점 레일을 따로 뒀는데, 통합 줄이
           // 색 원과 시간을 모두 갖고 있어 레일이 같은 말을 반복했다.
           _RoutineList(routines: selectedRoutines),
+        const SizedBox(height: 16),
+        AppButton(
+          key: const Key('calendar-add-routine-button'),
+          label: l10n.homeAddRoutine,
+          icon: Icons.add_rounded,
+          onPressed: onAdd,
+        ),
       ],
     );
   }

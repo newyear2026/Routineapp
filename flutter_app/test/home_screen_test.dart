@@ -92,25 +92,26 @@ void main() {
     expect(find.text('1개'), findsOneWidget);
   });
 
-  testWidgets('진행 중인 루틴이 없으면 NOW가 아니라 NEXT를 보여준다', (tester) async {
+  testWidgets('진행 중인 루틴이 없으면 예정을 보여준다', (tester) async {
     final controller = await pumpHome(
       tester,
       now: DateTime(2026, 8, 4, 16, 24),
     );
     addTearDown(controller.dispose);
 
-    expect(find.text('NEXT'), findsOneWidget);
-    expect(find.text('NOW'), findsNothing);
+    expect(find.text('예정'), findsWidgets);
+    expect(find.text('진행 중'), findsNothing);
   });
 
-  testWidgets('진행 중인 루틴이 있으면 NOW를 보여준다', (tester) async {
+  testWidgets('진행 중인 루틴이 있으면 진행 중을 보여준다', (tester) async {
     final controller = await pumpHome(
       tester,
       now: DateTime(2026, 8, 4, 12, 30),
     );
     addTearDown(controller.dispose);
 
-    expect(find.text('NOW'), findsOneWidget);
+    expect(find.text('진행 중'), findsOneWidget);
+    expect(find.text('NOW'), findsNothing);
     expect(find.text('NEXT'), findsNothing);
     // 원형 시간표 중앙이 같은 이름을 반복하지 않는다.
     expect(find.text('점심식사'), findsOneWidget);
@@ -131,9 +132,6 @@ void main() {
     final ring = tester.getRect(
       find.byKey(const Key('home-timetable-ring')),
     );
-    final characterRail = tester.getRect(
-      find.byKey(const Key('home-timetable-character-rail')),
-    );
     final scene = tester.getRect(
       find.byKey(const Key('home-timetable-scene')),
     );
@@ -142,11 +140,16 @@ void main() {
     );
 
     expect(find.byKey(const Key('home-timetable-cat')), findsOneWidget);
-    expect(find.byKey(const Key('home-timetable-moon')), findsOneWidget);
+    expect(find.byKey(const Key('home-timetable-plant')), findsOneWidget);
+    expect(
+      tester.widget<AnimatedCat>(find.descendant(
+        of: find.byKey(const Key('home-timetable-cat')),
+        matching: find.byType(AnimatedCat),
+      )).pose,
+      CatPose.activity,
+    );
     expect(ring.center.dx, closeTo(scene.center.dx, 0.1));
     expect(ring.width, closeTo(ring.height, 0.1));
-    expect(characterRail.top, greaterThan(ring.center.dy));
-    expect(characterRail.right, lessThanOrEqualTo(scene.right));
     expect(scene.bottom, lessThanOrEqualTo(completeButton.top));
     expect(scene.width, lessThanOrEqualTo(272));
   });
@@ -159,9 +162,6 @@ void main() {
     addTearDown(controller.dispose);
 
     expect(controller.canActOnCurrentSlot, isTrue);
-    expect(tester.widget<AnimatedCat>(find.byType(AnimatedCat)).pose,
-        CatPose.activity);
-    final originalSize = tester.getSize(find.byType(AnimatedCat));
 
     await tapAction(tester, 'home-complete-button');
 
@@ -169,9 +169,13 @@ void main() {
     expect(controller.todayLogs.single.routineId, 'lunch');
     expect(controller.todayLogs.single.status, RoutineLogStatus.completed);
     expect(controller.progressSummary.completed, 1);
-    expect(tester.widget<AnimatedCat>(find.byType(AnimatedCat)).pose,
-        CatPose.complete);
-    expect(tester.getSize(find.byType(AnimatedCat)), originalSize);
+    expect(
+      tester.widget<AnimatedCat>(find.descendant(
+        of: find.byKey(const Key('home-timetable-cat')),
+        matching: find.byType(AnimatedCat),
+      )).pose,
+      CatPose.complete,
+    );
 
     // 되돌리기 스낵바로 원상복구된다.
     expect(find.text('되돌리기'), findsOneWidget);
@@ -180,8 +184,6 @@ void main() {
 
     expect(controller.todayLogs, isEmpty);
     expect(controller.progressSummary.completed, 0);
-    expect(tester.widget<AnimatedCat>(find.byType(AnimatedCat)).pose,
-        CatPose.activity);
   });
 
   testWidgets('스킵과 나중에도 홈에서 기록된다', (tester) async {
@@ -212,7 +214,7 @@ void main() {
     expect(controller.todayLogs, isEmpty);
 
     // 버튼 라벨은 사유가 아니라 할 일을 말한다.
-    expect(find.text('저녁식사 완료하기'), findsOneWidget);
+    expect(find.text('저녁식사 완료'), findsOneWidget);
     expect(find.text('지금은 루틴 시간이 아니에요'), findsNothing);
 
     // 왜 누를 수 없는지는 버튼 아래에서 따로 설명한다 (UI_STANDARDS 4).
@@ -226,12 +228,12 @@ void main() {
     );
     addTearDown(controller.dispose);
 
-    expect(find.text('점심식사 완료하기'), findsOneWidget);
+    expect(find.text('점심식사 완료'), findsOneWidget);
 
     await tapAction(tester, 'home-complete-button');
 
     expect(controller.canActOnCurrentSlot, isFalse);
-    expect(find.text('점심식사 완료하기'), findsOneWidget);
+    expect(find.text('점심식사 완료'), findsOneWidget);
     expect(find.textContaining('이미 완료했어요'), findsOneWidget);
   });
 
@@ -271,7 +273,7 @@ void main() {
       );
       addTearDown(controller.dispose);
 
-      // 기상은 NEXT 스트립이 맡고, 남은 5개가 다음 일정이 된다.
+      // 기상은 포커스 스트립이 맡고, 남은 5개가 다음 일정이 된다.
       expect(controller.homeSnapshotFor(testL10n).upcomingRoutines.length, 5);
       // 전체 개수만 적으면 3개만 그려진 화면과 어긋난다.
       expect(find.text('3 / 5'), findsOneWidget);

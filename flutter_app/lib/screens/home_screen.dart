@@ -14,7 +14,6 @@ import '../theme/app_text_styles.dart';
 import '../widgets/ds/ds.dart';
 import '../widgets/home/circular_timetable_area.dart';
 import '../widgets/home/home_timetable_scene.dart';
-import '../widgets/ds/animated_cat.dart';
 
 /// 홈에 그리는 '다음 일정' 최대 개수.
 ///
@@ -140,7 +139,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                     const _EmptyOrbit()
                   else
                     HomeTimetableScene(
-                      pose: homeCatPose(home),
+                      catPose: homeCatPose(home),
                       timetableBuilder: (size) => CircularTimetableArea(
                           routines: home.segments,
                           currentTime: home.clockTime,
@@ -216,6 +215,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                             padding: const EdgeInsets.only(bottom: 10),
                             child: AppRoutineRow(
                               color: routine.color,
+                              icon: routine.iconId,
                               title: routine.title,
                               subtitle: _timeRange(routine),
                               onTap: () => context.push(
@@ -271,8 +271,8 @@ class _FocusStrip extends StatelessWidget {
     final badge = routine == null
         ? l10n.commonToday
         : isUpcoming
-            ? l10n.homeBadgeNext
-            : l10n.homeBadgeNow;
+            ? l10n.statusUpcoming
+            : l10n.statusInProgress;
     final name = routine?.title ?? l10n.homeCreateFirstRoutine;
     final time = routine == null ? l10n.homeStartYourDay : _timeRange(routine);
 
@@ -283,23 +283,29 @@ class _FocusStrip extends StatelessWidget {
         borderRadius: BorderRadius.zero,
         onTap: onTap,
         child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 14),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: appSurfaceDecoration(radius: 24),
           child: Row(
             children: [
+              if (routine != null) ...[
+                RoutineMark(
+                  icon: routine.iconId,
+                  color: routine.color,
+                  size: 40,
+                ),
+                const SizedBox(width: 12),
+              ],
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      badge,
-                      style: AppTextStyles.caption.copyWith(
-                        color: AppColors.orbitPrimary,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 0.6,
-                      ),
+                    AppStatusBadge(
+                      label: badge,
+                      tone: isUpcoming
+                          ? AppStatusBadgeTone.neutral
+                          : AppStatusBadgeTone.info,
                     ),
-                    const SizedBox(height: 2),
+                    const SizedBox(height: 6),
                     Text(
                       name,
                       maxLines: 1,
@@ -394,8 +400,8 @@ class _SlotActionBar extends StatelessWidget {
             Expanded(
               child: AppButton(
                 key: const Key('home-skip-button'),
-                label: l10n.statusSkipped,
-                variant: AppButtonVariant.ghost,
+                label: l10n.actionSkip,
+                variant: AppButtonVariant.secondary,
                 height: 46,
                 onPressed: enabled ? onSkip : null,
               ),

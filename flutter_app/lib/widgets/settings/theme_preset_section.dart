@@ -2,60 +2,100 @@ import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
 
 import '../../theme/app_colors.dart';
+import '../../theme/app_pixel_style.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/app_theme_preset.dart';
 import '../ds/ds.dart';
 
 /// 테마 프리셋 — **아직 화면에 연결되어 있지 않다.**
 ///
-/// [AppThemeTokens]는 `main.dart`에서 테마에 주입되지만, 실제로 읽는 화면이
-/// 없다(모든 화면이 [AppColors] 상수를 직접 참조한다). 고를 수 있는 것처럼
-/// 두면 눌러도 아무 픽셀이 바뀌지 않는 토글이 된다 — UI_STANDARDS 4의
-/// '준비 중 기능은 실제 동작하는 토글처럼 보이면 안 된다'에 어긋난다.
-///
-/// 연결할 때 함께 해야 할 일: 프리셋마다 버튼 전경색 토큰을 추가한다.
-/// 지금 값 그대로 이으면 피치/민트의 버튼 그라데이션(`#FFD6C2` 계열) 위
-/// 흰 글자가 1.5:1로 읽히지 않는다.
+/// 시안의 가로 스와치 3칸만 보여 주고, 눌러도 테마가 바뀌지 않는다.
 class ThemePresetSection extends StatelessWidget {
   const ThemePresetSection({super.key});
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    return AppCard(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // 제목과 배지를 한 줄에 고정하면 번역이 긴 언어(영어·스페인어)에서
-          // 가로로 넘친다. 제목이 남는 폭을 쓰고, 좁으면 배지가 아래로 접힌다.
-          Wrap(
-            spacing: 8,
-            runSpacing: 6,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Text(l10n.settingsThemeSection,
-                  style: AppTextStyles.titleSection.copyWith(fontSize: 15)),
-              AppStatusBadge(
-                label: l10n.commonComingSoon,
-                tone: AppStatusBadgeTone.readySoon,
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(l10n.settingsThemeSection, style: AppTextStyles.titleSection),
+        const SizedBox(height: 10),
+        Row(
+          children: [
+            for (var i = 0; i < AppThemePreset.all.length; i++) ...[
+              if (i > 0) const SizedBox(width: 10),
+              Expanded(
+                child: _ThemeSwatchCard(
+                  preset: AppThemePreset.all[i],
+                  selected: i == 0,
+                ),
               ),
             ],
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _ThemeSwatchCard extends StatelessWidget {
+  const _ThemeSwatchCard({required this.preset, required this.selected});
+
+  final AppThemePreset preset;
+  final bool selected;
+
+  @override
+  Widget build(BuildContext context) {
+    return Semantics(
+      selected: selected,
+      label: _presetLabel(AppLocalizations.of(context), preset),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 14),
+        decoration: ShapeDecoration(
+          color: AppColors.orbitSurface,
+          shape: AppPixelStyle.shape(
+            color: selected ? AppColors.orbitPrimary : AppColors.orbitBorder,
+            width: selected ? 2 : 1,
           ),
-          const SizedBox(height: 6),
-          Text(l10n.settingsThemeComingSoon, style: AppTextStyles.caption),
-          const SizedBox(height: 14),
-          for (final preset in AppThemePreset.all)
-            _ThemePresetOption(
-              preset: preset,
-              label: _presetLabel(l10n, preset),
+        ),
+        child: Column(
+          children: [
+            if (selected)
+              const Align(
+                alignment: Alignment.centerLeft,
+                child: AppIcon(
+                  Icons.check_rounded,
+                  size: 16,
+                  color: AppColors.orbitPrimary,
+                ),
+              )
+            else
+              const SizedBox(height: 16),
+            const SizedBox(height: 8),
+            Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                for (final color in preset.previewColors.take(3))
+                  Container(
+                    width: 16,
+                    height: 16,
+                    margin: const EdgeInsets.symmetric(horizontal: 2),
+                    decoration: BoxDecoration(
+                      color: color,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: AppColors.orbitBorder),
+                    ),
+                  ),
+              ],
             ),
-        ],
+          ],
+        ),
       ),
     );
   }
 }
 
-/// 프리셋 이름은 ARB가 갖는다 — 모델에 두면 언어마다 테마 정의가 갈라진다.
 String _presetLabel(AppLocalizations l10n, AppThemePreset preset) {
   switch (preset.id) {
     case 'peach_sunset':
@@ -65,39 +105,4 @@ String _presetLabel(AppLocalizations l10n, AppThemePreset preset) {
     default:
       return l10n.themeSoftDay;
   }
-}
-
-class _ThemePresetOption extends StatelessWidget {
-  const _ThemePresetOption({required this.preset, required this.label});
-
-  final AppThemePreset preset;
-  final String label;
-
-  @override
-  Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.only(bottom: 10),
-        child: Opacity(
-          opacity: 0.45,
-          child: Container(
-            padding: const EdgeInsets.all(14),
-            decoration: BoxDecoration(
-              borderRadius: BorderRadius.zero,
-              border: Border.all(color: AppColors.border),
-            ),
-            child: Row(children: [
-              ...preset.previewColors.map((color) => Container(
-                    width: 22,
-                    height: 22,
-                    margin: const EdgeInsets.only(right: 6),
-                    decoration:
-                        BoxDecoration(color: color, shape: BoxShape.rectangle),
-                  )),
-              const SizedBox(width: 8),
-              Expanded(
-                  child: Text(label,
-                      style: AppTextStyles.bodyStrong.copyWith(fontSize: 15))),
-            ]),
-          ),
-        ),
-      );
 }

@@ -8,20 +8,20 @@ import '../domain/models/routine_write_error.dart';
 import '../l10n/app_localizations.dart';
 import '../data/routine_form_palette.dart';
 import '../domain/models/routine.dart';
+import '../domain/models/routine_icon_id.dart';
 import '../domain/routine_overlap/routine_schedule_overlap.dart';
 import '../domain/utils/time_minutes.dart';
 import '../domain/validation/routine_form_validator.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/ds/ds.dart';
-import '../widgets/ds/animated_cat.dart';
-import '../widgets/ds/cat_detail_accent.dart';
 import '../widgets/time/orbit_time_picker.dart';
 import '../widgets/form/pastel_color_palette.dart';
 import '../widgets/form/pastel_switch_tile.dart';
 import 'routine_add/routine_edit_status_views.dart';
 import 'routine_add/routine_form_controls.dart';
 import 'routine_add/routine_form_preview.dart';
+import 'routine_add/routine_icon_picker.dart';
 
 /// 루틴 추가·편집 — 저장은 [RoutineAppController.saveRoutine]
 class RoutineAddScreen extends StatefulWidget {
@@ -56,6 +56,7 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
 
   /// 저장·편집에 쓰는 ARGB (팔레트와 독립적으로 유지 — 불일치 시에도 기존 색 보존)
   late int _selectedColorArgb;
+  RoutineIconId _selectedIconId = RoutineIconId.coffee;
 
   bool _notificationEnabled = true;
   RoutineFormError? _titleError;
@@ -65,7 +66,7 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
   bool _isDeleting = false;
   bool _isEditLoading = false;
   bool _editLoadFailed = false;
-  bool _showMoreSettings = false;
+  bool _showMoreSettings = true;
 
   Routine? _editingBaseline;
 
@@ -128,6 +129,7 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
         _weekdays[i] = r.repeatWeekdays.contains(i + 1);
       }
       _selectedColorArgb = normalizedArgb;
+      _selectedIconId = r.iconId;
       _notificationEnabled = r.notificationEnabled;
     });
   }
@@ -184,6 +186,7 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
         endMinutesFromMidnight: TimeMinutes.fromTimeOfDay(_endTime),
         repeatWeekdays: repeat,
         colorValue: colorValue,
+        iconId: _selectedIconId,
         notificationEnabled: _notificationEnabled,
       );
     }
@@ -194,6 +197,7 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
       endTime: _endTime,
       repeatWeekdays: repeat,
       colorValue: colorValue,
+      iconId: _selectedIconId,
       notificationEnabled: _notificationEnabled,
     );
   }
@@ -263,11 +267,7 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
             return AlertDialog(
               scrollable: true,
               title: Text(dialogL10n.routineOverlapTitle),
-              content: Column(mainAxisSize: MainAxisSize.min, children: [
-                const CatDetailAccent(pose: CatPose.guide),
-                const SizedBox(height: 12),
-                Text(dialogL10n.routineOverlapBody),
-              ]),
+              content: Text(dialogL10n.routineOverlapBody),
               actions: [
                 TextButton(
                   onPressed: () => Navigator.of(ctx).pop(false),
@@ -315,11 +315,7 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
         return AlertDialog(
           scrollable: true,
           title: Text(dialogL10n.routineDeleteTitle),
-          content: Column(mainAxisSize: MainAxisSize.min, children: [
-            const CatDetailAccent(pose: CatPose.guide),
-            const SizedBox(height: 12),
-            Text(dialogL10n.routineDeleteBody(routine.title)),
-          ]),
+          content: Text(dialogL10n.routineDeleteBody(routine.title)),
           actions: [
             TextButton(
               onPressed: () => Navigator.of(ctx).pop(false),
@@ -415,6 +411,9 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                     Column(
                       crossAxisAlignment: CrossAxisAlignment.stretch,
                       children: [
+                        Text(l10n.routineAddNameLabel,
+                            style: AppTextStyles.caption),
+                        const SizedBox(height: 8),
                         TextField(
                           controller: _nameController,
                           onChanged: _validateTitle,
@@ -442,6 +441,9 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                           ),
                         ],
                         const SizedBox(height: 12),
+                        Text(l10n.routineAddSuggestionsLabel,
+                            style: AppTextStyles.caption),
+                        const SizedBox(height: 8),
                         Wrap(
                           spacing: 8,
                           runSpacing: 8,
@@ -572,6 +574,7 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                       const SizedBox(height: 12),
                       RoutineFormSurface(
                         child: PastelColorPalette(
+                          title: l10n.routineAddColorSection,
                           colors: routineFormPaletteColors,
                           selectedIndex: _paletteIndexForUi(),
                           onSelected: (index) => setState(() {
@@ -579,6 +582,15 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                               routineFormPaletteColors[index].toARGB32(),
                             );
                           }),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      RoutineFormSurface(
+                        child: RoutineIconPicker(
+                          selected: _selectedIconId,
+                          color: Color(_selectedColorArgb),
+                          onSelected: (icon) =>
+                              setState(() => _selectedIconId = icon),
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -649,6 +661,7 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
     setState(() {
       _nameController.text = title;
       _titleError = _titleValidationError(title);
+      _selectedIconId = RoutineIconId.guess(title: title);
     });
   }
 }

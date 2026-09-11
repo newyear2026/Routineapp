@@ -62,18 +62,17 @@ void main() {
 
       // 알림에는 액션 버튼이 없다. 알림에서 바로 처리한다고 쓰면 사실과 다르다.
       expect(find.textContaining('알림에서 바로 완료'), findsNothing);
-      expect(find.textContaining('홈에서 완료·나중에·스킵'), findsOneWidget);
+      expect(find.textContaining('홈에서 완료·나중에·건너뛰기'), findsOneWidget);
     });
 
-    testWidgets('액션 용어는 홈과 동일하게 스킵을 쓴다', (tester) async {
+    testWidgets('액션 용어는 홈과 동일하게 건너뛰기를 쓴다', (tester) async {
       await pumpBare(tester, const OnboardingScreen());
 
       await tester.drag(find.byType(PageView), const Offset(-500, 0));
       await tester.pumpAndSettle();
 
-      expect(find.text('스킵'), findsOneWidget);
-      // 홈은 '건너뛰기'가 아니라 '스킵'이다. 온보딩만 다른 말을 쓰면 안 된다.
-      expect(find.text('건너뛰기'), findsOneWidget); // 헤더의 건너뛰기 버튼 하나뿐
+      expect(find.text('건너뛰기'), findsWidgets);
+      expect(find.text('스킵'), findsNothing);
     });
 
     testWidgets('픽셀 단계는 다음 버튼과 뒤로 스와이프에 연결된다', (tester) async {
@@ -168,7 +167,7 @@ void main() {
       final controller = await pumpSetup(tester);
       addTearDown(controller.dispose);
 
-      expect(find.text('6개 선택됨'), findsOneWidget);
+      expect(find.text('4개 선택'), findsOneWidget);
 
       final study = find.byKey(const Key('routine-choice-study'));
       await tester.ensureVisible(study);
@@ -176,7 +175,7 @@ void main() {
       await tester.tap(study);
       await tester.pumpAndSettle();
 
-      expect(find.text('7개 선택됨'), findsOneWidget);
+      expect(find.text('5개 선택'), findsOneWidget);
       expect(
         cardBorderColor(tester, 'study'),
         AppColors.orbitPrimary,
@@ -187,7 +186,7 @@ void main() {
       final controller = await pumpSetup(tester);
       addTearDown(controller.dispose);
 
-      final primaryY = tester.getTopLeft(find.text('완료하기')).dy;
+      final primaryY = tester.getTopLeft(find.text('선택한 루틴으로 시작')).dy;
       final ghostY = tester.getTopLeft(find.text('나중에 설정할게요')).dy;
       expect(primaryY, lessThan(ghostY));
     });
@@ -208,20 +207,19 @@ void main() {
       expect(tester.hasRunningAnimations, isFalse);
     });
 
-    testWidgets('히어로는 주황 그라데이션이 아니라 브랜드 톤을 쓴다', (tester) async {
+    testWidgets('히어로는 장식 벨이고 주황 그라데이션을 쓰지 않는다', (tester) async {
       await pumpBare(tester, const NotificationPermissionScreen());
 
-      final hero = tester.widget<Container>(
+      expect(
         find.byKey(const Key('notification-permission-hero')),
+        findsOneWidget,
       );
-      final decoration = hero.decoration! as BoxDecoration;
-      expect(decoration.gradient, isNull);
-      expect(decoration.color, AppColors.orbitPrimary.withValues(alpha: 0.1));
+      expect(tester.hasRunningAnimations, isFalse);
     });
 
     testWidgets('문구가 실제 동작과 일치한다', (tester) async {
       await pumpBare(tester, const NotificationPermissionScreen());
-      expect(find.textContaining('앱에서 완료하거나'), findsOneWidget);
+      expect(find.textContaining('하루의 흐름을 놓치지'), findsOneWidget);
     });
   });
 }

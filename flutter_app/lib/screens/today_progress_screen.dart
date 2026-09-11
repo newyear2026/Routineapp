@@ -14,8 +14,6 @@ import '../domain/services/routine_state_resolver.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/ds/ds.dart';
-import '../widgets/ds/animated_cat.dart';
-import '../widgets/ds/cat_menu_header.dart';
 
 /// Figma 기준 진행 화면: 완료 · 진행 중 · 예정의 세 상태를 항상 보여준다.
 class TodayProgressScreen extends StatelessWidget {
@@ -58,12 +56,27 @@ class TodayProgressScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: Text(
+                          AppDateFormats.monthDayWeekday(context, now),
+                          style: AppTextStyles.caption,
+                        ),
+                      ),
+                      IconButton(
+                        tooltip: l10n.routinesViewCalendar,
+                        onPressed: () => context.go('/routines'),
+                        icon: const AppIcon(Icons.calendar_month_rounded),
+                        color: AppColors.textMuted,
+                      ),
+                    ],
+                  ),
                   CatMenuHeader(
                     title: l10n.progressTitle,
-                    subtitle: AppDateFormats.monthDay(context, now),
-                    pose: progress.completed > 0
-                        ? CatPose.complete
-                        : CatPose.idle,
+                    subtitle: l10n.progressSubtitle,
+                    pose: CatPose.complete,
+                    catKey: const Key('progress-menu-cat'),
                   ),
                   const SizedBox(height: 24),
                   _ProgressHero(
@@ -102,14 +115,22 @@ class _ProgressHero extends StatelessWidget {
       padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 22),
       decoration: appSurfaceDecoration(radius: 24, elevated: true),
       child: LayoutBuilder(builder: (context, constraints) {
-        final count =
-            Text('$completed / $total', style: AppTextStyles.statHero);
+        final count = Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('$completed / $total', style: AppTextStyles.statHero),
+            if (total > 0) ...[
+              const SizedBox(height: 4),
+              Text('$percent%', style: AppTextStyles.statMedium),
+            ],
+          ],
+        );
         final details = Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           mainAxisSize: MainAxisSize.min,
           children: [
             if (total > 0) ...[
-              _ProgressBar(percent: percent),
+              _ProgressBar(percent: percent, total: total),
               const SizedBox(height: 12),
             ],
             Text(
@@ -156,13 +177,15 @@ class _ProgressHero extends StatelessWidget {
 /// 0%에서도 트랙이 남아 '채워질 자리'로 읽힌다. 원형 게이지는 0%일 때
 /// 아무것도 그려지지 않아 장식처럼 보였다.
 class _ProgressBar extends StatelessWidget {
-  const _ProgressBar({required this.percent});
+  const _ProgressBar({required this.percent, required this.total});
 
   final int percent;
+  final int total;
 
   @override
   Widget build(BuildContext context) => SegmentedProgress(
         value: percent / 100,
+        segmentCount: total.clamp(1, 12),
         semanticLabel: AppLocalizations.of(context).progressSemantic(percent),
       );
 }
@@ -184,6 +207,8 @@ String _progressMessage({
   return l10n.progressGoodFlow;
 }
 
+enum _ProgressKind { completed, active, upcoming, other }
+
 class _ProgressGroupData {
   const _ProgressGroupData({
     required this.title,
@@ -192,8 +217,11 @@ class _ProgressGroupData {
     required this.textColor,
     required this.icon,
     required this.items,
+    required this.kind,
     this.hideWhenEmpty = false,
   });
+
+  final _ProgressKind kind;
 
   final String title;
   final String emptyMessage;
@@ -269,6 +297,7 @@ List<_ProgressGroupData> _buildProgressGroups({
       textColor: AppColors.successText,
       icon: Icons.check_rounded,
       items: completed,
+      kind: _ProgressKind.completed,
     ),
     _ProgressGroupData(
       title: l10n.progressGroupActive,
@@ -277,6 +306,7 @@ List<_ProgressGroupData> _buildProgressGroups({
       textColor: AppColors.activeText,
       icon: Icons.play_arrow_rounded,
       items: active,
+      kind: _ProgressKind.active,
     ),
     _ProgressGroupData(
       title: l10n.progressGroupUpcoming,
@@ -285,6 +315,7 @@ List<_ProgressGroupData> _buildProgressGroups({
       textColor: AppColors.scheduledText,
       icon: Icons.schedule_rounded,
       items: scheduled,
+      kind: _ProgressKind.upcoming,
     ),
     // 지나간 두 상태는 색으로 다그치지 않는다. 중립 회색 + 제목으로 구분한다.
     // 스킵은 사용자가 고른 결과이고 놓침은 응답이 없던 것이라 섞지 않는다.
@@ -296,6 +327,7 @@ List<_ProgressGroupData> _buildProgressGroups({
       icon: Icons.skip_next_rounded,
       items: skipped,
       hideWhenEmpty: true,
+      kind: _ProgressKind.other,
     ),
     _ProgressGroupData(
       title: l10n.progressGroupMissed,
@@ -305,6 +337,7 @@ List<_ProgressGroupData> _buildProgressGroups({
       icon: Icons.history_rounded,
       items: missed,
       hideWhenEmpty: true,
+      kind: _ProgressKind.other,
     ),
   ];
 }
@@ -323,18 +356,6 @@ class _ProgressGroup extends StatelessWidget {
         children: [
           Row(
             children: [
-              Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: group.tint.withValues(alpha: .18),
-                  shape: BoxShape.rectangle,
-                ),
-                child: AppIcon(group.icon, color: group.textColor, size: 16),
-              ),
-              const SizedBox(width: 10),
-              // 제목이 먼저 줄어들고 개수는 끝까지 남는다 — 개수가 잘리면
-              // 그룹이 비었는지 알 수 없다.
               Flexible(
                 child: Text(
                   group.title,
@@ -344,7 +365,6 @@ class _ProgressGroup extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 8),
-              // 홈·루틴 화면과 같은 단위를 쓴다. 여기만 숫자만 적으면 어긋난다.
               Text(
                   AppLocalizations.of(context).routineCount(group.items.length),
                   style: AppTextStyles.caption),
@@ -359,11 +379,14 @@ class _ProgressGroup extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 10),
                 child: AppRoutineRow(
                   color: routine.color,
+                  icon: routine.iconId,
                   title: routine.title,
+                  subtitle: TimeMinutes.formatRange(
+                    routine.startMinutesFromMidnight,
+                    routine.endMinutesFromMidnight,
+                  ),
                   trailing: _RoutineStatusTrailing(
-                    time: TimeMinutes.formatHm(
-                      routine.startMinutesFromMidnight,
-                    ),
+                    kind: group.kind,
                     label: group.title,
                     tint: group.tint,
                     textColor: group.textColor,
@@ -398,34 +421,45 @@ class _GroupEmpty extends StatelessWidget {
 
 class _RoutineStatusTrailing extends StatelessWidget {
   const _RoutineStatusTrailing({
-    required this.time,
+    required this.kind,
     required this.label,
     required this.tint,
     required this.textColor,
   });
 
-  final String time;
+  final _ProgressKind kind;
   final String label;
   final Color tint;
   final Color textColor;
 
   @override
   Widget build(BuildContext context) {
-    return Wrap(
-      alignment: WrapAlignment.end,
-      crossAxisAlignment: WrapCrossAlignment.center,
-      spacing: 10,
-      runSpacing: 4,
-      children: [
-        Text(time, style: AppTextStyles.caption),
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-          decoration: BoxDecoration(color: tint.withValues(alpha: .18)),
-          child: Text(label,
-              style: AppTextStyles.captionTight
-                  .copyWith(color: textColor, fontWeight: FontWeight.w700)),
-        ),
-      ],
-    );
+    switch (kind) {
+      case _ProgressKind.completed:
+        return Container(
+          width: 28,
+          height: 28,
+          decoration: BoxDecoration(
+            color: AppColors.orbitPrimary.withValues(alpha: 0.16),
+            shape: BoxShape.circle,
+          ),
+          child: const Center(
+            child: AppIcon(Icons.check_rounded,
+                size: 16, color: AppColors.orbitPrimary),
+          ),
+        );
+      case _ProgressKind.active:
+        return AppStatusBadge(
+          label: AppLocalizations.of(context).statusInProgress,
+          tone: AppStatusBadgeTone.info,
+        );
+      case _ProgressKind.upcoming:
+        return const AppIcon(
+          Icons.chevron_right_rounded,
+          color: AppColors.textMuted,
+        );
+      case _ProgressKind.other:
+        return AppStatusBadge(label: label, tone: AppStatusBadgeTone.neutral);
+    }
   }
 }

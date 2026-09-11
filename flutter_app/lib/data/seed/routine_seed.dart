@@ -1,6 +1,7 @@
 import '../../domain/models/routine.dart';
 import '../../l10n/app_localizations.dart';
 import '../../theme/routine_palette.dart';
+import '../../domain/models/routine_icon_id.dart';
 
 /// 최초 실행 시 기본 루틴 (기존 home_dummy 흐름과 유사)
 abstract final class RoutineSeed {
@@ -15,6 +16,7 @@ abstract final class RoutineSeed {
         repeatWeekdays: {1, 2, 3, 4, 5, 6, 7},
         colorValue: RoutinePalette.coralValue,
         iconEmoji: '',
+        iconId: RoutineIconId.sun,
         memo: l10n.seedWakeUpMemo,
         updatedAtMs: 1,
       ),
@@ -26,6 +28,7 @@ abstract final class RoutineSeed {
         repeatWeekdays: {1, 2, 3, 4, 5},
         colorValue: RoutinePalette.lavenderValue,
         iconEmoji: '',
+        iconId: RoutineIconId.book,
         memo: l10n.seedStudyMemo,
         updatedAtMs: 2,
       ),
@@ -37,6 +40,7 @@ abstract final class RoutineSeed {
         repeatWeekdays: {1, 2, 3, 4, 5},
         colorValue: RoutinePalette.blueValue,
         iconEmoji: '',
+        iconId: RoutineIconId.coffee,
         memo: l10n.seedBreakMemo,
         updatedAtMs: 3,
       ),

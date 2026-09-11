@@ -13,7 +13,6 @@ import 'package:routine_timer/screens/routine_add/routine_form_preview.dart';
 import 'package:routine_timer/screens/routine_add_screen.dart';
 import 'package:routine_timer/theme/app_colors.dart';
 import 'package:routine_timer/widgets/ds/ds.dart';
-import 'package:routine_timer/widgets/orbit_ring_painter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/test_doubles.dart';
@@ -89,7 +88,7 @@ void main() {
 
     // 헤더의 '저장' 텍스트 버튼과 하단 CTA가 함께 있으면 Primary가 두 개가 된다.
     expect(find.text('저장'), findsNothing);
-    expect(find.text('루틴 저장하기'), findsOneWidget);
+    expect(find.text('루틴 저장'), findsOneWidget);
   });
 
   testWidgets('하단 저장 바 뒤에 배경이 칠해져 검은 띠가 보이지 않는다', (tester) async {
@@ -108,7 +107,7 @@ void main() {
     final controller = await pumpAddScreen(tester);
     addTearDown(controller.dispose);
 
-    await tester.tap(find.text('루틴 저장하기'));
+    await tester.tap(find.text('루틴 저장'));
     await tester.pumpAndSettle();
 
     // 원인은 필드 가까이에, 스낵바는 보조 안내만 맡는다 (UI_STANDARDS 3).
@@ -151,7 +150,7 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    await tester.tap(find.text('루틴 저장하기'));
+    await tester.tap(find.text('루틴 저장'));
     await tester.pumpAndSettle();
 
     expect(find.text('반복 요일을 하루 이상 선택해 주세요.'), findsOneWidget);
@@ -164,7 +163,7 @@ void main() {
 
     await tester.enterText(find.byType(TextField), '아침 산책');
     await tester.pump();
-    await tester.tap(find.text('루틴 저장하기'));
+    await tester.tap(find.text('루틴 저장'));
     await tester.pumpAndSettle();
 
     expect(controller.routines, hasLength(2));
@@ -179,14 +178,14 @@ void main() {
     ]);
     addTearDown(controller.dispose);
     await tester.enterText(find.byType(TextField).first, '새 루틴');
-    await tester.tap(find.text('루틴 저장하기'));
+    await tester.tap(find.text('루틴 저장'));
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
     expect(find.byType(AlertDialog), findsOneWidget);
     await tester.tap(find.text('시간 다시 조정'));
     await tester.pumpAndSettle();
     expect(controller.routines, hasLength(1));
-    await tester.tap(find.text('루틴 저장하기'));
+    await tester.tap(find.text('루틴 저장'));
     await tester.pump();
     await tester.pump(const Duration(seconds: 1));
     await tester.tap(find.text('그래도 저장'));
@@ -232,20 +231,16 @@ void main() {
     expect(find.textContaining('“공부”과 시간이 겹쳐요'), findsOneWidget);
   });
 
-  testWidgets('미리보기 링은 구간이 보일 만큼 크게 그린다', (tester) async {
-    // 64px에서는 scale이 64/292라 선 굵기가 2.4px이 되고, 한 시간짜리
-    // 구간은 호 길이 7px짜리 실오라기가 된다. 시각 라벨도 꺼 두어서
-    // '하루 어디에 놓이는지'를 보여준다는 이 카드의 일이 사라졌었다.
+  testWidgets('미리보기는 아이콘을 크게 그린다', (tester) async {
     final controller = await pumpAddScreen(tester);
     addTearDown(controller.dispose);
 
-    final ring = find.descendant(
+    final mark = find.descendant(
       of: find.byType(RoutineFormPreview),
-      matching: find.byWidgetPredicate(
-          (w) => w is CustomPaint && w.painter is OrbitRingPainter),
+      matching: find.byType(RoutineMark),
     );
-    expect(ring, findsOneWidget);
-    expect(tester.getSize(ring).width, greaterThanOrEqualTo(100));
+    expect(mark, findsOneWidget);
+    expect(tester.getSize(mark).width, greaterThanOrEqualTo(48));
   });
 }
 

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../theme/routine_palette.dart';
 import '../utils/time_minutes.dart';
+import 'routine_icon_id.dart';
 
 /// 루틴 정의 — 저장소·도메인 공통 모델 (UI Color는 [colorValue]로 보관)
 class Routine {
@@ -13,6 +14,7 @@ class Routine {
     required this.repeatWeekdays,
     required this.colorValue,
     required this.iconEmoji,
+    this.iconId = RoutineIconId.coffee,
     this.notificationEnabled = true,
     this.memo,
     this.updatedAtMs = 0,
@@ -30,14 +32,11 @@ class Routine {
 
   final int colorValue;
 
-  /// **현재 화면에 표시하지 않는다.** 루틴의 정체성은 색상으로 표현한다.
-  ///
-  /// 예전에는 온보딩 루틴은 빈 값, 직접 추가한 루틴은 기본값 `📌`가 붙어
-  /// 같은 목록 안에서 어떤 줄에는 압정이 있고 어떤 줄에는 없었다.
-  ///
-  /// 필드는 남긴다 — 저장된 데이터와의 호환, 그리고 나중에 이모지 선택
-  /// UI를 붙일 때 다시 쓰기 위해서다.
+  /// 저장 호환용. 화면에는 [iconId] 픽셀 마크를 그린다.
   final String iconEmoji;
+
+  /// 목록·폼·홈에서 쓰는 픽셀 아이콘.
+  final RoutineIconId iconId;
   final bool notificationEnabled;
   final String? memo;
 
@@ -55,6 +54,7 @@ class Routine {
     required int colorValue,
     bool notificationEnabled = true,
     String iconEmoji = '',
+    RoutineIconId? iconId,
   }) {
     final id = 'r_${DateTime.now().microsecondsSinceEpoch}';
     final now = DateTime.now().millisecondsSinceEpoch;
@@ -66,6 +66,7 @@ class Routine {
       repeatWeekdays: {...repeatWeekdays},
       colorValue: RoutinePalette.normalizeValue(colorValue),
       iconEmoji: iconEmoji,
+      iconId: iconId ?? RoutineIconId.guess(title: title),
       notificationEnabled: notificationEnabled,
       updatedAtMs: now,
     );
@@ -79,6 +80,7 @@ class Routine {
     Set<int>? repeatWeekdays,
     int? colorValue,
     String? iconEmoji,
+    RoutineIconId? iconId,
     bool? notificationEnabled,
     String? memo,
     int? updatedAtMs,
@@ -93,6 +95,7 @@ class Routine {
       repeatWeekdays: repeatWeekdays ?? this.repeatWeekdays,
       colorValue: colorValue ?? this.colorValue,
       iconEmoji: iconEmoji ?? this.iconEmoji,
+      iconId: iconId ?? this.iconId,
       notificationEnabled: notificationEnabled ?? this.notificationEnabled,
       memo: memo ?? this.memo,
       updatedAtMs: updatedAtMs ?? this.updatedAtMs,
@@ -107,6 +110,7 @@ class Routine {
         'repeatWeekdays': repeatWeekdays.toList()..sort(),
         'colorValue': colorValue,
         'iconEmoji': iconEmoji,
+        'iconId': iconId.name,
         'notificationEnabled': notificationEnabled,
         'memo': memo,
         'updatedAtMs': updatedAtMs,
@@ -123,7 +127,13 @@ class Routine {
       endMinutesFromMidnight: json['endMinutesFromMidnight'] as int,
       repeatWeekdays: days,
       colorValue: RoutinePalette.normalizeValue(rawColor),
-      iconEmoji: json['iconEmoji'] as String,
+      iconEmoji: json['iconEmoji'] as String? ?? '',
+      iconId: json['iconId'] is String
+          ? RoutineIconId.parse(json['iconId'] as String)
+          : RoutineIconId.guess(
+              id: json['id'] as String? ?? '',
+              title: json['title'] as String? ?? '',
+            ),
       notificationEnabled: json['notificationEnabled'] as bool? ?? true,
       memo: json['memo'] as String?,
       updatedAtMs: json['updatedAtMs'] as int? ?? 0,

@@ -7,10 +7,12 @@ import 'package:provider/provider.dart';
 import '../application/routine_app_controller.dart';
 import '../application/services/exact_alarm_service.dart';
 import '../application/services/notification_onboarding_actions.dart';
+import '../domain/models/routine_icon_id.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/routine_palette.dart';
+import '../widgets/ds/app_pixel_switch.dart';
 import '../widgets/ds/ds.dart';
 
 class NotificationPermissionScreen extends StatefulWidget {
@@ -74,17 +76,35 @@ class _NotificationPermissionScreenState
               const SizedBox(height: 12),
               Text(l10n.permTitle, style: AppTextStyles.caption),
               const SizedBox(height: 24),
-              // 상시 회전 애니메이션은 design_system_v2 7.2 '장식용 모션 금지'에 어긋난다.
-              // 주황 그라데이션도 앱 어디에도 없는 톤이라 브랜드색으로 맞춘다.
-              Container(
+              SizedBox(
                 key: const Key('notification-permission-hero'),
-                width: 108,
-                height: 108,
-                decoration: BoxDecoration(
-                  borderRadius: BorderRadius.zero,
-                  color: AppColors.orbitPrimary.withValues(alpha: 0.1),
+                height: 148,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    const Positioned(
+                      left: 24,
+                      top: 18,
+                      child: PixelCloud(width: 48),
+                    ),
+                    const Positioned(
+                      right: 28,
+                      top: 28,
+                      child: PixelCloud(width: 40),
+                    ),
+                    const Positioned(
+                      left: 56,
+                      top: 8,
+                      child: PixelSpark(size: 12),
+                    ),
+                    const Positioned(
+                      right: 52,
+                      top: 12,
+                      child: PixelSpark(size: 14),
+                    ),
+                    const PixelDecoration(asset: 'bell', size: 108),
+                  ],
                 ),
-                child: const PixelDecoration(asset: 'bell', size: 108),
               ),
               const SizedBox(height: 28),
               Text(
@@ -100,6 +120,7 @@ class _NotificationPermissionScreenState
               ),
               const SizedBox(height: AppSpacing.xxl),
               _buildNotificationExample(
+                RoutineIconId.sun,
                 RoutinePalette.coral,
                 '07:00',
                 l10n.permSampleWakeTitle,
@@ -107,8 +128,9 @@ class _NotificationPermissionScreenState
               ),
               const SizedBox(height: 12),
               _buildNotificationExample(
+                RoutineIconId.book,
                 RoutinePalette.lavender,
-                '14:00',
+                '09:00',
                 l10n.permSampleStudyTitle,
                 l10n.permSampleStudyBody,
               ),
@@ -145,8 +167,7 @@ class _NotificationPermissionScreenState
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Icon(Icons.alarm_on_rounded,
-              size: 20, color: AppColors.orbitPrimary),
+          const AppIcon(Icons.settings_outlined, color: AppColors.orbitPrimary),
           const SizedBox(width: 10),
           Expanded(
             child: Column(
@@ -170,6 +191,7 @@ class _NotificationPermissionScreenState
   }
 
   Widget _buildNotificationExample(
+    RoutineIconId icon,
     Color routineColor,
     String time,
     String title,
@@ -179,47 +201,29 @@ class _NotificationPermissionScreenState
       padding: const EdgeInsets.all(16),
       child: Row(
         children: [
-          Container(
-            width: 36,
-            height: 36,
-            decoration: BoxDecoration(
-              shape: BoxShape.rectangle,
-              color: routineColor,
-              border: Border.all(color: Colors.white, width: 3),
-              boxShadow: [
-                BoxShadow(
-                  color: routineColor.withValues(alpha: 0.3),
-                  blurRadius: 8,
-                  offset: const Offset(0, 3),
-                ),
-              ],
-            ),
-          ),
+          RoutineMark(icon: icon, color: routineColor, size: 40),
           const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Row(
-                  children: [
-                    Text(time, style: AppTextStyles.caption),
-                    const SizedBox(width: 8),
-                    Expanded(
-                      child: Text(
-                        title,
-                        style: AppTextStyles.smallStrong,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
+                Text(time, style: AppTextStyles.bodyStrong),
+                const SizedBox(height: 2),
+                Text(
+                  title,
+                  style: AppTextStyles.smallStrong,
+                  overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
+                const SizedBox(height: 2),
                 Text(
                   description,
                   style: AppTextStyles.caption.copyWith(height: 1.45),
                 ),
               ],
             ),
+          ),
+          const IgnorePointer(
+            child: AppPixelSwitch(value: true, onChanged: null),
           ),
         ],
       ),

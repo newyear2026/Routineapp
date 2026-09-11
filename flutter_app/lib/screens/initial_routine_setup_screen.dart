@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../application/routine_app_controller.dart';
 import '../application/services/onboarding_routine_setup_service.dart';
 import '../domain/onboarding/recommended_routine_catalog.dart';
+import '../domain/models/routine_icon_id.dart';
 import '../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -81,10 +82,21 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
                 children: [
                   Text(l10n.setupTitle, style: AppTextStyles.caption),
                   const SizedBox(height: 6),
-                  // hero(32)는 이 문장에서 두 줄로 깨진다. 한 줄에 들어가는 크기를 쓴다.
-                  Text(
-                    l10n.setupHeadline,
-                    style: AppTextStyles.titleScreen,
+                  Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Expanded(
+                        child: Text(
+                          l10n.setupHeadline,
+                          style: AppTextStyles.titleScreen,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      const AppIcon(
+                        Icons.calendar_month_rounded,
+                        color: AppColors.orbitPrimary,
+                      ),
+                    ],
                   ),
                   const SizedBox(height: 8),
                   Text(
@@ -197,13 +209,38 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
               ),
               child: Row(
                 children: [
+                  Container(
+                    key: Key('routine-color-${def.catalogId}'),
+                    child: RoutineMark(
+                      icon: RoutineIconId.fromCatalogId(def.catalogId),
+                      color: color,
+                      size: 36,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            recommendedRoutineTitle(
+                              AppLocalizations.of(context),
+                              def,
+                            ),
+                            style: AppTextStyles.bodyStrong,
+                          ),
+                        ),
+                        Text(def.timeLabel, style: AppTextStyles.caption),
+                      ],
+                    ),
+                  ),
+                  const SizedBox(width: 12),
                   AnimatedContainer(
                     duration: const Duration(milliseconds: 180),
                     width: 24,
                     height: 24,
                     decoration: BoxDecoration(
                       shape: BoxShape.rectangle,
-                      // 연한 파스텔 위 흰 체크는 보이지 않는다. 브랜드색으로 채운다.
                       color: isSelected
                           ? AppColors.orbitPrimary
                           : Colors.transparent,
@@ -219,49 +256,6 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
                             size: 20, color: Colors.white)
                         : null,
                   ),
-                  const SizedBox(width: 12),
-                  Container(
-                    key: Key('routine-color-${def.catalogId}'),
-                    width: 36,
-                    height: 36,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.rectangle,
-                      color: color,
-                      border: Border.all(
-                        color: Colors.white,
-                        width: 3,
-                      ),
-                      boxShadow: [
-                        BoxShadow(
-                          color: color.withValues(alpha: 0.3),
-                          blurRadius: 8,
-                          offset: const Offset(0, 3),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          recommendedRoutineTitle(
-                            AppLocalizations.of(context),
-                            def,
-                          ),
-                          style: AppTextStyles.bodyStrong,
-                        ),
-                        const SizedBox(height: 2),
-                        Text(def.timeLabel, style: AppTextStyles.caption),
-                      ],
-                    ),
-                  ),
-                  if (def.showRecommendedBadge)
-                    AppStatusBadge(
-                      label: AppLocalizations.of(context).setupRecommended,
-                      tone: AppStatusBadgeTone.info,
-                    ),
                 ],
               ),
             ),

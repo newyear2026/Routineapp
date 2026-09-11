@@ -12,8 +12,6 @@ import '../widget_medium/home_medium_widget_selector.dart';
 import '../widget_medium/home_medium_widget_view_model.dart';
 import '../widgets/ds/ds.dart';
 import '../widgets/ds/app_pixel_switch.dart';
-import '../widgets/ds/animated_cat.dart';
-import '../widgets/ds/cat_detail_accent.dart';
 
 /// 홈 화면 위젯이 지금 어떻게 보이는지 확인하는 화면.
 class WidgetMediumPreviewScreen extends StatefulWidget {
@@ -66,8 +64,6 @@ class _WidgetMediumPreviewScreenState extends State<WidgetMediumPreviewScreen> {
                     ],
                   ),
                 ),
-                const SizedBox(height: 12),
-                const CatDetailAccent(pose: CatPose.guide),
                 const SizedBox(height: 12),
                 // 위젯 바탕은 앱 페이지 배경과 같은 색이라 이 화면에 그대로
                 // 얹으면 경계가 사라진다. orbitBorder로 테두리를 둘러도

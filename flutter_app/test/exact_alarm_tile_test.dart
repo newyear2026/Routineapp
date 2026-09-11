@@ -25,9 +25,9 @@ void main() {
   }
 
   // 같은 테스트에서 두 번 pump 하면 State 가 재사용돼 initState 가 다시 돌지 않는다.
-  testWidgets('권한이 있으면 켜짐으로 보인다', (tester) async {
+  testWidgets('권한이 있으면 허용됨으로 보인다', (tester) async {
     await pumpTile(tester, service: _FakeExactAlarmService(allowed: true));
-    expect(find.text('켜짐'), findsOneWidget);
+    expect(find.text('허용됨'), findsOneWidget);
     expect(find.text('설정한 시각에 정확히 울려요'), findsOneWidget);
   });
 
@@ -61,7 +61,7 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(changes, [true]);
-    expect(find.text('켜짐'), findsOneWidget);
+    expect(find.text('허용됨'), findsOneWidget);
   });
 
   testWidgets('권한이 그대로면 재예약을 알리지 않는다', (tester) async {

@@ -26,7 +26,10 @@ class CatThemeCard extends StatelessWidget {
             ]),
           ]);
       const cat = SizedBox(
-          width: 96, height: 104, child: AnimatedCat(pose: CatPose.idle));
+          key: Key('settings-theme-cat'),
+          width: 96,
+          height: 104,
+          child: AnimatedCat(pose: CatPose.idle));
       if (box.maxWidth < 260) {
         return Column(
             crossAxisAlignment: CrossAxisAlignment.start,

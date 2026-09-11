@@ -3,6 +3,8 @@ import '../domain/models/routine_log_status.dart';
 import '../domain/utils/time_minutes.dart';
 import '../l10n/app_localizations.dart';
 import '../models/home_models.dart';
+import '../domain/models/routine_icon_id.dart';
+import '../theme/routine_palette.dart';
 import 'home_medium_widget_view_model.dart';
 import 'medium_ring_segment.dart';
 
@@ -45,8 +47,6 @@ abstract final class HomeMediumWidgetSelector {
 
     return HomeMediumWidgetViewModel(
       currentRoutineTitle: title,
-      // 실제로 계산된 힌트가 없으면 지어내지 않는다.
-      // 루틴이 없을 때만 다음 행동을 안내한다.
       currentRoutineTimingHint: display == null
           ? l10n.widgetAddHint
           : _timingHint(
@@ -54,6 +54,14 @@ abstract final class HomeMediumWidgetSelector {
               hint: h.currentRoutineCard?.timingHint,
             ),
       currentRoutineStatusLabel: status,
+      currentRoutineIconId: display?.iconId ?? RoutineIconId.coffee,
+      currentRoutineColor: display?.color ?? RoutinePalette.lavender,
+      currentRoutineTimeRange: display == null
+          ? ''
+          : TimeMinutes.formatRange(
+              display.startMinutesFromMidnight,
+              display.endMinutesFromMidnight,
+            ),
       nextRoutineTitle: nextTitle,
       nextRoutineTime: nextTime,
       currentTime: h.clockTime,

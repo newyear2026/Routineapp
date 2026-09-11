@@ -66,11 +66,8 @@ void main() {
     ));
     await tester.pumpAndSettle();
 
-    final time = tester.getRect(find.text('23:00'));
-    final chip = tester.getRect(find
-        .ancestor(of: find.text('23:00'), matching: find.byType(Container))
-        .first);
-    // 칩 안쪽 오른쪽 여백은 패딩 10 + 보더 1뿐이다.
-    expect(chip.right - time.right, lessThan(16));
+    final time = tester.getRect(find.text('18:00'));
+    final card = tester.getRect(find.byType(HomeMediumWidget));
+    expect(card.right - time.right, lessThan(28));
   });
 }

@@ -5,6 +5,7 @@ import 'package:routine_timer/application/services/routine_notification_service.
 import 'package:routine_timer/data/repositories/routine_log_repository.dart';
 import 'package:routine_timer/data/repositories/routine_repository.dart';
 import 'package:routine_timer/domain/models/routine.dart';
+import 'package:routine_timer/domain/models/routine_icon_id.dart';
 import 'package:routine_timer/domain/models/routine_log.dart';
 import 'package:routine_timer/domain/utils/time_minutes.dart';
 
@@ -130,6 +131,7 @@ Routine dailyRoutine({
     repeatWeekdays: const {1, 2, 3, 4, 5, 6, 7},
     colorValue: colorValue,
     iconEmoji: emoji,
+    iconId: RoutineIconId.guess(id: id, title: title),
     updatedAtMs: updatedAtMs,
   );
 }

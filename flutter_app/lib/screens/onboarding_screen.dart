@@ -1,18 +1,17 @@
 import '../widgets/ds/pixel_decoration.dart';
-import '../widgets/ds/animated_cat.dart';
-import '../widgets/ds/cat_detail_accent.dart';
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
 import '../data/local/onboarding_local_storage.dart';
-import '../models/home_models.dart';
+import '../domain/models/routine_icon_id.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
 import '../theme/routine_palette.dart';
 import '../widgets/ds/ds.dart';
 import '../widgets/home/circular_timetable_area.dart';
+import '../widgets/home/orbit_brand_mark.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -112,12 +111,20 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                       ),
                     ),
                   ),
-                  AppButton(
-                    label: l10n.commonSkipStep,
-                    onPressed: _finishIntro,
-                    variant: AppButtonVariant.ghost,
-                    expand: false,
-                    height: 44,
+                  Flexible(
+                    child: Align(
+                      alignment: Alignment.centerRight,
+                      child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: AppButton(
+                          label: l10n.commonSkipStep,
+                          onPressed: _finishIntro,
+                          variant: AppButtonVariant.ghost,
+                          expand: false,
+                          height: 44,
+                        ),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -200,13 +207,6 @@ class _PageContent extends StatelessWidget {
               const SizedBox(height: AppSpacing.sm),
               Text(page.description, style: AppTextStyles.helper),
               const SizedBox(height: AppSpacing.xxl),
-              CatDetailAccent(
-                  pose: switch (page.preview) {
-                _OnboardingPreviewType.orbit => CatPose.idle,
-                _OnboardingPreviewType.actions => CatPose.guide,
-                _OnboardingPreviewType.progress => CatPose.complete,
-              }),
-              const SizedBox(height: AppSpacing.sm),
               _PreviewCard(preview: page.preview),
               const SizedBox(height: AppSpacing.lg),
             ],
@@ -241,9 +241,7 @@ class _PreviewCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (preview == _OnboardingPreviewType.orbit) {
-      return LayoutBuilder(
-          builder: (context, constraints) => _OrbitPreview(
-              size: constraints.maxWidth.clamp(0, 300).toDouble()));
+      return const _OrbitPreview();
     }
     return Container(
       padding: const EdgeInsets.all(16),
@@ -259,58 +257,140 @@ class _PreviewCard extends StatelessWidget {
 
 /// 홈과 **같은 위젯**을 쓴다. 별도 목업을 그리면 실제 화면과 어긋난다.
 class _OrbitPreview extends StatelessWidget {
-  const _OrbitPreview({this.size = 200});
-  final double size;
-
-  /// 이름은 현재 언어를 따른다 — 온보딩은 사용자가 앱을 처음 보는 화면이다.
-  List<RoutineSegment> _sampleFor(AppLocalizations l10n) => [
-        RoutineSegment(
-          id: 'wake',
-          startMinutesFromMidnight: 7 * 60,
-          endMinutesFromMidnight: 8 * 60,
-          label: l10n.onboardingDemoWake,
-          emoji: '',
-          color: RoutinePalette.coral,
-        ),
-        RoutineSegment(
-          id: 'focus',
-          startMinutesFromMidnight: 10 * 60,
-          endMinutesFromMidnight: 12 * 60,
-          label: l10n.onboardingDemoFocus,
-          emoji: '',
-          color: RoutinePalette.lavender,
-        ),
-        RoutineSegment(
-          id: 'dinner',
-          startMinutesFromMidnight: 18 * 60,
-          endMinutesFromMidnight: 19 * 60,
-          label: l10n.onboardingDemoDinner,
-          emoji: '',
-          color: RoutinePalette.amber,
-        ),
-      ];
+  const _OrbitPreview();
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: DecoratedTimetable(
-          child: CircularTimetableArea(
-        routines: _sampleFor(AppLocalizations.of(context)),
-        currentTime: const TimeOfDay(hour: 10, minute: 40),
-        size: size,
-      )),
+    final l10n = AppLocalizations.of(context);
+    return Column(
+      children: [
+        LayoutBuilder(
+          builder: (context, constraints) {
+            final size = constraints.maxWidth.clamp(0, 280).toDouble();
+            return Center(
+              child: SizedBox(
+                width: size,
+                height: size * 0.92,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Positioned(
+                      left: 0,
+                      top: size * 0.08,
+                      child: PixelCloud(width: size * 0.16),
+                    ),
+                    Positioned(
+                      right: 0,
+                      top: size * 0.18,
+                      child: PixelCloud(width: size * 0.16),
+                    ),
+                    const Positioned(
+                      left: 18,
+                      top: 28,
+                      child: PixelSpark(size: 12),
+                    ),
+                    const Positioned(
+                      right: 22,
+                      top: 40,
+                      child: PixelSpark(size: 11),
+                    ),
+                    CircularTimetableArea(
+                      routines: OrbitBrandMark.sampleSegments(l10n),
+                      currentTime: const TimeOfDay(hour: 15, minute: 14),
+                      size: size * 0.82,
+                    ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
+        const SizedBox(height: 16),
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+          decoration: appSurfaceDecoration(radius: 24),
+          child: Row(
+            children: [
+              RoutineMark(
+                icon: RoutineIconId.coffee,
+                color: RoutinePalette.blue,
+                size: 40,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  l10n.catalogBreak,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.titleSection,
+                ),
+              ),
+              const SizedBox(width: 8),
+              Flexible(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Text(
+                      '15:00-16:00',
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.caption,
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      l10n.timingUntilEnd(l10n.durationMinutes(46)),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.captionTight.copyWith(
+                        color: AppColors.textMuted,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }
 
-/// 홈 하단 액션 바와 같은 구성 — 라벨도 실제와 동일하게 '스킵'을 쓴다.
+/// 홈 하단 액션 바와 같은 구성 — 라벨도 실제와 동일하게 '건너뛰기'를 쓴다.
 class _ActionsPreview extends StatelessWidget {
   const _ActionsPreview();
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       children: [
+        const PixelDecoration(asset: 'bell', size: 56),
+        const SizedBox(height: 12),
+        Container(
+          padding: const EdgeInsets.all(12),
+          decoration: appSurfaceDecoration(radius: 16),
+          child: Row(
+            children: [
+              const PixelDecoration(asset: 'bell', size: 28),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const Text('07:00', style: AppTextStyles.captionTight),
+                    const SizedBox(height: 2),
+                    Text(
+                      l10n.onboardingDemoWakeAlert,
+                      style: AppTextStyles.smallStrong,
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 12),
         Container(
           padding: const EdgeInsets.all(12),
           decoration: const BoxDecoration(
@@ -319,14 +399,18 @@ class _ActionsPreview extends StatelessWidget {
           ),
           child: Row(
             children: [
-              const PixelDecoration(asset: 'bell', size: 40),
+              RoutineMark(
+                icon: RoutineIconId.sun,
+                color: RoutinePalette.coral,
+                size: 40,
+              ),
               const SizedBox(width: 10),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      AppLocalizations.of(context).onboardingDemoWakeAlert,
+                      l10n.onboardingDemoWake,
                       style: AppTextStyles.smallStrong,
                     ),
                     const SizedBox(height: 2),
@@ -339,7 +423,7 @@ class _ActionsPreview extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         AppButton(
-          label: AppLocalizations.of(context).onboardingDemoWakeAction,
+          label: l10n.onboardingDemoWakeAction,
           icon: Icons.check_rounded,
           height: 46,
           onPressed: () {},
@@ -349,7 +433,7 @@ class _ActionsPreview extends StatelessWidget {
           children: [
             Expanded(
               child: AppButton(
-                label: AppLocalizations.of(context).statusSnoozed,
+                label: l10n.statusSnoozed,
                 variant: AppButtonVariant.secondary,
                 height: 40,
                 onPressed: () {},
@@ -358,8 +442,8 @@ class _ActionsPreview extends StatelessWidget {
             const SizedBox(width: 8),
             Expanded(
               child: AppButton(
-                label: AppLocalizations.of(context).statusSkipped,
-                variant: AppButtonVariant.ghost,
+                label: l10n.actionSkip,
+                variant: AppButtonVariant.secondary,
                 height: 40,
                 onPressed: () {},
               ),
@@ -377,101 +461,109 @@ class _ProgressPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Column(
       children: [
         Row(
           children: [
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text('3 / 5', style: AppTextStyles.statHero),
-                  const SizedBox(height: 6),
-                  Text(
-                    AppLocalizations.of(context).onboardingDemoGoodFlow,
-                    style: AppTextStyles.titleSection.copyWith(
-                      fontSize: 15,
-                      color: AppColors.orbitPrimary,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            const Text('3 / 5', style: AppTextStyles.statHero),
+            const Spacer(),
             const Text('60%', style: AppTextStyles.statMedium),
           ],
         ),
-        const SizedBox(height: 14),
+        const SizedBox(height: 10),
         SegmentedProgress(
-            value: 0.6,
-            semanticLabel: AppLocalizations.of(context).progressSemantic(60)),
+          value: 0.6,
+          segmentCount: 5,
+          semanticLabel: l10n.progressSemantic(60),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          l10n.onboardingDemoGoodFlow,
+          style: AppTextStyles.caption.copyWith(color: AppColors.orbitPrimary),
+        ),
         const SizedBox(height: 14),
-        Row(
-          children: [
-            Expanded(
-              child: _StatusChip(
-                label: AppLocalizations.of(context).statusCompleted,
-                count: '3',
-                tint: AppColors.success,
-                textColor: AppColors.successText,
-              ),
-            ),
-            const SizedBox(width: 8),
-            Expanded(
-              child: _StatusChip(
-                label: AppLocalizations.of(context).statusUpcoming,
-                count: '2',
-                tint: AppColors.orbitAccent,
-                textColor: AppColors.scheduledText,
-              ),
-            ),
-          ],
+        _PreviewStatusRow(
+          icon: Icons.check_rounded,
+          tint: AppColors.success,
+          textColor: AppColors.successText,
+          title: l10n.statusCompleted,
+          subtitle: l10n.progressHeroAllDoneBody,
+        ),
+        const SizedBox(height: 8),
+        _PreviewStatusRow(
+          icon: Icons.schedule_rounded,
+          tint: AppColors.orbitPrimary,
+          textColor: AppColors.activeText,
+          title: l10n.statusInProgress,
+          subtitle: l10n.progressGroupActiveEmpty,
+        ),
+        const SizedBox(height: 8),
+        _PreviewStatusRow(
+          icon: Icons.wb_sunny_outlined,
+          tint: AppColors.orbitAccent,
+          textColor: AppColors.scheduledText,
+          title: l10n.statusUpcoming,
+          subtitle: l10n.progressGroupUpcomingEmpty,
         ),
       ],
     );
   }
 }
 
-class _StatusChip extends StatelessWidget {
-  const _StatusChip({
-    required this.label,
-    required this.count,
+class _PreviewStatusRow extends StatelessWidget {
+  const _PreviewStatusRow({
+    required this.icon,
     required this.tint,
     required this.textColor,
+    required this.title,
+    required this.subtitle,
   });
 
-  final String label;
-  final String count;
+  final IconData icon;
   final Color tint;
   final Color textColor;
+  final String title;
+  final String subtitle;
 
   @override
   Widget build(BuildContext context) {
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: tint.withValues(alpha: 0.18),
-        borderRadius: BorderRadius.zero,
-      ),
+      decoration: appSurfaceDecoration(radius: 16),
       child: Row(
         children: [
-          Flexible(
-            child: Text(
-              label,
-              maxLines: 1,
-              overflow: TextOverflow.ellipsis,
-              style: AppTextStyles.caption.copyWith(
-                color: textColor,
-                fontWeight: FontWeight.w700,
-              ),
+          Container(
+            width: 28,
+            height: 28,
+            decoration: BoxDecoration(
+              color: tint.withValues(alpha: 0.18),
+              shape: BoxShape.circle,
+            ),
+            child: AppIcon(icon, size: 16, color: textColor),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(title, style: AppTextStyles.bodyStrong),
+                Text(
+                  subtitle,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.caption,
+                ),
+              ],
             ),
           ),
-          const SizedBox(width: 8),
-          Text(
-            count,
-            style: AppTextStyles.bodyStrong.copyWith(color: textColor),
+          const AppIcon(
+            Icons.chevron_right_rounded,
+            color: AppColors.textMuted,
           ),
         ],
       ),
     );
   }
 }
+

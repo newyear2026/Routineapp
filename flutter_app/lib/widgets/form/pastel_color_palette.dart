@@ -11,6 +11,7 @@ class PastelColorPalette extends StatelessWidget {
     required this.selectedIndex,
     required this.onSelected,
     this.helperText,
+    this.title,
   });
 
   final List<Color> colors;
@@ -19,6 +20,7 @@ class PastelColorPalette extends StatelessWidget {
   final int? selectedIndex;
   final ValueChanged<int> onSelected;
   final String? helperText;
+  final String? title;
 
   @override
   Widget build(BuildContext context) {
@@ -26,7 +28,7 @@ class PastelColorPalette extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          AppLocalizations.of(context).commonColor,
+          title ?? AppLocalizations.of(context).commonColor,
           style: const TextStyle(
             fontSize: 13,
             fontWeight: FontWeight.w600,

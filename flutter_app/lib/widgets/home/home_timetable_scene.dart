@@ -2,25 +2,27 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../../theme/app_colors.dart';
 import '../ds/animated_cat.dart';
+import '../ds/pixel_decoration.dart';
 
 typedef HomeTimetableBuilder = Widget Function(double size);
 
-/// 중앙 시간표 주변의 빈 모서리에 장식을 배치한다.
+/// 원판 옆에 화분과, 지금 슬롯에 맞는 고양이 포즈를 둔다.
 class HomeTimetableScene extends StatelessWidget {
-  const HomeTimetableScene(
-      {super.key, required this.timetableBuilder, this.pose = CatPose.idle});
-  final CatPose pose;
+  const HomeTimetableScene({
+    super.key,
+    required this.timetableBuilder,
+    this.catPose = CatPose.rest,
+  });
+
   final HomeTimetableBuilder timetableBuilder;
+  final CatPose catPose;
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(
         builder: (context, constraints) {
           final width = math.min(constraints.maxWidth, 374.0);
           final ringSize = width * 0.76;
-          final catWidth = width * 0.29;
-          final catHeight = width * 0.185;
           return Center(
             child: SizedBox(
               key: const Key('home-timetable-scene'),
@@ -37,77 +39,37 @@ class HomeTimetableScene extends StatelessWidget {
                   ),
                 ),
                 Positioned(
-                  left: 2,
-                  top: width * 0.045,
-                  child: IgnorePointer(
-                      child: ExcludeSemantics(
-                          child: CustomPaint(
-                    key: const Key('home-timetable-moon'),
-                    size: Size.square(width * 0.12),
-                    painter: const _PixelMoonPainter(),
-                  ))),
+                    left: 0,
+                    top: width * 0.08,
+                    child: _Cloud(width: width * 0.14)),
+                Positioned(
+                    right: 0,
+                    top: width * 0.16,
+                    child: _Cloud(width: width * 0.14)),
+                const Positioned(
+                    left: 18,
+                    top: 40,
+                    child: _PixelStar(size: 11)),
+                const Positioned(
+                    right: 22,
+                    top: 52,
+                    child: _PixelStar(size: 12)),
+                Positioned(
+                  key: const Key('home-timetable-plant'),
+                  left: 0,
+                  bottom: width * 0.04,
+                  child: const PixelDecoration(asset: 'plant', size: 54),
                 ),
                 Positioned(
-                    left: 0,
-                    top: width * 0.22,
-                    child: _Cloud(width: width * 0.14)),
-                Positioned(
-                    right: 0,
-                    top: width * 0.13,
-                    child: _Cloud(width: width * 0.14)),
-                Positioned(
-                    left: 0,
-                    top: width * 0.65,
-                    child: _Cloud(width: width * 0.15)),
-                Positioned(
-                    left: width * 0.18,
-                    top: width * 0.06,
-                    child: const _PixelStar(
-                        size: 11, color: AppColors.orbitAccent)),
-                Positioned(
-                    right: width * 0.12,
-                    top: width * 0.04,
-                    child: const _PixelStar(
-                        size: 14, color: AppColors.orbitAccent)),
-                Positioned(
-                    right: 0,
-                    top: width * 0.30,
-                    child: const _PixelStar(
-                        size: 12, color: AppColors.orbitAccent)),
-                Positioned(
-                    left: 0,
-                    top: width * 0.56,
-                    child: const _PixelStar(
-                        size: 12, color: AppColors.orbitAccent)),
-                Positioned(
-                    left: width * 0.19,
-                    bottom: width * 0.08,
-                    child: const _PixelStar(
-                        size: 11, color: AppColors.orbitAccent)),
-                Positioned(
-                  right: 2,
+                  key: const Key('home-timetable-cat'),
+                  right: 0,
                   bottom: 0,
                   child: SizedBox(
-                    key: const Key('home-timetable-character-rail'),
-                    width: catWidth,
-                    height: catHeight,
-                    child: AnimatedCat(
-                        key: const Key('home-timetable-cat'), pose: pose),
+                    width: 96,
+                    height: 88,
+                    child: AnimatedCat(pose: catPose),
                   ),
                 ),
-                if (pose == CatPose.rest)
-                  Positioned(
-                      right: 6,
-                      bottom: catHeight + 4,
-                      child: const IgnorePointer(
-                          child: ExcludeSemantics(
-                              child: Text(
-                        'z Z',
-                        style: TextStyle(
-                            fontFamily: 'PixelifySans',
-                            fontSize: 16,
-                            color: AppColors.textPrimary),
-                      )))),
               ]),
             ),
           );
@@ -150,7 +112,14 @@ class _CloudPainter extends CustomPainter {
     canvas.drawPath(
         p,
         Paint()
-          ..color = AppColors.decorationCloud
+          ..color = const Color(0xFFFFFCF4)
+          ..isAntiAlias = false);
+    canvas.drawPath(
+        p,
+        Paint()
+          ..color = const Color(0xFFC7B79C)
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 2
           ..isAntiAlias = false);
   }
 
@@ -159,87 +128,33 @@ class _CloudPainter extends CustomPainter {
 }
 
 class _PixelStar extends StatelessWidget {
-  const _PixelStar({required this.size, required this.color});
-
+  const _PixelStar({required this.size});
   final double size;
-  final Color color;
 
   @override
   Widget build(BuildContext context) => IgnorePointer(
         child: ExcludeSemantics(
           child: CustomPaint(
             size: Size.square(size),
-            painter: _PixelStarPainter(color),
+            painter: const _PixelStarPainter(),
           ),
         ),
       );
 }
 
 class _PixelStarPainter extends CustomPainter {
-  const _PixelStarPainter(this.color);
-
-  final Color color;
+  const _PixelStarPainter();
 
   @override
   void paint(Canvas canvas, Size size) {
     final unit = size.width / 5;
     final paint = Paint()
-      ..color = color
+      ..color = const Color(0xFFA98BEC)
       ..isAntiAlias = false;
     canvas.drawRect(Rect.fromLTWH(unit * 2, 0, unit, size.height), paint);
     canvas.drawRect(Rect.fromLTWH(0, unit * 2, size.width, unit), paint);
   }
 
   @override
-  bool shouldRepaint(covariant _PixelStarPainter oldDelegate) =>
-      oldDelegate.color != color;
-}
-
-class _PixelMoonPainter extends CustomPainter {
-  const _PixelMoonPainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final w = size.width;
-    final h = size.height;
-    final moon = Path()
-      ..addPolygon(
-        [
-          Offset(w * 0.38, 0),
-          Offset(w * 0.72, 0),
-          Offset(w * 0.72, h * 0.12),
-          Offset(w * 0.56, h * 0.12),
-          Offset(w * 0.56, h * 0.25),
-          Offset(w * 0.47, h * 0.25),
-          Offset(w * 0.47, h * 0.63),
-          Offset(w * 0.56, h * 0.63),
-          Offset(w * 0.56, h * 0.75),
-          Offset(w * 0.72, h * 0.75),
-          Offset(w * 0.72, h * 0.88),
-          Offset(w * 0.91, h * 0.88),
-          Offset(w * 0.91, h),
-          Offset(w * 0.47, h),
-          Offset(w * 0.47, h * 0.88),
-          Offset(w * 0.25, h * 0.88),
-          Offset(w * 0.25, h * 0.75),
-          Offset(w * 0.13, h * 0.75),
-          Offset(w * 0.13, h * 0.5),
-          Offset(0, h * 0.5),
-          Offset(0, h * 0.25),
-          Offset(w * 0.13, h * 0.25),
-          Offset(w * 0.13, h * 0.12),
-          Offset(w * 0.38, h * 0.12),
-        ],
-        true,
-      );
-    canvas.drawPath(
-      moon,
-      Paint()
-        ..color = AppColors.orbitAccent
-        ..isAntiAlias = false,
-    );
-  }
-
-  @override
-  bool shouldRepaint(covariant _PixelMoonPainter oldDelegate) => false;
+  bool shouldRepaint(covariant _PixelStarPainter oldDelegate) => false;
 }
