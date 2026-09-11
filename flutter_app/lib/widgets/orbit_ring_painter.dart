@@ -55,6 +55,8 @@ class OrbitRingPainter extends CustomPainter {
     this.showHourLabels = true,
     this.showNowPointer = true,
     this.radiusFactor = 0.34,
+    this.referenceSize = 292,
+    this.hourLabelRadiusFactor,
   });
 
   final List<OrbitRingSegment> segments;
@@ -71,7 +73,18 @@ class OrbitRingPainter extends CustomPainter {
   /// 링 반지름 / 박스 폭. 라벨을 그리려면 바깥 여백이 필요하다.
   final double radiusFactor;
 
-  static const double referenceSize = 292;
+  /// 선 굵기·글자·눈금이 이 크기를 1배로 보고 비례한다.
+  ///
+  /// 홈(286)에 맞춘 292를 작은 위젯에 그대로 쓰면 눈금이 0.4px, 시각 라벨이
+  /// 4px로 줄어 사라진다. 작은 원판은 기준을 낮춰 굵기를 되찾는다.
+  final double referenceSize;
+
+  /// 시각 라벨이 앉는 반지름 / 박스 폭. 비우면 링 바깥 34(비례)에 두되
+  /// 박스의 0.448을 넘지 않는다.
+  ///
+  /// 이 상한은 홈 크기에서 정해진 값이라, 기준 크기를 낮춰 글자가 상대적으로
+  /// 커진 작은 원판에서는 라벨이 원판 테두리 밖으로 걸친다. 그럴 때만 준다.
+  final double? hourLabelRadiusFactor;
 
   double _minutesToRad(int minutes) =>
       (minutes / (24 * 60)) * 2 * math.pi - math.pi / 2;
@@ -132,7 +145,9 @@ class OrbitRingPainter extends CustomPainter {
         _paintHourLabel(
           canvas,
           center,
-          math.min(orbitRadius + 34 * scale, size.width * 0.448),
+          hourLabelRadiusFactor != null
+              ? size.width * hourLabelRadiusFactor!
+              : math.min(orbitRadius + 34 * scale, size.width * 0.448),
           angle,
           text,
           scale,
@@ -249,6 +264,8 @@ class OrbitRingPainter extends CustomPainter {
         oldDelegate.showHourLabels != showHourLabels ||
         oldDelegate.showNowPointer != showNowPointer ||
         oldDelegate.radiusFactor != radiusFactor ||
+        oldDelegate.referenceSize != referenceSize ||
+        oldDelegate.hourLabelRadiusFactor != hourLabelRadiusFactor ||
         !listEquals(oldDelegate.segments, segments);
   }
 }

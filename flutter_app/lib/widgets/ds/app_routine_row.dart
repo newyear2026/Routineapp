@@ -4,6 +4,7 @@ import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../domain/models/routine_icon_id.dart';
 import 'app_card.dart';
+import 'app_status_badge.dart';
 import 'pixel_icon.dart';
 import 'routine_mark.dart';
 
@@ -17,6 +18,7 @@ class AppRoutineRow extends StatelessWidget {
     required this.title,
     this.icon = RoutineIconId.coffee,
     this.subtitle,
+    this.subtitleBadge,
     this.trailing,
     this.onTap,
   });
@@ -28,8 +30,14 @@ class AppRoutineRow extends StatelessWidget {
 
   final String title;
 
-  /// 이름 아래 한 줄 (시간 범위, 반복 요일 등). 없으면 이름만.
+  /// 이름 아래 한 줄 (시간 범위 등). 없으면 이름만.
   final String? subtitle;
+
+  /// 설명 옆에 붙는 작은 칩 — 반복 주기처럼 성격이 다른 곁들이 정보.
+  ///
+  /// 시간 문자열에 ' · '로 이어 붙이면 둘이 같은 무게로 읽혀, 목록을 훑을 때
+  /// 주기가 눈에 들어오지 않는다.
+  final String? subtitleBadge;
 
   /// 오른쪽 슬롯 — 상태 배지, 시각 등.
   ///
@@ -72,11 +80,31 @@ class AppRoutineRow extends StatelessWidget {
                 ),
                 if (subtitle != null) ...[
                   const SizedBox(height: 2),
-                  Text(
-                    subtitle,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.caption,
+                  // 시각이 먼저다. 배지를 flex 자식으로 두면 Row가 여유 폭을
+                  // 비율로 미리 쪼개서, 배지 쪽에 빈자리가 남는데도 시각이
+                  // 줄어든다. 배지에는 상한만 씌우고 나머지를 시각이 가져간다.
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          subtitle,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: AppTextStyles.caption,
+                        ),
+                      ),
+                      if (subtitleBadge != null) ...[
+                        const SizedBox(width: 6),
+                        ConstrainedBox(
+                          constraints: const BoxConstraints(maxWidth: 88),
+                          child: AppStatusBadge(
+                            label: subtitleBadge!,
+                            tone: AppStatusBadgeTone.meta,
+                            compact: true,
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ],
               ],

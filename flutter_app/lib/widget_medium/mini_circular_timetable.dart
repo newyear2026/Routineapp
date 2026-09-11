@@ -3,6 +3,7 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../domain/utils/time_minutes.dart';
+import '../widgets/home/pixel_orbit_plate.dart';
 import '../widgets/orbit_ring_painter.dart';
 import 'medium_ring_segment.dart';
 import 'widget_theme.dart';
@@ -58,13 +59,12 @@ class MiniCircularTimetable extends StatelessWidget {
       child: Stack(
         alignment: Alignment.center,
         children: [
-          Container(
-            width: size,
-            height: size,
-            decoration: const BoxDecoration(
-              shape: BoxShape.circle,
-              color: WidgetTheme.surface,
-            ),
+          // 홈과 같은 계단 원판을 쓴다. 매끈한 흰 원은 이 앱에서 여기에만
+          // 남아 있던 모양이었다. 칸 크기는 size/146이 1px 아래로 내려가므로
+          // 직접 준다.
+          CustomPaint(
+            size: Size.square(size),
+            painter: PixelOrbitPlate(step: size / 54),
           ),
           CustomPaint(
             size: Size.square(size),
@@ -74,15 +74,20 @@ class MiniCircularTimetable extends StatelessWidget {
                   OrbitRingSegment(
                     id: segment.id,
                     startMinutes: segment.startMinutesFromMidnight,
-                    endMinutes: segment.startMinutesFromMidnight +
-                        segment.sweepMinutes,
+                    endMinutes:
+                        segment.startMinutesFromMidnight + segment.sweepMinutes,
                     color: segment.color,
                   ),
               ],
               activeSegmentId: activeSegmentId ?? '',
               nowMinutes: nowMinutes,
-              showHourLabels: false,
-              radiusFactor: 0.40,
+              showHourLabels: true,
+              radiusFactor: 0.39,
+              // 292는 홈(286) 기준이라 이 크기에서는 눈금·라벨이 사라진다.
+              referenceSize: 150,
+              // 기본 상한(0.448)은 홈 글자 크기에서 정한 값이라, 여기서는
+              // 라벨이 계단 원판(0.48) 테두리를 넘어 잘린다.
+              hourLabelRadiusFactor: 0.425,
             ),
           ),
           Column(

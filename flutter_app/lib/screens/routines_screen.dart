@@ -278,12 +278,14 @@ class _RoutineList extends StatelessWidget {
                 color: routine.color,
                 icon: routine.iconId,
                 title: routine.title,
-                // 목록에서 '매일'인지 '평일'인지 알 수 없으면
-                // 카드를 열어봐야만 판단할 수 있다.
-                subtitle: '${TimeMinutes.formatRange(
+                subtitle: TimeMinutes.formatRange(
                   routine.startMinutesFromMidnight,
                   routine.endMinutesFromMidnight,
-                )} · ${RepeatDaysLabel.of(context, routine.repeatWeekdays)}',
+                ),
+                // 목록에서 '매일'인지 '평일'인지 알 수 없으면
+                // 카드를 열어봐야만 판단할 수 있다.
+                subtitleBadge:
+                    RepeatDaysLabel.of(context, routine.repeatWeekdays),
                 onTap: () => context.push(
                   '/routine-add?id=${routine.id}&returnTo=routines',
                 ),

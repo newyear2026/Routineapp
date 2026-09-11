@@ -1,3 +1,5 @@
+import 'dart:math' as math;
+
 import 'package:flutter/material.dart';
 
 import '../../domain/models/routine_icon_id.dart';
@@ -34,13 +36,45 @@ class _RoutineMarkPainter extends CustomPainter {
   final RoutineIconId icon;
   final Color color;
 
+  /// 아이콘 격자에 맞춰 계단으로 깎은 원.
+  ///
+  /// 칸 크기를 아이콘 셀과 같게 잡아서 원의 계단이 그림의 픽셀과 같은 줄에
+  /// 떨어진다. 매끈한 원을 쓰면 픽셀 그림 뒤에서만 곡선이 돌아 어긋난다.
+  static Path _disk(Size size, double cell) {
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = size.width / 2;
+    final halfRows = (radius / cell).ceil();
+    final right = <Offset>[];
+    final left = <Offset>[];
+    for (var i = -halfRows; i < halfRows; i++) {
+      final y = i * cell;
+      final midY = y + cell / 2;
+      final half =
+          (math.sqrt(math.max(0, radius * radius - midY * midY)) / cell + 0.5)
+                  .floor() *
+              cell;
+      if (half == 0) continue;
+      right.addAll([center + Offset(half, y), center + Offset(half, y + cell)]);
+      left.addAll(
+          [center + Offset(-half, y), center + Offset(-half, y + cell)]);
+    }
+    return Path()..addPolygon([...right, ...left.reversed], true);
+  }
+
+  /// 상자를 14칸으로 나눠 12칸짜리 그림을 한 칸 여백을 두고 가운데 놓는다.
+  /// 12칸을 상자에 꽉 채우면 햇살·포크 끝이 원 밖으로 삐져나온다.
+  static const _cells = 14;
+  static const _inset = 1;
+
   @override
   void paint(Canvas canvas, Size size) {
-    final cell = size.width / 12;
+    final cell = size.width / _cells;
+    // 시안은 모든 루틴 아이콘을 연한 원형 틴트 위에 올린다. 사각형으로
+    // 깔면 목록이 그림이 아니라 색 블록으로 읽힌다.
     final fill = Paint()
       ..color = color.withValues(alpha: 0.22)
       ..isAntiAlias = false;
-    canvas.drawRect(Offset.zero & size, fill);
+    canvas.drawPath(_disk(size, cell), fill);
 
     final ink = Paint()
       ..color = AppColors.textPrimary
@@ -54,7 +88,12 @@ class _RoutineMarkPainter extends CustomPainter {
         for (var x = 0; x < rows[y].length; x++) {
           if (rows[y][x] != '#') continue;
           canvas.drawRect(
-            Rect.fromLTWH((x + dx) * cell, (y + dy) * cell, cell, cell),
+            Rect.fromLTWH(
+              (x + dx + _inset) * cell,
+              (y + dy + _inset) * cell,
+              cell,
+              cell,
+            ),
             paint,
           );
         }
@@ -162,11 +201,12 @@ class _RoutineMarkPainter extends CustomPainter {
           '............',
           '............',
         ], ink);
+        // 잔 속은 더하기가 아니라 하트다. 십자로 그리면 구급 표시로 읽힌다.
         plot(const [
-          '.#.',
-          '###',
-          '.#.',
-        ], accent, dx: 4, dy: 5);
+          '##.##',
+          '.###.',
+          '..#..',
+        ], accent, dx: 3, dy: 4);
       case RoutineIconId.utensils:
         plot(const [
           '............',

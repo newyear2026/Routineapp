@@ -85,8 +85,12 @@ void main() {
       addTearDown(controller.dispose);
 
       // 목록만 보고도 매일인지 평일인지 알 수 있어야 한다.
-      expect(find.text('07:00–08:00 · 매일'), findsOneWidget);
-      expect(find.text('19:00–20:00 · 평일'), findsOneWidget);
+      // 시각과 반복 주기는 성격이 다르므로 한 문자열로 잇지 않고 배지로
+      // 나눈다. 목록을 훑을 때 주기가 시각에 묻히지 않아야 한다.
+      expect(find.text('07:00–08:00'), findsOneWidget);
+      expect(find.text('19:00–20:00'), findsOneWidget);
+      expect(find.text('매일'), findsOneWidget);
+      expect(find.text('평일'), findsOneWidget);
       expect(find.byKey(const Key('routines-menu-cat')), findsOneWidget);
       expect(
         tester

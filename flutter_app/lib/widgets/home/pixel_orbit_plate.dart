@@ -5,8 +5,12 @@ import '../../theme/app_pixel_style.dart';
 
 /// 시간 데이터와 독립된 계단형 원판. 시간 구간은 OrbitRingPainter가 그린다.
 class PixelOrbitPlate extends CustomPainter {
-  const PixelOrbitPlate({this.centerOnly = false});
+  const PixelOrbitPlate({this.centerOnly = false, this.step});
   final bool centerOnly;
+
+  /// 계단 한 칸(px). 비우면 홈 크기에 맞춘 size/146을 쓴다. 작은 원판은
+  /// 그 값이 1px 아래로 내려가 계단이 사라지므로 직접 준다.
+  final double? step;
   Path _disk(Offset center, double radius, double step) {
     // 양 축에 같은 격자를 써서 네 방향의 곡률과 계단 크기를 맞춘다.
     final halfRows = (radius / step).ceil();
@@ -30,7 +34,7 @@ class PixelOrbitPlate extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final center = Offset(size.width / 2, size.height / 2);
-    final step = size.width / 146;
+    final step = this.step ?? size.width / 146;
     if (!centerOnly) {
       final plate = _disk(center, size.width * 0.48, step);
       canvas.drawPath(
@@ -82,5 +86,5 @@ class PixelOrbitPlate extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant PixelOrbitPlate old) =>
-      old.centerOnly != centerOnly;
+      old.centerOnly != centerOnly || old.step != step;
 }
