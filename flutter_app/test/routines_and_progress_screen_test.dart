@@ -232,7 +232,7 @@ void main() {
       addTearDown(controller.dispose);
 
       expect(find.text('0 / 2'), findsOneWidget);
-      expect(find.text('아직 시작 전이에요'), findsOneWidget);
+      expect(find.text('아직 완료한 루틴이 없어요'), findsOneWidget);
       expect(find.text('차근차근 잘하고 있어요'), findsNothing);
       // 좁은 칸에 들어가므로 한 줄을 넘기면 안 된다.
       expect(tester.takeException(), isNull);

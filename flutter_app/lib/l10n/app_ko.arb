@@ -79,7 +79,7 @@
   "progressSubtitle": "오늘도 수고했어요!",
   "progressSemantic": "오늘 진행률 {percent} 퍼센트",
   "progressNoRoutines": "오늘은 루틴이 없어요",
-  "progressNotStarted": "아직 시작 전이에요",
+  "progressNotStarted": "아직 완료한 루틴이 없어요",
   "progressAllDone": "오늘 다 마쳤어요",
   "progressGreatFlow": "아주 좋은 흐름이에요",
   "progressGoodFlow": "차근차근 잘하고 있어요",

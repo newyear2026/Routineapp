@@ -79,7 +79,7 @@
   "progressSubtitle": "¡Hoy también lo hiciste bien!",
   "progressSemantic": "Progreso de hoy {percent} por ciento",
   "progressNoRoutines": "Hoy no hay rutinas",
-  "progressNotStarted": "Aún no empiezas",
+  "progressNotStarted": "Aún no completas ninguna rutina",
   "progressAllDone": "Todo listo por hoy",
   "progressGreatFlow": "Excelente ritmo",
   "progressGoodFlow": "Vas con calma y constancia",

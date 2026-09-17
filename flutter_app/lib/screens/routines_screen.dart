@@ -61,14 +61,20 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
               ? Material(
                   color: AppColors.orbitPrimary,
                   shape: AppPixelStyle.shape(),
-                  child: InkWell(
-                    key: const Key('routine-add-button'),
-                    onTap: _openAddRoutine,
-                    child: const SizedBox(
-                      width: 56,
-                      height: 56,
-                      child: Center(
-                        child: AppIcon(Icons.add_rounded, color: Colors.white),
+                  // 아이콘만 있는 버튼이라 이름을 직접 준다. 없으면 스크린
+                  // 리더가 «버튼»이라고만 읽고 무엇을 하는 버튼인지 알 수 없다.
+                  child: Semantics(
+                    button: true,
+                    label: AppLocalizations.of(context).routinesAdd,
+                    child: InkWell(
+                      key: const Key('routine-add-button'),
+                      onTap: _openAddRoutine,
+                      child: const SizedBox(
+                        width: 56,
+                        height: 56,
+                        child: Center(
+                          child: AppIcon(Icons.add_rounded, color: Colors.white),
+                        ),
                       ),
                     ),
                   ),

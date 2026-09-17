@@ -311,6 +311,49 @@ void main() {
     expect(result.error, RoutineWriteError.save);
     controller.dispose();
   });
+
+  test('홈 위젯 갱신이 실패해도 완료 기록과 되돌리기는 살아남는다', () async {
+    // 위젯 갱신은 부수 효과다. 기록은 이미 저장소에 들어간 뒤라, 여기서
+    // 터졌다고 홈의 성공 안내와 되돌리기 버튼까지 사라지면 안 된다.
+    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
+        .setMockMethodCallHandler(
+      homeWidgetChannel,
+      (call) async => throw PlatformException(code: 'unavailable'),
+    );
+
+    final now = DateTime(2026, 4, 9, 7, 30);
+    final controller = RoutineAppController(
+      dataService: RoutineDataService(
+        routineRepository: _FakeRoutineRepository([
+          Routine(
+            id: 'routine_1',
+            title: '기상',
+            startMinutesFromMidnight: 7 * 60,
+            endMinutesFromMidnight: 8 * 60,
+            repeatWeekdays: const {1, 2, 3, 4, 5, 6, 7},
+            colorValue: const Color(0xFF6C4CF1).toARGB32(),
+            iconEmoji: '🌅',
+          ),
+        ]),
+        logRepository: _FakeRoutineLogRepository({}),
+      ),
+      notificationService: _testNotificationService(),
+      nowProvider: () => now,
+      clockAutoRefreshEnabled: false,
+    );
+    addTearDown(controller.dispose);
+
+    await controller.load();
+
+    final undo = await controller.completeCurrent();
+
+    expect(undo, isNotNull);
+    expect(controller.todayLogs.single.status, RoutineLogStatus.completed);
+
+    await controller.undoAction(undo!);
+
+    expect(controller.todayLogs, isEmpty);
+  });
 }
 
 class _FakeRoutineRepository implements RoutineRepository {

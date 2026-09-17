@@ -144,6 +144,41 @@ void main() {
     expect(find.text('달력에서 선택한 요일을 미리 골랐어요.'), findsOneWidget);
     controller.dispose();
   });
+
+  testWidgets('추가 버튼은 아이콘만 있어도 이름을 읽어준다', (tester) async {
+    // 아이콘뿐인 버튼이라 의미 라벨이 없으면 스크린 리더가 «버튼»이라고만
+    // 읽는다. 무엇을 하는 버튼인지 알 수 없다.
+    final handle = tester.ensureSemantics();
+    final controller = RoutineAppController(
+      dataService: RoutineDataService(
+        routineRepository: _MemoryRoutineRepository(const []),
+        logRepository: _MemoryLogRepository(),
+      ),
+      notificationService: RoutineNotificationService(
+        exactAlarmsAllowed: () async => false,
+        gateway: _NoopNotificationGateway(),
+        preferencesLoader: () async =>
+            NotificationPreferences.firstLaunchDefaults,
+      ),
+      nowProvider: () => DateTime(2026, 8, 6, 8, 30),
+      clockAutoRefreshEnabled: false,
+    );
+    await controller.load();
+
+    await tester.pumpWidget(
+      ChangeNotifierProvider.value(
+        value: controller,
+        child: localizedApp(home: const RoutinesScreen()),
+      ),
+    );
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('routine-add-button')), findsOneWidget);
+    expect(find.bySemanticsLabel('루틴 추가'), findsOneWidget);
+
+    controller.dispose();
+    handle.dispose();
+  });
 }
 
 class _MemoryRoutineRepository implements RoutineRepository {

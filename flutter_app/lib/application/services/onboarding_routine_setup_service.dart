@@ -10,20 +10,30 @@ class OnboardingRoutineSetupService {
 
   final RoutineDataService _data;
 
-  static bool _isOnboardingRecommendedRoutine(Routine r) =>
-      r.id.startsWith('onboarding_rec_');
-
   /// 선택한 추천 루틴을 반영하고 초기 루틴 설정 단계를 완료 처리한다.
-  /// 이전에 저장된 `onboarding_rec_*` 루틴은 제거 후 재삽입한다.
+  ///
+  /// **이미 있는 루틴은 건드리지 않는다 — 더하기만 한다.**
+  /// 예전에는 `onboarding_rec_*` 를 모두 지우고 다시 넣었다. 추천 루틴은
+  /// 편집해도 id 가 그대로라(편집은 [Routine.copyWith]) 안내를 다시 진행하면
+  /// 사용자가 고친 시각·제목·요일이 조용히 사라졌고, 이번에 고르지 않은
+  /// 추천 루틴까지 지워졌다. 안내를 다시 보는 일이 저장된 루틴을 되돌리는
+  /// 일이 되어서는 안 된다.
+  ///
+  /// id 가 `onboarding_rec_<catalogId>` 로 고정이라 같은 추천을 다시 골라도
+  /// 중복으로 쌓이지 않는다.
   Future<void> completeWithSelectedDefinitions(
     List<RecommendedRoutineDefinition> selected,
     String Function(RecommendedRoutineDefinition) titleOf,
   ) async {
     final existing = await _data.loadRoutines();
-    final kept =
-        existing.where((r) => !_isOnboardingRecommendedRoutine(r)).toList();
-    final created = selected.map((d) => d.toRoutine(titleOf(d))).toList();
-    await _data.saveRoutines([...kept, ...created]);
+    final existingIds = existing.map((r) => r.id).toSet();
+    final created = selected
+        .map((d) => d.toRoutine(titleOf(d)))
+        .where((r) => !existingIds.contains(r.id))
+        .toList();
+    if (created.isNotEmpty) {
+      await _data.saveRoutines([...existing, ...created]);
+    }
     await OnboardingLocalStorage.markInitialRoutineSetupCompleted();
   }
 

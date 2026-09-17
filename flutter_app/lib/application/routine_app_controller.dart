@@ -160,15 +160,26 @@ class RoutineAppController extends ChangeNotifier {
   /// 여러 개 만들었다.
   Future<void> _syncSideEffects() async {
     if (kIsWeb) return;
-    try {
-      await HomeWidgetSyncService.instance.push(_snapshotForBackground, strings);
-    } catch (e, st) {
-      debugPrint('home widget sync failed: $e\n$st');
-    }
+    await _pushHomeWidget();
     try {
       await _notifications.syncAll(_routines, strings);
     } catch (e, st) {
       debugPrint('notification sync failed: $e\n$st');
+    }
+  }
+
+  /// 홈 위젯 갱신 — 실패해도 여기서 삼킨다.
+  ///
+  /// 기록은 이미 저장소에 들어간 뒤에 부르는 것이다. 위젯 갱신이 터졌다고
+  /// 호출자까지 실패로 끌고 가면, 저장은 끝났는데 홈에는 성공 안내도
+  /// 되돌리기 버튼도 나오지 않는다. [_syncSideEffects]가 로드·저장 경로에서
+  /// 하던 구분을 완료·미루기·스킵·되돌리기 경로에도 똑같이 적용한다.
+  Future<void> _pushHomeWidget() async {
+    if (kIsWeb) return;
+    try {
+      await HomeWidgetSyncService.instance.push(_snapshotForBackground, strings);
+    } catch (e, st) {
+      debugPrint('home widget sync failed: $e\n$st');
     }
   }
 
@@ -334,9 +345,7 @@ class RoutineAppController extends ChangeNotifier {
     await _data.upsertLog(outcome.log);
     _logsToday = await _data.loadLogsForDate(_now);
     notifyListeners();
-    if (!kIsWeb) {
-      await HomeWidgetSyncService.instance.push(_snapshotForBackground, strings);
-    }
+    await _pushHomeWidget();
     return RoutineActionUndo(
       routineId: c.id,
       dateYmd: ymd,
@@ -353,9 +362,7 @@ class RoutineAppController extends ChangeNotifier {
     }
     _logsToday = await _data.loadLogsForDate(_now);
     notifyListeners();
-    if (!kIsWeb) {
-      await HomeWidgetSyncService.instance.push(_snapshotForBackground, strings);
-    }
+    await _pushHomeWidget();
   }
 
   void _scheduleNextClockTick() {

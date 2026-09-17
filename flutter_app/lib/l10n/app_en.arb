@@ -233,7 +233,7 @@
   },
   "progressNoRoutines": "No routines today",
   "@progressNoRoutines": {},
-  "progressNotStarted": "Not started yet",
+  "progressNotStarted": "No routines completed yet",
   "@progressNotStarted": {},
   "progressAllDone": "All done for today",
   "@progressAllDone": {},
