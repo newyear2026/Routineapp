@@ -190,6 +190,8 @@
   "languageSpanish": "Español",
   "languageSheetTitle": "Elige un idioma",
   "errorLoadSettings": "No se pudieron cargar tus ajustes. Inténtalo otra vez.",
+  "loadFailureTitle": "No pudimos cargar tus datos",
+  "loadFailureBody": "Tus rutinas guardadas siguen ahí. Inténtalo de nuevo.",
   "errorSaveNotifications": "No se pudo guardar el ajuste de notificaciones. Inténtalo otra vez.",
   "errorSaveSound": "No se pudo guardar el ajuste de sonido. Inténtalo otra vez.",
   "errorSaveRoutine": "No se pudo guardar. Inténtalo en un momento.",

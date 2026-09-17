@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
+import '../widgets/routine_load_failure_view.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -32,6 +33,9 @@ class _WidgetMediumPreviewScreenState extends State<WidgetMediumPreviewScreen> {
       body: AppScreenShell(
         child: Consumer<RoutineAppController>(
           builder: (context, app, _) {
+            if (app.hasBlockingLoadError) {
+              return const RoutineLoadFailureView();
+            }
             if (!app.isLoaded) {
               return const Center(
                 child: CircularProgressIndicator(

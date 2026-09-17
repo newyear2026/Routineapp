@@ -6,6 +6,7 @@ import '../app_route_observer.dart';
 import '../application/routine_app_controller.dart';
 import '../domain/models/routine.dart';
 import '../l10n/app_localizations.dart';
+import '../widgets/routine_load_failure_view.dart';
 import '../domain/utils/time_minutes.dart';
 import '../theme/app_colors.dart';
 import '../widgets/ads/home_upcoming_ad_card.dart';
@@ -72,6 +73,9 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
     return Consumer<RoutineAppController>(
       builder: (context, app, _) {
         final l10n = AppLocalizations.of(context);
+        if (app.hasBlockingLoadError) {
+          return const Scaffold(body: RoutineLoadFailureView());
+        }
         if (!app.isLoaded) {
           return const Scaffold(
             body: Center(

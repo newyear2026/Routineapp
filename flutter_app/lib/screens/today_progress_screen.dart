@@ -5,6 +5,7 @@ import 'package:provider/provider.dart';
 import '../application/routine_app_controller.dart';
 import '../domain/models/routine.dart';
 import '../l10n/app_localizations.dart';
+import '../widgets/routine_load_failure_view.dart';
 import '../domain/models/routine_log.dart';
 import '../domain/models/routine_log_status.dart';
 import '../domain/progress/daily_progress.dart';
@@ -24,6 +25,9 @@ class TodayProgressScreen extends StatelessWidget {
     return Consumer<RoutineAppController>(
       builder: (context, app, _) {
         final l10n = AppLocalizations.of(context);
+        if (app.hasBlockingLoadError) {
+          return const Scaffold(body: RoutineLoadFailureView());
+        }
         if (!app.isLoaded) {
           return const Scaffold(
             body: Center(

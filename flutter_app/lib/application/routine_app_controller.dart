@@ -53,12 +53,19 @@ class RoutineAppController extends ChangeNotifier {
   List<RoutineLog> _logsToday = [];
   AppSettings _appSettings = const AppSettings();
   bool _loaded = false;
+  bool _loadFailed = false;
   String? _loadedDateYmd;
   DateTime? _loadedAt;
   Timer? _clockTimer;
   bool _clockRefreshInFlight = false;
 
   bool get isLoaded => _loaded;
+
+  /// 로드가 실패해 **보여 줄 것이 아무것도 없는** 상태.
+  ///
+  /// 저장 뒤 다시 부른 로드가 실패한 경우는 여기 들어오지 않는다. 그때는
+  /// 이미 화면에 있는(조금 낡은) 데이터를 계속 보여 주는 편이 낫다.
+  bool get hasBlockingLoadError => _loadFailed && !_loaded;
 
   /// 충돌 검사·편집 로드용 — 저장 후 [load]로 갱신됨
   List<Routine> get routines => List<Routine>.unmodifiable(_routines);
@@ -136,11 +143,37 @@ class RoutineAppController extends ChangeNotifier {
       _snapshotForBackground.progressSummary;
 
   /// 로컬 저장소에서 루틴·오늘 로그 로드 (Home 진입·저장 후 등)
+  ///
+  /// 실패해도 **던지지 않는다.** 저장된 JSON 이 깨지면 `jsonDecode` 가
+  /// 그대로 터지는데, 예전에는 이 예외가 `main` 의 `..load()` 밖으로 나가
+  /// 아무도 받지 않았다. [_loaded] 는 false 에 머물고 화면은 돌아가는
+  /// 동그라미에서 영영 멈췄다 — 오류도, 다시 시도할 길도 없었다.
+  ///
+  /// 실패해도 저장소에는 쓰지 않는다. 깨진 데이터라도 원본이 남아 있어야
+  /// 나중에 손볼 수 있다. 빈 값으로 덮어쓰면 그 길이 사라진다.
   Future<void> load() async {
     final now = _now;
-    _routines = await _data.loadRoutines();
-    _logsToday = await _data.loadLogsForDate(now);
-    _appSettings = await _settings.loadAppSettings();
+
+    // 셋 다 성공한 뒤에 옮겨 담는다. 중간에 터졌을 때 반쯤 갱신된 상태가
+    // 남으면, 다시 시도하기 전까지 화면이 앞뒤 안 맞는 값을 보여 준다.
+    final List<Routine> routines;
+    final List<RoutineLog> logs;
+    final AppSettings settings;
+    try {
+      routines = await _data.loadRoutines();
+      logs = await _data.loadLogsForDate(now);
+      settings = await _settings.loadAppSettings();
+    } catch (e, st) {
+      debugPrint('initial load failed: $e\n$st');
+      _loadFailed = true;
+      notifyListeners();
+      return;
+    }
+
+    _routines = routines;
+    _logsToday = logs;
+    _appSettings = settings;
+    _loadFailed = false;
     _loadedDateYmd = TimeMinutes.dateYmd(now);
     _loadedAt = now;
     _loaded = true;

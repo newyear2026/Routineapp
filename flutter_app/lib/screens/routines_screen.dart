@@ -10,6 +10,7 @@ import '../domain/utils/repeat_days_label.dart';
 import '../domain/utils/app_date_formats.dart';
 import '../domain/utils/time_minutes.dart';
 import '../l10n/app_localizations.dart';
+import '../widgets/routine_load_failure_view.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/ds/ds.dart';
@@ -49,6 +50,9 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
   Widget build(BuildContext context) {
     return Consumer<RoutineAppController>(
       builder: (context, app, _) {
+        if (app.hasBlockingLoadError) {
+          return const Scaffold(body: RoutineLoadFailureView());
+        }
         return Scaffold(
           bottomNavigationBar: OrbitBottomNavigation(
             currentIndex: 2,
