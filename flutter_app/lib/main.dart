@@ -23,9 +23,13 @@ import 'screens/today_progress_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/routine_add_screen.dart';
 import 'screens/widget_medium_preview_screen.dart';
+import 'screens/onboarding_preview_screen.dart';
+import 'screens/character_pack_store_screen.dart';
+import 'screens/character_pack_detail_screen.dart';
 import 'screens/routines_screen.dart';
 import 'theme/app_theme.dart';
 import 'widget_home/home_widget_sync_service.dart';
+import 'domain/onboarding/onboarding_preview_nav.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -140,15 +144,24 @@ final GoRouter _router = GoRouter(
     ),
     GoRoute(
       path: '/onboarding',
-      builder: (context, state) => const OnboardingScreen(),
+      builder: (context, state) => OnboardingScreen(
+        preview: OnboardingPreviewNav.isPreview(state),
+        previewFlow: OnboardingPreviewNav.isFlow(state),
+      ),
     ),
     GoRoute(
       path: '/notification-permission',
-      builder: (context, state) => const NotificationPermissionScreen(),
+      builder: (context, state) => NotificationPermissionScreen(
+        preview: OnboardingPreviewNav.isPreview(state),
+        previewFlow: OnboardingPreviewNav.isFlow(state),
+      ),
     ),
     GoRoute(
       path: '/routine-setup',
-      builder: (context, state) => const InitialRoutineSetupScreen(),
+      builder: (context, state) => InitialRoutineSetupScreen(
+        preview: OnboardingPreviewNav.isPreview(state),
+        previewFlow: OnboardingPreviewNav.isFlow(state),
+      ),
     ),
     GoRoute(
       path: '/home',
@@ -181,6 +194,27 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/widget-medium-preview',
       builder: (context, state) => const WidgetMediumPreviewScreen(),
+    ),
+    GoRoute(
+      path: '/onboarding-preview',
+      builder: (context, state) => const OnboardingPreviewScreen(),
+    ),
+    GoRoute(
+      path: '/splash-preview',
+      builder: (context, state) => SplashScreen(
+        preview: true,
+        previewFlow: OnboardingPreviewNav.isFlow(state),
+      ),
+    ),
+    GoRoute(
+      path: '/character-packs',
+      builder: (context, state) => const CharacterPackStoreScreen(),
+    ),
+    GoRoute(
+      path: '/character-packs/:id',
+      builder: (context, state) => CharacterPackDetailScreen(
+        packId: state.pathParameters['id']!,
+      ),
     ),
   ],
 );

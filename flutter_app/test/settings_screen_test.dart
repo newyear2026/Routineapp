@@ -81,7 +81,9 @@ void main() {
     final controller = await pumpSettings(tester);
     addTearDown(controller.dispose);
 
-    await tester.scrollUntilVisible(find.text('캐릭터'), 200,
+    // '캐릭터'는 캐릭터 팩 화면으로 가는 살아 있는 행이 됐다. 아직 갈 곳이
+    // 없는 행으로 앵커를 옮긴다.
+    await tester.scrollUntilVisible(find.text('문의하기'), 200,
         scrollable: find.byType(Scrollable).first);
     await tester.pumpAndSettle();
     expect(find.text('준비 중'), findsWidgets);
@@ -89,22 +91,34 @@ void main() {
     expect(find.byIcon(Icons.remove_rounded), findsNothing);
   });
 
-  testWidgets('테마 카드에 앉아 있는 고양이를 보여 준다', (tester) async {
+  testWidgets('현재 팩 카드가 지금 쓰는 캐릭터를 보여 준다', (tester) async {
     final controller = await pumpSettings(tester);
     addTearDown(controller.dispose);
 
-    expect(find.text('고양이 별빛 테마'), findsOneWidget);
+    expect(find.text('캐릭터 팩'), findsOneWidget);
+    expect(find.text('별빛 고양이'), findsOneWidget);
     expect(find.text('사용 중'), findsOneWidget);
-    expect(find.byKey(const Key('settings-theme-cat')), findsOneWidget);
+    expect(find.byKey(const Key('settings-current-pack-portrait')),
+        findsOneWidget);
     expect(
       tester
           .widget<AnimatedCat>(find.descendant(
-            of: find.byKey(const Key('settings-theme-cat')),
+            of: find.byKey(const Key('settings-current-pack-portrait')),
             matching: find.byType(AnimatedCat),
           ))
           .pose,
       CatPose.idle,
     );
+  });
+
+  testWidgets('외형을 고르는 자리는 팩 카드 하나뿐이다', (tester) async {
+    final controller = await pumpSettings(tester);
+    addTearDown(controller.dispose);
+
+    // 테마 스와치와 별도 캐릭터 행은 팩으로 흡수됐다. 파는 단위와 고르는
+    // 단위가 어긋나지 않도록 진입점을 하나로 유지한다.
+    expect(find.text('테마'), findsNothing);
+    expect(find.text('캐릭터 팩'), findsOneWidget);
   });
 
   testWidgets('알림 소리는 푸시 알림이 꺼져 있으면 함께 비활성된다', (tester) async {
@@ -115,5 +129,22 @@ void main() {
     expect(find.text('알림 소리'), findsOneWidget);
     // 비활성 이유를 설명 문구로 함께 보여준다.
     expect(find.text('푸시 알림이 켜져 있을 때만 쓸 수 있어요'), findsOneWidget);
+  });
+
+  testWidgets('시작 안내 다시 보기는 확인 없이 진행하지 않는다', (tester) async {
+    final controller = await pumpSettings(tester);
+    addTearDown(controller.dispose);
+
+    await tester.scrollUntilVisible(find.text('시작 안내 다시 보기'), 200,
+        scrollable: find.byType(Scrollable).first);
+    await tester.pump();
+    await tester.tap(find.text('시작 안내 다시 보기'));
+    await tester.pump();
+
+    expect(find.text('시작 안내를 다시 진행할까요?'), findsOneWidget);
+    await tester.tap(find.text('취소'));
+    await tester.pump();
+    expect(find.text('시작 안내를 다시 진행할까요?'), findsNothing);
+    expect(find.text('설정'), findsWidgets);
   });
 }

@@ -4,6 +4,7 @@ import '../l10n/app_localizations.dart';
 import 'package:go_router/go_router.dart';
 
 import '../data/local/onboarding_local_storage.dart';
+import '../domain/onboarding/onboarding_preview_nav.dart';
 import '../domain/models/routine_icon_id.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
@@ -14,7 +15,15 @@ import '../widgets/home/circular_timetable_area.dart';
 import '../widgets/home/orbit_brand_mark.dart';
 
 class OnboardingScreen extends StatefulWidget {
-  const OnboardingScreen({super.key});
+  const OnboardingScreen({
+    super.key,
+    this.preview = false,
+    this.previewFlow = false,
+  });
+
+  /// 설정 미리보기 — 진행 상태를 바꾸지 않고 뒤로 돌아온다.
+  final bool preview;
+  final bool previewFlow;
 
   @override
   State<OnboardingScreen> createState() => _OnboardingScreenState();
@@ -75,6 +84,15 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
   }
 
   Future<void> _finishIntro() async {
+    if (widget.preview) {
+      if (!mounted) return;
+      OnboardingPreviewNav.finish(
+        context,
+        flow: widget.previewFlow,
+        nextPath: OnboardingPreviewNav.routineFlow,
+      );
+      return;
+    }
     await OnboardingLocalStorage.markIntroSeen();
     if (!mounted) return;
     context.go('/routine-setup');
@@ -99,6 +117,13 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
+                  if (widget.preview)
+                    IconButton(
+                      tooltip: l10n.commonBack,
+                      onPressed: () => context.pop(),
+                      icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                      color: AppColors.textPrimary,
+                    ),
                   // 브랜드 문구는 언어마다 길이가 다르다. 건너뛰기 버튼이
                   // 밀려나지 않도록 이쪽이 먼저 줄어든다.
                   Flexible(

@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../data/local/onboarding_local_storage.dart';
+import '../domain/onboarding/onboarding_preview_nav.dart';
 import '../domain/onboarding/onboarding_route_selector.dart';
 import '../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
@@ -13,7 +14,17 @@ import '../widgets/ds/pixel_steps.dart';
 import '../widgets/home/orbit_brand_mark.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  const SplashScreen({
+    super.key,
+    this.preview = false,
+    this.previewFlow = false,
+  });
+
+  /// 설정 미리보기 — 온보딩 상태를 읽거나 바꾸지 않는다.
+  final bool preview;
+
+  /// 미리보기 전체 흐름의 첫 화면. 2초 뒤 시작 안내 미리보기로 이어진다.
+  final bool previewFlow;
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -24,6 +35,7 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   late Animation<double> _fadeAnimation;
+  Timer? _advance;
 
   @override
   void initState() {
@@ -44,9 +56,14 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    // 2초 후 온보딩 상태에 따라 Home 또는 미완료 단계로 이동
-    Timer(const Duration(seconds: 2), () async {
+    _advance = Timer(const Duration(seconds: 2), () async {
       if (!mounted) return;
+      if (widget.preview) {
+        if (widget.previewFlow) {
+          context.push(OnboardingPreviewNav.introFlow);
+        }
+        return;
+      }
       final state = await OnboardingLocalStorage.load();
       final path = OnboardingRouteSelector.resolveStartPath(state);
       if (!mounted) return;
@@ -56,6 +73,7 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void dispose() {
+    _advance?.cancel();
     _controller.dispose();
     super.dispose();
   }
@@ -69,6 +87,19 @@ class _SplashScreenState extends State<SplashScreen>
         child: Stack(
           children: [
             _buildGlowDecorations(),
+            if (widget.preview)
+              SafeArea(
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: IconButton(
+                    key: const Key('splash-preview-back'),
+                    tooltip: l10n.commonBack,
+                    onPressed: () => context.pop(),
+                    icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
             Center(
               child: AnimatedBuilder(
                 animation: _controller,

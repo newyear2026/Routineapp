@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../application/routine_app_controller.dart';
 import '../application/services/exact_alarm_service.dart';
 import '../application/services/notification_onboarding_actions.dart';
+import '../domain/onboarding/onboarding_preview_nav.dart';
 import '../domain/models/routine_icon_id.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
@@ -16,7 +17,14 @@ import '../widgets/ds/app_pixel_switch.dart';
 import '../widgets/ds/ds.dart';
 
 class NotificationPermissionScreen extends StatefulWidget {
-  const NotificationPermissionScreen({super.key});
+  const NotificationPermissionScreen({
+    super.key,
+    this.preview = false,
+    this.previewFlow = false,
+  });
+
+  final bool preview;
+  final bool previewFlow;
 
   @override
   State<NotificationPermissionScreen> createState() =>
@@ -34,7 +42,19 @@ class _NotificationPermissionScreenState
     context.go('/home');
   }
 
+  void _leavePreview() {
+    OnboardingPreviewNav.finish(
+      context,
+      flow: widget.previewFlow,
+    );
+  }
+
   Future<void> _allowNotifications() async {
+    if (widget.preview) {
+      if (!mounted) return;
+      _leavePreview();
+      return;
+    }
     await _actions.completeWithSystemPermissionRequest();
     // 알림을 쓰기로 한 사람에게만 정확 알람을 묻는다. 앱이 직접 켤 수 없는
     // 권한이라 시스템 설정으로 보내는 것 말고 방법이 없다. 이미 켜져 있으면
@@ -59,6 +79,11 @@ class _NotificationPermissionScreenState
   }
 
   Future<void> _skipNotifications() async {
+    if (widget.preview) {
+      if (!mounted) return;
+      _leavePreview();
+      return;
+    }
     await _actions.deferNotificationSetupLater();
     await _goHome();
   }
@@ -73,6 +98,16 @@ class _NotificationPermissionScreenState
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
+              if (widget.preview)
+                Align(
+                  alignment: Alignment.centerLeft,
+                  child: IconButton(
+                    tooltip: l10n.commonBack,
+                    onPressed: () => context.pop(),
+                    icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                    color: AppColors.textPrimary,
+                  ),
+                ),
               const SizedBox(height: 12),
               Text(l10n.permTitle, style: AppTextStyles.caption),
               const SizedBox(height: 24),

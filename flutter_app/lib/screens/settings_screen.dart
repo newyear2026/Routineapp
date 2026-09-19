@@ -11,12 +11,11 @@ import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../domain/utils/app_date_formats.dart';
 import '../widgets/ds/ds.dart';
-import '../widgets/settings/cat_theme_card.dart';
+import '../widgets/settings/current_pack_card.dart';
 import '../widgets/settings/exact_alarm_tile.dart';
 import '../widgets/settings/language_settings_tile.dart';
 import '../widgets/settings/settings_list_items.dart';
 import '../widgets/settings/settings_section.dart';
-import '../widgets/settings/theme_preset_section.dart';
 
 /// 설정 화면은 섹션 배치와 화면 전환만 담당한다.
 /// 알림 설정의 로드·저장·권한 요청은 [SettingsController]에 둔다.
@@ -67,7 +66,7 @@ class _SettingsScreenContent extends StatelessWidget {
             const SizedBox(height: 3),
             Text(l10n.settingsSubtitle, style: AppTextStyles.caption),
             const SizedBox(height: 18),
-            const CatThemeCard(),
+            const CurrentPackCard(),
             const SizedBox(height: 24),
             if (settings.error != null) ...[
               _SettingsErrorBanner(
@@ -120,23 +119,18 @@ class _SettingsScreenContent extends StatelessWidget {
               // 언어는 이 섹션에서 유일하게 지금 동작하는 설정이라 맨 위에 둔다.
               const LanguageSettingsTile(),
               SettingsNavigationTile(
+                icon: Icons.slideshow_outlined,
+                label: l10n.settingsOnboardingPreview,
+                description: l10n.settingsOnboardingPreviewDesc,
+                onTap: () => context.push('/onboarding-preview'),
+              ),
+              SettingsNavigationTile(
                 icon: Icons.replay_rounded,
                 label: l10n.settingsReplayOnboarding,
                 description: l10n.settingsReplayOnboardingDesc,
-                onTap: () async {
-                  await OnboardingLocalStorage.resetForReplay();
-                  if (context.mounted) context.go('/onboarding');
-                },
-              ),
-              SettingsNavigationTile(
-                icon: Icons.emoji_emotions_rounded,
-                label: l10n.settingsCharacter,
-                statusLabel: l10n.commonComingSoon,
-                description: l10n.settingsCharacterDesc,
+                onTap: () => _confirmReplayOnboarding(context),
               ),
             ]),
-            const SizedBox(height: 14),
-            const ThemePresetSection(),
             const SizedBox(height: 26),
             SettingsSectionTitle(
               title: l10n.settingsSectionSupport,
@@ -174,6 +168,33 @@ class _SettingsScreenContent extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _confirmReplayOnboarding(BuildContext context) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) {
+        final dialogL10n = AppLocalizations.of(ctx);
+        return AlertDialog(
+          title: Text(dialogL10n.settingsReplayOnboardingConfirmTitle),
+          content: Text(dialogL10n.settingsReplayOnboardingConfirmBody),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: Text(dialogL10n.commonCancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: Text(dialogL10n.settingsReplayOnboardingConfirmAction),
+            ),
+          ],
+        );
+      },
+    );
+    if (confirmed != true || !context.mounted) return;
+    await OnboardingLocalStorage.resetForReplay();
+    if (!context.mounted) return;
+    context.go('/');
   }
 }
 

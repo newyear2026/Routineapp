@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../application/routine_app_controller.dart';
 import '../application/services/onboarding_routine_setup_service.dart';
+import '../domain/onboarding/onboarding_preview_nav.dart';
 import '../domain/onboarding/recommended_routine_catalog.dart';
 import '../domain/models/routine_icon_id.dart';
 import '../l10n/app_localizations.dart';
@@ -13,7 +14,14 @@ import '../widgets/ds/ds.dart';
 import '../theme/app_pixel_style.dart';
 
 class InitialRoutineSetupScreen extends StatefulWidget {
-  const InitialRoutineSetupScreen({super.key});
+  const InitialRoutineSetupScreen({
+    super.key,
+    this.preview = false,
+    this.previewFlow = false,
+  });
+
+  final bool preview;
+  final bool previewFlow;
 
   @override
   State<InitialRoutineSetupScreen> createState() =>
@@ -49,6 +57,15 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
   }
 
   Future<void> _completeSetup() async {
+    if (widget.preview) {
+      if (!mounted) return;
+      OnboardingPreviewNav.finish(
+        context,
+        flow: widget.previewFlow,
+        nextPath: OnboardingPreviewNav.notificationFlow,
+      );
+      return;
+    }
     // 저장되는 이름도 지금 보고 있는 언어로 남는다.
     final l10n = AppLocalizations.of(context);
     await _onboardingRoutines.completeWithSelectedDefinitions(
@@ -62,6 +79,15 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
   }
 
   Future<void> _skipRoutineSetup() async {
+    if (widget.preview) {
+      if (!mounted) return;
+      OnboardingPreviewNav.finish(
+        context,
+        flow: widget.previewFlow,
+        nextPath: OnboardingPreviewNav.notificationFlow,
+      );
+      return;
+    }
     await _onboardingRoutines.skipWithoutSavingRoutines();
     if (!mounted) return;
     context.go('/notification-permission');
@@ -80,6 +106,16 @@ class _InitialRoutineSetupScreenState extends State<InitialRoutineSetupScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  if (widget.preview)
+                    Align(
+                      alignment: Alignment.centerLeft,
+                      child: IconButton(
+                        tooltip: l10n.commonBack,
+                        onPressed: () => context.pop(),
+                        icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
                   Text(l10n.setupTitle, style: AppTextStyles.caption),
                   const SizedBox(height: 6),
                   Row(
