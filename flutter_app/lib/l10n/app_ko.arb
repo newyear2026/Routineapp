@@ -211,6 +211,7 @@
   "errorSaveRoutine": "저장에 실패했어요. 잠시 후 다시 시도해 주세요.",
   "errorDeleteRoutine": "삭제에 실패했어요. 잠시 후 다시 시도해 주세요.",
   "notificationBody": "{title} 시작할 시간이에요.",
+  "notificationSnoozeBody": "미뤄둔 {title}, 다시 시작할 시간이에요.",
   "notificationChannelName": "루틴 일정 알림",
   "notificationChannelNameSilent": "루틴 일정 알림 (무음)",
   "notificationChannelDesc": "루틴 시작 시각에 맞춰 알려주는 알림",

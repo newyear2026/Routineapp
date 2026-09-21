@@ -211,6 +211,7 @@
   "errorSaveRoutine": "No se pudo guardar. Inténtalo en un momento.",
   "errorDeleteRoutine": "No se pudo eliminar. Inténtalo en un momento.",
   "notificationBody": "Es hora de {title}.",
+  "notificationSnoozeBody": "Hora de retomar {title}.",
   "notificationChannelName": "Recordatorios de rutina",
   "notificationChannelNameSilent": "Recordatorios de rutina (silencio)",
   "notificationChannelDesc": "Avisos que llegan cuando empieza una rutina",

@@ -477,6 +477,17 @@ class _FakeLocalNotificationGateway implements LocalNotificationGateway {
     required String payload,
     required bool exact,
   }) async {}
+
+  @override
+  Future<void> scheduleOnce({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime whenLocal,
+    required NotificationDetails details,
+    required String payload,
+    required bool exact,
+  }) async {}
 }
 
 class _ThrowingNotificationGateway implements LocalNotificationGateway {
@@ -502,6 +513,18 @@ class _ThrowingNotificationGateway implements LocalNotificationGateway {
     required String payload,
     required bool exact,
   }) async {}
+
+  @override
+  Future<void> scheduleOnce({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime whenLocal,
+    required NotificationDetails details,
+    required String payload,
+    required bool exact,
+  }) async =>
+      throw PlatformException(code: 'unavailable');
 }
 
 class _FailingRoutineRepository implements RoutineRepository {

@@ -111,6 +111,17 @@ class NoopNotificationGateway implements LocalNotificationGateway {
     required String payload,
     required bool exact,
   }) async {}
+
+  @override
+  Future<void> scheduleOnce({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime whenLocal,
+    required NotificationDetails details,
+    required String payload,
+    required bool exact,
+  }) async {}
 }
 
 /// 매일 반복하는 테스트용 루틴.
@@ -163,6 +174,18 @@ class ThrowingNotificationGateway implements LocalNotificationGateway {
     required String payload,
     required bool exact,
   }) async {}
+
+  @override
+  Future<void> scheduleOnce({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime whenLocal,
+    required NotificationDetails details,
+    required String payload,
+    required bool exact,
+  }) async =>
+      throw PlatformException(code: 'unavailable');
 }
 
 /// 예약된 알림을 기록한다 — 문구가 언어를 따라가는지 확인할 때 쓴다.
@@ -178,11 +201,34 @@ class ScheduledNotification {
   final int weekday;
 }
 
+/// 1회성(«나중에») 예약 기록.
+class ScheduledOnceNotification {
+  const ScheduledOnceNotification({
+    required this.id,
+    required this.title,
+    required this.body,
+    required this.whenLocal,
+    required this.payload,
+    required this.exact,
+  });
+
+  final int id;
+  final String title;
+  final String body;
+  final DateTime whenLocal;
+  final String payload;
+  final bool exact;
+}
+
 class RecordingNotificationGateway implements LocalNotificationGateway {
   final List<ScheduledNotification> scheduled = [];
+  final List<ScheduledOnceNotification> scheduledOnce = [];
+  final List<int> cancelledIds = [];
 
   @override
-  Future<void> cancel(int id) async {}
+  Future<void> cancel(int id) async {
+    cancelledIds.add(id);
+  }
 
   @override
   Future<void> initialize() async {}
@@ -204,6 +250,28 @@ class RecordingNotificationGateway implements LocalNotificationGateway {
   }) async {
     scheduled.add(
       ScheduledNotification(title: title, body: body, weekday: weekday),
+    );
+  }
+
+  @override
+  Future<void> scheduleOnce({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime whenLocal,
+    required NotificationDetails details,
+    required String payload,
+    required bool exact,
+  }) async {
+    scheduledOnce.add(
+      ScheduledOnceNotification(
+        id: id,
+        title: title,
+        body: body,
+        whenLocal: whenLocal,
+        payload: payload,
+        exact: exact,
+      ),
     );
   }
 }

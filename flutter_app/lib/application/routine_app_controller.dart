@@ -7,6 +7,7 @@ import '../data/local/local_settings_repository.dart';
 import '../data/repositories/settings_repository.dart';
 import '../domain/models/routine.dart';
 import '../domain/models/routine_log.dart';
+import '../domain/models/routine_log_status.dart';
 import '../domain/models/routine_action_source.dart';
 import '../domain/models/routine_write_error.dart';
 import '../domain/models/app_settings.dart';
@@ -139,8 +140,7 @@ class RoutineAppController extends ChangeNotifier {
   Routine? get nextRoutine => _snapshotForBackground.nextRoutine;
 
   /// [calculateProgress] 기준 진행 요약
-  ProgressSummary get progressSummary =>
-      _snapshotForBackground.progressSummary;
+  ProgressSummary get progressSummary => _snapshotForBackground.progressSummary;
 
   /// 로컬 저장소에서 루틴·오늘 로그 로드 (Home 진입·저장 후 등)
   ///
@@ -210,7 +210,8 @@ class RoutineAppController extends ChangeNotifier {
   Future<void> _pushHomeWidget() async {
     if (kIsWeb) return;
     try {
-      await HomeWidgetSyncService.instance.push(_snapshotForBackground, strings);
+      await HomeWidgetSyncService.instance
+          .push(_snapshotForBackground, strings);
     } catch (e, st) {
       debugPrint('home widget sync failed: $e\n$st');
     }
@@ -375,10 +376,21 @@ class RoutineAppController extends ChangeNotifier {
     final log = _dayService.logForRoutine(c.id, _logsToday);
     final outcome = action(c, log, ymd);
     if (!outcome.shouldPersist) return null;
-    await _data.upsertLog(outcome.log);
-    _logsToday = await _data.loadLogsForDate(_now);
+    try {
+      await _data.upsertLog(outcome.log);
+    } catch (e, st) {
+      // 성공 스낵바를 띄워도 되는지는 저장소 쓰기 성공 여부로만 정한다.
+      // 화면이 현재 언어로 실패 문구를 고를 수 있도록 예외는 다시 올린다.
+      debugPrint('routine action write failed: $e\n$st');
+      rethrow;
+    }
+
+    // 쓰기가 끝난 뒤 다시 읽다가 실패해도 이미 저장된 기록을 실패로
+    // 오해하면 안 된다. 저장한 결과로 메모리 상태를 바로 갱신한다.
+    _upsertTodayLogInMemory(outcome.log);
     notifyListeners();
     await _pushHomeWidget();
+    await _syncSnoozeAlarm(c, outcome.log);
     return RoutineActionUndo(
       routineId: c.id,
       dateYmd: ymd,
@@ -388,14 +400,78 @@ class RoutineAppController extends ChangeNotifier {
 
   /// 바로 직전에 기록한 완료·미루기·스킵 동작을 되돌린다.
   Future<void> undoAction(RoutineActionUndo undo) async {
-    if (undo.previousLog == null) {
-      await _data.deleteLogForRoutineOnDate(undo.routineId, undo.dateYmd);
-    } else {
-      await _data.upsertLog(undo.previousLog!);
+    try {
+      if (undo.previousLog == null) {
+        await _data.deleteLogForRoutineOnDate(undo.routineId, undo.dateYmd);
+      } else {
+        await _data.upsertLog(undo.previousLog!);
+      }
+    } catch (e, st) {
+      debugPrint('routine action undo write failed: $e\n$st');
+      rethrow;
     }
-    _logsToday = await _data.loadLogsForDate(_now);
+
+    if (undo.previousLog == null) {
+      _logsToday.removeWhere(
+        (item) =>
+            item.routineId == undo.routineId && item.dateYmd == undo.dateYmd,
+      );
+    } else {
+      _upsertTodayLogInMemory(undo.previousLog!);
+    }
     notifyListeners();
     await _pushHomeWidget();
+    final routine = _routineById(undo.routineId);
+    if (routine != null) {
+      await _syncSnoozeAlarm(routine, undo.previousLog);
+    }
+  }
+
+  Routine? _routineById(String id) {
+    for (final routine in _routines) {
+      if (routine.id == id) return routine;
+    }
+    return null;
+  }
+
+  /// 미뤄둔 재알림을 **지금 기록 상태에 맞춘다.**
+  ///
+  /// 기록이 바뀔 때마다 부른다. 미룬 상태면 그 시각에 걸고, 완료·건너뛰기로
+  /// 끝났거나 되돌려서 미룬 적이 없게 되면 거둔다. 이미 지난 시각이면 걸지
+  /// 않는다 — 걸어 봐야 즉시 울리거나 조용히 버려진다.
+  ///
+  /// 부수 효과다. 여기서 터져도 기록은 이미 저장됐으므로 삼킨다.
+  Future<void> _syncSnoozeAlarm(Routine routine, RoutineLog? log) async {
+    if (kIsWeb) return;
+
+    final until = log != null && log.status == RoutineLogStatus.snoozed
+        ? log.snoozedUntilMs
+        : null;
+    try {
+      if (until == null) {
+        await _notifications.cancelSnooze(routine.id);
+        return;
+      }
+      final when = DateTime.fromMillisecondsSinceEpoch(until);
+      if (!when.isAfter(_now)) {
+        await _notifications.cancelSnooze(routine.id);
+        return;
+      }
+      await _notifications.scheduleSnooze(routine, when, strings);
+    } catch (e, st) {
+      debugPrint('snooze alarm sync failed: $e\n$st');
+    }
+  }
+
+  void _upsertTodayLogInMemory(RoutineLog log) {
+    final index = _logsToday.indexWhere(
+      (item) => item.routineId == log.routineId && item.dateYmd == log.dateYmd,
+    );
+    if (index == -1) {
+      _logsToday.add(log);
+    } else {
+      _logsToday[index] = log;
+    }
   }
 
   void _scheduleNextClockTick() {
@@ -434,7 +510,8 @@ class RoutineAppController extends ChangeNotifier {
 
       notifyListeners();
       if (!kIsWeb) {
-        await HomeWidgetSyncService.instance.push(_snapshotForBackground, strings);
+        await HomeWidgetSyncService.instance
+            .push(_snapshotForBackground, strings);
       }
     } finally {
       _clockRefreshInFlight = false;

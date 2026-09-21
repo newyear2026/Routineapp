@@ -528,6 +528,14 @@
       }
     }
   },
+  "notificationSnoozeBody": "Time to get back to {title}.",
+  "@notificationSnoozeBody": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
   "notificationChannelName": "Routine reminders",
   "@notificationChannelName": {},
   "notificationChannelNameSilent": "Routine reminders (silent)",

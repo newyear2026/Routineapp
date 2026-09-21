@@ -271,4 +271,15 @@ class _NoopNotificationGateway implements LocalNotificationGateway {
     required String payload,
     required bool exact,
   }) async {}
+
+  @override
+  Future<void> scheduleOnce({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime whenLocal,
+    required NotificationDetails details,
+    required String payload,
+    required bool exact,
+  }) async {}
 }
