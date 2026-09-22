@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:routine_timer/data/seed/routine_seed.dart';
 import 'package:routine_timer/domain/models/routine.dart';
+import 'package:routine_timer/domain/models/routine_icon_id.dart';
 import 'package:routine_timer/domain/onboarding/recommended_routine_catalog.dart';
 import 'support/localization.dart';
 
@@ -13,6 +14,16 @@ import 'support/localization.dart';
 /// 기본값 `📌`가 붙어, 같은 목록에서 어떤 줄에는 압정이 있고 어떤 줄에는
 /// 없었다. 정책은 카탈로그에만 반영되고 생성 경로에는 빠져 있었다.
 void main() {
+  test('모든 루틴 아이콘에 번들 픽셀 자산이 있다', () {
+    for (final icon in RoutineIconId.values) {
+      expect(
+        File('assets/routine_icons/${icon.name}.png').existsSync(),
+        isTrue,
+        reason: '${icon.name} 아이콘 그림이 없습니다',
+      );
+    }
+  });
+
   test('직접 추가한 루틴에는 이모지가 붙지 않는다', () {
     final routine = Routine.create(
       title: '아침 산책',

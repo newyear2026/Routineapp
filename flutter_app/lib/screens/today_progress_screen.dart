@@ -9,14 +9,13 @@ import '../widgets/routine_load_failure_view.dart';
 import '../domain/models/routine_log.dart';
 import '../domain/models/routine_log_status.dart';
 import '../domain/progress/daily_progress.dart';
-import '../domain/utils/app_date_formats.dart';
 import '../domain/utils/time_minutes.dart';
 import '../domain/services/routine_state_resolver.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/ds/ds.dart';
 
-/// Figma 기준 진행 화면: 완료 · 진행 중 · 예정의 세 상태를 항상 보여준다.
+/// 현재 루틴을 먼저 보여주고, 오늘 요약과 나머지 상태를 이어서 보여준다.
 class TodayProgressScreen extends StatelessWidget {
   const TodayProgressScreen({super.key});
 
@@ -45,6 +44,9 @@ class TodayProgressScreen extends StatelessWidget {
           logs: app.todayLogs,
           now: now,
         );
+        final activeGroup = groups.firstWhere(
+          (group) => group.kind == _ProgressKind.active,
+        );
 
         return Scaffold(
           bottomNavigationBar: OrbitBottomNavigation(
@@ -60,37 +62,26 @@ class TodayProgressScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  Row(
-                    children: [
-                      Expanded(
-                        child: Text(
-                          AppDateFormats.monthDayWeekday(context, now),
-                          style: AppTextStyles.caption,
-                        ),
-                      ),
-                      IconButton(
-                        tooltip: l10n.routinesViewCalendar,
-                        onPressed: () => context.go('/routines'),
-                        icon: const AppIcon(Icons.calendar_month_rounded),
-                        color: AppColors.textMuted,
-                      ),
-                    ],
-                  ),
-                  CatMenuHeader(
+                  _ProgressHeader(
                     title: l10n.progressTitle,
                     subtitle: l10n.progressSubtitle,
-                    pose: CatPose.complete,
-                    catKey: const Key('progress-menu-cat'),
                   ),
-                  const SizedBox(height: 24),
+                  const SizedBox(height: 20),
+                  if (activeGroup.items.isNotEmpty)
+                    _ProgressGroup(
+                      key: const Key('progress-active-group'),
+                      group: activeGroup,
+                    ),
                   _ProgressHero(
                     completed: progress.completed,
                     total: progress.total,
                     percent: progress.percent,
                   ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 22),
                   ...groups
-                      .where((g) => !(g.hideWhenEmpty && g.items.isEmpty))
+                      .where((g) =>
+                          (g.kind != _ProgressKind.active || g.items.isEmpty) &&
+                          !(g.hideWhenEmpty && g.items.isEmpty))
                       .map((group) => _ProgressGroup(group: group)),
                 ],
               ),
@@ -100,6 +91,72 @@ class TodayProgressScreen extends StatelessWidget {
       },
     );
   }
+}
+
+class _ProgressHeader extends StatelessWidget {
+  const _ProgressHeader({required this.title, required this.subtitle});
+
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+        builder: (context, constraints) {
+          final compact = constraints.maxWidth < 300 ||
+              MediaQuery.textScalerOf(context).scale(16) > 20;
+          final catSize = compact ? 88.0 : 120.0;
+          return SizedBox(
+            key: const Key('progress-header'),
+            child: Stack(
+              children: [
+                Positioned(
+                  right: 0,
+                  bottom: 0,
+                  child: IgnorePointer(
+                    child: Image.asset(
+                      'assets/decorations/progress-sky.png',
+                      width: compact ? 150 : 178,
+                      height: compact ? 94 : 112,
+                      filterQuality: FilterQuality.none,
+                      excludeFromSemantics: true,
+                    ),
+                  ),
+                ),
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.end,
+                  children: [
+                    Expanded(
+                      child: Padding(
+                        padding: const EdgeInsets.only(bottom: 8),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              title,
+                              style: AppTextStyles.titleScreen.copyWith(
+                                fontSize: compact ? 22 : 28,
+                              ),
+                            ),
+                            const SizedBox(height: 4),
+                            Text(subtitle, style: AppTextStyles.caption),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 8),
+                    SizedBox.square(
+                      key: const Key('progress-menu-cat'),
+                      dimension: catSize,
+                      child: const AnimatedCat(pose: CatPose.complete),
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          );
+        },
+      );
 }
 
 class _ProgressHero extends StatelessWidget {
@@ -116,62 +173,57 @@ class _ProgressHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 22),
+      key: const Key('progress-summary'),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
       decoration: appSurfaceDecoration(radius: 24, elevated: true),
-      child: LayoutBuilder(builder: (context, constraints) {
-        final count = Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text('$completed / $total', style: AppTextStyles.statHero),
-            if (total > 0) ...[
-              const SizedBox(height: 4),
-              Text('$percent%', style: AppTextStyles.statMedium),
-            ],
-          ],
-        );
-        final details = Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            if (total > 0) ...[
-              _ProgressBar(percent: percent, total: total),
-              const SizedBox(height: 12),
-            ],
-            Text(
-                _progressMessage(
-                  l10n: AppLocalizations.of(context),
-                  completed: completed,
-                  total: total,
-                  percent: percent,
-                ),
-                style: AppTextStyles.bodyStrong
-                    .copyWith(color: AppColors.orbitPrimary)),
-          ],
-        );
-        // 큰 글씨·좁은 화면에서는 설명을 아래로 내려 온전히 읽게 한다.
-        if (constraints.maxWidth < 280 ||
-            MediaQuery.textScalerOf(context).scale(16) > 20) {
-          return Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [count, const SizedBox(height: 16), details]);
-        }
-        // 큰 수치는 flex 자식으로 두면 안 된다. Row는 여유 공간을 flex 비율로
-        // 미리 쪼개므로 '12 / 12'(120px)가 배정분(91px)을 넘겨 두 줄로 접혔다.
-        // 숫자는 제 폭을 그대로 쓰고 남는 자리를 설명이 가져간다. 상한은
-        // 설명이 굶지 않게 하는 안전장치이고, 넘칠 때만 글자가 줄어든다.
-        return Row(children: [
-          ConstrainedBox(
-            constraints: BoxConstraints(maxWidth: constraints.maxWidth * 0.55),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Align(
+            alignment: AlignmentDirectional.centerStart,
             child: FittedBox(
               fit: BoxFit.scaleDown,
               alignment: AlignmentDirectional.centerStart,
-              child: count,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    AppLocalizations.of(context).commonToday,
+                    style: AppTextStyles.bodyStrong,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '$completed / $total',
+                    maxLines: 1,
+                    style: AppTextStyles.statMedium.copyWith(fontSize: 28),
+                  ),
+                  if (total > 0) ...[
+                    const Text(' · ', style: AppTextStyles.statMedium),
+                    Text(
+                      '$percent%',
+                      style: AppTextStyles.statMedium.copyWith(fontSize: 28),
+                    ),
+                  ],
+                ],
+              ),
             ),
           ),
-          const SizedBox(width: 20),
-          Expanded(child: details),
-        ]);
-      }),
+          if (total > 0) ...[
+            const SizedBox(height: 12),
+            _ProgressBar(percent: percent, total: total),
+            const SizedBox(height: 12),
+          ],
+          Text(
+              _progressMessage(
+                l10n: AppLocalizations.of(context),
+                completed: completed,
+                total: total,
+                percent: percent,
+              ),
+              style: AppTextStyles.caption),
+        ],
+      ),
     );
   }
 }
@@ -347,14 +399,14 @@ List<_ProgressGroupData> _buildProgressGroups({
 }
 
 class _ProgressGroup extends StatelessWidget {
-  const _ProgressGroup({required this.group});
+  const _ProgressGroup({super.key, required this.group});
 
   final _ProgressGroupData group;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 26),
+      padding: const EdgeInsets.only(bottom: 22),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -374,20 +426,22 @@ class _ProgressGroup extends StatelessWidget {
                   style: AppTextStyles.caption),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           if (group.items.isEmpty)
             _GroupEmpty(message: group.emptyMessage)
           else
-            ...group.items.map(
-              (routine) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
+            ...group.items.indexed.map(
+              (entry) => Padding(
+                padding: EdgeInsets.only(
+                  bottom: entry.$1 == group.items.length - 1 ? 0 : 8,
+                ),
                 child: AppRoutineRow(
-                  color: routine.color,
-                  icon: routine.iconId,
-                  title: routine.title,
+                  color: entry.$2.color,
+                  icon: entry.$2.iconId,
+                  title: entry.$2.title,
                   subtitle: TimeMinutes.formatRange(
-                    routine.startMinutesFromMidnight,
-                    routine.endMinutesFromMidnight,
+                    entry.$2.startMinutesFromMidnight,
+                    entry.$2.endMinutesFromMidnight,
                   ),
                   trailing: _RoutineStatusTrailing(
                     kind: group.kind,

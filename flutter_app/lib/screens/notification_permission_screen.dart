@@ -99,33 +99,33 @@ class _NotificationPermissionScreenState
               const SizedBox(height: 12),
               Text(l10n.permTitle, style: AppTextStyles.caption),
               const SizedBox(height: 24),
-              SizedBox(
-                key: const Key('notification-permission-hero'),
+              const SizedBox(
+                key: Key('notification-permission-hero'),
                 height: 148,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    const Positioned(
+                    Positioned(
                       left: 24,
                       top: 18,
                       child: PixelCloud(width: 48),
                     ),
-                    const Positioned(
+                    Positioned(
                       right: 28,
                       top: 28,
                       child: PixelCloud(width: 40),
                     ),
-                    const Positioned(
+                    Positioned(
                       left: 56,
                       top: 8,
                       child: PixelSpark(size: 12),
                     ),
-                    const Positioned(
+                    Positioned(
                       right: 52,
                       top: 12,
                       child: PixelSpark(size: 14),
                     ),
-                    const PixelDecoration(asset: 'bell', size: 108),
+                    PixelDecoration(asset: 'bell', size: 108),
                   ],
                 ),
               ),

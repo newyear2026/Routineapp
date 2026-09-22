@@ -336,7 +336,7 @@ class _OrbitPreview extends StatelessWidget {
           decoration: appSurfaceDecoration(radius: 24),
           child: Row(
             children: [
-              RoutineMark(
+              const RoutineMark(
                 icon: RoutineIconId.coffee,
                 color: RoutinePalette.blue,
                 size: 40,
@@ -355,7 +355,7 @@ class _OrbitPreview extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.end,
                   children: [
-                    Text(
+                    const Text(
                       '15:00-16:00',
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
@@ -424,7 +424,7 @@ class _ActionsPreview extends StatelessWidget {
           ),
           child: Row(
             children: [
-              RoutineMark(
+              const RoutineMark(
                 icon: RoutineIconId.sun,
                 color: RoutinePalette.coral,
                 size: 40,
@@ -489,11 +489,11 @@ class _ProgressPreview extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return Column(
       children: [
-        Row(
+        const Row(
           children: [
-            const Text('3 / 5', style: AppTextStyles.statHero),
-            const Spacer(),
-            const Text('60%', style: AppTextStyles.statMedium),
+            Text('3 / 5', style: AppTextStyles.statHero),
+            Spacer(),
+            Text('60%', style: AppTextStyles.statMedium),
           ],
         ),
         const SizedBox(height: 10),
@@ -591,4 +591,3 @@ class _PreviewStatusRow extends StatelessWidget {
     );
   }
 }
-

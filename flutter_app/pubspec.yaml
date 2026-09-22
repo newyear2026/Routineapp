@@ -1,7 +1,7 @@
 name: routine_timer
 description: 귀여운 감성 루틴 관리 앱
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.1+2
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -66,9 +66,23 @@ flutter:
   # cacheWidth 384/256으로 디코딩하므로 3x 기기까지 이 크기면 충분하다.
   # 1254px 원본은 design/decorations-src 와 characters/cat_starlight/v1 에 있다.
   assets:
+    - assets/routine_icons/book.png
+    - assets/routine_icons/coffee.png
+    - assets/routine_icons/dumbbell.png
+    - assets/routine_icons/plant.png
+    - assets/routine_icons/paw.png
+    - assets/routine_icons/sun.png
+    - assets/routine_icons/breakfast.png
+    - assets/routine_icons/bowl.png
+    - assets/routine_icons/utensils.png
+    - assets/routine_icons/moon.png
+    - assets/routine_icons/music.png
+    - assets/routine_icons/bag.png
+    - assets/routine_icons/laptop.png
     - assets/decorations/bell.png
     - assets/decorations/home-sky.png
     - assets/decorations/plant.png
+    - assets/decorations/progress-sky.png
     - assets/decorations/sleeping-cat.png
     - assets/characters/cat_starlight/v1/approved/idle.png
     - assets/characters/cat_starlight/v1/approved/activity.png

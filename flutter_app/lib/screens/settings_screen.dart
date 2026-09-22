@@ -4,7 +4,7 @@ import 'package:provider/provider.dart';
 
 import '../application/routine_app_controller.dart';
 import '../application/settings/settings_controller.dart';
-import '../data/local/onboarding_local_storage.dart';
+import '../domain/onboarding/onboarding_preview_nav.dart';
 import '../domain/settings/settings_error.dart';
 import '../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
@@ -186,9 +186,10 @@ class _SettingsScreenContent extends StatelessWidget {
       },
     );
     if (confirmed != true || !context.mounted) return;
-    await OnboardingLocalStorage.resetForReplay();
-    if (!context.mounted) return;
-    context.go('/');
+    // 다시 보기는 어디까지나 읽기 전용 미리보기다. 완료 플래그를 초기화해
+    // 실제 첫 실행 경로로 보내면 추천 루틴 저장 단계도 다시 실행된다.
+    // 화면 재생과 초기 데이터 설정을 경로 수준에서 분리한다.
+    context.push(OnboardingPreviewNav.splashFlow);
   }
 }
 

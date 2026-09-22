@@ -33,10 +33,10 @@ class OrbitBottomNavigation extends StatelessWidget {
     ];
     final callbacks = [onHome, onProgress, onRoutines, onSettings];
     const glyphs = [
-      PixelGlyph.home,
-      PixelGlyph.progress,
-      PixelGlyph.routines,
-      PixelGlyph.settings,
+      PixelGlyph.navHome,
+      PixelGlyph.navProgress,
+      PixelGlyph.navRoutines,
+      PixelGlyph.navSettings,
     ];
 
     return DecoratedBox(

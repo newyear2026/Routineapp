@@ -26,6 +26,8 @@ import '../test/support/test_doubles.dart';
 import '../test/support/localization.dart';
 
 void main() {
+  const outputDir = String.fromEnvironment('AUDIT_OUTPUT_DIR',
+      defaultValue: 'output/pixel-preview');
   testWidgets('실제 홈 화면의 픽셀 스타일 미리보기', (tester) async {
     await initializeDateFormatting();
     const fontPath = String.fromEnvironment('PREVIEW_FONT');
@@ -158,7 +160,7 @@ void main() {
       image.dispose();
       return data!.buffer.asUint8List();
     });
-    final out = File('output/pixel-preview/home.png');
+    final out = File('$outputDir/home.png');
     out.parent.createSync(recursive: true);
     out.writeAsBytesSync(bytes!);
     // 공통 컨트롤이 쓰이는 실제 화면도 같은 테마로 확인한다.
@@ -184,22 +186,68 @@ void main() {
       ));
       await tester.pumpAndSettle();
       expect(tester.takeException(), isNull);
-      await _capture(tester, pageKey, page.key);
+      await _capture(tester, pageKey, page.key, outputDir);
+      if (page.key == 'routine-add') {
+        await tester.ensureVisible(find.byKey(const Key('routine-icon-book')));
+        await tester.pumpAndSettle();
+        await tester.tap(find.byKey(const Key('routine-icon-book')));
+        await tester.pumpAndSettle();
+        await _capture(tester, pageKey, 'routine-add-icons', outputDir);
+      }
       if (page.key == 'onboarding') {
         for (var step = 2; step <= 3; step++) {
           await tester.tap(find.byKey(const Key('onboarding-next-button')));
           await tester.pumpAndSettle();
           expect(tester.takeException(), isNull);
-          await _capture(tester, pageKey, 'onboarding-$step');
+          await _capture(tester, pageKey, 'onboarding-$step', outputDir);
         }
       }
       if (page.key == 'routines') {
         await tester.tap(find.text(testL10n.routinesViewCalendar));
         await tester.pumpAndSettle();
         expect(tester.takeException(), isNull);
-        await _capture(tester, pageKey, 'calendar');
+        await _capture(tester, pageKey, 'calendar', outputDir);
       }
     }
+    // 선택한 진행 화면 시안과 같은 0/3 상태를 별도로 캡처한다.
+    final progressApp = RoutineAppController(
+      dataService: RoutineDataService(
+        routineRepository: MemoryRoutineRepository([
+          dailyRoutine(id: 'wake', title: '기상', startHour: 7, endHour: 8),
+          dailyRoutine(id: 'rest', title: '휴식', startHour: 15, endHour: 16),
+          dailyRoutine(
+              id: 'dinner', title: '저녁 식사', startHour: 18, endHour: 19),
+        ]),
+        logRepository: MemoryLogRepository(),
+      ),
+      notificationService: RoutineNotificationService(
+        exactAlarmsAllowed: () async => false,
+        gateway: NoopNotificationGateway(),
+        preferencesLoader: () async =>
+            NotificationPreferences.firstLaunchDefaults,
+      ),
+      nowProvider: () => DateTime(2026, 9, 21, 15, 14),
+      clockAutoRefreshEnabled: false,
+    );
+    await progressApp.load();
+    final selectedProgressKey = GlobalKey();
+    await tester.pumpWidget(ChangeNotifierProvider.value(
+      value: progressApp,
+      child: localizedApp(
+        home: Theme(
+          data: buildRoutineTheme(fontFamily: 'PreviewKorean'),
+          child: RepaintBoundary(
+            key: selectedProgressKey,
+            child: const TodayProgressScreen(),
+          ),
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+    expect(tester.takeException(), isNull);
+    await _capture(tester, selectedProgressKey, 'progress-selected', outputDir);
+    await tester.pumpWidget(const SizedBox());
+    progressApp.dispose();
     // 작은 화면 / 큰 글씨에서도 레이아웃이 깨지지 않는지 확인한다.
     tester.view.physicalSize = const Size(320, 700);
     for (final screen in <Widget>[
@@ -227,7 +275,8 @@ void main() {
   });
 }
 
-Future<void> _capture(WidgetTester tester, GlobalKey key, String name) async {
+Future<void> _capture(
+    WidgetTester tester, GlobalKey key, String name, String outputDir) async {
   final boundary =
       key.currentContext!.findRenderObject()! as RenderRepaintBoundary;
   final bytes = await tester.runAsync(() async {
@@ -236,5 +285,7 @@ Future<void> _capture(WidgetTester tester, GlobalKey key, String name) async {
     image.dispose();
     return data!.buffer.asUint8List();
   });
-  File('output/pixel-preview/$name.png').writeAsBytesSync(bytes!);
+  final out = File('$outputDir/$name.png');
+  out.parent.createSync(recursive: true);
+  out.writeAsBytesSync(bytes!);
 }

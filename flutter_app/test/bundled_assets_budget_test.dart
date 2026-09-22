@@ -15,6 +15,7 @@ void main() {
   const bundledDirs = [
     'assets/decorations',
     'assets/characters/cat_starlight/v1/approved',
+    'assets/routine_icons',
   ];
 
   List<File> bundledPngs() => [
@@ -25,7 +26,7 @@ void main() {
               .where((file) => file.path.endsWith('.png')),
       ]..sort((a, b) => a.path.compareTo(b.path));
 
-  test('번들 그림은 384px·130KB를 넘지 않는다', () {
+  test('번들 그림과 루틴 아이콘은 384px·130KB를 넘지 않는다', () {
     final files = bundledPngs();
     expect(files, isNotEmpty);
 

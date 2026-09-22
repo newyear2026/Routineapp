@@ -52,9 +52,26 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
     String doneMessage,
   ) async {
     final controller = context.read<RoutineAppController>();
-    final messenger = ScaffoldMessenger.of(context);
-    final undo = await action();
+    final RoutineActionUndo? undo;
+    try {
+      undo = await action();
+    } catch (_) {
+      if (!mounted) return;
+      final messenger = ScaffoldMessenger.of(context);
+      messenger
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          SnackBar(
+            content: Text(
+              AppLocalizations.of(context).homeActionSaveFailed,
+            ),
+          ),
+        );
+      return;
+    }
     if (!mounted || undo == null) return;
+    final appliedUndo = undo;
+    final messenger = ScaffoldMessenger.of(context);
     messenger
       ..hideCurrentSnackBar()
       ..showSnackBar(
@@ -62,7 +79,23 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
           content: Text(doneMessage),
           action: SnackBarAction(
             label: AppLocalizations.of(context).commonUndo,
-            onPressed: () => controller.undoAction(undo),
+            onPressed: () async {
+              try {
+                await controller.undoAction(appliedUndo);
+              } catch (_) {
+                if (!mounted) return;
+                final failureMessenger = ScaffoldMessenger.of(context);
+                failureMessenger
+                  ..hideCurrentSnackBar()
+                  ..showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        AppLocalizations.of(context).homeActionUndoFailed,
+                      ),
+                    ),
+                  );
+              }
+            },
           ),
         ),
       );
@@ -148,6 +181,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                           routines: home.segments,
                           currentTime: home.clockTime,
                           activeRoutine: home.activeRoutineForRing,
+                          showNowLabel: false,
                           size: size),
                     ),
                   const SizedBox(height: 18),

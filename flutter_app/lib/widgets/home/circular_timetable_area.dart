@@ -4,9 +4,12 @@ import '../../l10n/app_localizations.dart';
 import '../../domain/utils/time_minutes.dart';
 import '../../models/home_models.dart';
 import '../../theme/app_colors.dart';
+import '../../theme/app_pixel_style.dart';
 import '../../theme/app_text_styles.dart';
+import '../ds/routine_mark.dart';
 import '../orbit_ring_painter.dart';
 import 'pixel_orbit_plate.dart';
+import 'routine_ring_icon_layout.dart';
 
 /// Home 원형 하루 시간표 — Orbit 스타일 리디자인
 class CircularTimetableArea extends StatelessWidget {
@@ -15,12 +18,14 @@ class CircularTimetableArea extends StatelessWidget {
     required this.routines,
     required this.currentTime,
     this.activeRoutine,
+    this.showNowLabel = true,
     this.size = 272,
   });
 
   final List<RoutineSegment> routines;
   final TimeOfDay currentTime;
   final CurrentRoutine? activeRoutine;
+  final bool showNowLabel;
   final double size;
 
   @override
@@ -37,6 +42,7 @@ class CircularTimetableArea extends StatelessWidget {
       currentMinute: currentTime.minute,
       nowMinutesFromMidnight: nowMin,
       activeSegmentId: activeRoutine?.id ?? '',
+      showNowLabel: showNowLabel,
       size: size,
     );
   }
@@ -49,6 +55,7 @@ class _CircularTimetableView extends StatelessWidget {
     required this.currentMinute,
     required this.nowMinutesFromMidnight,
     required this.activeSegmentId,
+    required this.showNowLabel,
     required this.size,
   });
 
@@ -57,11 +64,18 @@ class _CircularTimetableView extends StatelessWidget {
   final int currentMinute;
   final int nowMinutesFromMidnight;
   final String activeSegmentId;
+  final bool showNowLabel;
   final double size;
 
   @override
   Widget build(BuildContext context) {
     final timeText = TimeMinutes.formatHm(currentHour * 60 + currentMinute);
+    final nowLabel = AppLocalizations.of(context).commonNow;
+    final iconPlacements = RoutineRingIconLayout.arrange(
+      segments: segments,
+      dialSize: size,
+      activeSegmentId: activeSegmentId,
+    );
 
     return SizedBox(
       width: size,
@@ -92,6 +106,15 @@ class _CircularTimetableView extends StatelessWidget {
           CustomPaint(
               size: Size.square(size),
               painter: const PixelOrbitPlate(centerOnly: true)),
+          for (final placement in iconPlacements)
+            Positioned(
+              left: placement.bounds.left,
+              top: placement.bounds.top,
+              child: _RoutineRingIconBadge(
+                placement: placement,
+                active: placement.segment.id == activeSegmentId,
+              ),
+            ),
           // 중앙은 '시계' 하나만 맡는다. 루틴 이름은 화면 상단 스트립이 이미
           // 말하고 있으므로 여기서 반복하지 않는다 (One Strong Object).
           SizedBox(
@@ -99,44 +122,91 @@ class _CircularTimetableView extends StatelessWidget {
             height: size * .44,
             child: FittedBox(
               fit: BoxFit.scaleDown,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    timeText,
-                    style: AppTextStyles.clock.copyWith(
-                      fontSize: size >= 280
-                          ? 38
-                          : size >= 232
-                              ? 32
-                              : 28,
-                    ),
-                  ),
-                  const SizedBox(height: 6),
-                  Container(
-                    padding: const EdgeInsets.symmetric(
-                      horizontal: 10,
-                      vertical: 4,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.orbitSurfaceSoft,
-                      border: Border.all(color: AppColors.orbitBorder),
-                    ),
-                    child: Text(
-                      AppLocalizations.of(context).commonNow,
-                      style: const TextStyle(
-                        color: AppColors.textMuted,
-                        fontSize: 10,
-                        fontWeight: FontWeight.w800,
-                        letterSpacing: 1.1,
+              child: Semantics(
+                label: '$nowLabel $timeText',
+                child: ExcludeSemantics(
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        timeText,
+                        key: const Key('home-ring-current-time'),
+                        style: AppTextStyles.clock.copyWith(
+                          fontSize: size >= 280
+                              ? 38
+                              : size >= 232
+                                  ? 32
+                                  : 28,
+                        ),
                       ),
-                    ),
+                      if (showNowLabel) ...[
+                        const SizedBox(height: 6),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 4,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.orbitSurfaceSoft,
+                            border: Border.all(color: AppColors.orbitBorder),
+                          ),
+                          child: Text(
+                            nowLabel,
+                            style: const TextStyle(
+                              color: AppColors.textMuted,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                              letterSpacing: 1.1,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
-                ],
+                ),
               ),
             ),
           ),
         ],
+      ),
+    );
+  }
+}
+
+class _RoutineRingIconBadge extends StatelessWidget {
+  const _RoutineRingIconBadge({
+    required this.placement,
+    required this.active,
+  });
+
+  final RoutineRingIconPlacement placement;
+  final bool active;
+
+  @override
+  Widget build(BuildContext context) {
+    final segment = placement.segment;
+    return IgnorePointer(
+      child: ExcludeSemantics(
+        child: Container(
+          key: Key('home-ring-icon-${segment.id}'),
+          width: placement.size,
+          height: placement.size,
+          alignment: Alignment.center,
+          decoration: ShapeDecoration(
+            color: AppColors.orbitSurface,
+            shape: AppPixelStyle.shape(
+              color: active ? AppColors.orbitPrimary : AppColors.textPrimary,
+              width: active ? 2 : 1.2,
+              step: 2,
+              steps: 2,
+            ),
+          ),
+          child: RoutineMark(
+            icon: segment.iconId!,
+            color: segment.color,
+            size: placement.size * 0.78,
+          ),
+        ),
       ),
     );
   }

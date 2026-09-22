@@ -38,12 +38,10 @@ class RoutineIconPicker extends StatelessWidget {
                 key: Key('routine-icon-${icon.name}'),
                 onTap: () => onSelected(icon),
                 child: Container(
-                  width: 48,
-                  height: 48,
+                  width: 52,
+                  height: 52,
                   decoration: ShapeDecoration(
-                    color: icon == selected
-                        ? color.withValues(alpha: 0.18)
-                        : AppColors.orbitSurface,
+                    color: AppColors.orbitSurface,
                     shape: AppPixelStyle.shape(
                       color: icon == selected
                           ? AppColors.orbitPrimary
@@ -53,7 +51,7 @@ class RoutineIconPicker extends StatelessWidget {
                     ),
                   ),
                   child: Center(
-                    child: RoutineMark(icon: icon, color: color, size: 32),
+                    child: RoutineMark(icon: icon, color: color, size: 42),
                   ),
                 ),
               ),

@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:routine_timer/application/routine_app_controller.dart';
 import 'package:routine_timer/application/services/routine_data_service.dart';
 import 'package:routine_timer/application/services/routine_notification_service.dart';
+import 'package:routine_timer/data/local/onboarding_local_storage.dart';
+import 'package:routine_timer/domain/onboarding/onboarding_preview_nav.dart';
 import 'package:routine_timer/domain/settings/notification_preferences.dart';
 import 'package:routine_timer/screens/settings_screen.dart';
 import 'package:routine_timer/widgets/ds/animated_cat.dart';
@@ -47,10 +50,31 @@ void main() {
       clockAutoRefreshEnabled: false,
     );
     await controller.load();
+    final router = GoRouter(
+      initialLocation: '/settings',
+      routes: [
+        GoRoute(
+          path: '/settings',
+          builder: (_, __) => const SettingsScreen(),
+        ),
+        GoRoute(
+          path: OnboardingPreviewNav.splashPath,
+          builder: (_, __) => const Scaffold(
+            body: Center(
+              child: Text(
+                '읽기 전용 안내',
+                key: Key('safe-onboarding-replay'),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+    addTearDown(router.dispose);
     await tester.pumpWidget(
       ChangeNotifierProvider.value(
         value: controller,
-        child: localizedApp(home: const SettingsScreen()),
+        child: localizedApp(routerConfig: router),
       ),
     );
     await tester.pumpAndSettle();
@@ -146,5 +170,29 @@ void main() {
     await tester.pump();
     expect(find.text('시작 안내를 다시 진행할까요?'), findsNothing);
     expect(find.text('설정'), findsWidgets);
+  });
+
+  testWidgets('시작 안내 다시 보기는 완료 상태를 초기화하지 않는다', (tester) async {
+    SharedPreferences.setMockInitialValues({
+      'onboarding.has_seen_intro': true,
+      'onboarding.has_completed_initial_routine_setup': true,
+      'onboarding.has_handled_notification_setup': true,
+    });
+    final controller = await pumpSettings(tester);
+    addTearDown(controller.dispose);
+
+    await tester.drag(
+      find.byType(ListView),
+      const Offset(0, -500),
+    );
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('시작 안내 다시 보기'));
+    await tester.pump();
+    await tester.tap(find.text('다시 진행'));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('safe-onboarding-replay')), findsOneWidget);
+    final onboarding = await OnboardingLocalStorage.load();
+    expect(onboarding.hasCompletedOnboarding, isTrue);
   });
 }

@@ -10,6 +10,7 @@ import 'package:routine_timer/domain/settings/notification_preferences.dart';
 import 'package:routine_timer/screens/routines_screen.dart';
 import 'package:routine_timer/screens/today_progress_screen.dart';
 import 'package:routine_timer/widgets/ds/animated_cat.dart';
+import 'package:routine_timer/widgets/ds/orbit_bottom_navigation.dart';
 import 'package:routine_timer/widgets/ds/segmented_progress.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -176,6 +177,40 @@ void main() {
   });
 
   group('진행 화면', () {
+    testWidgets('날짜 버튼 없이 진행 중 루틴을 요약보다 먼저 보여준다', (tester) async {
+      tester.view
+        ..physicalSize = const Size(390, 844)
+        ..devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+
+      final controller = await pump(
+        tester,
+        const TodayProgressScreen(),
+        now: DateTime(2026, 9, 21, 15, 14),
+        routines: [
+          dailyRoutine(id: 'wake', title: '기상', startHour: 7, endHour: 8),
+          dailyRoutine(id: 'rest', title: '휴식', startHour: 15, endHour: 16),
+          dailyRoutine(
+              id: 'dinner', title: '저녁 식사', startHour: 18, endHour: 19),
+        ],
+      );
+      addTearDown(controller.dispose);
+
+      expect(find.text('9월 21일 (월)'), findsNothing);
+      expect(find.byTooltip(testL10n.routinesViewCalendar), findsNothing);
+      expect(find.text('0 / 3'), findsOneWidget);
+      expect(
+        tester.getRect(find.byKey(const Key('progress-active-group'))).bottom,
+        lessThanOrEqualTo(
+            tester.getRect(find.byKey(const Key('progress-summary'))).top),
+      );
+      expect(
+        tester.getRect(find.text('저녁 식사')).bottom,
+        lessThanOrEqualTo(
+            tester.getRect(find.byType(OrbitBottomNavigation)).top),
+      );
+    });
+
     testWidgets('실제 완료 처리 후 픽셀 막대가 갱신된다', (tester) async {
       final controller = await pump(
         tester,

@@ -15,6 +15,7 @@ abstract final class HomeViewMapper {
             label: r.title,
             emoji: r.iconEmoji,
             color: r.color,
+            iconId: r.iconId,
           ),
         )
         .toList();

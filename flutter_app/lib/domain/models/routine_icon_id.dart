@@ -17,18 +17,18 @@ enum RoutineIconId {
   laptop;
 
   static const pickerOrder = <RoutineIconId>[
+    book,
     coffee,
     dumbbell,
-    book,
-    music,
     plant,
+    paw,
+    music,
     bag,
     sun,
     breakfast,
     utensils,
     moon,
     laptop,
-    paw,
     bowl,
   ];
 

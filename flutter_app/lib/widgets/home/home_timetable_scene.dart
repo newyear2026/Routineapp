@@ -23,12 +23,14 @@ class HomeTimetableScene extends StatelessWidget {
         builder: (context, constraints) {
           final width = math.min(constraints.maxWidth, 374.0);
           final ringSize = width * 0.76;
+          final catWidth = math.min(width * 0.39, 132.0);
+          final plantSize = math.min(width * 0.23, 68.0);
           return Center(
             child: SizedBox(
               key: const Key('home-timetable-scene'),
               width: width,
-              height: width * 0.93,
-              child: Stack(children: [
+              height: width * 0.89,
+              child: Stack(clipBehavior: Clip.none, children: [
                 Positioned.fill(
                   child: IgnorePointer(
                     child: Image.asset(
@@ -50,17 +52,17 @@ class HomeTimetableScene extends StatelessWidget {
                 ),
                 Positioned(
                   key: const Key('home-timetable-plant'),
-                  left: 0,
-                  bottom: width * 0.04,
-                  child: const PixelDecoration(asset: 'plant', size: 54),
+                  left: width * 0.08,
+                  bottom: 0,
+                  child: PixelDecoration(asset: 'plant', size: plantSize),
                 ),
                 Positioned(
                   key: const Key('home-timetable-cat'),
-                  right: 0,
+                  right: -width * 0.065,
                   bottom: 0,
                   child: SizedBox(
-                    width: 96,
-                    height: 88,
+                    width: catWidth,
+                    height: catWidth * 0.8,
                     child: AnimatedCat(pose: catPose),
                   ),
                 ),
