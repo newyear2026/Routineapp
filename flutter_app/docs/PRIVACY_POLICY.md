@@ -22,7 +22,7 @@
 
 ### 1. 개요
 
-하루한바퀴(DayRound, 이하 "앱")는 **개발자가 사용자의 개인정보를 수집하지 않습니다.**
+LOOPET(이하 "앱")은 **개발자가 사용자의 개인정보를 수집하지 않습니다.**
 
 앱은 계정이나 로그인을 요구하지 않으며, 개발자는 서버를 운영하지 않습니다.
 
@@ -88,7 +88,7 @@
 
 ### 1. Overview
 
-DayRound (the "App") — **the developer collects no personal information.**
+LOOPET (the "App") — **the developer collects no personal information.**
 
 The App requires no account or login, and the developer operates no servers.
 
@@ -159,7 +159,7 @@ Questions about this policy: **jacoboh7307@gmail.com**
 
 ### 1. Descripción general
 
-Vuelta al Día (la "Aplicación") — **el desarrollador no recopila ninguna información personal.**
+LOOPET (la "Aplicación") — **el desarrollador no recopila ninguna información personal.**
 
 La Aplicación no requiere cuenta ni inicio de sesión, y el desarrollador no opera servidores.
 

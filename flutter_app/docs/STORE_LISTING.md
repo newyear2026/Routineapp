@@ -13,7 +13,7 @@
 **앱 이름** (30자)
 
 ```
-하루한바퀴
+LOOPET
 ```
 
 **간단한 설명** (80자)
@@ -27,7 +27,7 @@
 ```
 하루를 원 하나로 봅니다.
 
-할 일 목록은 길어질수록 무거워집니다. 하루한바퀴는 목록 대신 24시간 원형
+할 일 목록은 길어질수록 무거워집니다. LOOPET은 목록 대신 24시간 원형
 시간표를 보여줍니다. 아침부터 밤까지 내 하루가 어떻게 채워져 있는지, 지금
 어디쯤 와 있는지가 한 번에 들어옵니다.
 
@@ -90,7 +90,7 @@
 **App name** (30)
 
 ```
-DayRound
+LOOPET
 ```
 
 **Short description** (80)
@@ -104,7 +104,7 @@ Your whole day in one circle. See what to do now and what comes next.
 ```
 See your day as a single circle.
 
-To-do lists get heavier the longer they grow. DayRound shows you a 24-hour
+To-do lists get heavier the longer they grow. LOOPET shows you a 24-hour
 circular timetable instead. You can see how your day is filled from morning
 to night, and exactly where you are in it, at a glance.
 
@@ -168,7 +168,7 @@ their day flows, and anyone who found to-do apps exhausting.
 **Nombre de la app** (30)
 
 ```
-Vuelta al Día
+LOOPET
 ```
 
 **Descripción breve** (80)
@@ -182,7 +182,7 @@ Todo tu día en un círculo. Mira qué toca ahora y qué viene después.
 ```
 Mira tu día como un solo círculo.
 
-Las listas de tareas pesan más cuanto más crecen. Vuelta al Día te muestra
+Las listas de tareas pesan más cuanto más crecen. LOOPET te muestra
 un horario circular de 24 horas. Ves cómo se llena tu día de la mañana a la
 noche, y en qué punto estás, de un vistazo.
 
@@ -247,7 +247,20 @@ fluye su día, y para quien encontró agotadoras las apps de tareas.
 |------|------|------|
 | 앱 아이콘 | 512×512 PNG | `assets/icon/app_icon.png`를 512로 리사이즈 |
 | 그래픽 이미지 | 1024×500 | 브랜드 마크 + 앱 이름, 배경 `#F7F3EE` |
-| 휴대전화 스크린샷 | 최소 2장 (권장 4~8장) | 홈 / 오늘 진행 / 루틴 추가 / 루틴 목록 |
+| 휴대전화 스크린샷 | 최소 2장 (권장 4~8장) | 아래 마케팅 카드 |
 
-스크린샷은 실기기나 에뮬레이터에서 촬영한다. 온보딩 화면보다 **홈 화면의
-원형 시간표를 첫 장**에 두는 편이 앱의 성격을 가장 빠르게 전달한다.
+마케팅 스크린샷은 실화면을 폰 목업에 넣고 제목을 얹은 카드다. 손으로 PNG를
+그리지 않는다.
+
+```bash
+flutter test tool/generate_store_screenshots.dart
+```
+
+| 경로 | 규격 | 용도 |
+|------|------|------|
+| `assets/store/screenshots/marketing/play/{ko,en,es}/` | 1080×1920 | Play Console (9:16) |
+| `assets/store/screenshots/marketing/ios/{ko,en,es}/` | 1290×2796 | App Store 6.7" |
+| `assets/store/screenshots/marketing/preview_*.png` | 가로 스트립 | 한눈에 보는 캐러셀 |
+
+업로드 순서: 홈(원형 시간표) → 진행 → 위젯 → 루틴 목록 → 추가 → 달력 → 시작.
+온보딩 화면보다 **홈 화면의 원형 시간표를 첫 장**에 둔다.

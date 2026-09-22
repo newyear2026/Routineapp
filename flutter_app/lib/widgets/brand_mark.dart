@@ -2,7 +2,7 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-/// 브랜드 마크 — 하루한바퀴 / DayRound / Vuelta al Día.
+/// 브랜드 마크 — LOOPET.
 ///
 /// 닫힌 궤도 하나가 하루를 한 바퀴 돈다. 궤도 위에 해와 달이 얹혀 낮과 밤을
 /// 표시하고, 작은 알약 두 개가 그날의 루틴 블록을 뜻한다.

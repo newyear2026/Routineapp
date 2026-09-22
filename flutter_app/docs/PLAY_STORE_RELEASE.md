@@ -10,7 +10,7 @@
 |------|-----|
 | 패키지 이름 | `com.dayround.app` (Android `applicationId`, iOS Bundle ID 동일) |
 | App Group (iOS) | `group.com.dayround.app` |
-| 앱 이름 | en `DayRound` / ko `하루한바퀴` / es `Vuelta al Día` |
+| 앱 이름 | `LOOPET` (en·ko·es 공통) |
 | `targetSdk` | 36 (Flutter 3.41 기본) — 2026-08-31 요건 충족 |
 | `minSdk` | 24 |
 | 버전 | `pubspec.yaml`의 `version: 1.0.0+1` → versionName 1.0.0 / versionCode 1 |
@@ -86,7 +86,7 @@ dart run flutter_launcher_icons             # 플랫폼별 해상도 생성
 
 | 항목 | 값 |
 |------|-----|
-| 앱 이름 | `DayRound` |
+| 앱 이름 | `LOOPET` |
 | 패키지 이름 | `com.dayround.app` |
 | 기본 언어 | 영어(미국) |
 | 앱 또는 게임 | 앱 |
@@ -105,7 +105,7 @@ dart run flutter_launcher_icons             # 플랫폼별 해상도 생성
 |------|------|
 | 앱 아이콘 | 512×512 PNG (`assets/icon/app_icon.png`를 512로 리사이즈) |
 | 그래픽 이미지 | 1024×500 PNG/JPG |
-| 휴대전화 스크린샷 | 최소 2장, 16:9 또는 9:16, 320~3840px |
+| 휴대전화 스크린샷 | 최소 2장, 16:9 또는 9:16, 320~3840px. `assets/store/screenshots/marketing/play/` (1080×1920) |
 | 간단한 설명 | 80자 이내 |
 | 자세한 설명 | 4000자 이내 |
 
