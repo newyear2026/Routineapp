@@ -120,12 +120,41 @@ dart run flutter_launcher_icons             # 플랫폼별 해상도 생성
 | 개인정보처리방침 | URL 필수 — `docs/PRIVACY_POLICY.md`를 웹에 올린다 |
 | 광고 | 없음 |
 | 앱 액세스 권한 | 제한 없음 (로그인 없음) |
+| 알람 및 리마인더 권한 | **사용함** — `USE_EXACT_ALARM`, 아래 선언문 참고 |
 | 콘텐츠 등급 | 설문 후 자동 산정 (유틸리티, 전체이용가 예상) |
 | 타겟층 | 만 13세 이상 권장 |
 | 데이터 안전성 | **데이터를 수집하거나 공유하지 않음** |
 | 정부 앱 | 아니요 |
 
 데이터 안전성을 "수집 안 함"으로 신고할 수 있는 근거는 아래와 같다. 서버가 없고, `AndroidManifest.xml`에 `INTERNET` 권한조차 없으며, 모든 저장이 `SharedPreferences` 로컬이다. 이후 광고 SDK나 분석 도구를 넣으면 이 답변을 반드시 갱신해야 한다.
+
+### 정확한 알람 권한 선언 (`USE_EXACT_ALARM`)
+
+Play Console > **앱 콘텐츠 > 알람 및 리마인더 권한**에서 선언해야 한다. 선언하지
+않으면 릴리스가 반려된다.
+
+Google 은 이 권한을 "사용자가 정한 시각에 울리는 것이 핵심 기능인 앱"(알람시계,
+타이머, 캘린더 알림)으로 제한한다. 이 앱이 거기 해당하는 근거:
+
+- 사용자가 루틴마다 시작 시각을 직접 정한다. 앱이 임의로 고른 시각이 아니다.
+- 그 시각의 알림이 제품 그 자체다. 알림이 늦으면 «7시 기상» 루틴이 제 역할을
+  못 한다. 마케팅·재참여 알림에는 쓰지 않는다.
+- 알림을 끈 사용자에게는 알람을 걸지 않는다.
+
+**선언문 초안 (영문, 그대로 붙여 넣을 수 있음)**
+
+> LOOPET is a routine reminder app. Users set an exact start time for each
+> routine they create, and the app fires a notification at that time. The
+> reminder at the user-chosen time is the app's core function — a routine such
+> as "wake up at 7:00" fails its purpose if the notification is delayed. Exact
+> alarms are used only for these user-scheduled routine reminders and for the
+> user's own "remind me later" snooze. They are never used for marketing,
+> promotional, or re-engagement messages.
+
+**반려될 경우** — `USE_EXACT_ALARM` 을 빼고 `SCHEDULE_EXACT_ALARM` 만 남기면
+빌드는 그대로 통과한다. 다만 Android 14+ 에서 기본 거부라, 사용자를 시스템
+설정으로 보내는 UI 를 다시 만들어야 한다(이 커밋에서 제거한 `ExactAlarmTile`).
+코드는 권한이 없으면 이미 부정확 알람으로 후퇴하므로 알림 자체는 계속 동작한다.
 
 ---
 

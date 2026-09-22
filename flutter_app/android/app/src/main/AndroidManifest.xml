@@ -1,8 +1,22 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <!-- 루틴 알림은 사용자가 정한 시각에 울려야 한다. 이 권한이 없으면 OS 가
-         알림을 최대 10분 이상 미룬다. 사용자가 시스템 설정에서 끌 수 있고,
-         꺼져 있으면 앱은 부정확 알람으로 자동 후퇴한다. -->
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+         알림을 최대 10분 이상 미룬다.
+
+         USE_EXACT_ALARM 은 설치할 때 자동으로 허용되고 사용자가 끌 수 없다.
+         Android 14 부터 SCHEDULE_EXACT_ALARM 이 기본 «거부»로 바뀌어서, 그것만
+         선언하면 신규 사용자 대부분이 몇 분 늦는 알림을 받는 상태로 시작한다.
+         정한 시각에 알리는 것이 이 앱의 전부라 그 상태를 기본값으로 둘 수 없다.
+
+         Play 정책상 이 권한은 «핵심 기능이 정해진 시각의 알림»인 앱만 쓸 수
+         있고 Play Console 에 용도를 선언해야 한다. docs/PLAY_STORE_RELEASE.md 참고.
+
+         아래 SCHEDULE_EXACT_ALARM 은 USE_EXACT_ALARM 이 없는 Android 12~12L
+         (API 31~32) 전용으로 남긴다. 거기서는 사용자가 시스템 설정에서 끌 수
+         있고, 꺼져 있으면 앱은 부정확 알람으로 후퇴한다. -->
+    <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
+    <uses-permission
+        android:name="android.permission.SCHEDULE_EXACT_ALARM"
+        android:maxSdkVersion="32" />
     <!-- 부팅 완료 브로드캐스트는 이 권한을 선언한 앱에만 전달된다. 아래
          ScheduledNotificationBootReceiver 와 짝이며, 하나만 있으면 리시버가
          영원히 호출되지 않는다 — 빌드도 되고 경고도 없어서 알아채기 어렵다.
