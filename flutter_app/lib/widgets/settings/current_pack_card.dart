@@ -59,23 +59,57 @@ class CurrentPackCard extends StatelessWidget {
                 animate: true,
               ),
             );
-            if (box.maxWidth < 260) {
-              return Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  portrait,
-                  const SizedBox(height: AppSpacing.md),
-                  details,
-                ],
-              );
-            }
-            return Row(children: [
-              portrait,
-              const SizedBox(width: AppSpacing.lg),
-              Expanded(child: details),
-              const AppIcon(Icons.chevron_right_rounded,
-                  color: AppColors.textMuted),
-            ]);
+            final content = box.maxWidth < 260
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      portrait,
+                      const SizedBox(height: AppSpacing.md),
+                      details,
+                    ],
+                  )
+                : Row(children: [
+                    portrait,
+                    const SizedBox(width: AppSpacing.lg),
+                    Expanded(child: details),
+                    const AppIcon(
+                      Icons.chevron_right_rounded,
+                      color: AppColors.textMuted,
+                    ),
+                  ]);
+            return Stack(
+              children: [
+                Positioned(
+                  key: const Key('settings-pack-sky-decoration'),
+                  left: -8,
+                  top: -8,
+                  child: IgnorePointer(
+                    child: Image.asset(
+                      'assets/decorations/progress-sky.png',
+                      width: 126,
+                      height: 79,
+                      filterQuality: FilterQuality.none,
+                      excludeFromSemantics: true,
+                    ),
+                  ),
+                ),
+                Positioned(
+                  key: const Key('settings-pack-sky-decoration-right'),
+                  right: 10,
+                  bottom: 4,
+                  child: IgnorePointer(
+                    child: Image.asset(
+                      'assets/decorations/settings-card-cloud.png',
+                      width: 70,
+                      height: 35,
+                      filterQuality: FilterQuality.none,
+                      excludeFromSemantics: true,
+                    ),
+                  ),
+                ),
+                content,
+              ],
+            );
           }),
         ),
       ),

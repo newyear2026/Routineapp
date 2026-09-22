@@ -2,7 +2,11 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../app_optional_provider.dart';
+import '../application/release/release_announcements.dart';
 import '../application/routine_app_controller.dart';
+import '../application/services/store_review_launcher.dart';
+import '../application/update/app_updates_controller.dart';
 import '../application/settings/settings_controller.dart';
 import '../domain/onboarding/onboarding_preview_nav.dart';
 import '../domain/settings/settings_error.dart';
@@ -19,19 +23,38 @@ import '../widgets/settings/settings_section.dart';
 /// 설정 화면은 섹션 배치와 화면 전환만 담당한다.
 /// 알림 설정의 로드·저장·권한 요청은 [SettingsController]에 둔다.
 class SettingsScreen extends StatelessWidget {
-  const SettingsScreen({super.key});
+  const SettingsScreen({
+    super.key,
+    this.openStoreReview = openPlayStoreReview,
+    this.showStoreReview,
+  });
+
+  final StoreReviewLauncher openStoreReview;
+
+  /// 비워 두면 [storeReviewAvailable]을 따른다. 테스트가 플랫폼과 무관하게
+  /// 행을 켜고 끌 수 있도록 열어 둔다.
+  final bool? showStoreReview;
 
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
       create: (_) => SettingsController()..load(),
-      child: const _SettingsScreenContent(),
+      child: _SettingsScreenContent(
+        openStoreReview: openStoreReview,
+        showStoreReview: showStoreReview ?? storeReviewAvailable,
+      ),
     );
   }
 }
 
 class _SettingsScreenContent extends StatelessWidget {
-  const _SettingsScreenContent();
+  const _SettingsScreenContent({
+    required this.openStoreReview,
+    required this.showStoreReview,
+  });
+
+  final StoreReviewLauncher openStoreReview;
+  final bool showStoreReview;
 
   @override
   Widget build(BuildContext context) {
@@ -39,6 +62,10 @@ class _SettingsScreenContent extends StatelessWidget {
     final appController = context.watch<RoutineAppController>();
     final settings = context.watch<SettingsController>();
     final controlsEnabled = !settings.isLoading && !settings.isUpdating;
+    // 프로바이더가 없으면 null이다 — 테스트나 갤러리가 이 화면만 띄운 경우다.
+    // 그때 행은 **없는** 것이고, 눌러도 답하지 않는 죽은 행이 있는 것이 아니다.
+    final updates = context.maybeWatch<AppUpdates>();
+    final announcements = context.maybeWatch<ReleaseAnnouncements>();
 
     return Scaffold(
       bottomNavigationBar: OrbitBottomNavigation(
@@ -53,17 +80,14 @@ class _SettingsScreenContent extends StatelessWidget {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(24, 48, 24, 28),
           children: [
-            Text(
-              AppDateFormats.monthDayWeekday(
+            _SettingsSkyHeader(
+              caption: AppDateFormats.monthDayWeekday(
                 context,
                 appController.now,
               ),
-              style: AppTextStyles.caption,
+              title: l10n.settingsTitle,
+              subtitle: l10n.settingsSubtitle,
             ),
-            const SizedBox(height: 2),
-            Text(l10n.settingsTitle, style: AppTextStyles.titleScreen),
-            const SizedBox(height: 3),
-            Text(l10n.settingsSubtitle, style: AppTextStyles.caption),
             const SizedBox(height: 18),
             const CurrentPackCard(),
             const SizedBox(height: 24),
@@ -143,10 +167,45 @@ class _SettingsScreenContent extends StatelessWidget {
                 statusLabel: l10n.commonComingSoon,
                 description: l10n.settingsContactDesc,
               ),
+              if (showStoreReview)
+                SettingsNavigationTile(
+                  icon: Icons.star_outline_rounded,
+                  label: l10n.settingsReview,
+                  description: l10n.settingsReviewDesc,
+                  onTap: () => _openStoreReview(context),
+                ),
+              // 물어볼 스토어가 없는 빌드에서는 행 자체를 빼야 한다. 두면
+              // 무엇을 눌러도 «최신 버전이에요»라고 답한다.
+              if (updates != null && updates.canCheck)
+                SettingsNavigationTile(
+                  icon: Icons.system_update_alt_rounded,
+                  label: l10n.settingsCheckUpdate,
+                  description: _updateCheckDescription(l10n, updates),
+                  // 확인 중에도 살려 둔다. 컨트롤러가 겹친 호출을 버리므로
+                  // 비활성으로 만들 이유가 없고, 그러면 화살표가 사라져 줄이
+                  // 눌릴 때마다 흔들린다.
+                  onTap: () => updates.refresh(force: true),
+                ),
+              if (announcements != null)
+                SettingsNavigationTile(
+                  icon: Icons.auto_awesome_rounded,
+                  // 업데이트 안내와 색을 나눈다. 그쪽은 요청이라 행동색을 쓰고
+                  // 이쪽은 알림이다.
+                  accent: AppColors.orbitAccent,
+                  label: l10n.settingsReleaseNotes,
+                  description: l10n.settingsReleaseNotesDesc,
+                  // 점이 아니라 글자다. 스크린리더는 점을 읽지 못한다.
+                  statusLabel: announcements.hasUnreadNotes
+                      ? l10n.settingsReleaseNotesUnread
+                      : null,
+                  onTap: () => context.push('/release-notes'),
+                ),
               SettingsInfoTile(
                 icon: Icons.info_outline_rounded,
                 label: l10n.settingsVersion,
-                value: 'v1.0.0',
+                // 플랫폼이 알려 주지 않으면 줄표다. 여기 상수를 적어 두면 실제
+                // 버전이 그것을 지나친 뒤에도 틀린 값이 권위 있어 보인다.
+                value: announcements?.version?.displayLabel ?? '—',
               ),
             ]),
             const SizedBox(height: 28),
@@ -162,6 +221,18 @@ class _SettingsScreenContent extends StatelessWidget {
         ),
       ),
     );
+  }
+
+  Future<void> _openStoreReview(BuildContext context) async {
+    final opened = await openStoreReview();
+    if (opened || !context.mounted) return;
+    ScaffoldMessenger.of(context)
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context).settingsReviewOpenFailed),
+        ),
+      );
   }
 
   Future<void> _confirmReplayOnboarding(BuildContext context) async {
@@ -191,6 +262,57 @@ class _SettingsScreenContent extends StatelessWidget {
     // 화면 재생과 초기 데이터 설정을 경로 수준에서 분리한다.
     context.push(OnboardingPreviewNav.splashFlow);
   }
+}
+
+class _SettingsSkyHeader extends StatelessWidget {
+  const _SettingsSkyHeader({
+    required this.caption,
+    required this.title,
+    required this.subtitle,
+  });
+
+  final String caption;
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) => Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned(
+            key: const Key('settings-sky-decoration'),
+            right: -6,
+            top: -32,
+            child: IgnorePointer(
+              child: Image.asset(
+                'assets/decorations/settings-sky.png',
+                width: 164,
+                height: 100,
+                fit: BoxFit.fill,
+                filterQuality: FilterQuality.none,
+                excludeFromSemantics: true,
+              ),
+            ),
+          ),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(caption, style: AppTextStyles.caption),
+              const SizedBox(height: 2),
+              Text(title, style: AppTextStyles.titleScreen),
+              const SizedBox(height: 3),
+              Text(subtitle, style: AppTextStyles.caption),
+            ],
+          ),
+        ],
+      );
+}
+
+/// «업데이트 확인» 행이 지금 무엇을 말해야 하는가.
+String _updateCheckDescription(AppLocalizations l10n, AppUpdates updates) {
+  if (updates.isChecking) return l10n.settingsCheckUpdateBusy;
+  if (updates.pending != null) return l10n.settingsCheckUpdateAvailable;
+  return l10n.settingsCheckUpdateUpToDate;
 }
 
 String _errorMessage(AppLocalizations l10n, SettingsError error) {

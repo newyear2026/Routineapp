@@ -480,6 +480,12 @@
   "@settingsContact": {},
   "settingsContactDesc": "Support channel not connected yet",
   "@settingsContactDesc": {},
+  "settingsReview": "Leave a review",
+  "@settingsReview": {},
+  "settingsReviewDesc": "Rate LOOPET and share your thoughts on Google Play",
+  "@settingsReviewDesc": {},
+  "settingsReviewOpenFailed": "Couldn't open Google Play.",
+  "@settingsReviewOpenFailed": {},
   "settingsVersion": "App version",
   "@settingsVersion": {},
   "settingsError": "Settings error: {message}",
@@ -691,5 +697,61 @@
   "packPoodleGardenName": "Poodle Garden Pack",
   "@packPoodleGardenName": {},
   "packPoodleGardenTagline": "Spend the day with a poodle in a cozy garden",
-  "@packPoodleGardenTagline": {}
+  "@packPoodleGardenTagline": {},
+  "updateAvailableTitle": "A new version is here",
+  "@updateAvailableTitle": {},
+  "updateAvailableBody": "Update to get the latest LOOPET.",
+  "@updateAvailableBody": {},
+  "updateCurrentVersion": "Your version \u00b7 v{version}",
+  "@updateCurrentVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateAction": "Update",
+  "@updateAction": {},
+  "updateLater": "Not now",
+  "@updateLater": {},
+  "updateBannerMessage": "A new version is out",
+  "@updateBannerMessage": {},
+  "updateBannerDismiss": "Dismiss update notice",
+  "@updateBannerDismiss": {},
+  "updateStoreFailed": "Couldn\u2019t open Google Play.",
+  "@updateStoreFailed": {},
+  "settingsCheckUpdate": "Check for updates",
+  "@settingsCheckUpdate": {},
+  "settingsCheckUpdateBusy": "Checking\u2026",
+  "@settingsCheckUpdateBusy": {},
+  "settingsCheckUpdateUpToDate": "You\u2019re up to date",
+  "@settingsCheckUpdateUpToDate": {},
+  "settingsCheckUpdateAvailable": "A new version is waiting",
+  "@settingsCheckUpdateAvailable": {},
+  "settingsReleaseNotes": "What\u2019s new",
+  "@settingsReleaseNotes": {},
+  "settingsReleaseNotesDesc": "See what changed in this update",
+  "@settingsReleaseNotesDesc": {},
+  "settingsReleaseNotesUnread": "Unread",
+  "@settingsReleaseNotesUnread": {},
+  "releaseNotesTitle": "What\u2019s new",
+  "@releaseNotesTitle": {},
+  "releaseNotesCurrentBadge": "Current",
+  "@releaseNotesCurrentBadge": {},
+  "releaseNotesRetentionHint": "Showing the last {count} versions",
+  "@releaseNotesRetentionHint": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "releaseAnnouncementAction": "Got it",
+  "@releaseAnnouncementAction": {},
+  "releaseAnnouncementMore": "See earlier changes",
+  "@releaseAnnouncementMore": {},
+  "releaseNote101Snooze": "Routines you put off now remind you again at the time you picked.",
+  "@releaseNote101Snooze": {},
+  "releaseNote101PixelClouds": "The clouds on the home timetable are now pixel art.",
+  "@releaseNote101PixelClouds": {}
 }

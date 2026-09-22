@@ -39,6 +39,15 @@ dependencies:
   google_mobile_ads: ^6.0.0
   timezone: ^0.11.1
 
+  # 업데이트 안내 — 정책은 application/update/AppUpdates,
+  # 실기기 검증 절차는 docs/DEVICE_VALIDATION.md
+  #
+  # in_app_update는 Play가 설치한 빌드에서만 답한다. 디버그 실행·사이드로드·
+  # iOS는 UnavailableUpdatePort로 후퇴하므로 없어도 앱은 그대로 돌아간다.
+  in_app_update: ^4.2.5
+  url_launcher: ^6.3.0
+  package_info_plus: ^10.2.1
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
@@ -83,6 +92,9 @@ flutter:
     - assets/decorations/home-sky.png
     - assets/decorations/plant.png
     - assets/decorations/progress-sky.png
+    - assets/decorations/routines-sky.png
+    - assets/decorations/settings-card-cloud.png
+    - assets/decorations/settings-sky.png
     - assets/decorations/sleeping-cat.png
     - assets/characters/cat_starlight/v1/approved/idle.png
     - assets/characters/cat_starlight/v1/approved/activity.png

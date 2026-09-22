@@ -1,9 +1,14 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../app_optional_provider.dart';
 import '../app_route_observer.dart';
+import '../application/release/release_announcements.dart';
 import '../application/routine_app_controller.dart';
+import '../application/update/app_updates_controller.dart';
 import '../domain/models/routine.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/routine_load_failure_view.dart';
@@ -15,6 +20,9 @@ import '../theme/app_text_styles.dart';
 import '../widgets/ds/ds.dart';
 import '../widgets/home/circular_timetable_area.dart';
 import '../widgets/home/home_timetable_scene.dart';
+import '../widgets/release/release_announcement.dart';
+import '../widgets/update/update_banner.dart';
+import '../widgets/update/update_prompt.dart';
 
 /// 홈에 그리는 '다음 일정' 최대 개수.
 ///
@@ -30,17 +38,126 @@ class HomeScreen extends StatefulWidget {
 }
 
 class _HomeScreenState extends State<HomeScreen> with RouteAware {
+  AppUpdates? _updates;
+  ReleaseAnnouncements? _announcements;
+  bool _updatePromptScheduled = false;
+  bool _announcementScheduled = false;
+
+  /// 돌고 있는 빌드를 읽는 일이 끝났는지. 업데이트 다이얼로그가 «현재 버전»
+  /// 행을 그리기 전에 이것을 기다린다.
+  Future<void>? _announcementsReady;
+
   @override
   void didChangeDependencies() {
     super.didChangeDependencies();
     final route = ModalRoute.of(context);
     if (route is PageRoute<void>) appRouteObserver.subscribe(this, route);
+
+    // 확인을 여기서 시작하는 이유는 홈이 앱의 유일한 착륙 지점이기 때문이다.
+    // 앱 최상단에서 걸면 스플래시·온보딩을 지나는 동안 이미 물어보게 된다.
+    // 두 번 불러도 값은 들지 않는다 — 컨트롤러가 같은 날 두 번째 확인을 버리고,
+    // [ReleaseAnnouncements.start]는 첫 번만 일한다.
+    // 프로바이더가 없으면 null이다 — 이 화면만 띄운 테스트·미리보기다. 그때는
+    // 배너도 다이얼로그도 없고, 그것이 Play 서비스가 없는 기기가 받는 앱과
+    // 같은 모습이다.
+    final nextUpdates = context.maybeRead<AppUpdates>();
+    if (nextUpdates != null && !identical(_updates, nextUpdates)) {
+      _updates?.removeListener(_onUpdatesChanged);
+      _updates = nextUpdates..addListener(_onUpdatesChanged);
+      unawaited(nextUpdates.refresh());
+    }
+    final nextAnnouncements = context.maybeRead<ReleaseAnnouncements>();
+    if (nextAnnouncements != null &&
+        !identical(_announcements, nextAnnouncements)) {
+      _announcements?.removeListener(_onAnnouncementsChanged);
+      _announcements = nextAnnouncements..addListener(_onAnnouncementsChanged);
+      _announcementsReady = nextAnnouncements.start();
+      unawaited(_announcementsReady!);
+    }
   }
 
   @override
   void dispose() {
     appRouteObserver.unsubscribe(this);
+    _updates?.removeListener(_onUpdatesChanged);
+    _announcements?.removeListener(_onAnnouncementsChanged);
     super.dispose();
+  }
+
+  void _onUpdatesChanged() {
+    if (!mounted) return;
+    setState(() {});
+    _scheduleUpdatePrompt();
+  }
+
+  void _onAnnouncementsChanged() {
+    if (!mounted) return;
+    setState(() {});
+    _scheduleAnnouncement();
+  }
+
+  /// 방금 설치한 업데이트가 무엇을 바꿨는지 말한다.
+  ///
+  /// 업데이트 안내보다 앞에 선다 — 이쪽은 손에 든 빌드 이야기이고, 그쪽은
+  /// 내일도 기다려 준다.
+  void _scheduleAnnouncement() {
+    final announcements = _announcements;
+    if (_announcementScheduled ||
+        announcements == null ||
+        !announcements.shouldAnnounce) {
+      return;
+    }
+    _announcementScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      _announcementScheduled = false;
+      if (!mounted || !announcements.shouldAnnounce) return;
+      final wantsMore = await showReleaseAnnouncement(
+        context,
+        announcements: announcements,
+      );
+      if (!wantsMore || !mounted) return;
+      context.push('/release-notes');
+    });
+  }
+
+  /// 프레임이 끝나고, 더 앞선 것이 줄 서 있지 않을 때 업데이트를 권한다.
+  ///
+  /// 릴리스 카드 뒤다. 다이얼로그를 쌓으면 먼저 뜬 쪽이 묻힌다.
+  void _scheduleUpdatePrompt() {
+    final updates = _updates;
+    if (_updatePromptScheduled ||
+        updates == null ||
+        !updates.shouldPrompt ||
+        (_announcements?.shouldAnnounce ?? false)) {
+      return;
+    }
+    _updatePromptScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      _updatePromptScheduled = false;
+      // 버전 행은 잠깐 기다릴 값이 있다. Play 왕복이 패키지 정보 읽기보다 훨씬
+      // 느려 보통은 공짜지만, 이게 없으면 어느 future가 이겼는지에 따라 행이
+      // 있기도 없기도 하다. 실행마다 한 줄씩 키가 다른 다이얼로그는 읽는
+      // 사람에게 버그로 보인다.
+      await _announcementsReady;
+      if (!mounted || !updates.shouldPrompt) return;
+      await showUpdatePrompt(
+        context,
+        updates: updates,
+        currentVersion: _announcements?.version?.version,
+      );
+    });
+  }
+
+  Future<void> _openStoreFromBanner() async {
+    final updates = _updates;
+    if (updates == null) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final failureMessage = AppLocalizations.of(context).updateStoreFailed;
+    if (await updates.openStore()) return;
+    if (!mounted) return;
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(failureMessage)));
   }
 
   @override
@@ -137,6 +254,15 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
+                  // 날짜·제목 위다. 아래에 두면 «오늘의 리듬»과 포커스 카드
+                  // 사이를 갈라놓는다.
+                  if (_updates?.showBanner ?? false) ...[
+                    UpdateBanner(
+                      onUpdate: _openStoreFromBanner,
+                      onDismiss: () => _updates?.hideBanner(),
+                    ),
+                    const SizedBox(height: 16),
+                  ],
                   Row(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [

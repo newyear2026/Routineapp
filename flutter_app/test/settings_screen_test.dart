@@ -32,7 +32,11 @@ void main() {
         .setMockMethodCallHandler(homeWidgetChannel, null);
   });
 
-  Future<RoutineAppController> pumpSettings(WidgetTester tester) async {
+  Future<RoutineAppController> pumpSettings(
+    WidgetTester tester, {
+    Future<bool> Function()? openStoreReview,
+    bool showStoreReview = true,
+  }) async {
     final controller = RoutineAppController(
       dataService: RoutineDataService(
         routineRepository: MemoryRoutineRepository([
@@ -55,7 +59,10 @@ void main() {
       routes: [
         GoRoute(
           path: '/settings',
-          builder: (_, __) => const SettingsScreen(),
+          builder: (_, __) => SettingsScreen(
+            openStoreReview: openStoreReview ?? () async => true,
+            showStoreReview: showStoreReview,
+          ),
         ),
         GoRoute(
           path: OnboardingPreviewNav.splashPath,
@@ -122,6 +129,11 @@ void main() {
     expect(find.text('캐릭터 팩'), findsOneWidget);
     expect(find.text('별빛 고양이'), findsOneWidget);
     expect(find.text('사용 중'), findsOneWidget);
+    expect(find.byKey(const Key('settings-sky-decoration')), findsOneWidget);
+    expect(
+        find.byKey(const Key('settings-pack-sky-decoration')), findsOneWidget);
+    expect(find.byKey(const Key('settings-pack-sky-decoration-right')),
+        findsOneWidget);
     expect(find.byKey(const Key('settings-current-pack-portrait')),
         findsOneWidget);
     expect(
@@ -194,5 +206,49 @@ void main() {
     expect(find.byKey(const Key('safe-onboarding-replay')), findsOneWidget);
     final onboarding = await OnboardingLocalStorage.load();
     expect(onboarding.hasCompletedOnboarding, isTrue);
+  });
+
+  testWidgets('리뷰 남기기는 누르면 스토어 페이지를 연다', (tester) async {
+    var opened = 0;
+    final controller = await pumpSettings(tester, openStoreReview: () async {
+      opened++;
+      return true;
+    });
+    addTearDown(controller.dispose);
+
+    await tester.scrollUntilVisible(find.text('리뷰 남기기'), 200,
+        scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('리뷰 남기기'));
+    await tester.pumpAndSettle();
+
+    expect(opened, 1);
+    expect(find.text('Google Play를 열 수 없어요.'), findsNothing);
+  });
+
+  testWidgets('스토어를 열지 못하면 조용히 끝내지 않고 알린다', (tester) async {
+    final controller = await pumpSettings(
+      tester,
+      openStoreReview: () async => false,
+    );
+    addTearDown(controller.dispose);
+
+    await tester.scrollUntilVisible(find.text('리뷰 남기기'), 200,
+        scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('리뷰 남기기'));
+    await tester.pump();
+
+    expect(find.text('Google Play를 열 수 없어요.'), findsOneWidget);
+  });
+
+  testWidgets('리뷰를 남길 스토어가 없는 플랫폼에서는 행을 숨긴다', (tester) async {
+    final controller = await pumpSettings(tester, showStoreReview: false);
+    addTearDown(controller.dispose);
+
+    await tester.scrollUntilVisible(find.text('앱 버전'), 200,
+        scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
+    expect(find.text('리뷰 남기기'), findsNothing);
   });
 }

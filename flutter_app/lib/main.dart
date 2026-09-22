@@ -1,6 +1,7 @@
 import 'dart:async';
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
@@ -10,8 +11,12 @@ import 'package:provider/provider.dart';
 
 import 'app_route_observer.dart';
 import 'app_scaffold_messenger.dart';
+import 'application/release/release_announcements.dart';
 import 'application/routine_app_controller.dart';
 import 'application/services/ad_bootstrap.dart';
+import 'application/services/play_update_port.dart';
+import 'application/update/app_updates_controller.dart';
+import 'domain/update/app_update_port.dart';
 import 'domain/settings/app_language.dart';
 import 'l10n/app_localizations.dart';
 import 'screens/splash_screen.dart';
@@ -26,6 +31,7 @@ import 'screens/widget_medium_preview_screen.dart';
 import 'screens/onboarding_preview_screen.dart';
 import 'screens/character_pack_store_screen.dart';
 import 'screens/character_pack_detail_screen.dart';
+import 'screens/release_notes_screen.dart';
 import 'screens/routines_screen.dart';
 import 'theme/app_theme.dart';
 import 'widget_home/home_widget_sync_service.dart';
@@ -54,13 +60,31 @@ Future<void> main() async {
   runApp(const RoutineTimerApp());
 }
 
+/// 업데이트를 물어볼 상대.
+///
+/// Play뿐이다. In-App Update API는 다른 어디에도 없고, iOS는 스토어에 묻는
+/// 대신 릴리스 노트만 받는다 — 그 결정과 이유는 docs/APP_UPDATE.md 에 있다.
+AppUpdatePort _updatePort() =>
+    !kIsWeb && defaultTargetPlatform == TargetPlatform.android
+        ? const PlayUpdatePort()
+        : const UnavailableUpdatePort();
+
 class RoutineTimerApp extends StatelessWidget {
   const RoutineTimerApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return ChangeNotifierProvider(
-      create: (_) => RoutineAppController()..load(),
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => RoutineAppController()..load()),
+        // 확인은 화면이 시작한다 — 홈이 뜰 때 [AppUpdates.refresh]를 부른다.
+        // 여기서 걸면 스플래시·온보딩을 지나는 동안 이미 물어보게 되고,
+        // 방금 설치한 사람에게 «새 버전이 있어요»는 말이 되지 않는다.
+        ChangeNotifierProvider(create: (_) => AppUpdates(port: _updatePort())),
+        // 릴리스 노트는 전 플랫폼이다. 앱이 이미 아는 버전 이름 둘을 견주고
+        // 스토어에는 아무것도 묻지 않으므로 iOS에서도 그대로 동작한다.
+        ChangeNotifierProvider(create: (_) => ReleaseAnnouncements()),
+      ],
       child: const _ExactAlarmPermissionWatcher(child: _AppRoot()),
     );
   }
@@ -177,6 +201,10 @@ final GoRouter _router = GoRouter(
     ),
     GoRoute(
         path: '/routines', builder: (context, state) => const RoutinesScreen()),
+    GoRoute(
+      path: '/release-notes',
+      builder: (context, state) => const ReleaseNotesScreen(),
+    ),
     GoRoute(
       path: '/routine-add',
       builder: (context, state) {
