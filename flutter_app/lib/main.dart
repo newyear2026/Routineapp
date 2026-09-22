@@ -16,6 +16,7 @@ import 'application/routine_app_controller.dart';
 import 'application/services/ad_bootstrap.dart';
 import 'application/services/play_update_port.dart';
 import 'application/update/app_updates_controller.dart';
+import 'application/review/review_prompt.dart';
 import 'domain/update/app_update_port.dart';
 import 'domain/settings/app_language.dart';
 import 'l10n/app_localizations.dart';
@@ -84,6 +85,8 @@ class RoutineTimerApp extends StatelessWidget {
         // 릴리스 노트는 전 플랫폼이다. 앱이 이미 아는 버전 이름 둘을 견주고
         // 스토어에는 아무것도 묻지 않으므로 iOS에서도 그대로 동작한다.
         ChangeNotifierProvider(create: (_) => ReleaseAnnouncements()),
+        // 리뷰 요청은 홈의 완료 버튼이 부른다 — 규칙은 [ReviewPrompt]에.
+        Provider(create: (_) => ReviewPrompt()),
       ],
       child: const _ExactAlarmPermissionWatcher(child: _AppRoot()),
     );

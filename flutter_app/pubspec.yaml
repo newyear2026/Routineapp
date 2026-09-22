@@ -48,6 +48,11 @@ dependencies:
   url_launcher: ^6.3.0
   package_info_plus: ^10.2.1
 
+  # 리뷰 요청 — 정책은 application/review/ReviewPrompt.
+  # Play에서 설치한 빌드에서만 창이 뜬다. 디버그 실행·사이드로드에서는 조용히
+  # 아무것도 하지 않는다.
+  in_app_review: ^2.0.12
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

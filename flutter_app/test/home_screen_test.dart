@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:routine_timer/application/review/review_prompt.dart';
 import 'package:routine_timer/application/routine_app_controller.dart';
 import 'package:routine_timer/application/services/routine_data_service.dart';
 import 'package:routine_timer/application/services/routine_notification_service.dart';
@@ -47,6 +48,7 @@ void main() {
     required DateTime now,
     List<Routine>? withRoutines,
     RoutineLogRepository? logRepository,
+    ReviewPrompt? reviewPrompt,
   }) async {
     final controller = RoutineAppController(
       dataService: RoutineDataService(
@@ -63,10 +65,13 @@ void main() {
       clockAutoRefreshEnabled: false,
     );
     await controller.load();
+    final app = localizedApp(home: const HomeScreen());
     await tester.pumpWidget(
       ChangeNotifierProvider.value(
         value: controller,
-        child: localizedApp(home: const HomeScreen()),
+        child: reviewPrompt == null
+            ? app
+            : Provider.value(value: reviewPrompt, child: app),
       ),
     );
     await tester.pumpAndSettle();
@@ -298,6 +303,60 @@ void main() {
     expect(find.text('기록을 저장하지 못했어요. 다시 시도해 주세요.'), findsOneWidget);
     expect(find.text('완료로 기록했어요'), findsNothing);
     expect(find.text('되돌리기'), findsNothing);
+  });
+
+  group('리뷰 요청', () {
+    late int requests;
+    ReviewPrompt readyPrompt() => ReviewPrompt(
+          available: true,
+          installTimeLoader: () async => DateTime(2026, 8, 1),
+          requester: () async => requests++,
+          now: () => DateTime(2026, 8, 4, 12, 30),
+        );
+
+    setUp(() => requests = 0);
+
+    testWidgets('루틴을 완료하면 스낵바 뒤에 한 박자 쉬고 묻는다', (tester) async {
+      final controller = await pumpHome(
+        tester,
+        now: DateTime(2026, 8, 4, 12, 30),
+        reviewPrompt: readyPrompt(),
+      );
+      addTearDown(controller.dispose);
+
+      await tapAction(tester, 'home-complete-button');
+      expect(find.text('완료로 기록했어요'), findsOneWidget);
+
+      await tester.pump(const Duration(milliseconds: 1300));
+      expect(requests, 1);
+    });
+
+    testWidgets('스킵이나 나중에는 묻지 않는다', (tester) async {
+      final controller = await pumpHome(
+        tester,
+        now: DateTime(2026, 8, 4, 12, 30),
+        reviewPrompt: readyPrompt(),
+      );
+      addTearDown(controller.dispose);
+
+      await tapAction(tester, 'home-skip-button');
+      await tester.pump(const Duration(seconds: 2));
+      expect(requests, 0);
+    });
+
+    testWidgets('완료 저장이 실패하면 묻지 않는다', (tester) async {
+      final controller = await pumpHome(
+        tester,
+        now: DateTime(2026, 8, 4, 12, 30),
+        logRepository: _FailingLogWriteRepository(),
+        reviewPrompt: readyPrompt(),
+      );
+      addTearDown(controller.dispose);
+
+      await tapAction(tester, 'home-complete-button');
+      await tester.pump(const Duration(seconds: 2));
+      expect(requests, 0);
+    });
   });
 
   testWidgets('스킵과 나중에도 홈에서 기록된다', (tester) async {

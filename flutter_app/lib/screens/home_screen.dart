@@ -7,6 +7,7 @@ import 'package:provider/provider.dart';
 import '../app_optional_provider.dart';
 import '../app_route_observer.dart';
 import '../application/release/release_announcements.dart';
+import '../application/review/review_prompt.dart';
 import '../application/routine_app_controller.dart';
 import '../application/update/app_updates_controller.dart';
 import '../domain/models/routine.dart';
@@ -40,6 +41,7 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> with RouteAware {
   AppUpdates? _updates;
   ReleaseAnnouncements? _announcements;
+  ReviewPrompt? _reviewPrompt;
   bool _updatePromptScheduled = false;
   bool _announcementScheduled = false;
 
@@ -66,6 +68,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
       _updates = nextUpdates..addListener(_onUpdatesChanged);
       unawaited(nextUpdates.refresh());
     }
+    _reviewPrompt = context.maybeRead<ReviewPrompt>();
     final nextAnnouncements = context.maybeRead<ReleaseAnnouncements>();
     if (nextAnnouncements != null &&
         !identical(_announcements, nextAnnouncements)) {
@@ -164,10 +167,14 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
   void didPopNext() => context.read<RoutineAppController>().reloadOnReturn();
 
   /// 완료·나중에·스킵 실행 후 되돌리기 스낵바를 띄운다.
+  ///
+  /// [afterApplied]는 기록이 저장된 뒤에만 부른다 — 실패한 완료에 리뷰를
+  /// 묻지 않는다.
   Future<void> _runSlotAction(
     Future<RoutineActionUndo?> Function() action,
-    String doneMessage,
-  ) async {
+    String doneMessage, {
+    VoidCallback? afterApplied,
+  }) async {
     final controller = context.read<RoutineAppController>();
     final RoutineActionUndo? undo;
     try {
@@ -216,6 +223,19 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
           ),
         ),
       );
+    afterApplied?.call();
+  }
+
+  /// 완료 스낵바를 한 박자 읽을 틈을 둔 뒤 리뷰 창을 청한다.
+  /// 띄울지 말지는 [ReviewPrompt]가 정한다.
+  void _askForReviewAfterComplete() {
+    final reviewPrompt = _reviewPrompt;
+    if (reviewPrompt == null) return;
+    unawaited(
+        Future<void>.delayed(const Duration(milliseconds: 1200), () async {
+      if (!mounted) return;
+      await reviewPrompt.onRoutineCompleted();
+    }));
   }
 
   @override
@@ -318,6 +338,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                     onComplete: () => _runSlotAction(
                       app.completeCurrent,
                       l10n.homeMarkedDone,
+                      afterApplied: _askForReviewAfterComplete,
                     ),
                     onSnooze: () => _runSlotAction(
                       app.snoozeCurrent,
