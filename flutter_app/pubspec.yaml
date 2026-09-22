@@ -67,6 +67,7 @@ flutter:
   # 1254px 원본은 design/decorations-src 와 characters/cat_starlight/v1 에 있다.
   assets:
     - assets/decorations/bell.png
+    - assets/decorations/home-sky.png
     - assets/decorations/plant.png
     - assets/decorations/sleeping-cat.png
     - assets/characters/cat_starlight/v1/approved/idle.png

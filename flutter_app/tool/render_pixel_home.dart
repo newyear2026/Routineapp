@@ -118,6 +118,10 @@ void main() {
     ));
     // 이미지 디코딩은 실제 비동기 작업이므로 완료 후 화면을 캡처한다.
     await tester.runAsync(() async {
+      await precacheImage(
+        const AssetImage('assets/decorations/home-sky.png'),
+        key.currentContext!,
+      );
       for (final asset in ['plant', 'bell', 'sleeping-cat']) {
         await precacheImage(
             ResizeImage(AssetImage('assets/decorations/$asset.png'),

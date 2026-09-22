@@ -29,6 +29,16 @@ class HomeTimetableScene extends StatelessWidget {
               width: width,
               height: width * 0.93,
               child: Stack(children: [
+                Positioned.fill(
+                  child: IgnorePointer(
+                    child: Image.asset(
+                      'assets/decorations/home-sky.png',
+                      fit: BoxFit.fill,
+                      filterQuality: FilterQuality.none,
+                      excludeFromSemantics: true,
+                    ),
+                  ),
+                ),
                 Positioned(
                   top: width * 0.025,
                   left: (width - ringSize) / 2,
@@ -38,22 +48,6 @@ class HomeTimetableScene extends StatelessWidget {
                     child: timetableBuilder(ringSize),
                   ),
                 ),
-                Positioned(
-                    left: 0,
-                    top: width * 0.08,
-                    child: _Cloud(width: width * 0.14)),
-                Positioned(
-                    right: 0,
-                    top: width * 0.16,
-                    child: _Cloud(width: width * 0.14)),
-                const Positioned(
-                    left: 18,
-                    top: 40,
-                    child: _PixelStar(size: 11)),
-                const Positioned(
-                    right: 22,
-                    top: 52,
-                    child: _PixelStar(size: 12)),
                 Positioned(
                   key: const Key('home-timetable-plant'),
                   left: 0,
@@ -75,86 +69,4 @@ class HomeTimetableScene extends StatelessWidget {
           );
         },
       );
-}
-
-class _Cloud extends StatelessWidget {
-  const _Cloud({required this.width});
-  final double width;
-  @override
-  Widget build(BuildContext context) => IgnorePointer(
-        child: ExcludeSemantics(
-            child: CustomPaint(
-          size: Size(width, width * 0.5),
-          painter: const _CloudPainter(),
-        )),
-      );
-}
-
-class _CloudPainter extends CustomPainter {
-  const _CloudPainter();
-  @override
-  void paint(Canvas canvas, Size size) {
-    final p = Path()
-      ..addPolygon([
-        Offset(0, size.height),
-        Offset(0, size.height * .65),
-        Offset(size.width * .18, size.height * .65),
-        Offset(size.width * .18, size.height * .30),
-        Offset(size.width * .35, size.height * .30),
-        Offset(size.width * .35, 0),
-        Offset(size.width * .58, 0),
-        Offset(size.width * .58, size.height * .30),
-        Offset(size.width * .76, size.height * .30),
-        Offset(size.width * .76, size.height * .65),
-        Offset(size.width, size.height * .65),
-        Offset(size.width, size.height),
-      ], true);
-    canvas.drawPath(
-        p,
-        Paint()
-          ..color = const Color(0xFFFFFCF4)
-          ..isAntiAlias = false);
-    canvas.drawPath(
-        p,
-        Paint()
-          ..color = const Color(0xFFC7B79C)
-          ..style = PaintingStyle.stroke
-          ..strokeWidth = 2
-          ..isAntiAlias = false);
-  }
-
-  @override
-  bool shouldRepaint(_CloudPainter oldDelegate) => false;
-}
-
-class _PixelStar extends StatelessWidget {
-  const _PixelStar({required this.size});
-  final double size;
-
-  @override
-  Widget build(BuildContext context) => IgnorePointer(
-        child: ExcludeSemantics(
-          child: CustomPaint(
-            size: Size.square(size),
-            painter: const _PixelStarPainter(),
-          ),
-        ),
-      );
-}
-
-class _PixelStarPainter extends CustomPainter {
-  const _PixelStarPainter();
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final unit = size.width / 5;
-    final paint = Paint()
-      ..color = const Color(0xFFA98BEC)
-      ..isAntiAlias = false;
-    canvas.drawRect(Rect.fromLTWH(unit * 2, 0, unit, size.height), paint);
-    canvas.drawRect(Rect.fromLTWH(0, unit * 2, size.width, unit), paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _PixelStarPainter oldDelegate) => false;
 }
