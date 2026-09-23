@@ -22,35 +22,59 @@ class RoutineFormPreview extends StatelessWidget {
         : candidate.title;
 
     return Container(
-      padding: const EdgeInsets.all(16),
       decoration: ShapeDecoration(
         color: AppColors.orbitSurface,
         shape: AppPixelStyle.shape(),
       ),
-      child: Row(children: [
-        RoutineMark(
-          icon: candidate.iconId,
-          color: candidate.color,
-          size: 56,
-        ),
-        const SizedBox(width: 16),
-        Expanded(
-            child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(title,
-                maxLines: 2,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.titleSection),
-            const SizedBox(height: 4),
-            Text(
-                TimeMinutes.formatRange(candidate.startMinutesFromMidnight,
-                    candidate.endMinutesFromMidnight),
-                style:
-                    AppTextStyles.body.copyWith(color: AppColors.textMuted)),
-          ],
-        )),
-      ]),
+      child: Stack(
+        children: [
+          if (title.characters.length <= 14 &&
+              MediaQuery.sizeOf(context).width >= 360 &&
+              MediaQuery.textScalerOf(context).scale(1) <= 1.2)
+            Positioned(
+              right: 10,
+              bottom: 8,
+              child: IgnorePointer(
+                child: Image.asset(
+                  'assets/decorations/settings-card-cloud.png',
+                  key: const Key('routine-add-preview-cloud'),
+                  width: 100,
+                  height: 50,
+                  filterQuality: FilterQuality.none,
+                  excludeFromSemantics: true,
+                ),
+              ),
+            ),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(children: [
+              RoutineMark(
+                icon: candidate.iconId,
+                color: candidate.color,
+                size: 56,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                  child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.titleSection),
+                  const SizedBox(height: 4),
+                  Text(
+                      TimeMinutes.formatRange(
+                          candidate.startMinutesFromMidnight,
+                          candidate.endMinutesFromMidnight),
+                      style: AppTextStyles.body
+                          .copyWith(color: AppColors.textMuted)),
+                ],
+              )),
+            ]),
+          ),
+        ],
+      ),
     );
   }
 }

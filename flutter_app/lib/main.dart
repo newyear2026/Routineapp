@@ -36,6 +36,7 @@ import 'screens/release_notes_screen.dart';
 import 'screens/routines_screen.dart';
 import 'theme/app_theme.dart';
 import 'widget_home/home_widget_sync_service.dart';
+import 'widgets/store/character_pack_scope.dart';
 import 'domain/onboarding/onboarding_preview_nav.dart';
 
 Future<void> main() async {
@@ -154,6 +155,13 @@ class _AppRoot extends StatelessWidget {
           ],
           theme: buildRoutineTheme(preset: app.currentThemePreset),
           routerConfig: _router,
+          // 라우트 전체가 같은 팩을 보도록 네비게이터 바깥에 둔다.
+          builder: (context, child) => CharacterPackScope(
+            current: app.currentPack,
+            ownership: app.packOwnership,
+            onSelect: app.selectCharacterPack,
+            child: child ?? const SizedBox.shrink(),
+          ),
         );
       },
     );

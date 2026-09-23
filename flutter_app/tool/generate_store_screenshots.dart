@@ -28,6 +28,7 @@ import 'package:provider/provider.dart';
 import 'package:routine_timer/application/routine_app_controller.dart';
 import 'package:routine_timer/application/services/routine_data_service.dart';
 import 'package:routine_timer/application/services/routine_notification_service.dart';
+import 'package:routine_timer/data/store/character_pack_catalog.dart';
 import 'package:routine_timer/domain/models/routine.dart';
 import 'package:routine_timer/domain/models/routine_icon_id.dart';
 import 'package:routine_timer/domain/models/routine_log.dart';
@@ -1155,7 +1156,10 @@ Future<void> _precache(BuildContext context) async {
     );
   }
   for (final pose in CatPose.values) {
-    await precacheImage(AssetImage(AnimatedCat.asset(pose)), context);
+    await precacheImage(
+      AssetImage(CharacterPackCatalog.defaultPack.assetFor(pose.name)!),
+      context,
+    );
   }
   for (final asset in ['plant', 'bell', 'sleeping-cat']) {
     await precacheImage(AssetImage('assets/decorations/$asset.png'), context);

@@ -9,23 +9,19 @@ import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/ds/ds.dart';
 import '../widgets/store/character_pack_preview.dart';
+import '../widgets/store/character_pack_scope.dart';
 import '../widgets/store/character_pack_text.dart';
 
-/// 팩 하나를 파는 화면.
+/// 팩 하나를 보여 주고, 가진 팩이면 쓰게 하고, 아니면 파는 화면.
 ///
 /// 결제는 아직 붙지 않았다. `BUSINESS_MODEL.md` 5장이 유료화의 전제로 둔
 /// D30 리텐션 20%가 아직 없고, 가격도 스토어가 정한다. 그래서 구매 동작은
 /// [CharacterPackOwnership] 자리만 남기고 비워 둔다 — 붙일 때 화면은
 /// 건드리지 않는다.
 class CharacterPackDetailScreen extends StatelessWidget {
-  const CharacterPackDetailScreen({
-    super.key,
-    required this.packId,
-    this.ownership = const BundledOnlyOwnership(),
-  });
+  const CharacterPackDetailScreen({super.key, required this.packId});
 
   final String packId;
-  final CharacterPackOwnership ownership;
 
   @override
   Widget build(BuildContext context) {
@@ -44,7 +40,8 @@ class CharacterPackDetailScreen extends StatelessWidget {
       );
     }
 
-    final owned = ownership.owns(pack);
+    final ownership = CharacterPackScope.ownershipOf(context);
+    final inUse = CharacterPackScope.currentOf(context).id == pack.id;
     return Scaffold(
       body: AppScreenShell(
         child: ListView(
@@ -98,7 +95,13 @@ class CharacterPackDetailScreen extends StatelessWidget {
             const SizedBox(height: AppSpacing.md),
             CharacterPackDecoRow(pack: pack),
             const SizedBox(height: AppSpacing.huge),
-            _PackAction(pack: pack, owned: owned),
+            _PackAction(
+              pack: pack,
+              inUse: inUse,
+              owned: ownership.owns(pack),
+              selectable: CharacterPackCatalog.isSelectable(pack, ownership),
+              onSelect: CharacterPackScope.onSelectOf(context),
+            ),
           ],
         ),
       ),
@@ -183,20 +186,52 @@ class _ContentsRow extends StatelessWidget {
   }
 }
 
-/// 구매·사용 중 표시. **판정은 여기 한 곳에서만 한다.**
+/// 사용 중 · 쓰기 · 구매 표시. **판정은 여기 한 곳에서만 한다.**
 ///
 /// 조건이 화면 곳곳에 흩어지면 가격 정책을 바꿀 수 없게 된다
 /// (`BUSINESS_MODEL.md` 6장).
-class _PackAction extends StatelessWidget {
-  const _PackAction({required this.pack, required this.owned});
+class _PackAction extends StatefulWidget {
+  const _PackAction({
+    required this.pack,
+    required this.inUse,
+    required this.owned,
+    required this.selectable,
+    required this.onSelect,
+  });
 
   final CharacterPack pack;
+  final bool inUse;
   final bool owned;
+  final bool selectable;
+  final Future<bool> Function(CharacterPack pack)? onSelect;
+
+  @override
+  State<_PackAction> createState() => _PackActionState();
+}
+
+class _PackActionState extends State<_PackAction> {
+  bool _saving = false;
+
+  Future<void> _select() async {
+    final onSelect = widget.onSelect;
+    if (onSelect == null || _saving) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final failureMessage =
+        AppLocalizations.of(context).characterPackSelectFailed;
+    setState(() => _saving = true);
+    final saved = await onSelect(widget.pack);
+    if (!mounted) return;
+    setState(() => _saving = false);
+    if (saved) return;
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(failureMessage)));
+  }
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    if (owned) {
+    if (widget.inUse) {
       return Center(
         child: AppStatusBadge(
           label: l10n.themeInUse,
@@ -204,7 +239,31 @@ class _PackAction extends StatelessWidget {
         ),
       );
     }
-    final pending = pack.availability == CharacterPackAvailability.comingSoon;
+    if (widget.owned) {
+      return Column(
+        children: [
+          AppButton(
+            label: l10n.characterPackUseAction,
+            icon: Icons.check_rounded,
+            isLoading: _saving,
+            onPressed:
+                widget.selectable && widget.onSelect != null ? _select : null,
+          ),
+          // 산 팩이라도 그림이 오기 전에는 쓸 수 없다. 잠긴 이유를 말한다
+          // (`PROJECT_RULES.md` 9장).
+          if (!widget.pack.hasArtwork) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              l10n.characterPackArtworkPending,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.caption,
+            ),
+          ],
+        ],
+      );
+    }
+    final pending =
+        widget.pack.availability == CharacterPackAvailability.comingSoon;
     return Column(
       children: [
         AppButton(

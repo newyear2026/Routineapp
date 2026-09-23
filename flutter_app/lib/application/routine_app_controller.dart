@@ -5,6 +5,7 @@ import 'package:flutter/material.dart';
 
 import '../data/local/local_settings_repository.dart';
 import '../data/repositories/settings_repository.dart';
+import '../data/store/character_pack_catalog.dart';
 import '../domain/models/routine.dart';
 import '../domain/models/routine_log.dart';
 import '../domain/models/routine_log_status.dart';
@@ -12,6 +13,7 @@ import '../domain/models/routine_action_source.dart';
 import '../domain/models/routine_write_error.dart';
 import '../domain/models/app_settings.dart';
 import '../domain/settings/app_language.dart';
+import '../domain/store/character_pack.dart';
 import '../l10n/app_localizations.dart';
 import '../domain/services/routine_day_service.dart';
 import '../domain/services/routine_log_action_service.dart';
@@ -34,12 +36,17 @@ class RoutineAppController extends ChangeNotifier {
     RoutineDayService? dayService,
     RoutineNotificationService? notificationService,
     SettingsRepository? settingsRepository,
+    CharacterPackOwnership packOwnership = const BundledOnlyOwnership(),
+    @visibleForTesting
+    List<CharacterPack> characterPacks = CharacterPackCatalog.all,
     DateTime Function()? nowProvider,
     bool clockAutoRefreshEnabled = true,
   })  : _data = dataService ?? RoutineDataService(),
         _dayService = dayService ?? const RoutineDayService(),
         _notifications = notificationService ?? RoutineNotificationService(),
         _settings = settingsRepository ?? LocalSettingsRepository.instance,
+        _packOwnership = packOwnership,
+        _characterPacks = characterPacks,
         _nowProvider = nowProvider ?? DateTime.now,
         _clockAutoRefreshEnabled = clockAutoRefreshEnabled;
 
@@ -47,6 +54,8 @@ class RoutineAppController extends ChangeNotifier {
   final RoutineDayService _dayService;
   final RoutineNotificationService _notifications;
   final SettingsRepository _settings;
+  final CharacterPackOwnership _packOwnership;
+  final List<CharacterPack> _characterPacks;
   final DateTime Function() _nowProvider;
   final bool _clockAutoRefreshEnabled;
 
@@ -72,7 +81,20 @@ class RoutineAppController extends ChangeNotifier {
   List<Routine> get routines => List<Routine>.unmodifiable(_routines);
   AppSettings get appSettings => _appSettings;
   String get themeId => _appSettings.themeId ?? AppThemePreset.softDay.id;
-  AppThemePreset get currentThemePreset => AppThemePreset.byId(themeId);
+  AppThemePreset get currentThemePreset =>
+      currentPack.id == CharacterPackCatalog.poodleGarden.id
+          ? AppThemePreset.poodleGarden
+          : AppThemePreset.byId(themeId);
+
+  /// 팩 소유 판정. 결제가 붙으면 구매 저장소가 이 자리에 들어온다.
+  CharacterPackOwnership get packOwnership => _packOwnership;
+
+  /// 앱이 지금 그리는 캐릭터 팩 — 저장값이 아니라 판정 결과다.
+  CharacterPack get currentPack => CharacterPackCatalog.resolve(
+        _appSettings.characterPackId,
+        _packOwnership,
+        packs: _characterPacks,
+      );
 
   /// 사용자가 설정에서 고른 언어. [AppLanguage.system]이면 기기 언어를 따른다.
   AppLanguage get language => AppLanguage.fromCode(_appSettings.localeCode);
@@ -272,6 +294,38 @@ class RoutineAppController extends ChangeNotifier {
     if (resolvedLocale != previousLocale) {
       await _syncSideEffects();
     }
+  }
+
+  /// [pack]을 지금 쓰는 팩으로 바꾼다. 저장까지 끝나야 true다.
+  ///
+  /// 고를 수 없는 팩(가지지 않았거나 그림이 없는 팩)은 거절한다. 화면이
+  /// 버튼을 잠가 두더라도, 판정은 저장하는 이 자리에서 한 번 더 한다.
+  ///
+  /// 저장이 실패하면 바꾸기 전으로 되돌린다. 화면만 바뀌고 저장이 안 된
+  /// 채로 두면 다음 실행에서 캐릭터가 말없이 옛 팩으로 돌아간다.
+  Future<bool> selectCharacterPack(CharacterPack pack) async {
+    if (CharacterPackCatalog.byId(pack.id, packs: _characterPacks) == null ||
+        !CharacterPackCatalog.isSelectable(pack, _packOwnership)) {
+      return false;
+    }
+    if (pack.id == currentPack.id) return true;
+
+    // 되돌릴 때는 팩 필드만 되돌린다. 저장을 기다리는 사이 언어 같은 다른
+    // 설정이 바뀌었을 수 있다. null은 copyWith로 되돌릴 수 없으므로 같은
+    // 뜻인 기본 팩 ID로 적는다.
+    final previousId =
+        _appSettings.characterPackId ?? CharacterPackCatalog.defaultPack.id;
+    _appSettings = _appSettings.copyWith(characterPackId: pack.id);
+    notifyListeners();
+    try {
+      await _settings.saveAppSettings(_appSettings);
+    } catch (e, st) {
+      debugPrint('selectCharacterPack save failed: $e\n$st');
+      _appSettings = _appSettings.copyWith(characterPackId: previousId);
+      notifyListeners();
+      return false;
+    }
+    return true;
   }
 
   Future<void> updateTheme(String themeId) async {

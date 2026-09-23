@@ -329,3 +329,37 @@ Output: one wide transparent RGBA ornament with hard, crisp square pixel edges. 
 - This is a Flutter test-rendered capture, not a physical-device capture. Other display densities and cat poses were not visually captured in this pass.
 
 final result: passed
+
+---
+
+# Routine add cloud ornament QA — 2026-09-22
+
+## Scope and evidence
+
+- Source visual truth: `/Users/jaewook/Desktop/Screenshot_1790123573.png` (1080 × 2160 px), the user's routine-add screen, paired with the app's previously approved lavender pixel-cloud style in `assets/decorations/settings-card-cloud.png`.
+- Same-state baseline: `output/design-qa-menu-clouds-2026-09-22/routine-add.png` (780 × 1688 px). This Flutter capture removes the source screenshot's device status and navigation bars and uses the collapsed advanced-settings state, so it is the geometric comparison target for this scoped decoration change.
+- Final implementation: `output/design-qa-routine-add-cloud-2026-09-22/routine-add.png` (780 × 1688 px), 390 × 844 logical pixels at device-pixel ratio 2, Korean light theme, blank new-routine form with 09:00–10:00 preview.
+- Full-view same-state comparison: `output/design-qa-routine-add-cloud-2026-09-22/routine-add-before-after.png` (1560 × 1688 px), baseline on the left and final on the right. Focused header and preview comparison: `routine-add-header-comparison.png` (1560 × 660 px), using the top 660 pixels from that paired capture. No density normalization was needed between the two Flutter captures.
+- Edit-state check: `output/design-qa-routine-add-cloud-2026-09-22/routine-edit.png` (780 × 1688 px), with the delete button visible.
+
+## Findings and comparison history
+
+1. The initial 80/72 logical-pixel images read too small beside the large title and preview card. Both were enlarged, then the same-state screen was captured again. The final clouds are visible without changing the title or card dimensions.
+2. The upper-right cloud stays clear of the back/title area. The preview cloud occupies the free right side of the card and does not cover the icon, name, or time. Both decorations ignore pointer events and screen-reader semantics.
+3. The edit screen does not show the header cloud where the delete action sits. The card cloud remains unobtrusive. The card cloud is omitted for narrow devices, large text, and long names; the header cloud is omitted at large text scale.
+4. No actionable P0/P1/P2 difference remains in the requested cloud treatment. The source screenshot's expanded advanced settings and device chrome are intentional state/runtime differences, not regressions introduced by this change.
+
+## Required fidelity surfaces
+
+- Typography and copy: existing labels, font sizes, weights, and line breaks are unchanged.
+- Spacing and layout: both clouds sit behind existing content inside fixed regions; form sections, preview height, and bottom save action retain the prior geometry.
+- Colors and tokens: the same two-tone lavender pixel cloud asset used on the settings screen carries the existing cream, navy, and violet palette into this form.
+- Image quality: the reused transparent PNG uses nearest-neighbor filtering, with no stretched edge, visible halo, or overlap in the inspected captures.
+- Content and behavior: name, time, repeat days, advanced settings, editing, and save behavior are unchanged.
+
+## Validation and limits
+
+- Targeted analysis of the two modified widgets reported no issues. The routine-add tests and Flutter render harness passed together (12 tests), including the harness's 320 × 700 and large-text layout checks. `git diff --check` passed.
+- This is a Flutter-rendered review; no physical-device screenshot was captured after the change.
+
+final result: passed

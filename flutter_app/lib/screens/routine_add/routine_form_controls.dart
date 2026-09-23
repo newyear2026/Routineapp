@@ -29,32 +29,53 @@ class RoutineFormHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox(
       height: 62,
-      child: Row(
+      child: Stack(
         children: [
-          IconButton(
-            tooltip: AppLocalizations.of(context).commonBack,
-            onPressed: onBack,
-            icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          ),
-          Expanded(
-            child: Text(
-              title,
-              textAlign: TextAlign.start,
-              style: AppTextStyles.titleScreen,
+          if (onDelete == null &&
+              MediaQuery.textScalerOf(context).scale(1) <= 1.2)
+            Positioned(
+              right: 8,
+              top: 4,
+              child: IgnorePointer(
+                child: Image.asset(
+                  'assets/decorations/settings-card-cloud.png',
+                  key: const Key('routine-add-header-cloud'),
+                  width: 104,
+                  height: 52,
+                  filterQuality: FilterQuality.none,
+                  excludeFromSemantics: true,
+                ),
+              ),
             ),
-          ),
-          SizedBox(
-            width: 54,
-            child: onDelete == null
-                ? null
-                : IconButton(
-                    tooltip: AppLocalizations.of(context).routineDeleteTitle,
-                    onPressed: onDelete,
-                    icon: const Icon(
-                      Icons.delete_outline_rounded,
-                      color: AppColors.dangerText,
-                    ),
-                  ),
+          Row(
+            children: [
+              IconButton(
+                tooltip: AppLocalizations.of(context).commonBack,
+                onPressed: onBack,
+                icon: const Icon(Icons.arrow_back_ios_new_rounded),
+              ),
+              Expanded(
+                child: Text(
+                  title,
+                  textAlign: TextAlign.start,
+                  style: AppTextStyles.titleScreen,
+                ),
+              ),
+              SizedBox(
+                width: 54,
+                child: onDelete == null
+                    ? null
+                    : IconButton(
+                        tooltip:
+                            AppLocalizations.of(context).routineDeleteTitle,
+                        onPressed: onDelete,
+                        icon: const Icon(
+                          Icons.delete_outline_rounded,
+                          color: AppColors.dangerText,
+                        ),
+                      ),
+              ),
+            ],
           ),
         ],
       ),

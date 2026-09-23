@@ -9,6 +9,7 @@ import 'package:routine_timer/screens/character_pack_detail_screen.dart';
 import 'package:routine_timer/screens/character_pack_store_screen.dart';
 import 'package:routine_timer/widgets/ds/animated_cat.dart';
 import 'package:routine_timer/widgets/ds/app_button.dart';
+import 'package:routine_timer/widgets/store/character_pack_scope.dart';
 
 import 'support/localization.dart';
 
@@ -25,12 +26,12 @@ void main() {
       CharacterPackCatalog.all.where((pack) => pack.hasArtwork).toList();
 
   group('카탈로그', () {
-    test('팩이 만드는 그림 경로가 AnimatedCat이 쓰는 경로와 같다', () {
-      for (final pose in CatPose.values) {
-        expect(
-          CharacterPackCatalog.starlightCat.assetFor(pose.name),
-          AnimatedCat.asset(pose),
-        );
+    test('그림을 가진 팩은 모든 포즈의 그림 영역이 재어져 있다', () {
+      for (final pack in withArtwork) {
+        final artwork = CharacterArtwork.byCharacter[pack.characterId];
+        expect(artwork, isNotNull,
+            reason: '${pack.id}의 CharacterArtwork 값이 없다');
+        expect(artwork!.bounds.keys.toSet(), CatPose.values.toSet());
       }
     });
 
@@ -41,12 +42,10 @@ void main() {
       );
     });
 
-    // AnimatedCat은 아직 'cat_starlight' 경로를 스스로 만든다. 그림을 가진
-    // 둘째 팩이 생기는 순간 그 하드코딩이 조용히 틀린 캐릭터를 그리게 되므로,
-    // 여기서 먼저 멈춰 캐릭터 축을 풀도록 한다.
-    test('그림을 가진 팩은 아직 하나뿐이다', () {
-      expect(withArtwork, hasLength(1),
-          reason: '둘째 팩을 실으려면 AnimatedCat의 경로 하드코딩을 먼저 풀어야 한다');
+    test('기본 팩은 그림이 있고 누구나 가진다', () {
+      const pack = CharacterPackCatalog.defaultPack;
+      expect(pack.hasArtwork, isTrue);
+      expect(const BundledOnlyOwnership().owns(pack), isTrue);
     });
 
     test('그림을 가진 팩의 모든 포즈가 pubspec에 실려 있다', () {
@@ -146,4 +145,155 @@ void main() {
       );
     });
   });
+
+  group('선택 판정', () {
+    const owned = _OwnsEverything();
+
+    test('고른 것이 없거나 모르는 팩이면 기본 팩이다', () {
+      expect(CharacterPackCatalog.resolve(null, owned).id, 'cat_starlight');
+      expect(
+          CharacterPackCatalog.resolve('gone_pack', owned).id, 'cat_starlight');
+    });
+
+    test('가지지 않은 팩은 고를 수 없고 기본 팩으로 내려간다', () {
+      const custom = [CharacterPackCatalog.starlightCat, _twinCat];
+      expect(
+          CharacterPackCatalog.isSelectable(
+              _twinCat, const BundledOnlyOwnership()),
+          isFalse);
+      expect(
+        CharacterPackCatalog.resolve(_twinCat.id, const BundledOnlyOwnership(),
+                packs: custom)
+            .id,
+        'cat_starlight',
+      );
+      expect(
+        CharacterPackCatalog.resolve(_twinCat.id, owned, packs: custom).id,
+        _twinCat.id,
+      );
+    });
+
+    test('가진 팩이라도 그림이 없으면 고를 수 없다', () {
+      const pack = CharacterPackCatalog.poodleGarden;
+      expect(CharacterPackCatalog.isSelectable(pack, owned), isFalse);
+      expect(CharacterPackCatalog.resolve(pack.id, owned).id, 'cat_starlight');
+    });
+
+    test('그림을 그릴 수 없는 팩을 넘기면 AnimatedCat은 기본 팩을 그린다', () {
+      expect(
+        AnimatedCat.drawablePack(CharacterPackCatalog.poodleGarden).id,
+        'cat_starlight',
+      );
+      expect(AnimatedCat.drawablePack(_twinCat).id, _twinCat.id);
+    });
+  });
+
+  group('팩 선택', () {
+    Widget scoped(
+      Widget home, {
+      CharacterPack current = CharacterPackCatalog.poodleGarden,
+      CharacterPackOwnership ownership = const _OwnsEverything(),
+      Future<bool> Function(CharacterPack)? onSelect,
+    }) {
+      return localizedApp(
+        home: Builder(
+          builder: (context) => CharacterPackScope(
+            current: current,
+            ownership: ownership,
+            onSelect: onSelect,
+            child: home,
+          ),
+        ),
+      );
+    }
+
+    testWidgets('목록은 쓰는 팩을 사용 중, 가진 다른 팩을 보유 중으로 구분한다', (tester) async {
+      await tester.pumpWidget(scoped(
+        const CharacterPackStoreScreen(),
+        current: CharacterPackCatalog.starlightCat,
+      ));
+      await tester.pump();
+
+      expect(find.text(testL10n.themeInUse), findsOneWidget);
+      expect(find.text(testL10n.characterPackOwned), findsOneWidget);
+    });
+
+    testWidgets('가진 팩을 쓰지 않고 있으면 쓰기 버튼을 누를 수 있다', (tester) async {
+      final selected = <String>[];
+      await tester.pumpWidget(scoped(
+        const CharacterPackDetailScreen(packId: 'cat_starlight'),
+        onSelect: (pack) async {
+          selected.add(pack.id);
+          return true;
+        },
+      ));
+      await tester.pump();
+
+      await scrollToBottom(tester, find.byType(AppButton));
+      final button = tester.widget<AppButton>(find.byType(AppButton));
+      expect(button.label, testL10n.characterPackUseAction);
+      expect(button.onPressed, isNotNull);
+
+      await tester.tap(find.byType(AppButton));
+      await tester.pump();
+      expect(selected, ['cat_starlight']);
+    });
+
+    testWidgets('저장에 실패하면 바꾸지 못했다고 알린다', (tester) async {
+      await tester.pumpWidget(scoped(
+        const CharacterPackDetailScreen(packId: 'cat_starlight'),
+        onSelect: (_) async => false,
+      ));
+      await tester.pump();
+
+      await scrollToBottom(tester, find.byType(AppButton));
+      await tester.tap(find.byType(AppButton));
+      await tester.pump();
+      await tester.pump();
+
+      expect(find.text(testL10n.characterPackSelectFailed), findsOneWidget);
+    });
+
+    testWidgets('가진 팩이라도 그림이 없으면 쓰기 버튼이 잠겨 있다', (tester) async {
+      await tester.pumpWidget(scoped(
+        const CharacterPackDetailScreen(packId: 'poodle_garden'),
+        current: CharacterPackCatalog.starlightCat,
+        onSelect: (_) async => true,
+      ));
+      await tester.pump();
+
+      await scrollToBottom(tester, find.byType(AppButton));
+      final button = tester.widget<AppButton>(find.byType(AppButton));
+      expect(button.label, testL10n.characterPackUseAction);
+      expect(button.onPressed, isNull);
+    });
+
+    testWidgets('바꾸는 길(onSelect)이 없는 자리에서는 쓰기 버튼이 잠겨 있다', (tester) async {
+      await tester.pumpWidget(scoped(
+        const CharacterPackDetailScreen(packId: 'cat_starlight'),
+      ));
+      await tester.pump();
+
+      await scrollToBottom(tester, find.byType(AppButton));
+      final button = tester.widget<AppButton>(find.byType(AppButton));
+      expect(button.onPressed, isNull);
+    });
+  });
+}
+
+/// 테스트용 둘째 팩 — 기본 팩의 그림을 빌려 쓴다.
+const _twinCat = CharacterPack(
+  id: 'cat_twin',
+  characterId: 'cat_starlight',
+  paletteIds: ['soft_day'],
+  decoIds: ['plant'],
+  availability: CharacterPackAvailability.forSale,
+  productId: 'pack.cat_twin',
+);
+
+class _OwnsEverything implements CharacterPackOwnership {
+  const _OwnsEverything();
+
+  @override
+  bool owns(CharacterPack pack) => true;
 }

@@ -16,7 +16,13 @@ extension CharacterPackText on CharacterPack {
         _ => l10n.packStarlightCatTagline,
       };
 
-  /// 목록·상세에 함께 쓰는 상태 딱지 문구.
+  /// 가지고 있는 팩의 딱지. 기본 팩은 «기본 제공», 나머지는 «보유 중»이다.
+  String ownedLabel(AppLocalizations l10n) =>
+      availability == CharacterPackAvailability.included
+          ? l10n.themeIncluded
+          : l10n.characterPackOwned;
+
+  /// 목록·상세에 함께 쓰는 상태 딱지 문구 — 가지지 않은 팩용.
   String statusLabel(AppLocalizations l10n) => switch (availability) {
         CharacterPackAvailability.included => l10n.themeIncluded,
         CharacterPackAvailability.forSale => l10n.characterPackOwnAction,

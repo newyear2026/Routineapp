@@ -30,13 +30,12 @@ class CharacterPackPortrait extends StatelessWidget {
     if (!pack.hasArtwork) {
       return _PendingArtwork(size: size);
     }
-    // `AnimatedCat`은 아직 제 경로를 직접 만든다. 그림을 가진 팩이 하나뿐이라
-    // 지금은 어긋나지 않으며, 둘째가 생기는 순간
-    // character_pack_screen_test 가 먼저 깨져 캐릭터 축을 풀게 한다.
+    // 지금 쓰는 팩이 아니라 **이 팩**을 그린다. 목록의 모든 카드가 같은
+    // 캐릭터를 보여 주면 무엇을 고르는지 알 수 없다.
     return SizedBox(
       width: size,
       height: size,
-      child: AnimatedCat(pose: CatPose.idle, animate: animate),
+      child: AnimatedCat(pose: CatPose.idle, animate: animate, pack: pack),
     );
   }
 }

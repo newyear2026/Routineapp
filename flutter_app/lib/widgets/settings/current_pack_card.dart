@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../data/store/character_pack_catalog.dart';
 import '../../l10n/app_localizations.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
 import '../../theme/app_text_styles.dart';
 import '../ds/ds.dart';
 import '../store/character_pack_preview.dart';
+import '../store/character_pack_scope.dart';
 import '../store/character_pack_text.dart';
 
 /// 지금 쓰는 팩을 보여 주고 팩 목록으로 보낸다.
@@ -20,7 +20,7 @@ class CurrentPackCard extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    const pack = CharacterPackCatalog.current;
+    final pack = CharacterPackScope.currentOf(context);
     return Semantics(
       button: true,
       label: '${l10n.characterPackTitle}, ${pack.name(l10n)}',
@@ -39,7 +39,7 @@ class CurrentPackCard extends StatelessWidget {
                 const SizedBox(height: AppSpacing.sm),
                 Wrap(spacing: 6, runSpacing: 6, children: [
                   AppStatusBadge(
-                    label: l10n.themeIncluded,
+                    label: pack.ownedLabel(l10n),
                     tone: AppStatusBadgeTone.neutral,
                   ),
                   AppStatusBadge(
@@ -49,12 +49,12 @@ class CurrentPackCard extends StatelessWidget {
                 ]),
               ],
             );
-            const portrait = SizedBox(
-              key: Key('settings-current-pack-portrait'),
+            final portrait = SizedBox(
+              key: const Key('settings-current-pack-portrait'),
               width: 96,
               height: 104,
               child: CharacterPackPortrait(
-                pack: CharacterPackCatalog.current,
+                pack: pack,
                 size: 96,
                 animate: true,
               ),
