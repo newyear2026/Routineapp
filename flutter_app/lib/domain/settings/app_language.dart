@@ -10,7 +10,8 @@ enum AppLanguage {
   korean('ko'),
   english('en'),
   spanish('es'),
-  japanese('ja');
+  japanese('ja'),
+  portuguese('pt');
 
   const AppLanguage(this.code);
 
@@ -45,5 +46,6 @@ enum AppLanguage {
     Locale('es'),
     Locale('ja'),
     Locale('ko'),
+    Locale('pt'),
   ];
 }

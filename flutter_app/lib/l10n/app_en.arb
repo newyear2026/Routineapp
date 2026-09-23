@@ -516,6 +516,8 @@
   "@languageSpanish": {},
   "languageJapanese": "日本語",
   "@languageJapanese": {},
+  "languagePortuguese": "Português",
+  "@languagePortuguese": {},
   "languageSheetTitle": "Choose a language",
   "@languageSheetTitle": {},
   "errorLoadSettings": "Couldn't load your settings. Please try again.",

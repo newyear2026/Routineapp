@@ -79,6 +79,8 @@ String languageLabel(AppLocalizations l10n, AppLanguage language) {
       return l10n.languageSpanish;
     case AppLanguage.japanese:
       return l10n.languageJapanese;
+    case AppLanguage.portuguese:
+      return l10n.languagePortuguese;
   }
 }
 

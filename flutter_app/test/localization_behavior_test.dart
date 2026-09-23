@@ -86,7 +86,7 @@ void main() {
       // 먼저 알려준다.
       await prefs.setString(
         'domain.app_settings.v1',
-        '{"localeCode":"pt"}',
+        '{"localeCode":"xx"}',
       );
 
       final controller = makeController();
@@ -131,6 +131,10 @@ void main() {
       expect(en.routineCount(3), '3 routines');
       expect(es.routineCount(1), '1 rutina');
       expect(es.routineCount(3), '3 rutinas');
+
+      final pt = lookupAppLocalizations(const Locale('pt'));
+      expect(pt.routineCount(1), '1 rotina');
+      expect(pt.routineCount(3), '3 rotinas');
     });
 
     test('자리표시자가 실제로 채워진다', () {
@@ -152,12 +156,13 @@ void main() {
       final en = AppDateFormats.monthDayIn('en', date);
       final es = AppDateFormats.monthDayIn('es', date);
       final ja = AppDateFormats.monthDayIn('ja', date);
+      final pt = AppDateFormats.monthDayIn('pt', date);
 
       expect(ko, contains('8'));
       expect(ko, contains('21'));
       expect(ja, '8月21日');
       // 형식을 직접 이어붙였다면 모든 언어가 같은 문자열이 된다.
-      expect({ko, en, es, ja}.length, 4, reason: '로케일별 형식이 적용되지 않았다');
+      expect({ko, en, es, ja, pt}.length, 5, reason: '로케일별 형식이 적용되지 않았다');
     });
 
     test('날짜와 요일 어순을 로케일이 정한다', () {
@@ -179,9 +184,11 @@ void main() {
       final ko = AppDateFormats.weekdayFullIn('ko', DateTime(2024, 1, 1));
       final es = AppDateFormats.weekdayFullIn('es', DateTime(2024, 1, 1));
       final ja = AppDateFormats.weekdayFullIn('ja', DateTime(2024, 1, 1));
+      final pt = AppDateFormats.weekdayFullIn('pt', DateTime(2024, 1, 1));
       expect(ko, '월요일');
       expect(es.toLowerCase(), 'lunes');
       expect(ja, '月曜日');
+      expect(pt.toLowerCase(), 'segunda-feira');
     });
   });
 

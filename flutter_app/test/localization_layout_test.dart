@@ -49,6 +49,7 @@ void main() {
     Locale('en'),
     Locale('es'),
     Locale('ja'),
+    Locale('pt'),
   ];
 
   /// 작은 기기(360×640)와 큰 글꼴을 동시에 준다.

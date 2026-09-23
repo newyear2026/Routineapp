@@ -108,6 +108,7 @@ void main() {
     Locale('en'),
     Locale('es'),
     Locale('ja'),
+    Locale('pt'),
   ]) {
     final code = locale.languageCode;
 
