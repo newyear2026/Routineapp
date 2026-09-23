@@ -376,8 +376,9 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
     return Scaffold(
       // 저장 바는 Scaffold 기본 배경 위에 뜬다. 배경을 명시하지 않으면
       // 버튼 주변 여백이 칠해지지 않아 루트의 검정이 그대로 보인다.
+      // 본문(AppScreenShell)과 같은 테마 배경을 써야 팩을 바꿔도 띠가 없다.
       bottomNavigationBar: ColoredBox(
-        color: AppColors.pageBackground,
+        color: Theme.of(context).scaffoldBackgroundColor,
         child: SafeArea(
           top: false,
           minimum: const EdgeInsets.fromLTRB(24, 10, 24, 16),

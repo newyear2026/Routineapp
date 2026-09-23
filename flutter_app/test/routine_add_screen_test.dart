@@ -11,7 +11,7 @@ import 'package:routine_timer/domain/models/routine.dart';
 import 'package:routine_timer/domain/settings/notification_preferences.dart';
 import 'package:routine_timer/screens/routine_add/routine_form_preview.dart';
 import 'package:routine_timer/screens/routine_add_screen.dart';
-import 'package:routine_timer/theme/app_colors.dart';
+import 'package:routine_timer/theme/app_theme.dart';
 import 'package:routine_timer/widgets/ds/ds.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -38,6 +38,7 @@ void main() {
     WidgetTester tester, {
     List<Routine>? routines,
     String? editId,
+    ThemeData? theme,
   }) async {
     final controller = RoutineAppController(
       dataService: RoutineDataService(
@@ -75,7 +76,7 @@ void main() {
     await tester.pumpWidget(
       ChangeNotifierProvider.value(
         value: controller,
-        child: localizedApp(routerConfig: router),
+        child: localizedApp(routerConfig: router, theme: theme),
       ),
     );
     await tester.pumpAndSettle();
@@ -97,10 +98,25 @@ void main() {
 
     final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
     expect(scaffold.bottomNavigationBar, isA<ColoredBox>());
+    // 본문(AppScreenShell)과 같은 색이어야 저장 바 뒤에 색 띠가 생기지 않는다.
+    final pageColor = Theme.of(tester.element(find.byType(Scaffold)))
+        .scaffoldBackgroundColor;
     expect(
       (scaffold.bottomNavigationBar! as ColoredBox).color,
-      AppColors.pageBackground,
+      pageColor,
     );
+  });
+
+  testWidgets('테마 배경이 바뀌면 저장 바도 같은 색을 따른다', (tester) async {
+    const themed = Color(0xFFFFF9E9);
+    final controller = await pumpAddScreen(
+      tester,
+      theme: buildRoutineTheme().copyWith(scaffoldBackgroundColor: themed),
+    );
+    addTearDown(controller.dispose);
+
+    final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
+    expect((scaffold.bottomNavigationBar! as ColoredBox).color, themed);
   });
 
   testWidgets('이름이 비면 원인을 필드 옆 인라인 메시지로 남긴다', (tester) async {

@@ -11,10 +11,14 @@ final AppLocalizations testL10n = lookupAppLocalizations(testLocale);
 
 /// 위젯 테스트용 [MaterialApp] — 델리게이트를 빠뜨리면
 /// `AppLocalizations.of(context)`가 그대로 터진다.
-MaterialApp localizedApp({Widget? home, RouterConfig<Object>? routerConfig}) {
+MaterialApp localizedApp({
+  Widget? home,
+  RouterConfig<Object>? routerConfig,
+  ThemeData? theme,
+}) {
   if (routerConfig != null) {
     return MaterialApp.router(
-      theme: buildRoutineTheme(),
+      theme: theme ?? buildRoutineTheme(),
       routerConfig: routerConfig,
       locale: testLocale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
@@ -22,7 +26,7 @@ MaterialApp localizedApp({Widget? home, RouterConfig<Object>? routerConfig}) {
     );
   }
   return MaterialApp(
-    theme: buildRoutineTheme(),
+    theme: theme ?? buildRoutineTheme(),
     home: home,
     locale: testLocale,
     localizationsDelegates: AppLocalizations.localizationsDelegates,
