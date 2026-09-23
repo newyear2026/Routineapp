@@ -103,7 +103,12 @@ void main() {
     await tester.pumpAndSettle();
   }
 
-  for (final locale in const [Locale('ko'), Locale('en'), Locale('es')]) {
+  for (final locale in const [
+    Locale('ko'),
+    Locale('en'),
+    Locale('es'),
+    Locale('ja'),
+  ]) {
     final code = locale.languageCode;
 
     testWidgets('$code — 시작 시간 타일을 누르면 원형 선택기가 열린다', (tester) async {
@@ -114,7 +119,7 @@ void main() {
 
       expect(tester.takeException(), isNull);
       expect(find.byKey(const Key('orbit-time-picker-confirm')), findsOneWidget);
-      // 세 언어 모두 같은 화면을 본다 — Material 선택기처럼 로케일에 따라
+      // 모든 언어가 같은 화면을 본다 — Material 선택기처럼 로케일에 따라
       // 12시간/24시간으로 갈리지 않는다.
       expect(find.byType(TimePickerDialog), findsNothing);
     });

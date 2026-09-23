@@ -97,7 +97,7 @@ void main() {
   });
 
   group('언어별 문자열', () {
-    test('세 언어 모두 같은 키를 채운다 — 빈 문자열이 없다', () {
+    test('모든 언어가 같은 키를 채운다 — 빈 문자열이 없다', () {
       for (final locale in AppLanguage.supportedLocales) {
         final l10n = lookupAppLocalizations(locale);
         final samples = <String>[
@@ -151,11 +151,13 @@ void main() {
       final ko = AppDateFormats.monthDayIn('ko', date);
       final en = AppDateFormats.monthDayIn('en', date);
       final es = AppDateFormats.monthDayIn('es', date);
+      final ja = AppDateFormats.monthDayIn('ja', date);
 
       expect(ko, contains('8'));
       expect(ko, contains('21'));
-      // 형식을 직접 이어붙였다면 세 언어가 같은 문자열이 된다.
-      expect({ko, en, es}.length, 3, reason: '로케일별 형식이 적용되지 않았다');
+      expect(ja, '8月21日');
+      // 형식을 직접 이어붙였다면 모든 언어가 같은 문자열이 된다.
+      expect({ko, en, es, ja}.length, 4, reason: '로케일별 형식이 적용되지 않았다');
     });
 
     test('날짜와 요일 어순을 로케일이 정한다', () {
@@ -176,8 +178,10 @@ void main() {
       // 2024-01-01은 월요일.
       final ko = AppDateFormats.weekdayFullIn('ko', DateTime(2024, 1, 1));
       final es = AppDateFormats.weekdayFullIn('es', DateTime(2024, 1, 1));
+      final ja = AppDateFormats.weekdayFullIn('ja', DateTime(2024, 1, 1));
       expect(ko, '월요일');
       expect(es.toLowerCase(), 'lunes');
+      expect(ja, '月曜日');
     });
   });
 
@@ -243,8 +247,7 @@ void main() {
 
       await controller.updateLanguage(AppLanguage.spanish);
 
-      expect(gateway.scheduled, isEmpty,
-          reason: '바뀐 것이 없는데 알림을 다시 예약했다');
+      expect(gateway.scheduled, isEmpty, reason: '바뀐 것이 없는데 알림을 다시 예약했다');
       controller.dispose();
     });
   });
@@ -261,8 +264,8 @@ void main() {
           permissionStatus: NotificationPermissionStatus.granted,
         ),
       );
-      final routine =
-          dailyRoutine(id: 'read', title: 'Lectura', startHour: 21, endHour: 22);
+      final routine = dailyRoutine(
+          id: 'read', title: 'Lectura', startHour: 21, endHour: 22);
 
       await service.syncAll(
         [routine],

@@ -44,7 +44,12 @@ void main() {
         .setMockMethodCallHandler(homeWidgetChannel, null);
   });
 
-  const locales = <Locale>[Locale('ko'), Locale('en'), Locale('es')];
+  const locales = <Locale>[
+    Locale('ko'),
+    Locale('en'),
+    Locale('es'),
+    Locale('ja'),
+  ];
 
   /// 작은 기기(360×640)와 큰 글꼴을 동시에 준다.
   const smallPhone = Size(360, 640);

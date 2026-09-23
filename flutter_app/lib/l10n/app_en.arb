@@ -514,6 +514,8 @@
   "@languageEnglish": {},
   "languageSpanish": "Español",
   "@languageSpanish": {},
+  "languageJapanese": "日本語",
+  "@languageJapanese": {},
   "languageSheetTitle": "Choose a language",
   "@languageSheetTitle": {},
   "errorLoadSettings": "Couldn't load your settings. Please try again.",

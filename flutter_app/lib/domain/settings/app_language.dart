@@ -9,7 +9,8 @@ enum AppLanguage {
   system(null),
   korean('ko'),
   english('en'),
-  spanish('es');
+  spanish('es'),
+  japanese('ja');
 
   const AppLanguage(this.code);
 
@@ -42,6 +43,7 @@ enum AppLanguage {
   static const List<Locale> supportedLocales = <Locale>[
     Locale('en'),
     Locale('es'),
+    Locale('ja'),
     Locale('ko'),
   ];
 }

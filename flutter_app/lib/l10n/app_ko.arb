@@ -207,6 +207,7 @@
   "languageKorean": "한국어",
   "languageEnglish": "English",
   "languageSpanish": "Español",
+  "languageJapanese": "日本語",
   "languageSheetTitle": "언어 선택",
   "errorLoadSettings": "설정을 불러오지 못했어요. 다시 시도해 주세요.",
   "loadFailureTitle": "정보를 불러오지 못했어요",
