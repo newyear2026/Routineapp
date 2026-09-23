@@ -77,7 +77,8 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                         width: 56,
                         height: 56,
                         child: Center(
-                          child: AppIcon(Icons.add_rounded, color: Colors.white),
+                          child:
+                              AppIcon(Icons.add_rounded, color: Colors.white),
                         ),
                       ),
                     ),
@@ -156,6 +157,8 @@ class _RoutineContent extends StatelessWidget {
           subtitle: l10n.routinesSubtitle,
           pose: CatPose.focus,
           catKey: const Key('routines-menu-cat'),
+          decorationAsset: 'assets/decorations/routines-sky.png',
+          decorationKey: const Key('routines-sky-decoration'),
         ),
         const SizedBox(height: 18),
         _ViewSwitcher(value: view, onChanged: onViewChanged),

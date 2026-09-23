@@ -11,12 +11,16 @@ class CatMenuHeader extends StatelessWidget {
     required this.subtitle,
     required this.pose,
     this.catKey,
+    this.decorationAsset,
+    this.decorationKey,
   });
   final String? caption;
   final String title;
   final String subtitle;
   final CatPose pose;
   final Key? catKey;
+  final String? decorationAsset;
+  final Key? decorationKey;
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(builder: (context, box) {
@@ -37,16 +41,42 @@ class CatMenuHeader extends StatelessWidget {
             width: compact ? 80 : 104,
             height: compact ? 80 : 104,
             child: AnimatedCat(pose: pose));
-        if (compact) {
-          return Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Align(alignment: Alignment.centerRight, child: cat),
-                text
-              ]);
-        }
-        return Row(
-            crossAxisAlignment: CrossAxisAlignment.end,
-            children: [Expanded(child: text), const SizedBox(width: 12), cat]);
+        final content = compact
+            ? Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Align(alignment: Alignment.centerRight, child: cat),
+                  text,
+                ],
+              )
+            : Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(child: text),
+                  const SizedBox(width: 12),
+                  cat,
+                ],
+              );
+        if (decorationAsset == null) return content;
+        return Stack(
+          clipBehavior: Clip.none,
+          children: [
+            Positioned(
+              key: decorationKey,
+              left: compact ? -12 : -24,
+              right: compact ? -12 : -24,
+              top: compact ? -12 : -42,
+              child: IgnorePointer(
+                child: Image.asset(
+                  decorationAsset!,
+                  fit: BoxFit.fill,
+                  filterQuality: FilterQuality.none,
+                  excludeFromSemantics: true,
+                ),
+              ),
+            ),
+            content,
+          ],
+        );
       });
 }

@@ -210,7 +210,7 @@ class _NotificationPermissionScreenState
             ),
           ),
           const IgnorePointer(
-            child: AppPixelSwitch(value: true, onChanged: null),
+            child: AppPixelSwitch(value: true, onChanged: null, decorative: true),
           ),
         ],
       ),

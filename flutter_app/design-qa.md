@@ -36,6 +36,51 @@ final result: passed
 
 ---
 
+# Routine, progress, and settings sky ornaments QA — 2026-09-22
+
+## Scope and evidence
+
+- Source visual truth for the routine screen: `/var/folders/1d/f_54vtrd34b966kbj7vfrncc0000gn/T/codex-clipboard-ec7c559f-2236-4a34-97cb-248f38832542.png` (853 × 1844 px), the user's selected list-screen proposal.
+- Final implementation captures: `output/design-qa-menu-clouds-2026-09-22/routines.png`, `progress.png`, and `settings.png`, each rendered at 390 × 844 logical pixels and device-pixel ratio 2 (780 × 1688 px).
+- Routine comparisons: `output/design-qa-menu-clouds-2026-09-22/routines-full-comparison.png` and the focused `routines-header-comparison.png`. The source was nearest-neighbor normalized to 780 × 1688 as `routines-target-normalized.png` before comparison.
+- Three-screen review sheet: `output/design-qa-menu-clouds-2026-09-22/menu-clouds-contact-sheet.png`.
+- State: Korean light theme on 2026-09-08; the routines screen contains five daily routines, progress shows rest as active, and settings shows the default cat theme. The progress and settings screens use the previously approved four-screen concept board as style direction rather than as exact state targets.
+
+## Findings and comparison history
+
+1. The routine header now reproduces the selected proposal's composition: a lavender pixel cloud at upper-left, layered clouds behind the reading cat, and sparse warm-gold stars. The title, subtitle, tabs, routine cards, and floating action remain unobstructed.
+2. The progress header keeps its established information hierarchy and adds the same sky language around the existing cat. The ornament was enlarged slightly and repositioned so it reads as part of the header rather than as a detached background detail.
+3. Settings now has a dedicated upper-right crescent-moon/cloud/star ornament and subtle clouds behind the current theme card. These additions preserve the card badge and settings controls as the primary content.
+4. The first render captured before newly declared assets had decoded, so the render harness now pre-caches every decorative sky image. A later settings review found that a flipped copy of the progress ornament placed gold stars over the `사용 중` badge; it was replaced with a dedicated cloud-only card asset.
+5. Final full, focused, and three-screen comparisons were inspected together. No actionable P0, P1, or P2 visual mismatch remains within the requested decorative scope. Intentional P3 differences are the real app's existing card heights and spacing, which are data-driven and were not replaced with mock-only geometry.
+
+## Required fidelity surfaces
+
+- Typography and copy: existing localized Korean text, type scale, and pixel-number styles are unchanged.
+- Spacing/layout: decorations are isolated to the header/card backgrounds and do not alter navigation, touch targets, scrolling, or content order.
+- Colors/tokens: pale two-tone lavender clouds, warm gold stars, purple accents, navy borders, and the cream background remain consistent across all three menus.
+- Image quality: transparent RGBA assets are rendered with nearest-neighbor filtering for crisp pixel edges. No reference UI, text, cat, or card content is baked into an ornament.
+- Content and behavior: routines, progress state, settings values, actions, and existing update/review logic remain driven by the app.
+
+## Image generation provenance
+
+- Mode: built-in image generation, followed only by nearest-neighbor resizing for application assets.
+- Final prompt set:
+  - `routines-sky.png`: create a transparent wide pixel-art routine-header ornament based on the selected list-screen proposal and the app's existing sky palette, with an upper-left lavender cloud, layered clouds around the cat zone, four sparse gold stars, and a clear left text area; exclude UI, text, cards, and characters.
+  - `settings-sky.png`: create a transparent upper-right settings ornament based on the approved four-screen concept, with a gold crescent moon, layered lavender clouds, and two small stars while keeping the left title area clear; exclude UI, text, and characters.
+  - `settings-card-cloud.png`: create one isolated transparent lavender two-tone pixel cloud for a settings card, with no moon, stars, text, outline, or other object.
+- Final assets: `assets/decorations/routines-sky.png` (384 × 158), `assets/decorations/settings-sky.png` (180 × 110), and `assets/decorations/settings-card-cloud.png` (96 × 48).
+
+## Validation and limits
+
+- Targeted Flutter analysis reported no issues. The routine/progress, settings, and asset-budget tests all passed (26 tests), and the render harness passed at 390 × 844 plus its compact/text-scale checks.
+- The full Flutter suite passed all 391 tests and `git diff --check` passed. Full-project analysis reports only three existing informational lints in `tool/generate_store_screenshots.dart`; the files changed for this visual work remain clean.
+- This is a Flutter test-rendered comparison rather than a physical-device capture.
+
+final result: passed
+
+---
+
 # Home ring icon implementation QA — 2026-09-21
 
 ## Scope and evidence

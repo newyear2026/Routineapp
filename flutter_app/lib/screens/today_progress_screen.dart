@@ -110,13 +110,14 @@ class _ProgressHeader extends StatelessWidget {
             child: Stack(
               children: [
                 Positioned(
-                  right: 0,
-                  bottom: 0,
+                  key: const Key('progress-sky-decoration'),
+                  right: -8,
+                  bottom: -3,
                   child: IgnorePointer(
                     child: Image.asset(
                       'assets/decorations/progress-sky.png',
-                      width: compact ? 150 : 178,
-                      height: compact ? 94 : 112,
+                      width: compact ? 160 : 200,
+                      height: compact ? 100 : 125,
                       filterQuality: FilterQuality.none,
                       excludeFromSemantics: true,
                     ),
