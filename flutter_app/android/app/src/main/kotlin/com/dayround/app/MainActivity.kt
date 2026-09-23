@@ -2,7 +2,9 @@ package com.dayround.app
 
 import android.app.AlarmManager
 import android.content.Context
+import android.content.Intent
 import android.os.Build
+import android.provider.Settings
 import io.flutter.embedding.android.FlutterActivity
 import io.flutter.embedding.engine.FlutterEngine
 import io.flutter.plugin.common.MethodChannel
@@ -23,16 +25,18 @@ class MainActivity : FlutterActivity() {
             }
         }
 
-        // USE_EXACT_ALARM 을 선언하므로 Android 13+ 에서는 늘 허용이다.
-        // 이 조회는 사용자가 권한을 끌 수 있는 Android 12~12L 을 위해 남는다.
+        // 정확 알람은 앱이 스스로 켤 수 없다. 상태만 읽고, 켜려면 시스템 설정으로 보낸다.
         MethodChannel(
             flutterEngine.dartExecutor.binaryMessenger,
             "routine_timer/exact_alarm"
         ).setMethodCallHandler { call, result ->
-            if (call.method == "canScheduleExactAlarms") {
-                result.success(canScheduleExactAlarms())
-            } else {
-                result.notImplemented()
+            when (call.method) {
+                "canScheduleExactAlarms" -> result.success(canScheduleExactAlarms())
+                "openSettings" -> {
+                    openExactAlarmSettings()
+                    result.success(null)
+                }
+                else -> result.notImplemented()
             }
         }
     }
@@ -42,5 +46,15 @@ class MainActivity : FlutterActivity() {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return true
         val alarmManager = getSystemService(Context.ALARM_SERVICE) as AlarmManager
         return alarmManager.canScheduleExactAlarms()
+    }
+
+    private fun openExactAlarmSettings() {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.S) return
+        // NEW_TASK 를 주면 설정 화면이 별도 태스크로 떠서, 뒤로 가기가 앱이 아니라
+        // 홈으로 나간다. 같은 태스크에 쌓아야 사용자가 온보딩으로 돌아온다.
+        val intent = Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM).apply {
+            data = android.net.Uri.parse("package:$packageName")
+        }
+        startActivity(intent)
     }
 }

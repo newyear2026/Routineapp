@@ -120,7 +120,7 @@ dart run flutter_launcher_icons             # 플랫폼별 해상도 생성
 | 개인정보처리방침 | URL 필수 — `docs/PRIVACY_POLICY.md`를 웹에 올린다 |
 | 광고 | 없음 |
 | 앱 액세스 권한 | 제한 없음 (로그인 없음) |
-| 알람 및 리마인더 권한 | **사용함** — `USE_EXACT_ALARM`, 아래 선언문 참고 |
+| 알람 및 리마인더 권한 | 해당 없음 — `USE_EXACT_ALARM` 을 쓰지 않는다. 아래 참고 |
 | 콘텐츠 등급 | 설문 후 자동 산정 (유틸리티, 전체이용가 예상) |
 | 타겟층 | 만 13세 이상 권장 |
 | 데이터 안전성 | **데이터를 수집하거나 공유하지 않음** |
@@ -128,33 +128,31 @@ dart run flutter_launcher_icons             # 플랫폼별 해상도 생성
 
 데이터 안전성을 "수집 안 함"으로 신고할 수 있는 근거는 아래와 같다. 서버가 없고, `AndroidManifest.xml`에 `INTERNET` 권한조차 없으며, 모든 저장이 `SharedPreferences` 로컬이다. 이후 광고 SDK나 분석 도구를 넣으면 이 답변을 반드시 갱신해야 한다.
 
-### 정확한 알람 권한 선언 (`USE_EXACT_ALARM`)
+### 정확한 알람: `USE_EXACT_ALARM` 을 쓰지 않는 이유
 
-Play Console > **앱 콘텐츠 > 알람 및 리마인더 권한**에서 선언해야 한다. 선언하지
-않으면 릴리스가 반려된다.
+**결론 — 쓰지 않는다.** `AndroidManifest.xml` 에는 `SCHEDULE_EXACT_ALARM` 만 둔다.
 
-Google 은 이 권한을 "사용자가 정한 시각에 울리는 것이 핵심 기능인 앱"(알람시계,
-타이머, 캘린더 알림)으로 제한한다. 이 앱이 거기 해당하는 근거:
+2026-09 에 한 번 `USE_EXACT_ALARM` 으로 바꿔 올렸다가 되돌렸다. 기록을 남긴다.
 
-- 사용자가 루틴마다 시작 시각을 직접 정한다. 앱이 임의로 고른 시각이 아니다.
-- 그 시각의 알림이 제품 그 자체다. 알림이 늦으면 «7시 기상» 루틴이 제 역할을
-  못 한다. 마케팅·재참여 알림에는 쓰지 않는다.
-- 알림을 끈 사용자에게는 알람을 걸지 않는다.
+**바꾸려 한 이유.** Android 14 부터 `SCHEDULE_EXACT_ALARM` 이 기본 «거부»다.
+신규 사용자 대부분이 몇 분씩 늦는 알림을 받는 상태로 앱을 시작하고, 앱은 그
+권한을 스스로 켤 수 없어 설정 항목으로 사용자를 시스템 설정까지 데려가야 한다.
 
-**선언문 초안 (영문, 그대로 붙여 넣을 수 있음)**
+**되돌린 이유.** Play Console 의 선언 서식은 «앱의 핵심 기능이 무엇인가요?» 를
+**«알람 시계»와 «캘린더» 둘 중 하나로만** 고르게 한다. «루틴 앱» 칸은 없다.
+그런데 이 앱은 24시간 원형 시간표가 중심이고, 스토어 문안(`STORE_LISTING.md`)도
+알림을 부가 기능으로 적고 있다 — «알림을 아예 쓰지 않아도 앱의 모든 기능을
+그대로 쓸 수 있습니다». 둘 중 무엇을 골라도 문안과 어긋난다. 서식은 자격이
+없으면 «모든 트랙의 앱에서 이 권한을 삭제해야 합니다» 라고 경고한다.
 
-> LOOPET is a routine reminder app. Users set an exact start time for each
-> routine they create, and the app fires a notification at that time. The
-> reminder at the user-chosen time is the app's core function — a routine such
-> as "wake up at 7:00" fails its purpose if the notification is delayed. Exact
-> alarms are used only for these user-scheduled routine reminders and for the
-> user's own "remind me later" snooze. They are never used for marketing,
-> promotional, or re-engagement messages.
+**다시 쓰려면** 스토어 문안부터 바꿔야 한다. 알림이 «있으면 좋은 것»이 아니라
+«정해진 시각에 울리는 것이 이 앱»이 되도록 설명을 다시 쓰고, 그 다음에
+«알람 시계»로 선언한다. 문안을 그대로 두고 선언만 하는 건 허위 선언이다.
 
-**반려될 경우** — `USE_EXACT_ALARM` 을 빼고 `SCHEDULE_EXACT_ALARM` 만 남기면
-빌드는 그대로 통과한다. 다만 Android 14+ 에서 기본 거부라, 사용자를 시스템
-설정으로 보내는 UI 를 다시 만들어야 한다(이 커밋에서 제거한 `ExactAlarmTile`).
-코드는 권한이 없으면 이미 부정확 알람으로 후퇴하므로 알림 자체는 계속 동작한다.
+**지금 구조에서 감수하는 것.** Android 14+ 신규 사용자는 설정 > 알림에서
+«정확한 알림»을 직접 켜야 정한 시각에 알림을 받는다. 켜지 않으면 앱은 부정확
+알람으로 후퇴하고, 알림은 오되 몇 분 늦을 수 있다. 온보딩에서 알림을 허용한
+사람은 시스템 설정 화면으로 한 번 안내한다.
 
 ---
 

@@ -2,16 +2,12 @@ import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:flutter/services.dart';
 
-/// 정확 알람 권한이 지금 살아 있는지 확인한다.
+/// 정확 알람(SCHEDULE_EXACT_ALARM) 권한 상태 조회와 시스템 설정 이동.
 ///
-/// 앱은 USE_EXACT_ALARM 을 선언한다. 설치할 때 자동으로 허용되고 사용자가 끌 수
-/// 없으므로 Android 13+ 에서는 언제나 true 다. 켜달라고 보낼 화면도, 그래서
-/// 설정 UI 도 없다.
-///
-/// 그런데도 이 조회가 남아 있는 이유는 Android 12~12L(API 31~32) 다. 거기에는
-/// USE_EXACT_ALARM 이 없어 SCHEDULE_EXACT_ALARM 으로 떨어지는데, 그건 사용자가
-/// 시스템 설정에서 끌 수 있다. 꺼진 채로 정확 알람을 걸면 SecurityException 으로
-/// 예약 자체가 실패하므로, 호출부는 이 값을 보고 부정확 알람으로 후퇴한다.
+/// 이 권한은 앱이 대화상자로 받을 수 없다. 사용자를 시스템 설정 화면으로 보내고,
+/// 돌아온 뒤 상태를 다시 읽는 방식만 가능하다. 그래서 «허용/거부» 결과를
+/// 돌려주는 API 가 없고, 호출부가 복귀 시점에 [canScheduleExactAlarms] 를
+/// 다시 물어야 한다.
 ///
 /// Android 12 미만과 다른 플랫폼에는 이 개념이 없다. 그 경우 항상 허용으로 본다 —
 /// 알람이 이미 정확하게 울리기 때문이다.
@@ -25,6 +21,12 @@ class ExactAlarmService {
   bool get _isAndroid =>
       !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
 
+  /// 이 플랫폼에 «정확 알람 권한»이라는 개념이 있는지.
+  ///
+  /// iOS 에는 없다. 알림은 예약한 시각에 그냥 울린다. 그래서 설정에 이 항목을
+  /// 두면 «허용됨»이라고 적힌 채 눌러도 아무 일이 없는 행이 된다.
+  bool get isSupported => _isAndroid;
+
   Future<bool> canScheduleExactAlarms() async {
     if (!_isAndroid) return true;
     try {
@@ -35,6 +37,19 @@ class ExactAlarmService {
       return false;
     } on MissingPluginException {
       return false;
+    }
+  }
+
+  /// 시스템 설정 화면을 연다. 사용자가 무엇을 골랐는지는 알 수 없으므로,
+  /// 앱으로 돌아온 뒤 [canScheduleExactAlarms] 로 다시 확인해야 한다.
+  Future<void> openSettings() async {
+    if (!_isAndroid) return;
+    try {
+      await _channel.invokeMethod<void>('openSettings');
+    } on PlatformException {
+      // 설정 화면이 없는 기기도 있다. 열지 못해도 앱 흐름은 막지 않는다.
+    } on MissingPluginException {
+      // 같은 이유.
     }
   }
 }
