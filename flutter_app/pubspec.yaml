@@ -109,6 +109,12 @@ flutter:
     - assets/characters/cat_starlight/v1/approved/focus.png
     - assets/characters/cat_starlight/v1/approved/complete.png
     - assets/characters/cat_starlight/v1/approved/rest.png
+    - assets/characters/poodle_garden/v1/approved/idle.png
+    - assets/characters/poodle_garden/v1/approved/activity.png
+    - assets/characters/poodle_garden/v1/approved/focus.png
+    - assets/characters/poodle_garden/v1/approved/complete.png
+    - assets/characters/poodle_garden/v1/approved/rest.png
+    - assets/characters/poodle_garden/v1/approved/guide.png
     - assets/characters/cat_starlight/v1/approved/guide.png
 
   # ARB 기반 다국어 코드 생성 (lib/l10n/*.arb -> AppLocalizations)
