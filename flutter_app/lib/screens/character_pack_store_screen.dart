@@ -59,6 +59,8 @@ class CharacterPackStoreScreen extends StatelessWidget {
                 pack: pack,
                 inUse: pack.id == current.id,
                 owned: ownership.owns(pack),
+                onTrial:
+                    CharacterPackScope.trialEndsAtOf(context, pack) != null,
                 onTap: () => context.push('/character-packs/${pack.id}'),
               ),
               const SizedBox(height: AppSpacing.md),
@@ -75,12 +77,16 @@ class _PackListCard extends StatelessWidget {
     required this.pack,
     required this.inUse,
     required this.owned,
+    required this.onTrial,
     required this.onTap,
   });
 
   final CharacterPack pack;
   final bool inUse;
   final bool owned;
+
+  /// 광고로 연 팩을 쓰는 중인가. 산 팩과 달리 끝이 있으니 따로 표시한다.
+  final bool onTrial;
   final VoidCallback onTap;
 
   @override
@@ -88,9 +94,11 @@ class _PackListCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final status = inUse
         ? l10n.themeInUse
-        : owned
-            ? pack.ownedLabel(l10n)
-            : pack.statusLabel(l10n);
+        : onTrial
+            ? l10n.characterPackTrialActive
+            : owned
+                ? pack.ownedLabel(l10n)
+                : pack.statusLabel(l10n);
     return Semantics(
       button: true,
       label: '${pack.name(l10n)}, $status',

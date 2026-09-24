@@ -47,7 +47,7 @@ void main() {
 
     test('보상형도 뜬다', () {
       expect(
-        AdSlotPolicy.decide(AdSlot.settingsThemeReward, _context()).isAllowed,
+        AdSlotPolicy.decide(AdSlot.packTrialReward, _context()).isAllowed,
         isTrue,
       );
     });
@@ -89,24 +89,26 @@ void main() {
       final context = _context(
         firstLaunchAt: _now.subtract(const Duration(hours: 49)),
       );
-      expect(AdSlotPolicy.decide(AdSlot.homeUpcoming, context).isAllowed,
-          isTrue);
+      expect(
+          AdSlotPolicy.decide(AdSlot.homeUpcoming, context).isAllowed, isTrue);
     });
 
     test('워밍업 0이면 첫 실행에도 뜬다 — 비공개 테스트 빌드', () {
       // 48시간을 그대로 두면 테스터 상당수가 광고를 한 번도 못 본다.
       final context = _context(firstLaunchAt: _now, warmUp: Duration.zero);
-      expect(AdSlotPolicy.decide(AdSlot.homeUpcoming, context).isAllowed,
-          isTrue);
+      expect(
+          AdSlotPolicy.decide(AdSlot.homeUpcoming, context).isAllowed, isTrue);
     });
 
-    test('워밍업은 보상형에도 걸린다', () {
+    test('사용자가 누르는 보상형에는 워밍업이 걸리지 않는다', () {
+      // 워밍업은 광고가 저절로 나타나는 것을 막는다. 보상형까지 막으면
+      // 설치 첫 이틀 동안 광고로 여는 팩이 누를 수 없는 버튼이 된다.
       final context = _context(
         firstLaunchAt: _now.subtract(const Duration(hours: 1)),
       );
       expect(
-        _reason(AdSlot.settingsThemeReward, context),
-        AdDenialReason.warmUp,
+        AdSlotPolicy.decide(AdSlot.packTrialReward, context).isAllowed,
+        isTrue,
       );
     });
   });
@@ -121,11 +123,11 @@ void main() {
     });
 
     test('사용자가 직접 누르는 보상형은 막지 않는다', () {
-      // 알림으로 들어왔더라도 설정에 들어가 잠긴 테마를 누른 것은
+      // 알림으로 들어왔더라도 잠긴 팩에서 광고 버튼을 누른 것은
       // 본인 의사다. 여기까지 막으면 기능이 사라진 것처럼 보인다.
       final context = _context(startedFromNotification: true);
       expect(
-        AdSlotPolicy.decide(AdSlot.settingsThemeReward, context).isAllowed,
+        AdSlotPolicy.decide(AdSlot.packTrialReward, context).isAllowed,
         isTrue,
       );
     });
@@ -143,7 +145,7 @@ void main() {
     test('네이티브 상한은 보상형을 막지 않는다', () {
       final context = _context(nativeImpressionsThisSession: 9);
       expect(
-        AdSlotPolicy.decide(AdSlot.settingsThemeReward, context).isAllowed,
+        AdSlotPolicy.decide(AdSlot.packTrialReward, context).isAllowed,
         isTrue,
       );
     });
@@ -165,7 +167,7 @@ void main() {
         rewardedShownToday: AdPlacementCaps.rewardedPerDay,
       );
       expect(
-        _reason(AdSlot.settingsThemeReward, context),
+        _reason(AdSlot.packTrialReward, context),
         AdDenialReason.dailyRewardCap,
       );
     });
@@ -173,7 +175,7 @@ void main() {
     test('2회까지는 뜬다', () {
       final context = _context(rewardedShownToday: 2);
       expect(
-        AdSlotPolicy.decide(AdSlot.settingsThemeReward, context).isAllowed,
+        AdSlotPolicy.decide(AdSlot.packTrialReward, context).isAllowed,
         isTrue,
       );
     });
@@ -212,7 +214,7 @@ void main() {
     test('보상형은 남는다 — 시즌 테마 체험용', () {
       expect(
         AdSlotPolicy.decide(
-          AdSlot.settingsThemeReward,
+          AdSlot.packTrialReward,
           _context(isPro: true),
         ).isAllowed,
         isTrue,

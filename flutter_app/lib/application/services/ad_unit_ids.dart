@@ -34,7 +34,7 @@ abstract final class AdUnitIds {
   }
 
   /// Slot B — 설정 보너스 테마.
-  static String get settingsThemeRewarded {
+  static String get packTrialRewarded {
     if (AdConfig.useTestAds) {
       return _isIos ? _testRewardedIos : _testRewardedAndroid;
     }

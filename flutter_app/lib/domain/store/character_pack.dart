@@ -15,6 +15,12 @@ enum CharacterPackAvailability {
   /// 판매 대상.
   forSale,
 
+  /// 보상형 광고를 끝까지 보면 `RewardedTrialOwnership.trialLength` 동안 쓴다.
+  ///
+  /// 광고를 켤 수 없는 플랫폼에서는 열 길이 없으므로 무료로 푼다 — 잠긴
+  /// 채로 여는 방법이 없는 팩은 사용자에게 고장 난 버튼일 뿐이다.
+  rewardedTrial,
+
   /// 자리는 정해졌고 그림이 아직 없다.
   comingSoon,
 }

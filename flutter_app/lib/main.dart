@@ -160,6 +160,8 @@ class _AppRoot extends StatelessWidget {
             current: app.currentPack,
             ownership: app.packOwnership,
             onSelect: app.selectCharacterPack,
+            trialEndsAt: app.packTrialEndsAt,
+            onStartTrial: app.watchAdForPackTrial,
             child: child ?? const SizedBox.shrink(),
           ),
         );

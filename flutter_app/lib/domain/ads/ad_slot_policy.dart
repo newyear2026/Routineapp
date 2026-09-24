@@ -32,7 +32,10 @@ abstract final class AdSlotPolicy {
       return const AdSlotDecision.deny(AdDenialReason.proUser);
     }
 
-    if (_isWithinWarmUp(context)) {
+    // 워밍업은 설치 직후에 광고가 «나타나는» 것을 막는 장치다. 보상형은
+    // 사용자가 눌러야 시작하므로 막을 대상이 없다 — 막으면 첫 이틀 동안
+    // 광고로 여는 팩이 누를 수 없는 버튼이 될 뿐이다.
+    if (!slot.isUserInitiated && _isWithinWarmUp(context)) {
       return const AdSlotDecision.deny(AdDenialReason.warmUp);
     }
 
@@ -74,8 +77,8 @@ abstract final class AdSlotPolicy {
       case AdSlot.progressBeforeUpcoming:
         return context.todayRoutineCount >=
             AdPlacementCaps.minTodayRoutinesForProgressSlot;
-      case AdSlot.settingsThemeReward:
-        // 잠긴 테마를 눌렀을 때만 호출되므로 별도 조건이 없다.
+      case AdSlot.packTrialReward:
+        // 잠긴 팩에서 사용자가 눌렀을 때만 호출되므로 별도 조건이 없다.
         return true;
     }
   }

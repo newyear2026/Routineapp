@@ -26,6 +26,7 @@ extension CharacterPackText on CharacterPack {
   String statusLabel(AppLocalizations l10n) => switch (availability) {
         CharacterPackAvailability.included => l10n.themeIncluded,
         CharacterPackAvailability.forSale => l10n.characterPackOwnAction,
+        CharacterPackAvailability.rewardedTrial => l10n.characterPackTrialBadge,
         CharacterPackAvailability.comingSoon => l10n.commonComingSoon,
       };
 }

@@ -4,8 +4,10 @@ import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:flutter/material.dart';
 
 import '../data/local/local_settings_repository.dart';
+import '../data/local/pack_trial_storage.dart';
 import '../data/repositories/settings_repository.dart';
 import '../data/store/character_pack_catalog.dart';
+import '../domain/ads/ad_slot.dart';
 import '../domain/models/routine.dart';
 import '../domain/models/routine_log.dart';
 import '../domain/models/routine_log_status.dart';
@@ -14,6 +16,7 @@ import '../domain/models/routine_write_error.dart';
 import '../domain/models/app_settings.dart';
 import '../domain/settings/app_language.dart';
 import '../domain/store/character_pack.dart';
+import '../domain/store/pack_trial.dart';
 import '../l10n/app_localizations.dart';
 import '../domain/services/routine_day_service.dart';
 import '../domain/services/routine_log_action_service.dart';
@@ -24,7 +27,9 @@ import 'home/home_snapshot.dart';
 import 'home/home_snapshot_builder.dart';
 import 'home/progress_summary.dart';
 import 'routine_save_result.dart';
+import 'services/ad_config.dart';
 import 'services/exact_alarm_service.dart';
+import 'services/rewarded_ad_service.dart';
 import 'services/routine_notification_service.dart';
 import 'services/routine_data_service.dart';
 import '../widget_home/home_widget_sync_service.dart';
@@ -37,6 +42,9 @@ class RoutineAppController extends ChangeNotifier {
     RoutineNotificationService? notificationService,
     SettingsRepository? settingsRepository,
     CharacterPackOwnership packOwnership = const BundledOnlyOwnership(),
+    PackTrialStore packTrialStore = const LocalPackTrialStore(),
+    bool? rewardedPackTrials,
+    Future<RewardedAdOutcome> Function(AdSlot slot)? showRewardedAd,
     @visibleForTesting
     List<CharacterPack> characterPacks = CharacterPackCatalog.all,
     DateTime Function()? nowProvider,
@@ -45,7 +53,11 @@ class RoutineAppController extends ChangeNotifier {
         _dayService = dayService ?? const RoutineDayService(),
         _notifications = notificationService ?? RoutineNotificationService(),
         _settings = settingsRepository ?? LocalSettingsRepository.instance,
-        _packOwnership = packOwnership,
+        _basePackOwnership = packOwnership,
+        _packTrialStore = packTrialStore,
+        _rewardedPackTrials =
+            rewardedPackTrials ?? (!kIsWeb && AdConfig.isPlatformSupported),
+        _showRewardedAd = showRewardedAd ?? RewardedAdService.instance.show,
         _characterPacks = characterPacks,
         _nowProvider = nowProvider ?? DateTime.now,
         _clockAutoRefreshEnabled = clockAutoRefreshEnabled;
@@ -54,7 +66,15 @@ class RoutineAppController extends ChangeNotifier {
   final RoutineDayService _dayService;
   final RoutineNotificationService _notifications;
   final SettingsRepository _settings;
-  final CharacterPackOwnership _packOwnership;
+  final CharacterPackOwnership _basePackOwnership;
+  final PackTrialStore _packTrialStore;
+  final bool _rewardedPackTrials;
+  final Future<RewardedAdOutcome> Function(AdSlot slot) _showRewardedAd;
+
+  /// 체험이 바뀔 때만 새로 만든다. 스코프는 이 객체가 바뀌었는지로 팩 화면을
+  /// 다시 그릴지 정하므로, 매번 새로 만들면 시계가 갈 때마다 전부 다시 그린다.
+  late RewardedTrialOwnership _packOwnership = _buildPackOwnership(const {});
+  Map<String, DateTime> _packTrialEnds = const {};
   final List<CharacterPack> _characterPacks;
   final DateTime Function() _nowProvider;
   final bool _clockAutoRefreshEnabled;
@@ -86,8 +106,27 @@ class RoutineAppController extends ChangeNotifier {
           ? AppThemePreset.poodleGarden
           : AppThemePreset.byId(themeId);
 
-  /// 팩 소유 판정. 결제가 붙으면 구매 저장소가 이 자리에 들어온다.
+  /// 팩 소유 판정 — 구매 판정에 광고 체험을 얹은 것.
+  ///
+  /// 결제가 붙으면 구매 저장소가 생성자의 `packOwnership` 자리에 들어온다.
   CharacterPackOwnership get packOwnership => _packOwnership;
+
+  /// [pack]을 광고로 체험 중이면 끝나는 시각.
+  DateTime? packTrialEndsAt(CharacterPack pack) =>
+      _packOwnership.trialEndsAt(pack);
+
+  RewardedTrialOwnership _buildPackOwnership(Map<String, DateTime> ends) =>
+      RewardedTrialOwnership(
+        base: _basePackOwnership,
+        trialEnds: ends,
+        rewardedAdsAvailable: _rewardedPackTrials,
+        now: () => _now,
+      );
+
+  void _setPackTrialEnds(Map<String, DateTime> ends) {
+    _packTrialEnds = Map.unmodifiable(ends);
+    _packOwnership = _buildPackOwnership(_packTrialEnds);
+  }
 
   /// 앱이 지금 그리는 캐릭터 팩 — 저장값이 아니라 판정 결과다.
   CharacterPack get currentPack => CharacterPackCatalog.resolve(
@@ -195,6 +234,7 @@ class RoutineAppController extends ChangeNotifier {
     _routines = routines;
     _logsToday = logs;
     _appSettings = settings;
+    _setPackTrialEnds(await _loadPackTrialEnds());
     _loadFailed = false;
     _loadedDateYmd = TimeMinutes.dateYmd(now);
     _loadedAt = now;
@@ -326,6 +366,68 @@ class RoutineAppController extends ChangeNotifier {
       return false;
     }
     return true;
+  }
+
+  /// 보상형 광고를 끝까지 보면 [pack]을 하루 동안 열고 바로 적용한다.
+  ///
+  /// 광고를 보고 나서 «쓰기»를 한 번 더 누르게 하면, 사용자는 30초를 내고도
+  /// 아무것도 바뀌지 않은 화면을 먼저 본다.
+  Future<PackTrialOutcome> watchAdForPackTrial(CharacterPack pack) async {
+    if (!_packOwnership.canStartTrial(pack)) return PackTrialOutcome.failed;
+
+    final outcome = await _showRewardedAd(AdSlot.packTrialReward);
+    switch (outcome) {
+      case RewardedAdOutcome.earned:
+        break;
+      case RewardedAdOutcome.dismissed:
+        return PackTrialOutcome.adNotCompleted;
+      case RewardedAdOutcome.dailyCapReached:
+        return PackTrialOutcome.dailyLimitReached;
+      case RewardedAdOutcome.unavailable:
+        return PackTrialOutcome.adUnavailable;
+    }
+
+    final endsAt = _now.add(RewardedTrialOwnership.trialLength);
+    // 광고는 이미 봤다. 저장이 실패해도 이번 실행 동안은 열어 둔다 —
+    // 30초를 낸 사람에게 «실패»를 돌려주는 것보다, 다시 켰을 때 잠기는 편이 낫다.
+    try {
+      await _packTrialStore.saveTrialEnd(pack.id, endsAt);
+    } catch (e, st) {
+      debugPrint('pack trial save failed: $e\n$st');
+    }
+    _setPackTrialEnds({..._packTrialEnds, pack.id: endsAt});
+    notifyListeners();
+
+    return await selectCharacterPack(pack)
+        ? PackTrialOutcome.started
+        : PackTrialOutcome.failed;
+  }
+
+  /// 광고로 연 팩의 끝나는 시각들. 광고를 켤 수 없는 플랫폼은 읽지 않는다.
+  ///
+  /// 실패해도 로드를 막지 않는다 — 체험이 사라질 뿐 루틴은 그대로 보여야 한다.
+  Future<Map<String, DateTime>> _loadPackTrialEnds() async {
+    if (!_rewardedPackTrials) return const {};
+    try {
+      return await _packTrialStore.loadTrialEnds();
+    } catch (e, st) {
+      debugPrint('pack trial load failed: $e\n$st');
+      return const {};
+    }
+  }
+
+  /// 끝난 체험을 판정 객체에서 걷어 낸다.
+  ///
+  /// 판정은 시각으로 하므로 걷어 내지 않아도 결과는 같다. 다만 판정 객체가
+  /// 그대로면 스코프가 팩 화면에 알리지 않아, 쓰지 않던 팩의 체험이 끝나도
+  /// 상세 화면이 «체험 중»으로 남는다.
+  void _dropExpiredPackTrials() {
+    if (!_packOwnership.hasExpiredEntries()) return;
+    final now = _now;
+    _setPackTrialEnds({
+      for (final entry in _packTrialEnds.entries)
+        if (now.isBefore(entry.value)) entry.key: entry.value,
+    });
   }
 
   Future<void> updateTheme(String themeId) async {
@@ -561,6 +663,7 @@ class RoutineAppController extends ChangeNotifier {
         _logsToday = await _data.loadLogsForDate(now);
         _loadedDateYmd = currentYmd;
       }
+      _dropExpiredPackTrials();
 
       notifyListeners();
       if (!kIsWeb) {

@@ -3,6 +3,9 @@ import 'package:go_router/go_router.dart';
 
 import '../data/store/character_pack_catalog.dart';
 import '../domain/store/character_pack.dart';
+import '../domain/store/pack_trial.dart';
+import '../domain/utils/app_date_formats.dart';
+import '../domain/utils/time_minutes.dart';
 import '../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
@@ -150,7 +153,9 @@ class CharacterPackDetailScreen extends StatelessWidget {
               inUse: inUse,
               owned: ownership.owns(pack),
               selectable: CharacterPackCatalog.isSelectable(pack, ownership),
+              trialEndsAt: CharacterPackScope.trialEndsAtOf(context, pack),
               onSelect: CharacterPackScope.onSelectOf(context),
+              onStartTrial: CharacterPackScope.onStartTrialOf(context),
             ),
           ],
         ),
@@ -236,7 +241,7 @@ class _ContentsRow extends StatelessWidget {
   }
 }
 
-/// 사용 중 · 쓰기 · 구매 표시. **판정은 여기 한 곳에서만 한다.**
+/// 사용 중 · 쓰기 · 광고로 체험 · 구매 표시. **판정은 여기 한 곳에서만 한다.**
 ///
 /// 조건이 화면 곳곳에 흩어지면 가격 정책을 바꿀 수 없게 된다
 /// (`BUSINESS_MODEL.md` 6장).
@@ -246,14 +251,20 @@ class _PackAction extends StatefulWidget {
     required this.inUse,
     required this.owned,
     required this.selectable,
+    required this.trialEndsAt,
     required this.onSelect,
+    required this.onStartTrial,
   });
 
   final CharacterPack pack;
   final bool inUse;
   final bool owned;
   final bool selectable;
+
+  /// 광고로 체험 중이면 끝나는 시각.
+  final DateTime? trialEndsAt;
   final Future<bool> Function(CharacterPack pack)? onSelect;
+  final Future<PackTrialOutcome> Function(CharacterPack pack)? onStartTrial;
 
   @override
   State<_PackAction> createState() => _PackActionState();
@@ -278,15 +289,61 @@ class _PackActionState extends State<_PackAction> {
       ..showSnackBar(SnackBar(content: Text(failureMessage)));
   }
 
+  Future<void> _startTrial() async {
+    final onStartTrial = widget.onStartTrial;
+    if (onStartTrial == null || _saving) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context);
+    setState(() => _saving = true);
+    final outcome = await onStartTrial(widget.pack);
+    if (!mounted) return;
+    setState(() => _saving = false);
+    // 성공하면 알리지 않는다. 버튼이 «사용 중»으로 바뀌고 캐릭터가 바뀌는
+    // 것이 곧 결과다.
+    final message = switch (outcome) {
+      PackTrialOutcome.started => null,
+      PackTrialOutcome.adNotCompleted => l10n.characterPackTrialNotCompleted,
+      PackTrialOutcome.dailyLimitReached => l10n.characterPackTrialDailyLimit,
+      PackTrialOutcome.adUnavailable => l10n.characterPackTrialUnavailable,
+      PackTrialOutcome.failed => l10n.characterPackSelectFailed,
+    };
+    if (message == null) return;
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  /// 체험이 끝나는 때 — 내일 이맘때라 날짜까지 적는다.
+  Widget? _trialCaption(AppLocalizations l10n) {
+    final end = widget.trialEndsAt;
+    if (end == null) return null;
+    final when = '${AppDateFormats.monthDay(context, end)} '
+        '${TimeMinutes.formatHm(end.hour * 60 + end.minute)}';
+    return Padding(
+      padding: const EdgeInsets.only(top: AppSpacing.sm),
+      child: Text(
+        l10n.characterPackTrialEndsAt(when),
+        textAlign: TextAlign.center,
+        style: AppTextStyles.caption,
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final trialCaption = _trialCaption(l10n);
     if (widget.inUse) {
-      return Center(
-        child: AppStatusBadge(
-          label: l10n.themeInUse,
-          tone: AppStatusBadgeTone.success,
-        ),
+      return Column(
+        children: [
+          Center(
+            child: AppStatusBadge(
+              label: l10n.themeInUse,
+              tone: AppStatusBadgeTone.success,
+            ),
+          ),
+          if (trialCaption != null) trialCaption,
+        ],
       );
     }
     if (widget.owned) {
@@ -299,6 +356,7 @@ class _PackActionState extends State<_PackAction> {
             onPressed:
                 widget.selectable && widget.onSelect != null ? _select : null,
           ),
+          if (trialCaption != null) trialCaption,
           // 산 팩이라도 그림이 오기 전에는 쓸 수 없다. 잠긴 이유를 말한다
           // (`PROJECT_RULES.md` 9장).
           if (!widget.pack.hasArtwork) ...[
@@ -309,6 +367,26 @@ class _PackActionState extends State<_PackAction> {
               style: AppTextStyles.caption,
             ),
           ],
+        ],
+      );
+    }
+    if (widget.pack.availability == CharacterPackAvailability.rewardedTrial) {
+      return Column(
+        children: [
+          AppButton(
+            label: l10n.characterPackTrialAction,
+            icon: Icons.play_circle_outline_rounded,
+            isLoading: _saving,
+            onPressed: widget.onStartTrial != null ? _startTrial : null,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          // 무엇을 내고 무엇을 받는지 누르기 전에 말한다. 보상형 광고 정책도
+          // 보상 내용을 미리 알리도록 요구한다.
+          Text(
+            l10n.characterPackTrialHint,
+            textAlign: TextAlign.center,
+            style: AppTextStyles.caption,
+          ),
         ],
       );
     }

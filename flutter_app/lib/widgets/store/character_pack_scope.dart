@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../data/store/character_pack_catalog.dart';
 import '../../domain/store/character_pack.dart';
+import '../../domain/store/pack_trial.dart';
 
 /// 지금 쓰는 팩과 팩을 바꾸는 길을 화면 트리에 내려 준다.
 ///
@@ -16,6 +17,8 @@ class CharacterPackScope extends InheritedWidget {
     required this.current,
     required this.ownership,
     this.onSelect,
+    this.trialEndsAt,
+    this.onStartTrial,
     required super.child,
   });
 
@@ -26,6 +29,12 @@ class CharacterPackScope extends InheritedWidget {
 
   /// 팩을 바꾼다. 저장까지 끝나야 true다. null이면 바꿀 수 없는 자리다.
   final Future<bool> Function(CharacterPack pack)? onSelect;
+
+  /// 광고로 체험 중인 팩이면 끝나는 시각. null이면 체험이 없는 자리다.
+  final DateTime? Function(CharacterPack pack)? trialEndsAt;
+
+  /// 광고를 보고 팩을 하루 동안 연다. null이면 광고로 열 수 없는 자리다.
+  final Future<PackTrialOutcome> Function(CharacterPack pack)? onStartTrial;
 
   static CharacterPackScope? _maybeOf(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<CharacterPackScope>();
@@ -41,6 +50,13 @@ class CharacterPackScope extends InheritedWidget {
   ) =>
       _maybeOf(context)?.onSelect;
 
+  static DateTime? trialEndsAtOf(BuildContext context, CharacterPack pack) =>
+      _maybeOf(context)?.trialEndsAt?.call(pack);
+
+  static Future<PackTrialOutcome> Function(CharacterPack pack)? onStartTrialOf(
+          BuildContext context) =>
+      _maybeOf(context)?.onStartTrial;
+
   /// 소유 판정은 객체가 같으면 같다고 본다. 결제가 붙어 소유가 객체 안에서
   /// 바뀌게 되면, 그 변화는 [current]가 바뀌거나 이 스코프를 새 판정
   /// 객체로 다시 만드는 쪽으로 알려야 한다.
@@ -48,5 +64,7 @@ class CharacterPackScope extends InheritedWidget {
   bool updateShouldNotify(CharacterPackScope oldWidget) =>
       current.id != oldWidget.current.id ||
       ownership != oldWidget.ownership ||
-      onSelect != oldWidget.onSelect;
+      onSelect != oldWidget.onSelect ||
+      trialEndsAt != oldWidget.trialEndsAt ||
+      onStartTrial != oldWidget.onStartTrial;
 }

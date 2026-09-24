@@ -714,6 +714,28 @@
   "@characterPackSelectFailed": {},
   "characterPackArtworkPending": "Artwork in progress",
   "@characterPackArtworkPending": {},
+  "characterPackTrialAction": "Watch an ad to use for a day",
+  "@characterPackTrialAction": {},
+  "characterPackTrialHint": "Watch the whole ad to use this pack for 24 hours.",
+  "@characterPackTrialHint": {},
+  "characterPackTrialBadge": "Try with an ad",
+  "@characterPackTrialBadge": {},
+  "characterPackTrialActive": "Trial",
+  "@characterPackTrialActive": {},
+  "characterPackTrialEndsAt": "Available until {time}",
+  "@characterPackTrialEndsAt": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "characterPackTrialNotCompleted": "Watch the whole ad to unlock this pack.",
+  "@characterPackTrialNotCompleted": {},
+  "characterPackTrialDailyLimit": "No more ads today. Please try again tomorrow.",
+  "@characterPackTrialDailyLimit": {},
+  "characterPackTrialUnavailable": "Couldn't load an ad right now. Please try again in a moment.",
+  "@characterPackTrialUnavailable": {},
   "packStarlightCatName": "Starlight Cat",
   "@packStarlightCatName": {},
   "packStarlightCatTagline": "The original companion on a cream backdrop",
