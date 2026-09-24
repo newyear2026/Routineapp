@@ -7,10 +7,14 @@ import 'package:routine_timer/application/routine_app_controller.dart';
 import 'package:routine_timer/application/services/routine_data_service.dart';
 import 'package:routine_timer/application/services/routine_notification_service.dart';
 import 'package:routine_timer/data/local/onboarding_local_storage.dart';
+import 'package:routine_timer/data/store/character_pack_catalog.dart';
 import 'package:routine_timer/domain/onboarding/onboarding_preview_nav.dart';
+import 'package:routine_timer/domain/store/character_pack.dart';
 import 'package:routine_timer/domain/settings/notification_preferences.dart';
 import 'package:routine_timer/screens/settings_screen.dart';
 import 'package:routine_timer/widgets/ds/animated_cat.dart';
+import 'package:routine_timer/widgets/settings/current_pack_card.dart';
+import 'package:routine_timer/widgets/store/character_pack_scope.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/test_doubles.dart';
@@ -145,6 +149,24 @@ void main() {
           .pose,
       CatPose.idle,
     );
+  });
+
+  testWidgets('푸들 팩 설정 카드에는 화분과 머리 뒤 꽃을 그리지 않는다', (tester) async {
+    await tester.pumpWidget(localizedApp(
+      home: const CharacterPackScope(
+        current: CharacterPackCatalog.poodleGarden,
+        ownership: BundledOnlyOwnership(),
+        child: Scaffold(body: CurrentPackCard()),
+      ),
+    ));
+
+    expect(find.text('푸들 정원 팩'), findsOneWidget);
+    expect(find.byKey(const Key('settings-current-pack-portrait')),
+        findsOneWidget);
+    expect(find.byKey(const Key('settings-pack-sky-decoration')),
+        findsNothing);
+    expect(find.byKey(const Key('settings-pack-sky-decoration-right')),
+        findsNothing);
   });
 
   testWidgets('외형을 고르는 자리는 팩 카드 하나뿐이다', (tester) async {

@@ -18,23 +18,23 @@ ThemeData buildRoutineTheme(
     useMaterial3: true,
     fontFamily: fontFamily,
     textTheme: AppTextStyles.theme.apply(fontFamily: fontFamily),
-    scaffoldBackgroundColor: AppColors.pageBackground,
+    scaffoldBackgroundColor: preset.pageBackground,
     extensions: [AppThemeTokens(preset: preset)],
     colorScheme: ColorScheme.fromSeed(
-        seedColor: AppColors.orbitPrimary,
-        primary: AppColors.orbitPrimary,
+        seedColor: preset.primaryColor,
+        primary: preset.primaryColor,
         onPrimary: Colors.white,
         onSurface: AppColors.textPrimary,
         onSurfaceVariant: AppColors.textMuted,
         outline: AppColors.orbitBorder,
-        surface: AppColors.orbitSurface,
+        surface: preset.surfaceColor,
         error: AppColors.dangerText),
     splashFactory: NoSplash.splashFactory,
     iconTheme: const IconThemeData(color: AppColors.textMuted, size: 24),
     dividerTheme: const DividerThemeData(
         color: AppColors.orbitBorder, thickness: 1, space: 16),
-    appBarTheme: const AppBarTheme(
-      backgroundColor: AppColors.pageBackground,
+    appBarTheme: AppBarTheme(
+      backgroundColor: preset.pageBackground,
       foregroundColor: AppColors.textPrimary,
       surfaceTintColor: Colors.transparent,
       elevation: 0,
@@ -42,7 +42,7 @@ ThemeData buildRoutineTheme(
     ),
     elevatedButtonTheme: ElevatedButtonThemeData(
         style: ElevatedButton.styleFrom(
-      backgroundColor: AppColors.orbitPrimary,
+      backgroundColor: preset.primaryColor,
       foregroundColor: Colors.white,
       elevation: 0,
       shape: shape,
@@ -52,7 +52,7 @@ ThemeData buildRoutineTheme(
     outlinedButtonTheme: OutlinedButtonThemeData(
         style: OutlinedButton.styleFrom(
       foregroundColor: AppColors.textPrimary,
-      backgroundColor: AppColors.orbitSurface,
+      backgroundColor: preset.surfaceColor,
       shape: shape,
       side: const BorderSide(
           color: AppPixelStyle.outline, width: AppPixelStyle.borderWidth),

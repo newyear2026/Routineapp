@@ -94,6 +94,9 @@ flutter:
     - assets/routine_icons/bag.png
     - assets/routine_icons/laptop.png
     - assets/decorations/bell.png
+    - assets/decorations/garden-daisy.png
+    - assets/decorations/garden-leaf.png
+    - assets/decorations/garden-watering-can.png
     - assets/decorations/home-sky.png
     - assets/decorations/plant.png
     - assets/decorations/progress-sky.png

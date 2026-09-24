@@ -21,7 +21,7 @@ abstract final class CharacterPackCatalog {
     id: 'poodle_garden',
     characterId: 'poodle_garden',
     paletteIds: ['poodle_garden'],
-    decoIds: ['plant', 'garden-daisy'],
+    decoIds: ['garden-watering-can', 'garden-daisy', 'garden-leaf'],
     availability: CharacterPackAvailability.included,
   );
 

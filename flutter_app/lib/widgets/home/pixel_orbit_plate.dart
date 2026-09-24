@@ -5,8 +5,15 @@ import '../../theme/app_pixel_style.dart';
 
 /// 시간 데이터와 독립된 계단형 원판. 시간 구간은 OrbitRingPainter가 그린다.
 class PixelOrbitPlate extends CustomPainter {
-  const PixelOrbitPlate({this.centerOnly = false, this.step});
+  const PixelOrbitPlate({
+    this.centerOnly = false,
+    this.step,
+    this.dialColor = AppColors.dialSurface,
+    this.surfaceColor = AppColors.orbitSurface,
+  });
   final bool centerOnly;
+  final Color dialColor;
+  final Color surfaceColor;
 
   /// 계단 한 칸(px). 비우면 홈 크기에 맞춘 size/146을 쓴다. 작은 원판은
   /// 그 값이 1px 아래로 내려가 계단이 사라지므로 직접 준다.
@@ -45,7 +52,7 @@ class PixelOrbitPlate extends CustomPainter {
       canvas.drawPath(
           plate,
           Paint()
-            ..color = AppColors.dialSurface
+            ..color = dialColor
             ..isAntiAlias = false);
       canvas.drawPath(
           plate,
@@ -64,7 +71,7 @@ class PixelOrbitPlate extends CustomPainter {
       canvas.drawPath(
         _disk(center, size.width * 0.373, step),
         Paint()
-          ..color = AppColors.orbitSurface
+          ..color = surfaceColor
           ..isAntiAlias = false,
       );
       return;
@@ -73,7 +80,7 @@ class PixelOrbitPlate extends CustomPainter {
     canvas.drawPath(
         inner,
         Paint()
-          ..color = AppColors.orbitSurface
+          ..color = surfaceColor
           ..isAntiAlias = false);
     canvas.drawPath(
         inner,
@@ -86,5 +93,8 @@ class PixelOrbitPlate extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant PixelOrbitPlate old) =>
-      old.centerOnly != centerOnly || old.step != step;
+      old.centerOnly != centerOnly ||
+      old.step != step ||
+      old.dialColor != dialColor ||
+      old.surfaceColor != surfaceColor;
 }

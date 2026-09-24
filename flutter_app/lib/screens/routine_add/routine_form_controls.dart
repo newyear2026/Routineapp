@@ -9,6 +9,9 @@ import '../../theme/app_text_styles.dart';
 import '../../widgets/ds/app_pixel_hint.dart';
 import '../../widgets/ds/pixel_icon.dart';
 import '../../theme/app_pixel_style.dart';
+import '../../theme/app_theme_preset.dart';
+import '../../widgets/ds/pixel_decoration.dart';
+import '../../widgets/store/character_pack_scope.dart';
 
 /// 루틴 폼의 상단 바.
 ///
@@ -27,26 +30,50 @@ class RoutineFormHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final garden = CharacterPackScope.currentOf(context).id == 'poodle_garden';
     return SizedBox(
       height: 62,
       child: Stack(
         children: [
           if (onDelete == null &&
-              MediaQuery.textScalerOf(context).scale(1) <= 1.2)
-            Positioned(
-              right: 8,
-              top: 4,
-              child: IgnorePointer(
-                child: Image.asset(
-                  'assets/decorations/settings-card-cloud.png',
-                  key: const Key('routine-add-header-cloud'),
-                  width: 104,
-                  height: 52,
-                  filterQuality: FilterQuality.none,
-                  excludeFromSemantics: true,
+              MediaQuery.textScalerOf(context).scale(1) <= 1.2) ...[
+            if (garden) ...[
+              if (MediaQuery.sizeOf(context).width >= 360)
+                const Positioned(
+                  right: 15,
+                  top: 5,
+                  child: GardenLeaf(
+                    key: Key('routine-add-header-garden-leaf'),
+                    size: 28,
+                    angle: -0.3,
+                  ),
+                ),
+              if (MediaQuery.sizeOf(context).width >= 360)
+                const Positioned(
+                  right: 66,
+                  top: 27,
+                  child: PixelDecoration(
+                    key: Key('routine-add-header-garden-daisy'),
+                    asset: 'garden-daisy',
+                    size: 24,
+                  ),
+                ),
+            ] else
+              Positioned(
+                right: 8,
+                top: 4,
+                child: IgnorePointer(
+                  child: Image.asset(
+                    'assets/decorations/settings-card-cloud.png',
+                    key: const Key('routine-add-header-cloud'),
+                    width: 104,
+                    height: 52,
+                    filterQuality: FilterQuality.none,
+                    excludeFromSemantics: true,
+                  ),
                 ),
               ),
-            ),
+          ],
           Row(
             children: [
               IconButton(
@@ -175,6 +202,7 @@ class RoutineWeekdayCircle extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final label = AppDateFormats.weekdayNarrowByIndex(context, weekday);
+    final primary = Theme.of(context).colorScheme.primary;
     return Semantics(
       selected: selected,
       button: true,
@@ -192,12 +220,11 @@ class RoutineWeekdayCircle extends StatelessWidget {
             alignment: Alignment.center,
             decoration: ShapeDecoration(
               color: selected
-                  ? AppColors.orbitPrimary.withValues(alpha: .15)
+                  ? primary.withValues(alpha: .15)
                   : AppColors.orbitSurface,
               shape: AppPixelStyle.shape(
                 step: AppPixelStyle.cornerStepSmall,
-                color:
-                    selected ? AppColors.orbitPrimary : AppColors.orbitBorder,
+                color: selected ? primary : AppColors.orbitBorder,
                 width: selected ? 1.8 : 1,
               ),
             ),
@@ -205,8 +232,7 @@ class RoutineWeekdayCircle extends StatelessWidget {
               label,
               maxLines: 1,
               style: AppTextStyles.bodyStrong.copyWith(
-                color:
-                    selected ? AppColors.orbitPrimary : AppColors.textPrimary,
+                color: selected ? primary : AppColors.textPrimary,
               ),
             ),
           ),
@@ -241,15 +267,17 @@ class RoutineSuggestionChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
     return ActionChip(
       label: Text(label),
       shape: const RoundedRectangleBorder(),
       avatar: const AppIcon(Icons.add_rounded, size: 16),
       onPressed: onTap,
-      backgroundColor: AppColors.orbitHalo.withValues(alpha: .18),
-      side: BorderSide(color: AppColors.orbitPrimary.withValues(alpha: .2)),
+      backgroundColor:
+          context.appTheme.preset.selectedSurface.withValues(alpha: .18),
+      side: BorderSide(color: primary.withValues(alpha: .2)),
       labelStyle: AppTextStyles.caption.copyWith(
-        color: AppColors.orbitPrimary,
+        color: primary,
         fontWeight: FontWeight.w700,
       ),
     );

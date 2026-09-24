@@ -14,6 +14,9 @@ import '../widgets/routine_load_failure_view.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/ds/ds.dart';
+import '../widgets/ds/pixel_decoration.dart';
+import '../widgets/store/character_pack_scope.dart';
+import '../theme/app_theme_preset.dart';
 import '../theme/app_pixel_style.dart';
 
 enum _RoutineView { list, calendar }
@@ -63,7 +66,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
           ),
           floatingActionButton: _view == _RoutineView.list
               ? Material(
-                  color: AppColors.orbitPrimary,
+                  color: Theme.of(context).colorScheme.primary,
                   shape: AppPixelStyle.shape(),
                   // 아이콘만 있는 버튼이라 이름을 직접 준다. 없으면 스크린
                   // 리더가 «버튼»이라고만 읽고 무엇을 하는 버튼인지 알 수 없다.
@@ -108,9 +111,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                     }),
                   )
                 : const Center(
-                    child: CircularProgressIndicator(
-                      color: AppColors.orbitPrimary,
-                    ),
+                    child: CircularProgressIndicator(),
                   ),
           ),
         );
@@ -146,20 +147,11 @@ class _RoutineContent extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
     return ListView(
       // 마지막 항목이 FAB(56 + 여백) 아래로 숨지 않도록 하단 여백을 넉넉히 둔다.
       padding: const EdgeInsets.fromLTRB(24, 48, 24, 96),
       children: [
-        CatMenuHeader(
-          caption: AppDateFormats.monthDayWeekday(context, today),
-          title: l10n.routinesTitle,
-          subtitle: l10n.routinesSubtitle,
-          pose: CatPose.focus,
-          catKey: const Key('routines-menu-cat'),
-          decorationAsset: 'assets/decorations/routines-sky.png',
-          decorationKey: const Key('routines-sky-decoration'),
-        ),
+        _RoutinesHeader(today: today),
         const SizedBox(height: 18),
         _ViewSwitcher(value: view, onChanged: onViewChanged),
         const SizedBox(height: 22),
@@ -181,6 +173,132 @@ class _RoutineContent extends StatelessWidget {
   }
 }
 
+class _RoutinesHeader extends StatelessWidget {
+  const _RoutinesHeader({required this.today});
+
+  final DateTime today;
+
+  @override
+  Widget build(BuildContext context) {
+    final garden = CharacterPackScope.currentOf(context).id == 'poodle_garden';
+    final l10n = AppLocalizations.of(context);
+    final header = CatMenuHeader(
+      caption: AppDateFormats.monthDayWeekday(context, today),
+      title: l10n.routinesTitle,
+      subtitle: l10n.routinesSubtitle,
+      pose: CatPose.focus,
+      catKey: const Key('routines-menu-cat'),
+      decorationAsset: garden ? null : 'assets/decorations/routines-sky.png',
+      decorationKey: garden ? null : const Key('routines-sky-decoration'),
+    );
+    if (!garden) return header;
+    return LayoutBuilder(builder: (context, constraints) {
+      final compact = constraints.maxWidth < 300 ||
+          MediaQuery.textScalerOf(context).scale(16) > 20;
+      return Stack(
+        clipBehavior: Clip.none,
+        children: [
+          if (!compact) ...[
+            const Positioned(
+              left: -4,
+              top: -17,
+              child: GardenLeaf(
+                key: Key('routines-garden-leaf-left'),
+                size: 26,
+                mirror: true,
+                angle: -0.3,
+              ),
+            ),
+            const Positioned(
+              left: 96,
+              top: -9,
+              child: PixelDecoration(
+                key: Key('routines-garden-daisy-left'),
+                asset: 'garden-daisy',
+                size: 27,
+              ),
+            ),
+            const Positioned(
+              right: 146,
+              top: 11,
+              child: GardenLeaf(size: 22, angle: -0.5),
+            ),
+            const Positioned(
+              right: 76,
+              top: -15,
+              child: PixelSpark(size: 12, color: Color(0xFFFFB740)),
+            ),
+            const Positioned(
+              right: 7,
+              top: -22,
+              child: GardenLeaf(
+                key: Key('routines-garden-leaf-right'),
+                size: 25,
+                angle: -0.4,
+              ),
+            ),
+            const Positioned(
+              right: -5,
+              top: 3,
+              child: PixelDecoration(
+                key: Key('routines-garden-daisy-right'),
+                asset: 'garden-daisy',
+                size: 25,
+              ),
+            ),
+            const Positioned(
+              right: 5,
+              top: 59,
+              child: PixelSpark(size: 12, color: Color(0xFFFFB740)),
+            ),
+            const Positioned(
+              right: 107,
+              bottom: 8,
+              child: GardenLeaf(size: 20, angle: 0.4),
+            ),
+            const Positioned(
+              right: 91,
+              bottom: -8,
+              child: PixelDecoration(
+                key: Key('routines-garden-daisy-bottom'),
+                asset: 'garden-daisy',
+                size: 23,
+              ),
+            ),
+          ] else ...[
+            const Positioned(
+              right: 95,
+              top: 0,
+              child: GardenLeaf(
+                key: Key('routines-garden-leaf-left'),
+                size: 22,
+              ),
+            ),
+            const Positioned(
+              right: 0,
+              top: -10,
+              child: GardenLeaf(
+                key: Key('routines-garden-leaf-right'),
+                size: 22,
+              ),
+            ),
+            const Positioned(
+              right: 84,
+              top: 55,
+              child: PixelDecoration(
+                key: Key('routines-garden-daisy-bottom'),
+                asset: 'garden-daisy',
+                size: 22,
+              ),
+            ),
+          ],
+          header,
+        ],
+      );
+    });
+  }
+}
+
 class _ViewSwitcher extends StatelessWidget {
   const _ViewSwitcher({required this.value, required this.onChanged});
 
@@ -194,7 +312,9 @@ class _ViewSwitcher extends StatelessWidget {
       constraints: const BoxConstraints(minHeight: 52),
       padding: const EdgeInsets.all(2),
       decoration: ShapeDecoration(
-        color: AppColors.orbitSurfaceSoft,
+        color: CharacterPackScope.currentOf(context).id == 'poodle_garden'
+            ? context.appTheme.preset.selectedSurface
+            : AppColors.orbitSurfaceSoft,
         shape: AppPixelStyle.shape(),
       ),
       // stretch가 없으면 각 칸이 내용 높이(약 19)로만 잡힌다. 선택된 흰 pill이
@@ -237,7 +357,9 @@ class _ViewSwitchButton extends StatelessWidget {
   Widget build(BuildContext context) {
     return Expanded(
       child: Material(
-        color: selected ? AppColors.orbitPrimary : AppColors.orbitSurface,
+        color: selected
+            ? Theme.of(context).colorScheme.primary
+            : Theme.of(context).colorScheme.surface,
         borderRadius: BorderRadius.zero,
         child: InkWell(
           key: Key('routine-view-$label'),
@@ -416,7 +538,10 @@ class _MonthCalendar extends StatelessWidget {
     final days = RoutineCalendar.monthGridDates(visibleMonth);
     return Container(
       padding: const EdgeInsets.fromLTRB(14, 16, 14, 14),
-      decoration: appSurfaceDecoration(radius: 24),
+      decoration: appSurfaceDecoration(
+        radius: 24,
+        color: Theme.of(context).colorScheme.surface,
+      ),
       child: Column(
         children: [
           Row(
@@ -541,11 +666,16 @@ class _CalendarDateCell extends StatelessWidget {
                 height: 31,
                 alignment: Alignment.center,
                 decoration: BoxDecoration(
-                  color: selected ? AppColors.orbitPrimary : Colors.transparent,
+                  color: selected
+                      ? Theme.of(context).colorScheme.primary
+                      : Colors.transparent,
                   shape: BoxShape.rectangle,
                   // 다른 달로 넘어가도 '오늘'을 잃지 않도록 선택과 별개로 표시한다.
                   border: !selected && isToday
-                      ? Border.all(color: AppColors.orbitPrimary, width: 1.5)
+                      ? Border.all(
+                          color: Theme.of(context).colorScheme.primary,
+                          width: 1.5,
+                        )
                       : null,
                 ),
                 child: Text(

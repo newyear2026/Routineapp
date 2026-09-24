@@ -8,6 +8,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/ds/ds.dart';
+import '../widgets/ds/pixel_decoration.dart';
 import '../widgets/store/character_pack_preview.dart';
 import '../widgets/store/character_pack_scope.dart';
 import '../widgets/store/character_pack_text.dart';
@@ -81,7 +82,56 @@ class CharacterPackDetailScreen extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: AppSpacing.xxl),
-            Center(child: CharacterPackPortrait(pack: pack, size: 148)),
+            Center(
+              child: SizedBox(
+                width: 210,
+                height: 166,
+                child: Stack(
+                  alignment: Alignment.bottomCenter,
+                  children: [
+                    if (pack.id == CharacterPackCatalog.poodleGarden.id) ...[
+                      const Positioned(
+                        left: 0,
+                        top: 2,
+                        child: GardenLeaf(
+                          key: Key('poodle-detail-leaf-left-top'),
+                          size: 28,
+                          angle: -0.2,
+                        ),
+                      ),
+                      const Positioned(
+                        right: 1,
+                        top: 12,
+                        child: GardenLeaf(
+                          key: Key('poodle-detail-leaf-right-top'),
+                          size: 25,
+                          mirror: true,
+                        ),
+                      ),
+                      const Positioned(
+                        left: 14,
+                        bottom: 55,
+                        child: GardenLeaf(size: 20, mirror: true),
+                      ),
+                      const Positioned(
+                        right: 13,
+                        bottom: 58,
+                        child: GardenLeaf(size: 21, angle: 0.5),
+                      ),
+                      const Positioned(
+                        right: 0,
+                        bottom: 4,
+                        child: PixelDecoration(
+                          asset: 'garden-daisy',
+                          size: 58,
+                        ),
+                      ),
+                    ],
+                    CharacterPackPortrait(pack: pack, size: 148),
+                  ],
+                ),
+              ),
+            ),
             const SizedBox(height: AppSpacing.xxl),
             _SectionLabel(l10n.characterPackContents),
             const SizedBox(height: AppSpacing.md),

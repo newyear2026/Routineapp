@@ -10,6 +10,7 @@ import '../ds/routine_mark.dart';
 import '../orbit_ring_painter.dart';
 import 'pixel_orbit_plate.dart';
 import 'routine_ring_icon_layout.dart';
+import '../store/character_pack_scope.dart';
 
 /// Home 원형 하루 시간표 — Orbit 스타일 리디자인
 class CircularTimetableArea extends StatelessWidget {
@@ -76,6 +77,9 @@ class _CircularTimetableView extends StatelessWidget {
       dialSize: size,
       activeSegmentId: activeSegmentId,
     );
+    final garden = CharacterPackScope.currentOf(context).id == 'poodle_garden';
+    final primary = Theme.of(context).colorScheme.primary;
+    final surface = Theme.of(context).colorScheme.surface;
 
     return SizedBox(
       width: size,
@@ -84,7 +88,13 @@ class _CircularTimetableView extends StatelessWidget {
         alignment: Alignment.center,
         children: [
           CustomPaint(
-              size: Size.square(size), painter: const PixelOrbitPlate()),
+            size: Size.square(size),
+            painter: PixelOrbitPlate(
+              dialColor:
+                  garden ? const Color(0xFFEEF9F2) : AppColors.dialSurface,
+              surfaceColor: surface,
+            ),
+          ),
           CustomPaint(
             size: Size.square(size),
             // 링은 홈 위젯과 같은 구현을 쓴다 (OrbitRingPainter).
@@ -101,11 +111,15 @@ class _CircularTimetableView extends StatelessWidget {
               radiusFactor: 0.39,
               activeSegmentId: activeSegmentId,
               nowMinutes: nowMinutesFromMidnight,
+              trackColor:
+                  garden ? const Color(0xFFC9F1E5) : AppColors.orbitHalo,
+              pointerColor: primary,
             ),
           ),
           CustomPaint(
-              size: Size.square(size),
-              painter: const PixelOrbitPlate(centerOnly: true)),
+            size: Size.square(size),
+            painter: PixelOrbitPlate(centerOnly: true, surfaceColor: surface),
+          ),
           for (final placement in iconPlacements)
             Positioned(
               left: placement.bounds.left,
@@ -195,7 +209,9 @@ class _RoutineRingIconBadge extends StatelessWidget {
           decoration: ShapeDecoration(
             color: AppColors.orbitSurface,
             shape: AppPixelStyle.shape(
-              color: active ? AppColors.orbitPrimary : AppColors.textPrimary,
+              color: active
+                  ? Theme.of(context).colorScheme.primary
+                  : AppColors.textPrimary,
               width: active ? 2 : 1.2,
               step: 2,
               steps: 2,

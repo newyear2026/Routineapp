@@ -14,6 +14,8 @@ import '../domain/services/routine_state_resolver.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/ds/ds.dart';
+import '../widgets/ds/pixel_decoration.dart';
+import '../widgets/store/character_pack_scope.dart';
 
 /// 현재 루틴을 먼저 보여주고, 오늘 요약과 나머지 상태를 이어서 보여준다.
 class TodayProgressScreen extends StatelessWidget {
@@ -100,15 +102,18 @@ class _ProgressHeader extends StatelessWidget {
   final String subtitle;
 
   @override
-  Widget build(BuildContext context) => LayoutBuilder(
-        builder: (context, constraints) {
-          final compact = constraints.maxWidth < 300 ||
-              MediaQuery.textScalerOf(context).scale(16) > 20;
-          final catSize = compact ? 88.0 : 120.0;
-          return SizedBox(
-            key: const Key('progress-header'),
-            child: Stack(
-              children: [
+  Widget build(BuildContext context) {
+    final garden = CharacterPackScope.currentOf(context).id == 'poodle_garden';
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 300 ||
+            MediaQuery.textScalerOf(context).scale(16) > 20;
+        final catSize = compact ? 88.0 : 120.0;
+        return SizedBox(
+          key: const Key('progress-header'),
+          child: Stack(
+            children: [
+              if (!garden)
                 Positioned(
                   key: const Key('progress-sky-decoration'),
                   right: -8,
@@ -123,41 +128,63 @@ class _ProgressHeader extends StatelessWidget {
                     ),
                   ),
                 ),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Expanded(
-                      child: Padding(
-                        padding: const EdgeInsets.only(bottom: 8),
-                        child: Column(
-                          mainAxisSize: MainAxisSize.min,
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              title,
-                              style: AppTextStyles.titleScreen.copyWith(
-                                fontSize: compact ? 22 : 28,
-                              ),
-                            ),
-                            const SizedBox(height: 4),
-                            Text(subtitle, style: AppTextStyles.caption),
-                          ],
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 8),
-                    SizedBox.square(
-                      key: const Key('progress-menu-cat'),
-                      dimension: catSize,
-                      child: const AnimatedCat(pose: CatPose.complete),
-                    ),
-                  ],
+              if (garden) ...[
+                Positioned(
+                  right: catSize * 0.82,
+                  top: 2,
+                  child: const GardenLeaf(
+                    key: Key('progress-garden-leaf-left'),
+                    size: 22,
+                    mirror: true,
+                  ),
+                ),
+                const Positioned(
+                  right: 4,
+                  top: 0,
+                  child: GardenLeaf(size: 24, angle: -0.3),
+                ),
+                const Positioned(
+                  right: 28,
+                  bottom: 0,
+                  child: GardenLeaf(size: 18, angle: 0.45),
                 ),
               ],
-            ),
-          );
-        },
-      );
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: AppTextStyles.titleScreen.copyWith(
+                              fontSize: compact ? 22 : 28,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(subtitle, style: AppTextStyles.caption),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  SizedBox.square(
+                    key: const Key('progress-menu-cat'),
+                    dimension: catSize,
+                    child: const AnimatedCat(pose: CatPose.complete),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
 }
 
 class _ProgressHero extends StatelessWidget {

@@ -47,7 +47,7 @@ class _AppButtonState extends State<AppButton> {
       AppButtonVariant.ghost => AppColors.textMuted,
     };
     final fill = switch (widget.variant) {
-      AppButtonVariant.primary => AppColors.orbitPrimary,
+      AppButtonVariant.primary => Theme.of(context).colorScheme.primary,
       AppButtonVariant.secondary => AppColors.orbitSurface,
       AppButtonVariant.ghost => Colors.transparent,
       AppButtonVariant.destructive => AppColors.dangerText,

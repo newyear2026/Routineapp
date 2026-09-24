@@ -11,8 +11,15 @@ import 'package:routine_timer/data/repositories/routine_repository.dart';
 import 'package:routine_timer/domain/models/routine.dart';
 import 'package:routine_timer/domain/models/routine_log.dart';
 import 'package:routine_timer/domain/settings/notification_preferences.dart';
+import 'package:routine_timer/data/store/character_pack_catalog.dart';
+import 'package:routine_timer/domain/store/character_pack.dart';
 import 'package:routine_timer/screens/routine_add_screen.dart';
 import 'package:routine_timer/screens/routines_screen.dart';
+import 'package:routine_timer/theme/app_theme.dart';
+import 'package:routine_timer/theme/app_theme_preset.dart';
+import 'package:routine_timer/widgets/store/character_pack_scope.dart';
+import 'package:routine_timer/widgets/ds/app_status_badge.dart';
+import 'package:routine_timer/widgets/ds/pixel_decoration.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'support/localization.dart';
 
@@ -178,6 +185,97 @@ void main() {
 
     controller.dispose();
     handle.dispose();
+  });
+
+  testWidgets('푸들 정원 팩의 루틴 화면은 구름 대신 잎과 청록색 동작을 쓴다', (tester) async {
+    final controller = RoutineAppController(
+      dataService: RoutineDataService(
+        routineRepository: _MemoryRoutineRepository([
+          const Routine(
+            id: 'wake',
+            title: '기상',
+            startMinutesFromMidnight: 7 * 60,
+            endMinutesFromMidnight: 7 * 60 + 30,
+            repeatWeekdays: {
+              DateTime.monday,
+              DateTime.tuesday,
+              DateTime.wednesday,
+              DateTime.thursday,
+              DateTime.friday,
+              DateTime.saturday,
+              DateTime.sunday,
+            },
+            colorValue: 0xFF53B987,
+            iconEmoji: '☀️',
+          ),
+        ]),
+        logRepository: _MemoryLogRepository(),
+      ),
+      notificationService: RoutineNotificationService(
+        exactAlarmsAllowed: () async => false,
+        gateway: _NoopNotificationGateway(),
+        preferencesLoader: () async =>
+            NotificationPreferences.firstLaunchDefaults,
+      ),
+      nowProvider: () => DateTime(2026, 9, 23),
+      clockAutoRefreshEnabled: false,
+    );
+    await controller.load();
+    addTearDown(controller.dispose);
+
+    await tester.pumpWidget(ChangeNotifierProvider.value(
+      value: controller,
+      child: localizedApp(
+        theme: buildRoutineTheme(preset: AppThemePreset.poodleGarden),
+        home: const CharacterPackScope(
+          current: CharacterPackCatalog.poodleGarden,
+          ownership: BundledOnlyOwnership(),
+          child: RoutinesScreen(),
+        ),
+      ),
+    ));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('routines-sky-decoration')), findsNothing);
+    expect(find.byKey(const Key('routines-garden-leaf-left')), findsOneWidget);
+    expect(find.byKey(const Key('routines-garden-leaf-right')), findsOneWidget);
+    expect(find.byType(GardenLeaf), findsAtLeastNWidgets(4));
+    expect(find.byKey(const Key('routines-garden-daisy-left')), findsOneWidget);
+    expect(find.byKey(const Key('routines-garden-daisy-right')), findsOneWidget);
+    expect(find.byKey(const Key('routines-garden-daisy-bottom')), findsOneWidget);
+    expect(
+      Theme.of(tester.element(find.byType(RoutinesScreen)))
+          .scaffoldBackgroundColor,
+      const Color(0xFFEEEAF7),
+    );
+    final selectedTab = tester.widget<Material>(find
+        .ancestor(
+          of: find.byKey(const Key('routine-view-목록')),
+          matching: find.byType(Material),
+        )
+        .first);
+    expect(selectedTab.color, AppThemePreset.poodleGarden.primaryColor);
+    final badge =
+        tester.widget<AppStatusBadge>(find.byType(AppStatusBadge).first);
+    expect(badge.tone, AppStatusBadgeTone.meta);
+    expect(tester.widget<Text>(find.text('매일')).style?.color,
+        AppThemePreset.poodleGarden.primaryColor);
+    final addButton = tester.widget<Material>(find.ancestor(
+      of: find.byKey(const Key('routine-add-button')),
+      matching: find.byType(Material),
+    ).first);
+    expect(addButton.color, AppThemePreset.poodleGarden.primaryColor);
+
+    await tester.tap(find.byKey(const Key('routine-view-달력')));
+    await tester.pumpAndSettle();
+    final selectedDay = tester.widget<Container>(find
+        .descendant(
+          of: find.byKey(const Key('calendar-day-2026-9-23')),
+          matching: find.byType(Container),
+        )
+        .first);
+    expect((selectedDay.decoration! as BoxDecoration).color,
+        AppThemePreset.poodleGarden.primaryColor);
   });
 }
 

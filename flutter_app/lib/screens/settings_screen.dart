@@ -15,6 +15,8 @@ import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../domain/utils/app_date_formats.dart';
 import '../widgets/ds/ds.dart';
+import '../widgets/ds/pixel_decoration.dart';
+import '../widgets/store/character_pack_scope.dart';
 import '../widgets/settings/current_pack_card.dart';
 import '../widgets/settings/exact_alarm_tile.dart';
 import '../widgets/settings/language_settings_tile.dart';
@@ -282,9 +284,12 @@ class _SettingsSkyHeader extends StatelessWidget {
   final String subtitle;
 
   @override
-  Widget build(BuildContext context) => Stack(
-        clipBehavior: Clip.none,
-        children: [
+  Widget build(BuildContext context) {
+    final garden = CharacterPackScope.currentOf(context).id == 'poodle_garden';
+    return Stack(
+      clipBehavior: Clip.none,
+      children: [
+        if (!garden)
           Positioned(
             key: const Key('settings-sky-decoration'),
             right: -6,
@@ -300,18 +305,39 @@ class _SettingsSkyHeader extends StatelessWidget {
               ),
             ),
           ),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(caption, style: AppTextStyles.caption),
-              const SizedBox(height: 2),
-              Text(title, style: AppTextStyles.titleScreen),
-              const SizedBox(height: 3),
-              Text(subtitle, style: AppTextStyles.caption),
-            ],
+        if (garden) ...[
+          const Positioned(
+            right: 2,
+            top: -21,
+            child: GardenLeaf(
+              key: Key('settings-garden-leaf-top'),
+              size: 29,
+            ),
+          ),
+          const Positioned(
+            right: 58,
+            top: 15,
+            child: GardenLeaf(size: 18, mirror: true),
+          ),
+          const Positioned(
+            right: 8,
+            bottom: -2,
+            child: GardenLeaf(size: 21, angle: 0.5),
           ),
         ],
-      );
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(caption, style: AppTextStyles.caption),
+            const SizedBox(height: 2),
+            Text(title, style: AppTextStyles.titleScreen),
+            const SizedBox(height: 3),
+            Text(subtitle, style: AppTextStyles.caption),
+          ],
+        ),
+      ],
+    );
+  }
 }
 
 /// «업데이트 확인» 행이 지금 무엇을 말해야 하는가.

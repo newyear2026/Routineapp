@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/app_pixel_style.dart';
+import '../../theme/app_theme_preset.dart';
 
 enum AppStatusBadgeTone {
   neutral,
@@ -33,7 +34,7 @@ class AppStatusBadge extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final scheme = _schemeForTone(tone);
+    final scheme = _schemeForTone(context, tone);
     return Container(
       padding: compact
           ? const EdgeInsets.symmetric(horizontal: 6, vertical: 1)
@@ -55,7 +56,11 @@ class AppStatusBadge extends StatelessWidget {
     );
   }
 
-  (Color, Color, Color) _schemeForTone(AppStatusBadgeTone tone) {
+  (Color, Color, Color) _schemeForTone(
+    BuildContext context,
+    AppStatusBadgeTone tone,
+  ) {
+    final primary = Theme.of(context).colorScheme.primary;
     switch (tone) {
       case AppStatusBadgeTone.neutral:
         return (
@@ -66,15 +71,15 @@ class AppStatusBadge extends StatelessWidget {
       case AppStatusBadgeTone.info:
         // 흰 글자와 5.66:1. 지금 벌어지는 일이 가장 강하게 읽혀야 한다.
         return (
-          AppColors.orbitPrimary,
-          AppColors.orbitPrimary,
+          primary,
+          primary,
           Colors.white,
         );
       case AppStatusBadgeTone.meta:
         return (
-          AppColors.orbitHalo.withValues(alpha: 0.34),
-          AppColors.orbitPrimary.withValues(alpha: 0.18),
-          AppColors.orbitPrimary,
+          context.appTheme.preset.selectedSurface.withValues(alpha: 0.34),
+          primary.withValues(alpha: 0.18),
+          primary,
         );
       case AppStatusBadgeTone.success:
         return (

@@ -21,6 +21,7 @@ class CurrentPackCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final pack = CharacterPackScope.currentOf(context);
+    final garden = pack.id == 'poodle_garden';
     return Semantics(
       button: true,
       label: '${l10n.characterPackTitle}, ${pack.name(l10n)}',
@@ -79,34 +80,37 @@ class CurrentPackCard extends StatelessWidget {
                   ]);
             return Stack(
               children: [
-                Positioned(
-                  key: const Key('settings-pack-sky-decoration'),
-                  left: -8,
-                  top: -8,
-                  child: IgnorePointer(
-                    child: Image.asset(
-                      'assets/decorations/progress-sky.png',
-                      width: 126,
-                      height: 79,
-                      filterQuality: FilterQuality.none,
-                      excludeFromSemantics: true,
+                if (!garden) ...[
+                  Positioned(
+                    key: const Key('settings-pack-sky-decoration'),
+                    left: -8,
+                    top: -8,
+                    child: IgnorePointer(
+                      child: Image.asset(
+                        'assets/decorations/progress-sky.png',
+                        width: 126,
+                        height: 79,
+                        fit: BoxFit.contain,
+                        filterQuality: FilterQuality.none,
+                        excludeFromSemantics: true,
+                      ),
                     ),
                   ),
-                ),
-                Positioned(
-                  key: const Key('settings-pack-sky-decoration-right'),
-                  right: 10,
-                  bottom: 4,
-                  child: IgnorePointer(
-                    child: Image.asset(
-                      'assets/decorations/settings-card-cloud.png',
-                      width: 70,
-                      height: 35,
-                      filterQuality: FilterQuality.none,
-                      excludeFromSemantics: true,
+                  Positioned(
+                    key: const Key('settings-pack-sky-decoration-right'),
+                    right: 10,
+                    bottom: 4,
+                    child: IgnorePointer(
+                      child: Image.asset(
+                        'assets/decorations/settings-card-cloud.png',
+                        width: 70,
+                        height: 35,
+                        filterQuality: FilterQuality.none,
+                        excludeFromSemantics: true,
+                      ),
                     ),
                   ),
-                ),
+                ],
                 content,
               ],
             );

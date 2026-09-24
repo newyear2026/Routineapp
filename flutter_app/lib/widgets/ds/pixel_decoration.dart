@@ -21,6 +21,29 @@ class PixelDecoration extends StatelessWidget {
       );
 }
 
+/// 푸들 정원 팩의 단독 잎. 같은 자산을 돌리고 뒤집어 반복감만 줄인다.
+class GardenLeaf extends StatelessWidget {
+  const GardenLeaf({
+    super.key,
+    this.size = 24,
+    this.angle = 0,
+    this.mirror = false,
+  });
+
+  final double size;
+  final double angle;
+  final bool mirror;
+
+  @override
+  Widget build(BuildContext context) => Transform.rotate(
+        angle: angle,
+        child: Transform.flip(
+          flipX: mirror,
+          child: PixelDecoration(asset: 'garden-leaf', size: size),
+        ),
+      );
+}
+
 /// 원판 바깥 네 모서리만 사용해 시간·눈금·루틴 구간을 가리지 않는다.
 class DecoratedTimetable extends StatelessWidget {
   const DecoratedTimetable({super.key, required this.child});
@@ -52,7 +75,8 @@ class DecoratedTimetable extends StatelessWidget {
               child: IgnorePointer(
                   child: ExcludeSemantics(
                       child: CustomPaint(
-                          size: Size(12, 12), painter: _SparkPainter())))),
+                          size: Size(12, 12),
+                          painter: _SparkPainter(AppColors.decorationSpark))))),
         ],
       );
 }
@@ -106,32 +130,39 @@ class PixelCloud extends StatelessWidget {
 
 /// 십자 반짝임.
 class PixelSpark extends StatelessWidget {
-  const PixelSpark({super.key, this.size = 12});
+  const PixelSpark({
+    super.key,
+    this.size = 12,
+    this.color = AppColors.decorationSpark,
+  });
 
   final double size;
+  final Color color;
 
   @override
   Widget build(BuildContext context) => IgnorePointer(
         child: ExcludeSemantics(
           child: CustomPaint(
             size: Size.square(size),
-            painter: const _SparkPainter(),
+            painter: _SparkPainter(color),
           ),
         ),
       );
 }
 
 class _SparkPainter extends CustomPainter {
-  const _SparkPainter();
+  const _SparkPainter(this.color);
+
+  final Color color;
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = AppColors.decorationSpark
+      ..color = color
       ..isAntiAlias = false;
     canvas.drawRect(const Rect.fromLTWH(5, 0, 2, 12), paint);
     canvas.drawRect(const Rect.fromLTWH(0, 5, 12, 2), paint);
   }
 
   @override
-  bool shouldRepaint(_SparkPainter oldDelegate) => false;
+  bool shouldRepaint(_SparkPainter oldDelegate) => oldDelegate.color != color;
 }

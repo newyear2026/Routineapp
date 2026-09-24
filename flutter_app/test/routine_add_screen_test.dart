@@ -7,12 +7,16 @@ import 'package:provider/provider.dart';
 import 'package:routine_timer/application/routine_app_controller.dart';
 import 'package:routine_timer/application/services/routine_data_service.dart';
 import 'package:routine_timer/application/services/routine_notification_service.dart';
+import 'package:routine_timer/data/store/character_pack_catalog.dart';
 import 'package:routine_timer/domain/models/routine.dart';
 import 'package:routine_timer/domain/settings/notification_preferences.dart';
+import 'package:routine_timer/domain/store/character_pack.dart';
 import 'package:routine_timer/screens/routine_add/routine_form_preview.dart';
 import 'package:routine_timer/screens/routine_add_screen.dart';
 import 'package:routine_timer/theme/app_theme.dart';
+import 'package:routine_timer/theme/app_theme_preset.dart';
 import 'package:routine_timer/widgets/ds/ds.dart';
+import 'package:routine_timer/widgets/store/character_pack_scope.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/test_doubles.dart';
@@ -39,6 +43,7 @@ void main() {
     List<Routine>? routines,
     String? editId,
     ThemeData? theme,
+    CharacterPack? pack,
   }) async {
     final controller = RoutineAppController(
       dataService: RoutineDataService(
@@ -64,7 +69,15 @@ void main() {
       routes: [
         GoRoute(
           path: '/routine-add',
-          builder: (_, __) => RoutineAddScreen(editRoutineId: editId),
+          builder: (_, __) {
+            final screen = RoutineAddScreen(editRoutineId: editId);
+            if (pack == null) return screen;
+            return CharacterPackScope(
+              current: pack,
+              ownership: const BundledOnlyOwnership(),
+              child: screen,
+            );
+          },
         ),
         GoRoute(
           path: '/home',
@@ -90,6 +103,40 @@ void main() {
     // 헤더의 '저장' 텍스트 버튼과 하단 CTA가 함께 있으면 Primary가 두 개가 된다.
     expect(find.text('저장'), findsNothing);
     expect(find.text('루틴 저장'), findsOneWidget);
+  });
+
+  testWidgets('푸들 팩 루틴 추가 화면은 구름 대신 정원 장식을 쓴다', (tester) async {
+    final controller = await pumpAddScreen(
+      tester,
+      pack: CharacterPackCatalog.poodleGarden,
+      theme: buildRoutineTheme(preset: AppThemePreset.poodleGarden),
+    );
+    addTearDown(controller.dispose);
+
+    expect(find.byKey(const Key('routine-add-header-cloud')), findsNothing);
+    expect(find.byKey(const Key('routine-add-preview-cloud')), findsNothing);
+    expect(find.byKey(const Key('routine-add-header-garden-leaf')),
+        findsOneWidget);
+    expect(find.byKey(const Key('routine-add-header-garden-daisy')),
+        findsOneWidget);
+    expect(find.byKey(const Key('routine-add-preview-garden-leaf')),
+        findsOneWidget);
+    expect(find.byKey(const Key('routine-add-preview-garden-daisy')),
+        findsOneWidget);
+    expect(
+      tester.widget<ActionChip>(find.byType(ActionChip).first).labelStyle?.color,
+      AppThemePreset.poodleGarden.primaryColor,
+    );
+  });
+
+  testWidgets('기본 팩 루틴 추가 화면의 구름은 유지한다', (tester) async {
+    final controller = await pumpAddScreen(tester);
+    addTearDown(controller.dispose);
+
+    expect(find.byKey(const Key('routine-add-header-cloud')), findsOneWidget);
+    expect(find.byKey(const Key('routine-add-preview-cloud')), findsOneWidget);
+    expect(find.byKey(const Key('routine-add-header-garden-leaf')),
+        findsNothing);
   });
 
   testWidgets('하단 저장 바 뒤에 배경이 칠해져 검은 띠가 보이지 않는다', (tester) async {

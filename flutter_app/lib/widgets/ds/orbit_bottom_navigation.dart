@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../../l10n/app_localizations.dart';
 
 import '../../theme/app_colors.dart';
+import '../../theme/app_theme_preset.dart';
 import '../../theme/app_text_styles.dart';
 import 'pixel_icon.dart';
 
@@ -32,6 +33,9 @@ class OrbitBottomNavigation extends StatelessWidget {
       _OrbitNavItemData(Icons.settings_outlined, l10n.navSettings),
     ];
     final callbacks = [onHome, onProgress, onRoutines, onSettings];
+    final primary = Theme.of(context).colorScheme.primary;
+    final surface = Theme.of(context).colorScheme.surface;
+    final selectedSurface = context.appTheme.preset.selectedSurface;
     const glyphs = [
       PixelGlyph.navHome,
       PixelGlyph.navProgress,
@@ -40,9 +44,10 @@ class OrbitBottomNavigation extends StatelessWidget {
     ];
 
     return DecoratedBox(
-      decoration: const BoxDecoration(
-        color: AppColors.orbitSurface,
-        border: Border(top: BorderSide(color: AppColors.textPrimary, width: 2)),
+      decoration: BoxDecoration(
+        color: surface,
+        border: const Border(
+            top: BorderSide(color: AppColors.textPrimary, width: 2)),
       ),
       child: SafeArea(
         top: false,
@@ -63,13 +68,11 @@ class OrbitBottomNavigation extends StatelessWidget {
                     child: Container(
                       decoration: BoxDecoration(
                         color: selected
-                            ? AppColors.orbitHalo.withValues(alpha: 0.35)
+                            ? selectedSurface.withValues(alpha: 0.55)
                             : Colors.transparent,
                         border: Border(
                             top: BorderSide(
-                                color: selected
-                                    ? AppColors.orbitPrimary
-                                    : Colors.transparent,
+                                color: selected ? primary : Colors.transparent,
                                 width: 3)),
                       ),
                       padding: const EdgeInsets.only(top: 14, bottom: 10),
@@ -78,9 +81,7 @@ class OrbitBottomNavigation extends StatelessWidget {
                         children: [
                           PixelIcon(glyphs[index],
                               size: 24,
-                              color: selected
-                                  ? AppColors.orbitPrimary
-                                  : AppColors.textMuted),
+                              color: selected ? primary : AppColors.textMuted),
                           const SizedBox(height: 5),
                           Text(
                             items[index].label,
@@ -88,9 +89,7 @@ class OrbitBottomNavigation extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                             textAlign: TextAlign.center,
                             style: AppTextStyles.caption.copyWith(
-                              color: selected
-                                  ? AppColors.orbitPrimary
-                                  : AppColors.textMuted,
+                              color: selected ? primary : AppColors.textMuted,
                               fontWeight:
                                   selected ? FontWeight.w700 : FontWeight.w500,
                             ),

@@ -541,9 +541,9 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                           padding: const EdgeInsets.all(18),
                           child: Row(
                             children: [
-                              const AppIcon(
+                              AppIcon(
                                 Icons.tune_rounded,
-                                color: AppColors.orbitPrimary,
+                                color: Theme.of(context).colorScheme.primary,
                               ),
                               const SizedBox(width: 12),
                               Expanded(

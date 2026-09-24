@@ -62,7 +62,10 @@ class AppRoutineRow extends StatelessWidget {
 
     final content = Container(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      decoration: appSurfaceDecoration(radius: _radius),
+      decoration: appSurfaceDecoration(
+        radius: _radius,
+        color: Theme.of(context).colorScheme.surface,
+      ),
       child: Row(
         children: [
           RoutineMark(icon: icon, color: color, size: 36),

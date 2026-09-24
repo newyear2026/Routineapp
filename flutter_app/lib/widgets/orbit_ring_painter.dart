@@ -57,6 +57,8 @@ class OrbitRingPainter extends CustomPainter {
     this.radiusFactor = 0.34,
     this.referenceSize = 292,
     this.hourLabelRadiusFactor,
+    this.trackColor = AppColors.orbitHalo,
+    this.pointerColor = AppColors.orbitPrimary,
   });
 
   final List<OrbitRingSegment> segments;
@@ -85,6 +87,8 @@ class OrbitRingPainter extends CustomPainter {
   /// 이 상한은 홈 크기에서 정해진 값이라, 기준 크기를 낮춰 글자가 상대적으로
   /// 커진 작은 원판에서는 라벨이 원판 테두리 밖으로 걸친다. 그럴 때만 준다.
   final double? hourLabelRadiusFactor;
+  final Color trackColor;
+  final Color pointerColor;
 
   double _minutesToRad(int minutes) =>
       (minutes / (24 * 60)) * 2 * math.pi - math.pi / 2;
@@ -105,7 +109,7 @@ class OrbitRingPainter extends CustomPainter {
       false,
       Paint()
         ..isAntiAlias = false
-        ..color = AppColors.orbitHalo
+        ..color = trackColor
         ..style = PaintingStyle.stroke
         ..strokeWidth = trackStroke
         ..strokeCap = StrokeCap.butt,
@@ -244,7 +248,7 @@ class OrbitRingPainter extends CustomPainter {
       nowCenter,
       Paint()
         ..isAntiAlias = false
-        ..color = AppColors.orbitPrimary.withValues(alpha: 0.5)
+        ..color = pointerColor.withValues(alpha: 0.5)
         ..strokeWidth = 1.5 * scale,
     );
     canvas.drawRect(
@@ -253,7 +257,7 @@ class OrbitRingPainter extends CustomPainter {
     );
     canvas.drawRect(
       Rect.fromCenter(center: nowCenter, width: 9 * scale, height: 9 * scale),
-      Paint()..color = AppColors.orbitPrimary,
+      Paint()..color = pointerColor,
     );
   }
 
@@ -266,6 +270,8 @@ class OrbitRingPainter extends CustomPainter {
         oldDelegate.radiusFactor != radiusFactor ||
         oldDelegate.referenceSize != referenceSize ||
         oldDelegate.hourLabelRadiusFactor != hourLabelRadiusFactor ||
+        oldDelegate.trackColor != trackColor ||
+        oldDelegate.pointerColor != pointerColor ||
         !listEquals(oldDelegate.segments, segments);
   }
 }

@@ -41,7 +41,7 @@ class CharacterArtwork {
         CatPose.focus: Rect.fromLTRB(75, 69, 309, 340),
         CatPose.complete: Rect.fromLTRB(71, 16, 344, 320),
         CatPose.rest: Rect.fromLTRB(35, 127, 351, 301),
-        CatPose.guide: Rect.fromLTRB(62, 28, 332, 315),
+        CatPose.guide: Rect.fromLTRB(47, 38, 350, 354),
       },
     ),
   };

@@ -59,7 +59,10 @@ class AppCard extends StatelessWidget {
       width: double.infinity,
       margin: margin,
       padding: pad,
-      decoration: appSurfaceDecoration(elevated: isElevated),
+      decoration: appSurfaceDecoration(
+        elevated: isElevated,
+        color: Theme.of(context).colorScheme.surface,
+      ),
       child: child,
     );
   }
