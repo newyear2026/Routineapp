@@ -1,11 +1,40 @@
 import 'package:flutter/material.dart';
 import 'app_colors.dart';
+import 'app_pixel_style.dart';
 
 /// **타이포** 프리셋 — `Theme.of(context).textTheme`과 병행 가능
 abstract final class AppTextStyles {
-  static const TextStyle titleScreen = TextStyle(
-    fontSize: 20,
+  static const control = TextStyle(
+    fontSize: 15,
+    fontWeight: FontWeight.w600,
+    color: AppColors.textPrimary,
+    height: 1.3,
+  );
+  static const smallStrong = TextStyle(
+    fontSize: 14,
     fontWeight: FontWeight.w700,
+    color: AppColors.textPrimary,
+    height: 1.3,
+  );
+
+  /// Standard Flutter controls and explicit screen styles share these roles.
+  static TextTheme get theme => const TextTheme(
+        headlineLarge: hero,
+        headlineMedium: titleScreen,
+        headlineSmall: titleScreen,
+        titleLarge: titleScreen,
+        titleMedium: titleSection,
+        titleSmall: smallStrong,
+        bodyLarge: body,
+        bodyMedium: body,
+        bodySmall: caption,
+        labelLarge: control,
+        labelMedium: label,
+        labelSmall: captionTight,
+      );
+  static const TextStyle titleScreen = TextStyle(
+    fontSize: 22,
+    fontWeight: FontWeight.w800,
     color: AppColors.textPrimary,
     height: 1.2,
     letterSpacing: -0.4,
@@ -13,7 +42,7 @@ abstract final class AppTextStyles {
 
   static const TextStyle titleSection = TextStyle(
     fontSize: 18,
-    fontWeight: FontWeight.w700,
+    fontWeight: FontWeight.w800,
     color: AppColors.textPrimary,
     letterSpacing: -0.35,
   );
@@ -66,23 +95,37 @@ abstract final class AppTextStyles {
     height: 1.45,
   );
 
+  /// 시계와 수치에만 픽셀 폰트를 적용한다. 한글 본문은 기존 글꼴을 유지한다.
+  static const TextStyle clock = TextStyle(
+    fontFamily: AppPixelStyle.numberFont,
+    fontVariations: [FontVariation('wght', 700)],
+    fontSize: 40,
+    height: 1,
+    color: AppColors.textStrong,
+  );
+
   /// 진행률 큰 숫자
   static const TextStyle statHero = TextStyle(
-    fontSize: 44,
-    fontWeight: FontWeight.w800,
+    fontFamily: AppPixelStyle.numberFont,
+    fontVariations: [FontVariation('wght', 700)],
+    fontSize: 40,
+    fontWeight: FontWeight.w700,
     color: AppColors.textPrimary,
     height: 1,
-    letterSpacing: -1.0,
+    letterSpacing: 0,
   );
 
   static const TextStyle statMedium = TextStyle(
+    fontFamily: AppPixelStyle.numberFont,
+    fontVariations: [FontVariation('wght', 700)],
     fontSize: 24,
     fontWeight: FontWeight.w700,
   );
 
   static const TextStyle button = TextStyle(
     fontSize: 16,
-    fontWeight: FontWeight.w600,
+    fontWeight: FontWeight.w700,
+    height: 1.2,
     color: Colors.white,
   );
 }

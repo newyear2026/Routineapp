@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">LOOPET</string>
+    <string name="widget_ring_desc">今日のルーティンリング</string>
+    <string name="widget_medium_description">今日のルーティンを円でひと目で</string>
+    <string name="widget_next_label">次</string>
+</resources>

@@ -9,7 +9,7 @@ Flutter는 `home_widget`으로 JSON 한 덩어리를 저장하고, 네이티브�
 
 | 항목 | 값 |
 |------|-----|
-| App Group (iOS) | `group.com.example.routineTimer` |
+| App Group (iOS) | `group.com.dayround.app` |
 | SharedPreferences 키 (Android, `home_widget`) | `routine_widget_payload` (전체 JSON 문자열) |
 | Dart 저장 키 | 동일 `routine_widget_payload` |
 

@@ -1,13 +1,15 @@
 name: routine_timer
 description: 귀여운 감성 루틴 관리 앱
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.1+3
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
   flutter:
+    sdk: flutter
+  flutter_localizations:
     sdk: flutter
   
   # UI & 애니메이션
@@ -22,28 +24,104 @@ dependencies:
   shared_preferences: ^2.2.2
   
   # 알림
-  flutter_local_notifications: ^17.0.0
+  flutter_local_notifications: ^22.3.0
   
   # 라우팅
   go_router: ^13.0.0
   
   # 유틸리티
-  intl: ^0.19.0
+  # flutter_localizations가 SDK 버전마다 intl을 고정한다.
+  # 여기서 범위를 좁히면 Flutter를 올릴 때마다 해석이 깨진다.
+  intl: any
   home_widget: ^0.9.3
-  timezone: ^0.9.4
+
+  # 광고 — 자리·상한은 docs/AD_PLACEMENT.md, 판정은 domain/ads/AdSlotPolicy
+  google_mobile_ads: ^6.0.0
+  timezone: ^0.11.1
+
+  # 업데이트 안내 — 정책은 application/update/AppUpdates,
+  # 실기기 검증 절차는 docs/DEVICE_VALIDATION.md
+  #
+  # in_app_update는 Play가 설치한 빌드에서만 답한다. 디버그 실행·사이드로드·
+  # iOS는 UnavailableUpdatePort로 후퇴하므로 없어도 앱은 그대로 돌아간다.
+  in_app_update: ^4.2.5
+  url_launcher: ^6.3.0
+  package_info_plus: ^10.2.1
+
+  # 리뷰 요청 — 정책은 application/review/ReviewPrompt.
+  # Play에서 설치한 빌드에서만 창이 뜬다. 디버그 실행·사이드로드에서는 조용히
+  # 아무것도 하지 않는다.
+  in_app_review: ^2.0.12
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
+  flutter_launcher_icons: ^0.14.4
+
+# 승인된 고양이·시계 원본에서 플랫폼별 아이콘을 생성한다.
+#   flutter test tool/generate_app_icon.dart
+#   dart run flutter_launcher_icons
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/icon/app_icon.png
+  # 어댑티브 아이콘은 런처가 마스크를 씌우므로 배경과 전경을 나눠 준다.
+  adaptive_icon_background: "#F7F3EE"
+  adaptive_icon_foreground: assets/icon/app_icon_foreground.png
+  adaptive_icon_foreground_inset: 0
+  # App Store는 알파 채널이 있는 아이콘을 거부한다.
+  remove_alpha_ios: true
 
 flutter:
   uses-material-design: true
+  # 디렉터리째 올리면 옆에 둔 README·manifest까지 앱에 실린다. 쓰는 그림만 적는다.
+  # 그림은 384px로 내보낸다 — 화면에서 가장 큰 자리가 108이고 코드도
+  # cacheWidth 384/256으로 디코딩하므로 3x 기기까지 이 크기면 충분하다.
+  # 1254px 원본은 design/decorations-src 와 characters/cat_starlight/v1 에 있다.
+  assets:
+    - assets/routine_icons/book.png
+    - assets/routine_icons/coffee.png
+    - assets/routine_icons/dumbbell.png
+    - assets/routine_icons/plant.png
+    - assets/routine_icons/paw.png
+    - assets/routine_icons/sun.png
+    - assets/routine_icons/breakfast.png
+    - assets/routine_icons/bowl.png
+    - assets/routine_icons/utensils.png
+    - assets/routine_icons/moon.png
+    - assets/routine_icons/music.png
+    - assets/routine_icons/bag.png
+    - assets/routine_icons/laptop.png
+    - assets/decorations/bell.png
+    - assets/decorations/garden-daisy.png
+    - assets/decorations/garden-leaf.png
+    - assets/decorations/garden-watering-can.png
+    - assets/decorations/home-sky.png
+    - assets/decorations/plant.png
+    - assets/decorations/progress-sky.png
+    - assets/decorations/routines-sky.png
+    - assets/decorations/settings-card-cloud.png
+    - assets/decorations/settings-sky.png
+    - assets/decorations/sleeping-cat.png
+    - assets/characters/cat_starlight/v1/approved/idle.png
+    - assets/characters/cat_starlight/v1/approved/activity.png
+    - assets/characters/cat_starlight/v1/approved/focus.png
+    - assets/characters/cat_starlight/v1/approved/complete.png
+    - assets/characters/cat_starlight/v1/approved/rest.png
+    - assets/characters/poodle_garden/v1/approved/idle.png
+    - assets/characters/poodle_garden/v1/approved/activity.png
+    - assets/characters/poodle_garden/v1/approved/focus.png
+    - assets/characters/poodle_garden/v1/approved/complete.png
+    - assets/characters/poodle_garden/v1/approved/rest.png
+    - assets/characters/poodle_garden/v1/approved/guide.png
+    - assets/characters/cat_starlight/v1/approved/guide.png
+
+  # ARB 기반 다국어 코드 생성 (lib/l10n/*.arb -> AppLocalizations)
+  generate: true
   
-  # 폰트 (필요시 추가)
-  # fonts:
-  #   - family: Pretendard
-  #     fonts:
-  #       - asset: fonts/Pretendard-Regular.ttf
-  #       - asset: fonts/Pretendard-Bold.ttf
-  #         weight: 700
+  # Sobra에서 가져온 숫자용 폰트. 라이선스는 assets/fonts에 함께 보관한다.
+  fonts:
+    - family: PixelifySans
+      fonts:
+        - asset: assets/fonts/PixelifySans.ttf

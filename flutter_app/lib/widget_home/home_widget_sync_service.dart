@@ -1,6 +1,7 @@
 import 'package:home_widget/home_widget.dart';
 
 import '../application/home/home_snapshot.dart';
+import '../l10n/app_localizations.dart';
 import 'system_home_widget_payload.dart';
 
 /// [HomeSnapshot] → `home_widget` 저장 및 네이티브 위젯 갱신.
@@ -10,12 +11,12 @@ class HomeWidgetSyncService {
   HomeWidgetSyncService._();
   static final HomeWidgetSyncService instance = HomeWidgetSyncService._();
 
-  static const appGroupId = 'group.com.example.routineTimer';
+  static const appGroupId = 'group.com.dayround.app';
 
   /// Android: [RoutineMediumWidgetProvider] 클래스 단순명, 전체 FQCN도 함께 전달.
   static const androidWidgetName = 'RoutineMediumWidgetProvider';
   static const androidWidgetQualifiedName =
-      'com.example.routine_timer.RoutineMediumWidgetProvider';
+      'com.dayround.app.RoutineMediumWidgetProvider';
 
   static const iosWidgetKind = 'RoutineMediumWidget';
 
@@ -27,9 +28,9 @@ class HomeWidgetSyncService {
     _inited = true;
   }
 
-  Future<void> push(HomeSnapshot snapshot) async {
+  Future<void> push(HomeSnapshot snapshot, AppLocalizations l10n) async {
     await init();
-    final payload = SystemHomeWidgetPayload.fromHomeSnapshot(snapshot);
+    final payload = SystemHomeWidgetPayload.fromHomeSnapshot(snapshot, l10n);
     await HomeWidget.saveWidgetData<String>(
       SystemHomeWidgetPayload.storageKey,
       payload.encode(),

@@ -1,7 +1,7 @@
 import WidgetKit
 import SwiftUI
 
-private let kAppGroupId = "group.com.example.routineTimer"
+private let kAppGroupId = "group.com.dayround.app"
 private let kPayloadKey = "routine_widget_payload"
 private let kWidgetKind = "RoutineMediumWidget"
 
@@ -11,20 +11,20 @@ private let kWidgetKind = "RoutineMediumWidget"
 /// 함께 고쳐야 한다. 예전에는 여기만 브라운/테라코타 계열로 남아 있어서
 /// 앱과 위젯이 다른 앱처럼 보였다.
 private enum WidgetTokens {
-    /// #EEE8DE
-    static let background = Color(hex: 0xEEE8DE)
+    /// #F5EEDA
+    static let background = Color(hex: 0xF5EEDA)
     /// #FFFFFF
     static let surface = Color(hex: 0xFFFFFF)
-    /// #DCD3C4
-    static let border = Color(hex: 0xDCD3C4)
-    /// #241F31 — 배경 위 13.6:1
-    static let textPrimary = Color(hex: 0x241F31)
-    /// #6B6478 — 배경 위 4.63:1
-    static let textMuted = Color(hex: 0x6B6478)
+    /// #E5DCC8
+    static let border = Color(hex: 0xE5DCC8)
+    /// #221C42 — 배경 위 13.8:1
+    static let textPrimary = Color(hex: 0x221C42)
+    /// #6A6489 — 배경 위 4.77:1
+    static let textMuted = Color(hex: 0x6A6489)
     /// #6744F4 — 흰 글자와 5.66:1
     static let accent = Color(hex: 0x6744F4)
-    /// #D9D1F2
-    static let ringTrack = Color(hex: 0xD9D1F2)
+    /// #E4DCFB
+    static let ringTrack = Color(hex: 0xE4DCFB)
 }
 
 private struct RingSegDto: Codable {

@@ -40,9 +40,4 @@ class OnboardingLocalStorage {
     final s = await load();
     await save(s.copyWith(hasHandledNotificationSetup: true));
   }
-
-  /// 설정 «온보딩 다시 보기» — 처음 단계부터.
-  static Future<void> resetForReplay() async {
-    await save(OnboardingState.initial);
-  }
 }

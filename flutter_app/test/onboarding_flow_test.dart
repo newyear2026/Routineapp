@@ -1,3 +1,4 @@
+import 'package:routine_timer/widgets/ds/pixel_steps.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -14,6 +15,8 @@ import 'package:routine_timer/widgets/home/circular_timetable_area.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/test_doubles.dart';
+import 'support/localization.dart';
+import 'package:routine_timer/theme/pixel_border.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -32,7 +35,7 @@ void main() {
   });
 
   Future<void> pumpBare(WidgetTester tester, Widget screen) async {
-    await tester.pumpWidget(MaterialApp(home: screen));
+    await tester.pumpWidget(localizedApp(home: screen));
     await tester.pumpAndSettle();
   }
 
@@ -59,34 +62,34 @@ void main() {
 
       // 알림에는 액션 버튼이 없다. 알림에서 바로 처리한다고 쓰면 사실과 다르다.
       expect(find.textContaining('알림에서 바로 완료'), findsNothing);
-      expect(find.textContaining('홈에서 완료·나중에·스킵'), findsOneWidget);
+      expect(find.textContaining('홈에서 완료·나중에·건너뛰기'), findsOneWidget);
     });
 
-    testWidgets('액션 용어는 홈과 동일하게 스킵을 쓴다', (tester) async {
+    testWidgets('액션 용어는 홈과 동일하게 건너뛰기를 쓴다', (tester) async {
       await pumpBare(tester, const OnboardingScreen());
 
       await tester.drag(find.byType(PageView), const Offset(-500, 0));
       await tester.pumpAndSettle();
 
-      expect(find.text('스킵'), findsOneWidget);
-      // 홈은 '건너뛰기'가 아니라 '스킵'이다. 온보딩만 다른 말을 쓰면 안 된다.
-      expect(find.text('건너뛰기'), findsOneWidget); // 헤더의 건너뛰기 버튼 하나뿐
+      expect(find.text('건너뛰기'), findsWidgets);
+      expect(find.text('스킵'), findsNothing);
     });
 
-    testWidgets('활성 페이지 인디케이터는 브랜드색으로 보인다', (tester) async {
+    testWidgets('픽셀 단계는 다음 버튼과 뒤로 스와이프에 연결된다', (tester) async {
       await pumpBare(tester, const OnboardingScreen());
-
-      final dots = tester
-          .widgetList<AnimatedContainer>(find.byType(AnimatedContainer))
-          .map((w) => w.decoration)
-          .whereType<BoxDecoration>()
-          .toList();
-
-      expect(
-        dots.any((d) => d.color == AppColors.orbitPrimary),
-        isTrue,
-        reason: '옅은 라벤더 인디케이터는 새 배경에서 1.2:1로 보이지 않는다',
-      );
+      PixelSteps steps() => tester.widget<PixelSteps>(find.byType(PixelSteps));
+      expect(steps().current, 0);
+      expect(steps().total, 3);
+      await tester.tap(find.byKey(const Key('onboarding-next-button')));
+      await tester.pumpAndSettle();
+      expect(steps().current, 1);
+      await tester.tap(find.byKey(const Key('onboarding-next-button')));
+      await tester.pumpAndSettle();
+      expect(steps().current, 2);
+      expect(find.text(testL10n.onboardingStart), findsOneWidget);
+      await tester.drag(find.byType(PageView), const Offset(500, 0));
+      await tester.pumpAndSettle();
+      expect(steps().current, 1);
     });
   });
 
@@ -98,6 +101,7 @@ void main() {
           logRepository: MemoryLogRepository(),
         ),
         notificationService: RoutineNotificationService(
+          exactAlarmsAllowed: () async => false,
           gateway: NoopNotificationGateway(),
           preferencesLoader: () async =>
               NotificationPreferences.firstLaunchDefaults,
@@ -109,19 +113,23 @@ void main() {
       await tester.pumpWidget(
         ChangeNotifierProvider.value(
           value: controller,
-          child: const MaterialApp(home: InitialRoutineSetupScreen()),
+          child: localizedApp(home: const InitialRoutineSetupScreen()),
         ),
       );
       await tester.pumpAndSettle();
       return controller;
     }
 
-    BoxDecoration cardDecoration(WidgetTester tester, String catalogId) {
+    ShapeDecoration cardDecoration(WidgetTester tester, String catalogId) {
       final container = tester.widget<AnimatedContainer>(
         find.byKey(Key('routine-choice-$catalogId')),
       );
-      return container.decoration! as BoxDecoration;
+      return container.decoration! as ShapeDecoration;
     }
+
+    /// 카드는 이제 픽셀 도형으로 그려진다. 테두리 색은 도형의 side에 있다.
+    Color cardBorderColor(WidgetTester tester, String catalogId) =>
+        (cardDecoration(tester, catalogId).shape as PixelBorder).side.color;
 
     testWidgets('선택된 카드와 선택 안 된 카드가 눈으로 구분된다', (tester) async {
       final controller = await pumpSetup(tester);
@@ -133,16 +141,16 @@ void main() {
 
       expect(selected.color, isNot(unselected.color));
       expect(
-        (selected.border! as Border).top.color,
+        cardBorderColor(tester, 'wake'),
         AppColors.orbitPrimary,
       );
       expect(
-        (unselected.border! as Border).top.color,
+        cardBorderColor(tester, 'study'),
         AppColors.orbitBorder,
       );
       expect(
-        (selected.border! as Border).top.width,
-        greaterThan((unselected.border! as Border).top.width),
+        (selected.shape as PixelBorder).side.width,
+        greaterThan((unselected.shape as PixelBorder).side.width),
       );
     });
 
@@ -159,7 +167,7 @@ void main() {
       final controller = await pumpSetup(tester);
       addTearDown(controller.dispose);
 
-      expect(find.text('6개 선택됨'), findsOneWidget);
+      expect(find.text('4개 선택'), findsOneWidget);
 
       final study = find.byKey(const Key('routine-choice-study'));
       await tester.ensureVisible(study);
@@ -167,9 +175,9 @@ void main() {
       await tester.tap(study);
       await tester.pumpAndSettle();
 
-      expect(find.text('7개 선택됨'), findsOneWidget);
+      expect(find.text('5개 선택'), findsOneWidget);
       expect(
-        (cardDecoration(tester, 'study').border! as Border).top.color,
+        cardBorderColor(tester, 'study'),
         AppColors.orbitPrimary,
       );
     });
@@ -178,7 +186,7 @@ void main() {
       final controller = await pumpSetup(tester);
       addTearDown(controller.dispose);
 
-      final primaryY = tester.getTopLeft(find.text('완료하기')).dy;
+      final primaryY = tester.getTopLeft(find.text('선택한 루틴으로 시작')).dy;
       final ghostY = tester.getTopLeft(find.text('나중에 설정할게요')).dy;
       expect(primaryY, lessThan(ghostY));
     });
@@ -199,20 +207,19 @@ void main() {
       expect(tester.hasRunningAnimations, isFalse);
     });
 
-    testWidgets('히어로는 주황 그라데이션이 아니라 브랜드 톤을 쓴다', (tester) async {
+    testWidgets('히어로는 장식 벨이고 주황 그라데이션을 쓰지 않는다', (tester) async {
       await pumpBare(tester, const NotificationPermissionScreen());
 
-      final hero = tester.widget<Container>(
+      expect(
         find.byKey(const Key('notification-permission-hero')),
+        findsOneWidget,
       );
-      final decoration = hero.decoration! as BoxDecoration;
-      expect(decoration.gradient, isNull);
-      expect(decoration.color, AppColors.orbitPrimary.withValues(alpha: 0.1));
+      expect(tester.hasRunningAnimations, isFalse);
     });
 
     testWidgets('문구가 실제 동작과 일치한다', (tester) async {
       await pumpBare(tester, const NotificationPermissionScreen());
-      expect(find.textContaining('앱에서 완료하거나'), findsOneWidget);
+      expect(find.textContaining('하루의 흐름을 놓치지'), findsOneWidget);
     });
   });
 }

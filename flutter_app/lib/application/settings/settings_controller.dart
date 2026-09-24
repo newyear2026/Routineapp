@@ -4,6 +4,8 @@ import '../../data/local/local_settings_repository.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../domain/models/routine.dart';
 import '../../domain/settings/notification_permission_status.dart';
+import '../../domain/settings/settings_error.dart';
+import '../../l10n/app_localizations.dart';
 import '../../domain/settings/notification_preferences.dart';
 import '../services/notification_permission_service.dart';
 import '../services/routine_notification_service.dart';
@@ -31,7 +33,7 @@ class SettingsController extends ChangeNotifier {
       NotificationPreferences.firstLaunchDefaults;
   bool _isLoading = true;
   bool _isUpdating = false;
-  String? _errorMessage;
+  SettingsError? _error;
 
   NotificationPreferences get notificationPreferences =>
       _notificationPreferences;
@@ -40,28 +42,29 @@ class SettingsController extends ChangeNotifier {
   bool get soundEnabled => _notificationPreferences.soundEnabled;
   bool get isLoading => _isLoading;
   bool get isUpdating => _isUpdating;
-  String? get errorMessage => _errorMessage;
+  SettingsError? get error => _error;
 
   Future<void> load() async {
     _isLoading = true;
-    _errorMessage = null;
+    _error = null;
     notifyListeners();
     try {
       _notificationPreferences =
           await _repository.loadNotificationPreferences();
     } catch (_) {
-      _errorMessage = '설정을 불러오지 못했어요. 다시 시도해 주세요.';
+      _error = SettingsError.load;
     } finally {
       _isLoading = false;
       notifyListeners();
     }
   }
 
+  /// [l10n]은 알림 문구를 만드는 데 쓴다 — 알림은 위젯 트리 밖에서 예약된다.
   Future<void> setNotificationsEnabled(
-      bool enabled, List<Routine> routines) async {
+      bool enabled, List<Routine> routines, AppLocalizations l10n) async {
     if (_isUpdating) return;
     _isUpdating = true;
-    _errorMessage = null;
+    _error = null;
     notifyListeners();
     try {
       if (!enabled) {
@@ -71,6 +74,7 @@ class SettingsController extends ChangeNotifier {
             soundEnabled: false,
           ),
           routines,
+          l10n,
         );
       } else {
         final granted =
@@ -84,26 +88,31 @@ class SettingsController extends ChangeNotifier {
             soundEnabled: granted,
           ),
           routines,
+          l10n,
         );
       }
     } catch (_) {
-      _errorMessage = '알림 설정을 저장하지 못했어요. 다시 시도해 주세요.';
+      _error = SettingsError.saveNotifications;
     } finally {
       _isUpdating = false;
       notifyListeners();
     }
   }
 
-  Future<void> setSoundEnabled(bool enabled, List<Routine> routines) async {
+  Future<void> setSoundEnabled(
+      bool enabled, List<Routine> routines, AppLocalizations l10n) async {
     if (_isUpdating || !notificationsEnabled) return;
     _isUpdating = true;
-    _errorMessage = null;
+    _error = null;
     notifyListeners();
     try {
       await _saveAndSync(
-          _notificationPreferences.copyWith(soundEnabled: enabled), routines);
+        _notificationPreferences.copyWith(soundEnabled: enabled),
+        routines,
+        l10n,
+      );
     } catch (_) {
-      _errorMessage = '알림 소리 설정을 저장하지 못했어요. 다시 시도해 주세요.';
+      _error = SettingsError.saveSound;
     } finally {
       _isUpdating = false;
       notifyListeners();
@@ -111,17 +120,18 @@ class SettingsController extends ChangeNotifier {
   }
 
   void clearError() {
-    if (_errorMessage == null) return;
-    _errorMessage = null;
+    if (_error == null) return;
+    _error = null;
     notifyListeners();
   }
 
   Future<void> _saveAndSync(
     NotificationPreferences preferences,
     List<Routine> routines,
+    AppLocalizations l10n,
   ) async {
     await _repository.saveNotificationPreferences(preferences);
     _notificationPreferences = preferences;
-    await _notificationService.syncAll(routines);
+    await _notificationService.syncAll(routines, l10n);
   }
 }

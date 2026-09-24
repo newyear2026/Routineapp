@@ -1,19 +1,16 @@
 import 'package:flutter/material.dart';
+import '../../l10n/app_localizations.dart';
 
 import '../../domain/models/routine.dart';
 import '../../domain/utils/time_minutes.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
-import '../../widgets/orbit_ring_painter.dart';
+import '../../theme/app_pixel_style.dart';
+import '../../widgets/ds/routine_mark.dart';
+import '../../widgets/ds/pixel_decoration.dart';
+import '../../widgets/store/character_pack_scope.dart';
 
-/// 편집 중인 루틴이 하루 어디에 놓이는지 보여주는 미리보기.
-///
-/// 링은 홈 화면·홈 위젯과 **같은 [OrbitRingPainter]**를 쓴다. 예전에는 이
-/// 화면만 자체 페인터를 들고 있어서, 같은 하루 24시간이 앱 안에서 세 가지
-/// 모양으로 그려졌다.
-///
-/// '지금' 바늘은 끈다. 여기서 보여주는 것은 현재 시각이 아니라 **저장하면
-/// 어떻게 되는지**이므로, 바늘이 있으면 무엇을 가리키는지 헷갈린다.
+/// 편집 중인 루틴의 아이콘·이름·시간을 보여준다.
 class RoutineFormPreview extends StatelessWidget {
   const RoutineFormPreview({super.key, required this.candidate});
 
@@ -21,64 +18,84 @@ class RoutineFormPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final title = candidate.title.trim().isEmpty ? '새 루틴' : candidate.title;
+    final garden = CharacterPackScope.currentOf(context).id == 'poodle_garden';
+    final l10n = AppLocalizations.of(context);
+    final title = candidate.title.trim().isEmpty
+        ? l10n.routineAddTitleNew
+        : candidate.title;
 
     return Container(
-      height: 230,
-      decoration: BoxDecoration(
+      decoration: ShapeDecoration(
         color: AppColors.orbitSurface,
-        borderRadius: BorderRadius.circular(26),
-        border: Border.all(color: AppColors.orbitBorder),
+        shape: AppPixelStyle.shape(),
       ),
       child: Stack(
-        alignment: Alignment.center,
         children: [
-          Positioned(
-            top: 16,
-            left: 20,
-            child: Text(
-              '미리보기',
-              style: AppTextStyles.caption.copyWith(
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-          SizedBox(
-            width: 190,
-            height: 190,
-            child: CustomPaint(
-              painter: OrbitRingPainter(
-                segments: [
-                  OrbitRingSegment(
-                    id: candidate.id,
-                    startMinutes: candidate.startMinutesFromMidnight,
-                    endMinutes: candidate.endMinutesFromMidnight,
-                    color: candidate.color,
-                  ),
-                ],
-                nowMinutes: candidate.startMinutesFromMidnight,
-                showNowPointer: false,
-              ),
-            ),
-          ),
-          Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                title,
-                maxLines: 1,
-                overflow: TextOverflow.ellipsis,
-                style: AppTextStyles.titleSection,
-              ),
-              const SizedBox(height: 5),
-              Text(
-                TimeMinutes.formatRange(
-                  candidate.startMinutesFromMidnight,
-                  candidate.endMinutesFromMidnight,
+          if (title.characters.length <= 14 &&
+              MediaQuery.sizeOf(context).width >= 360 &&
+              MediaQuery.textScalerOf(context).scale(1) <= 1.2) ...[
+            if (garden) ...[
+              const Positioned(
+                right: 16,
+                bottom: 17,
+                child: GardenLeaf(
+                  key: Key('routine-add-preview-garden-leaf'),
+                  size: 25,
+                  mirror: true,
                 ),
-                style: AppTextStyles.body.copyWith(color: AppColors.textMuted),
               ),
-            ],
+              const Positioned(
+                right: 47,
+                bottom: 2,
+                child: PixelDecoration(
+                  key: Key('routine-add-preview-garden-daisy'),
+                  asset: 'garden-daisy',
+                  size: 27,
+                ),
+              ),
+            ] else
+              Positioned(
+                right: 10,
+                bottom: 8,
+                child: IgnorePointer(
+                  child: Image.asset(
+                    'assets/decorations/settings-card-cloud.png',
+                    key: const Key('routine-add-preview-cloud'),
+                    width: 100,
+                    height: 50,
+                    filterQuality: FilterQuality.none,
+                    excludeFromSemantics: true,
+                  ),
+                ),
+              ),
+          ],
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(children: [
+              RoutineMark(
+                icon: candidate.iconId,
+                color: candidate.color,
+                size: 56,
+              ),
+              const SizedBox(width: 16),
+              Expanded(
+                  child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.titleSection),
+                  const SizedBox(height: 4),
+                  Text(
+                      TimeMinutes.formatRange(
+                          candidate.startMinutesFromMidnight,
+                          candidate.endMinutesFromMidnight),
+                      style: AppTextStyles.body
+                          .copyWith(color: AppColors.textMuted)),
+                ],
+              )),
+            ]),
           ),
         ],
       ),

@@ -4,6 +4,8 @@ import 'package:provider/provider.dart';
 
 import '../application/routine_app_controller.dart';
 import '../domain/models/routine.dart';
+import '../l10n/app_localizations.dart';
+import '../widgets/routine_load_failure_view.dart';
 import '../domain/models/routine_log.dart';
 import '../domain/models/routine_log_status.dart';
 import '../domain/progress/daily_progress.dart';
@@ -12,8 +14,10 @@ import '../domain/services/routine_state_resolver.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/ds/ds.dart';
+import '../widgets/ds/pixel_decoration.dart';
+import '../widgets/store/character_pack_scope.dart';
 
-/// Figma 기준 진행 화면: 완료 · 진행 중 · 예정의 세 상태를 항상 보여준다.
+/// 현재 루틴을 먼저 보여주고, 오늘 요약과 나머지 상태를 이어서 보여준다.
 class TodayProgressScreen extends StatelessWidget {
   const TodayProgressScreen({super.key});
 
@@ -21,6 +25,10 @@ class TodayProgressScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Consumer<RoutineAppController>(
       builder: (context, app, _) {
+        final l10n = AppLocalizations.of(context);
+        if (app.hasBlockingLoadError) {
+          return const Scaffold(body: RoutineLoadFailureView());
+        }
         if (!app.isLoaded) {
           return const Scaffold(
             body: Center(
@@ -33,9 +41,13 @@ class TodayProgressScreen extends StatelessWidget {
         final routines = app.todayScheduledRoutines;
         final progress = calculateProgress(routines, app.todayLogs);
         final groups = _buildProgressGroups(
+          l10n: l10n,
           routines: routines,
           logs: app.todayLogs,
           now: now,
+        );
+        final activeGroup = groups.firstWhere(
+          (group) => group.kind == _ProgressKind.active,
         );
 
         return Scaffold(
@@ -52,23 +64,122 @@ class TodayProgressScreen extends StatelessWidget {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  const Text('오늘의 진행', style: AppTextStyles.titleScreen),
-                  const SizedBox(height: 3),
-                  Text('${now.month}월 ${now.day}일',
-                      style: AppTextStyles.caption),
-                  const SizedBox(height: 24),
+                  _ProgressHeader(
+                    title: l10n.progressTitle,
+                    subtitle: l10n.progressSubtitle,
+                  ),
+                  const SizedBox(height: 20),
+                  if (activeGroup.items.isNotEmpty)
+                    _ProgressGroup(
+                      key: const Key('progress-active-group'),
+                      group: activeGroup,
+                    ),
                   _ProgressHero(
                     completed: progress.completed,
                     total: progress.total,
                     percent: progress.percent,
                   ),
-                  const SizedBox(height: 28),
+                  const SizedBox(height: 22),
                   ...groups
-                      .where((g) => !(g.hideWhenEmpty && g.items.isEmpty))
+                      .where((g) =>
+                          (g.kind != _ProgressKind.active || g.items.isEmpty) &&
+                          !(g.hideWhenEmpty && g.items.isEmpty))
                       .map((group) => _ProgressGroup(group: group)),
                 ],
               ),
             ),
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _ProgressHeader extends StatelessWidget {
+  const _ProgressHeader({required this.title, required this.subtitle});
+
+  final String title;
+  final String subtitle;
+
+  @override
+  Widget build(BuildContext context) {
+    final garden = CharacterPackScope.currentOf(context).id == 'poodle_garden';
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final compact = constraints.maxWidth < 300 ||
+            MediaQuery.textScalerOf(context).scale(16) > 20;
+        final catSize = compact ? 88.0 : 120.0;
+        return SizedBox(
+          key: const Key('progress-header'),
+          child: Stack(
+            children: [
+              if (!garden)
+                Positioned(
+                  key: const Key('progress-sky-decoration'),
+                  right: -8,
+                  bottom: -3,
+                  child: IgnorePointer(
+                    child: Image.asset(
+                      'assets/decorations/progress-sky.png',
+                      width: compact ? 160 : 200,
+                      height: compact ? 100 : 125,
+                      filterQuality: FilterQuality.none,
+                      excludeFromSemantics: true,
+                    ),
+                  ),
+                ),
+              if (garden) ...[
+                Positioned(
+                  right: catSize * 0.82,
+                  top: 2,
+                  child: const GardenLeaf(
+                    key: Key('progress-garden-leaf-left'),
+                    size: 22,
+                    mirror: true,
+                  ),
+                ),
+                const Positioned(
+                  right: 4,
+                  top: 0,
+                  child: GardenLeaf(size: 24, angle: -0.3),
+                ),
+                const Positioned(
+                  right: 28,
+                  bottom: 0,
+                  child: GardenLeaf(size: 18, angle: 0.45),
+                ),
+              ],
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.end,
+                children: [
+                  Expanded(
+                    child: Padding(
+                      padding: const EdgeInsets.only(bottom: 8),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            title,
+                            style: AppTextStyles.titleScreen.copyWith(
+                              fontSize: compact ? 22 : 28,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(subtitle, style: AppTextStyles.caption),
+                        ],
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  SizedBox.square(
+                    key: const Key('progress-menu-cat'),
+                    dimension: catSize,
+                    child: const AnimatedCat(pose: CatPose.complete),
+                  ),
+                ],
+              ),
+            ],
           ),
         );
       },
@@ -90,37 +201,55 @@ class _ProgressHero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 22),
+      key: const Key('progress-summary'),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 18),
       decoration: appSurfaceDecoration(radius: 24, elevated: true),
-      // 진행률은 '$completed / $total' 하나로만 말한다.
-      //
-      // 예전에는 옆에 도넛을 두고 그 안에 '$percent%'를 또 적었다. 같은 사실을
-      // 두 번 말하는 데다(UI_STANDARDS 7), 0%에서는 호가 그려지지 않아 카드
-      // 오른쪽 절반이 비어 보였다 — 앱을 여는 아침마다 보게 되는 상태다.
-      //
-      // 원은 이 앱에서 '하루 24시간'을 뜻한다(홈 시간표·홈 위젯).
-      // 비율까지 원으로 그리면 같은 형태가 두 가지 뜻을 갖는다.
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisSize: MainAxisSize.min,
         children: [
-          Text('$completed / $total', style: AppTextStyles.statHero),
-          const SizedBox(height: 8),
-          Text(
-            _progressMessage(
-              completed: completed,
-              total: total,
-              percent: percent,
-            ),
-            style: AppTextStyles.titleSection.copyWith(
-              color: AppColors.orbitPrimary,
+          Align(
+            alignment: AlignmentDirectional.centerStart,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: AlignmentDirectional.centerStart,
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    AppLocalizations.of(context).commonToday,
+                    style: AppTextStyles.bodyStrong,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    '$completed / $total',
+                    maxLines: 1,
+                    style: AppTextStyles.statMedium.copyWith(fontSize: 28),
+                  ),
+                  if (total > 0) ...[
+                    const Text(' · ', style: AppTextStyles.statMedium),
+                    Text(
+                      '$percent%',
+                      style: AppTextStyles.statMedium.copyWith(fontSize: 28),
+                    ),
+                  ],
+                ],
+              ),
             ),
           ),
-          // 오늘 루틴이 없으면 채울 것도 없다. 빈 막대를 남기지 않는다.
           if (total > 0) ...[
-            const SizedBox(height: 16),
-            _ProgressBar(percent: percent),
+            const SizedBox(height: 12),
+            _ProgressBar(percent: percent, total: total),
+            const SizedBox(height: 12),
           ],
+          Text(
+              _progressMessage(
+                l10n: AppLocalizations.of(context),
+                completed: completed,
+                total: total,
+                percent: percent,
+              ),
+              style: AppTextStyles.caption),
         ],
       ),
     );
@@ -132,39 +261,17 @@ class _ProgressHero extends StatelessWidget {
 /// 0%에서도 트랙이 남아 '채워질 자리'로 읽힌다. 원형 게이지는 0%일 때
 /// 아무것도 그려지지 않아 장식처럼 보였다.
 class _ProgressBar extends StatelessWidget {
-  const _ProgressBar({required this.percent});
+  const _ProgressBar({required this.percent, required this.total});
 
   final int percent;
-
-  static const double _height = 8;
+  final int total;
 
   @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      label: '오늘 진행률 $percent 퍼센트',
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(999),
-        child: SizedBox(
-          height: _height,
-          child: Stack(
-            children: [
-              const ColoredBox(
-                color: AppColors.orbitHalo,
-                child: SizedBox.expand(),
-              ),
-              FractionallySizedBox(
-                widthFactor: (percent / 100).clamp(0.0, 1.0),
-                child: const ColoredBox(
-                  color: AppColors.orbitPrimary,
-                  child: SizedBox.expand(),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
+  Widget build(BuildContext context) => SegmentedProgress(
+        value: percent / 100,
+        segmentCount: total.clamp(1, 12),
+        semanticLabel: AppLocalizations.of(context).progressSemantic(percent),
+      );
 }
 
 /// 0%에 '좋은 흐름이에요'가 뜨면 상태를 잘못 말하는 문구가 된다.
@@ -172,16 +279,19 @@ class _ProgressBar extends StatelessWidget {
 /// 도넛을 걷어내며 카드 폭을 다 쓸 수 있게 됐지만, 한 줄은 유지한다.
 /// 두 줄이 되면 아래 막대와 붙어 카드가 답답해진다.
 String _progressMessage({
+  required AppLocalizations l10n,
   required int completed,
   required int total,
   required int percent,
 }) {
-  if (total == 0) return '오늘은 루틴이 없어요';
-  if (completed == 0) return '아직 시작 전이에요';
-  if (percent >= 100) return '오늘 다 마쳤어요';
-  if (percent >= 70) return '아주 좋은 흐름이에요';
-  return '좋은 흐름이에요';
+  if (total == 0) return l10n.progressNoRoutines;
+  if (completed == 0) return l10n.progressNotStarted;
+  if (percent >= 100) return l10n.progressAllDone;
+  if (percent >= 70) return l10n.progressGreatFlow;
+  return l10n.progressGoodFlow;
 }
+
+enum _ProgressKind { completed, active, upcoming, other }
 
 class _ProgressGroupData {
   const _ProgressGroupData({
@@ -191,8 +301,11 @@ class _ProgressGroupData {
     required this.textColor,
     required this.icon,
     required this.items,
+    required this.kind,
     this.hideWhenEmpty = false,
   });
+
+  final _ProgressKind kind;
 
   final String title;
   final String emptyMessage;
@@ -211,6 +324,7 @@ class _ProgressGroupData {
 }
 
 List<_ProgressGroupData> _buildProgressGroups({
+  required AppLocalizations l10n,
   required List<Routine> routines,
   required List<RoutineLog> logs,
   required DateTime now,
@@ -261,96 +375,104 @@ List<_ProgressGroupData> _buildProgressGroups({
 
   return [
     _ProgressGroupData(
-      title: '완료',
-      emptyMessage: '완료한 루틴이 아직 없어요',
+      title: l10n.progressGroupCompleted,
+      emptyMessage: l10n.progressGroupCompletedEmpty,
       tint: AppColors.success,
       textColor: AppColors.successText,
       icon: Icons.check_rounded,
       items: completed,
+      kind: _ProgressKind.completed,
     ),
     _ProgressGroupData(
-      title: '진행 중',
-      emptyMessage: '진행 중인 루틴이 없어요',
+      title: l10n.progressGroupActive,
+      emptyMessage: l10n.progressGroupActiveEmpty,
       tint: AppColors.orbitPrimary,
       textColor: AppColors.activeText,
       icon: Icons.play_arrow_rounded,
       items: active,
+      kind: _ProgressKind.active,
     ),
     _ProgressGroupData(
-      title: '예정',
-      emptyMessage: '예정된 루틴이 없어요',
+      title: l10n.progressGroupUpcoming,
+      emptyMessage: l10n.progressGroupUpcomingEmpty,
       tint: AppColors.orbitAccent,
       textColor: AppColors.scheduledText,
       icon: Icons.schedule_rounded,
       items: scheduled,
+      kind: _ProgressKind.upcoming,
     ),
     // 지나간 두 상태는 색으로 다그치지 않는다. 중립 회색 + 제목으로 구분한다.
     // 스킵은 사용자가 고른 결과이고 놓침은 응답이 없던 것이라 섞지 않는다.
     _ProgressGroupData(
-      title: '건너뜀',
-      emptyMessage: '건너뛴 루틴이 없어요',
+      title: l10n.progressGroupSkipped,
+      emptyMessage: l10n.progressGroupSkippedEmpty,
       tint: AppColors.textMuted,
       textColor: AppColors.textMuted,
       icon: Icons.skip_next_rounded,
       items: skipped,
       hideWhenEmpty: true,
+      kind: _ProgressKind.other,
     ),
     _ProgressGroupData(
-      title: '놓침',
-      emptyMessage: '놓친 루틴이 없어요',
+      title: l10n.progressGroupMissed,
+      emptyMessage: l10n.progressGroupMissedEmpty,
       tint: AppColors.textMuted,
       textColor: AppColors.textMuted,
       icon: Icons.history_rounded,
       items: missed,
       hideWhenEmpty: true,
+      kind: _ProgressKind.other,
     ),
   ];
 }
 
 class _ProgressGroup extends StatelessWidget {
-  const _ProgressGroup({required this.group});
+  const _ProgressGroup({super.key, required this.group});
 
   final _ProgressGroupData group;
 
   @override
   Widget build(BuildContext context) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 26),
+      padding: const EdgeInsets.only(bottom: 22),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(
-                width: 24,
-                height: 24,
-                decoration: BoxDecoration(
-                  color: group.tint.withValues(alpha: .18),
-                  shape: BoxShape.circle,
+              Flexible(
+                child: Text(
+                  group.title,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppTextStyles.titleSection,
                 ),
-                child: Icon(group.icon, color: group.textColor, size: 16),
               ),
-              const SizedBox(width: 10),
-              Text(group.title, style: AppTextStyles.titleSection),
               const SizedBox(width: 8),
-              // 홈·루틴 화면과 같은 단위를 쓴다. 여기만 숫자만 적으면 어긋난다.
-              Text('${group.items.length}개', style: AppTextStyles.caption),
+              Text(
+                  AppLocalizations.of(context).routineCount(group.items.length),
+                  style: AppTextStyles.caption),
             ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           if (group.items.isEmpty)
             _GroupEmpty(message: group.emptyMessage)
           else
-            ...group.items.map(
-              (routine) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
+            ...group.items.indexed.map(
+              (entry) => Padding(
+                padding: EdgeInsets.only(
+                  bottom: entry.$1 == group.items.length - 1 ? 0 : 8,
+                ),
                 child: AppRoutineRow(
-                  color: routine.color,
-                  title: routine.title,
+                  color: entry.$2.color,
+                  icon: entry.$2.iconId,
+                  title: entry.$2.title,
+                  subtitle: TimeMinutes.formatRange(
+                    entry.$2.startMinutesFromMidnight,
+                    entry.$2.endMinutesFromMidnight,
+                  ),
                   trailing: _RoutineStatusTrailing(
-                    time: TimeMinutes.formatHm(
-                      routine.startMinutesFromMidnight,
-                    ),
+                    kind: group.kind,
                     label: group.title,
                     tint: group.tint,
                     textColor: group.textColor,
@@ -385,40 +507,45 @@ class _GroupEmpty extends StatelessWidget {
 
 class _RoutineStatusTrailing extends StatelessWidget {
   const _RoutineStatusTrailing({
-    required this.time,
+    required this.kind,
     required this.label,
     required this.tint,
     required this.textColor,
   });
 
-  final String time;
+  final _ProgressKind kind;
   final String label;
   final Color tint;
   final Color textColor;
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        Text(time, style: AppTextStyles.caption),
-        const SizedBox(width: 10),
-        // 색만으로 구분하지 않도록 배지 형태 + 문구를 함께 쓴다.
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+    switch (kind) {
+      case _ProgressKind.completed:
+        return Container(
+          width: 28,
+          height: 28,
           decoration: BoxDecoration(
-            color: tint.withValues(alpha: .18),
-            borderRadius: BorderRadius.circular(999),
+            color: AppColors.orbitPrimary.withValues(alpha: 0.16),
+            shape: BoxShape.circle,
           ),
-          child: Text(
-            label,
-            style: AppTextStyles.captionTight.copyWith(
-              color: textColor,
-              fontWeight: FontWeight.w700,
-            ),
+          child: const Center(
+            child: AppIcon(Icons.check_rounded,
+                size: 16, color: AppColors.orbitPrimary),
           ),
-        ),
-      ],
-    );
+        );
+      case _ProgressKind.active:
+        return AppStatusBadge(
+          label: AppLocalizations.of(context).statusInProgress,
+          tone: AppStatusBadgeTone.info,
+        );
+      case _ProgressKind.upcoming:
+        return const AppIcon(
+          Icons.chevron_right_rounded,
+          color: AppColors.textMuted,
+        );
+      case _ProgressKind.other:
+        return AppStatusBadge(label: label, tone: AppStatusBadgeTone.neutral);
+    }
   }
 }

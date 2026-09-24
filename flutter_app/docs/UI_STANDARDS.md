@@ -2,11 +2,31 @@
 
 이 문서는 `Routine Timer` 앱의 화면단 표준을 정의한다.
 
+## 픽셀 전환 1차 적용
+
+공통 `AppCard`, `appSurfaceDecoration`, `AppButton`, `AppRoutineRow`는
+`lib/theme/app_pixel_style.dart`의 직각 테두리와 번짐 없는 그림자를 사용한다.
+Sobra의 시각 표현을 채용하고 베이지·보라색 팔레트는 유지한다.
+이 컴포넌트의 아래 과거 그라데이션 기준보다 이 절을 우선한다.
+
+- Primary는 보라색 단색, Secondary는 흰색, Ghost는 배경 없음,
+  Destructive는 `dangerText` 단색으로 구분한다.
+- 버튼은 누르면 그림자 방향으로 이동한다. 기존 콜백, 키보드 활성화,
+  비활성 상태를 보존하고 로딩 중에는 진행 표시와 라벨을 유지하며 입력을 막는다.
+- 루틴의 색상 식별은 유지하되 원 대신 테두리 있는 사각 표식을 쓴다.
+- 시계·시간 눈금·큰 수치에만 PixelifySans를 사용한다. 한글 본문은 기존 글꼴이다.
+- 원형 시간표의 각도 계산·구간, 데이터, 화면 이동, 알림 정책은 유지한다.
+- 하단 내비게이션·토글은 아래 3·4단계에서 전환한다. 네이티브 위젯은 후속 범위다.
+
+`tool/render_pixel_home.dart`는 예시 데이터로 실제 홈을 렌더링한다.
+`flutter test tool/render_pixel_home.dart --dart-define=PREVIEW_FONT=/path/to/korean.ttf`
+로 실행하며 결과는 `output/pixel-preview/home.png`다.
+
 ## 1. 색상 표준
 
 - 기본 텍스트는 `AppColors.textPrimary`를 사용한다.
 - 보조 텍스트는 `AppColors.textMuted`를 사용한다.
-- 주요 CTA는 `AppColors.softAccentGradient`를 사용한다.
+- 주요 CTA는 `AppColors.orbitPrimary` 단색과 공통 픽셀 베벨을 사용한다.
 - 경고/에러는 장식용 핑크와 구분되는 에러 톤을 사용한다.
 - 배경이 파스텔이어도 본문 대비를 우선한다.
 - 상태 색은 채움용/글자용을 분리한다. 밝은 파스텔은 글자에 쓰지 않고
@@ -23,7 +43,7 @@
 
 ### Primary
 - 용도: 완료, 저장, 시작, 허용
-- 스타일: 채워진 그라데이션
+- 스타일: 보라색 채움과 공통 픽셀 베벨
 - 규칙: 화면당 1개의 주요 행동만 Primary를 사용한다.
 
 ### Secondary
@@ -144,3 +164,45 @@
 - 동일 역할 버튼이 여러 구현으로 분기되면 공용 위젯으로 통합한다.
 - 화면별 감성 차이는 허용하지만, 행동 규칙은 공통이어야 한다.
 - 새 상태 표현이 필요하면 화면 내부에서 임시 구현하지 말고 공용 컴포넌트로 먼저 검토한다.
+
+## 별빛 테마 공통 기준
+
+- `AppColors`가 페이지·카드·상태·장식 색상의 기준이다. 달·구름·별은
+  `decorationCream`, `decorationCloud`, `decorationSpark`, `decorationOutline`을 사용한다.
+  루틴 사용자가 선택한 식별 색상은 그대로 유지한다.
+- 카드·팝업·버튼·배지는 `AppPixelStyle.shape()`를 사용한다. 기본 선은 1.5,
+  모서리 계단 단위는 3이다. 작은 배지는 계단 수를 1로 줄인다.
+  입력창은 Flutter `InputBorder` 제약에 맞춰 직각과 같은 선 굵기를 사용한다.
+- `AppTextStyles`의 화면 제목 22, 섹션 제목 18, 본문 16, 컨트롤 15,
+  작은 강조 14, 설명 13을 역할에 맞춰 사용한다. 기본 `TextTheme`도 같은 기준이다.
+  한글·번역 본문은 읽기 쉬운 기본 글꼴, 시계·큰 수치는 PixelifySans를 사용한다.
+- 주요 행동은 `AppButton`, 설정 토글은 `AppPixelSwitch`, 안내는 `AppPixelHint`,
+  상태는 `AppStatusBadge`를 재사용한다. 기본 Material 버튼과 팝업도 공통 테마를 따른다.
+- 장식은 정보와 터치 영역을 가리지 않으며, 캐릭터의 바닥 정렬과 고정 영역을 유지한다.
+  작은 화면에서는 장식보다 시간표·텍스트·버튼의 공간을 우선한다.
+- 테마 프리셋·캐릭터 변경의 ‘준비 중’ 상태는 유지한다. OS 홈 위젯의 외형은
+  앱 내부 테마와 별도로 관리한다.
+
+## 픽셀 전환 3·4단계
+
+- `buildRoutineTheme`에서 입력창, 확인 팝업, 시트, 칩, 추가 버튼을 직각으로 통일한다.
+- 목록·캘린더 전환은 보라색 선택 면으로 구분하며 기존 값·콜백·키를 유지한다.
+- `AppPixelSwitch`는 사각 트랙과 56×48 터치 영역을 쓴다. 저장된 값과 활성 조건은
+  호출부가 관리하며 키보드·스크린리더로도 같은 콜백을 실행한다.
+- `AppPixelHint`를 입력 오류, 겹침 경고, 빈 상태에 사용한다. 문구·판정은 변경하지 않는다.
+- 아이콘은 `lib/widgets/ds/pixel_icon.dart`의 12×12 그리드로 그린다. 호출부는
+  `Icon` 대신 `AppIcon`을 쓰고, 어떤 Material 아이콘을 픽셀로 대체할지는
+  `pixelGlyphFor()` 한 곳에서만 정한다. 곡선이 많아 12×12에서 뭉개지는
+  아이콘(종·스피커·번역 등)은 Material을 그대로 둔다.
+- 톱니바퀴는 12×12에서 이가 뭉쳐 조준경처럼 읽힌다. '설정'은 픽셀 그리드가
+  강한 수평 슬라이더 글리프로 그리고, 하단 네 탭도 같은 글리프를 쓴다.
+- 체크는 세로획이 없어 같은 크기 값에서 작아 보인다. `PixelGlyph.opticalScale`
+  이 상자만 1.4배로 키워 시각적 크기를 맞춘다. 손잡이·체크박스처럼 상자가
+  좁은 곳은 이 보정을 받으면 넘치므로 `PixelIcon`에 크기를 직접 준다.
+- 하단 네 탭은 픽셀 글리프와 선택 면·상단 선으로 표시한다.
+- 홈 원판은 `PixelOrbitPlate`로 장식한다. `OrbitRingPainter`의 분→각도 계산과
+  구간 데이터는 유지하고 선 끝·바늘 표식만 각지게 그린다.
+- Flutter 내부의 시간표 미리보기도 공통 페인터 변경을 받는다. Android/iOS 네이티브
+  홈 위젯 외형은 이번 범위에 포함하지 않는다.
+- `tool/render_pixel_home.dart`는 홈·루틴 목록·캘린더·추가·설정 PNG를
+  `output/pixel-preview/`에 생성한다. 실제 저장소·실제 알림은 사용하지 않는다.

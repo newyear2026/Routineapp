@@ -7,14 +7,20 @@ import 'package:provider/provider.dart';
 import 'package:routine_timer/application/routine_app_controller.dart';
 import 'package:routine_timer/application/services/routine_data_service.dart';
 import 'package:routine_timer/application/services/routine_notification_service.dart';
+import 'package:routine_timer/data/store/character_pack_catalog.dart';
 import 'package:routine_timer/domain/models/routine.dart';
 import 'package:routine_timer/domain/settings/notification_preferences.dart';
+import 'package:routine_timer/domain/store/character_pack.dart';
+import 'package:routine_timer/screens/routine_add/routine_form_preview.dart';
 import 'package:routine_timer/screens/routine_add_screen.dart';
-import 'package:routine_timer/theme/app_colors.dart';
+import 'package:routine_timer/theme/app_theme.dart';
+import 'package:routine_timer/theme/app_theme_preset.dart';
 import 'package:routine_timer/widgets/ds/ds.dart';
+import 'package:routine_timer/widgets/store/character_pack_scope.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/test_doubles.dart';
+import 'support/localization.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -35,6 +41,9 @@ void main() {
   Future<RoutineAppController> pumpAddScreen(
     WidgetTester tester, {
     List<Routine>? routines,
+    String? editId,
+    ThemeData? theme,
+    CharacterPack? pack,
   }) async {
     final controller = RoutineAppController(
       dataService: RoutineDataService(
@@ -45,6 +54,7 @@ void main() {
         logRepository: MemoryLogRepository(),
       ),
       notificationService: RoutineNotificationService(
+        exactAlarmsAllowed: () async => false,
         gateway: NoopNotificationGateway(),
         preferencesLoader: () async =>
             NotificationPreferences.firstLaunchDefaults,
@@ -59,7 +69,15 @@ void main() {
       routes: [
         GoRoute(
           path: '/routine-add',
-          builder: (_, __) => const RoutineAddScreen(),
+          builder: (_, __) {
+            final screen = RoutineAddScreen(editRoutineId: editId);
+            if (pack == null) return screen;
+            return CharacterPackScope(
+              current: pack,
+              ownership: const BundledOnlyOwnership(),
+              child: screen,
+            );
+          },
         ),
         GoRoute(
           path: '/home',
@@ -71,7 +89,7 @@ void main() {
     await tester.pumpWidget(
       ChangeNotifierProvider.value(
         value: controller,
-        child: MaterialApp.router(routerConfig: router),
+        child: localizedApp(routerConfig: router, theme: theme),
       ),
     );
     await tester.pumpAndSettle();
@@ -84,7 +102,41 @@ void main() {
 
     // 헤더의 '저장' 텍스트 버튼과 하단 CTA가 함께 있으면 Primary가 두 개가 된다.
     expect(find.text('저장'), findsNothing);
-    expect(find.text('루틴 저장하기'), findsOneWidget);
+    expect(find.text('루틴 저장'), findsOneWidget);
+  });
+
+  testWidgets('푸들 팩 루틴 추가 화면은 구름 대신 정원 장식을 쓴다', (tester) async {
+    final controller = await pumpAddScreen(
+      tester,
+      pack: CharacterPackCatalog.poodleGarden,
+      theme: buildRoutineTheme(preset: AppThemePreset.poodleGarden),
+    );
+    addTearDown(controller.dispose);
+
+    expect(find.byKey(const Key('routine-add-header-cloud')), findsNothing);
+    expect(find.byKey(const Key('routine-add-preview-cloud')), findsNothing);
+    expect(find.byKey(const Key('routine-add-header-garden-leaf')),
+        findsOneWidget);
+    expect(find.byKey(const Key('routine-add-header-garden-daisy')),
+        findsOneWidget);
+    expect(find.byKey(const Key('routine-add-preview-garden-leaf')),
+        findsOneWidget);
+    expect(find.byKey(const Key('routine-add-preview-garden-daisy')),
+        findsOneWidget);
+    expect(
+      tester.widget<ActionChip>(find.byType(ActionChip).first).labelStyle?.color,
+      AppThemePreset.poodleGarden.primaryColor,
+    );
+  });
+
+  testWidgets('기본 팩 루틴 추가 화면의 구름은 유지한다', (tester) async {
+    final controller = await pumpAddScreen(tester);
+    addTearDown(controller.dispose);
+
+    expect(find.byKey(const Key('routine-add-header-cloud')), findsOneWidget);
+    expect(find.byKey(const Key('routine-add-preview-cloud')), findsOneWidget);
+    expect(find.byKey(const Key('routine-add-header-garden-leaf')),
+        findsNothing);
   });
 
   testWidgets('하단 저장 바 뒤에 배경이 칠해져 검은 띠가 보이지 않는다', (tester) async {
@@ -93,17 +145,32 @@ void main() {
 
     final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
     expect(scaffold.bottomNavigationBar, isA<ColoredBox>());
+    // 본문(AppScreenShell)과 같은 색이어야 저장 바 뒤에 색 띠가 생기지 않는다.
+    final pageColor = Theme.of(tester.element(find.byType(Scaffold)))
+        .scaffoldBackgroundColor;
     expect(
       (scaffold.bottomNavigationBar! as ColoredBox).color,
-      AppColors.pageBackground,
+      pageColor,
     );
+  });
+
+  testWidgets('테마 배경이 바뀌면 저장 바도 같은 색을 따른다', (tester) async {
+    const themed = Color(0xFFFFF9E9);
+    final controller = await pumpAddScreen(
+      tester,
+      theme: buildRoutineTheme().copyWith(scaffoldBackgroundColor: themed),
+    );
+    addTearDown(controller.dispose);
+
+    final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
+    expect((scaffold.bottomNavigationBar! as ColoredBox).color, themed);
   });
 
   testWidgets('이름이 비면 원인을 필드 옆 인라인 메시지로 남긴다', (tester) async {
     final controller = await pumpAddScreen(tester);
     addTearDown(controller.dispose);
 
-    await tester.tap(find.text('루틴 저장하기'));
+    await tester.tap(find.text('루틴 저장'));
     await tester.pumpAndSettle();
 
     // 원인은 필드 가까이에, 스낵바는 보조 안내만 맡는다 (UI_STANDARDS 3).
@@ -119,13 +186,15 @@ void main() {
     final controller = await pumpAddScreen(tester);
     addTearDown(controller.dispose);
 
-    await tester.ensureVisible(find.byKey(const Key('routine-weekday-월')));
+    await tester.ensureVisible(
+      find.byKey(const Key('routine-weekday-${DateTime.monday}')),
+    );
     await tester.pumpAndSettle();
 
-    for (final day in ['월', '화', '수', '목', '금']) {
+    for (var day = DateTime.monday; day <= DateTime.friday; day++) {
       expect(_weekdaySelected(tester, day), isTrue, reason: '$day이 꺼져 있다');
     }
-    for (final day in ['토', '일']) {
+    for (final day in [DateTime.saturday, DateTime.sunday]) {
       expect(_weekdaySelected(tester, day), isFalse, reason: '$day이 켜져 있다');
     }
   });
@@ -136,7 +205,7 @@ void main() {
 
     await tester.enterText(find.byType(TextField), '아침 산책');
     // 요일 줄은 미리보기 아래라 기본 뷰포트에서는 접혀 있다.
-    for (final day in ['월', '화', '수', '목', '금']) {
+    for (var day = DateTime.monday; day <= DateTime.friday; day++) {
       final finder = find.byKey(Key('routine-weekday-$day'));
       await tester.ensureVisible(finder);
       await tester.pumpAndSettle();
@@ -144,7 +213,7 @@ void main() {
       await tester.pumpAndSettle();
     }
 
-    await tester.tap(find.text('루틴 저장하기'));
+    await tester.tap(find.text('루틴 저장'));
     await tester.pumpAndSettle();
 
     expect(find.text('반복 요일을 하루 이상 선택해 주세요.'), findsOneWidget);
@@ -157,13 +226,51 @@ void main() {
 
     await tester.enterText(find.byType(TextField), '아침 산책');
     await tester.pump();
-    await tester.tap(find.text('루틴 저장하기'));
+    await tester.tap(find.text('루틴 저장'));
     await tester.pumpAndSettle();
 
     expect(controller.routines, hasLength(2));
     expect(controller.routines.map((r) => r.title), contains('아침 산책'));
     // 저장 후에는 홈으로 돌아간다.
     expect(find.text('홈'), findsOneWidget);
+  });
+
+  testWidgets('충돌 확인창은 조정 취소와 확인 저장을 유지한다', (tester) async {
+    final controller = await pumpAddScreen(tester, routines: [
+      dailyRoutine(id: 'study', title: '공부', startHour: 9, endHour: 10),
+    ]);
+    addTearDown(controller.dispose);
+    await tester.enterText(find.byType(TextField).first, '새 루틴');
+    await tester.tap(find.text('루틴 저장'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    expect(find.byType(AlertDialog), findsOneWidget);
+    await tester.tap(find.text('시간 다시 조정'));
+    await tester.pumpAndSettle();
+    expect(controller.routines, hasLength(1));
+    await tester.tap(find.text('루틴 저장'));
+    await tester.pump();
+    await tester.pump(const Duration(seconds: 1));
+    await tester.tap(find.text('그래도 저장'));
+    await tester.pumpAndSettle();
+    expect(controller.routines, hasLength(2));
+  });
+
+  testWidgets('삭제 확인창은 취소 후 유지하고 확인 후 삭제한다', (tester) async {
+    final controller = await pumpAddScreen(tester, editId: 'wake');
+    addTearDown(controller.dispose);
+    await tester.scrollUntilVisible(find.text('이 루틴 삭제'), 250,
+        scrollable: find.byType(Scrollable).first);
+    await tester.tap(find.text('이 루틴 삭제'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('취소'));
+    await tester.pumpAndSettle();
+    expect(controller.routines, hasLength(1));
+    await tester.tap(find.text('이 루틴 삭제'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('삭제'));
+    await tester.pumpAndSettle();
+    expect(controller.routines, isEmpty);
   });
 
   testWidgets('겹치지 않으면 경고를 띄우지 않는다', (tester) async {
@@ -186,11 +293,23 @@ void main() {
 
     expect(find.textContaining('“공부”과 시간이 겹쳐요'), findsOneWidget);
   });
+
+  testWidgets('미리보기는 아이콘을 크게 그린다', (tester) async {
+    final controller = await pumpAddScreen(tester);
+    addTearDown(controller.dispose);
+
+    final mark = find.descendant(
+      of: find.byType(RoutineFormPreview),
+      matching: find.byType(RoutineMark),
+    );
+    expect(mark, findsOneWidget);
+    expect(tester.getSize(mark).width, greaterThanOrEqualTo(48));
+  });
 }
 
 /// 요일 원의 선택 상태는 Semantics로 노출된다.
-bool _weekdaySelected(WidgetTester tester, String label) {
-  final node = tester.getSemantics(find.byKey(Key('routine-weekday-$label')));
+bool _weekdaySelected(WidgetTester tester, int weekday) {
+  final node = tester.getSemantics(find.byKey(Key('routine-weekday-$weekday')));
   // flagsCollection은 Tristate라 bool 비교가 안 된다. 대체 API가 안정될 때까지 유지.
   // ignore: deprecated_member_use
   return node.hasFlag(SemanticsFlag.isSelected);

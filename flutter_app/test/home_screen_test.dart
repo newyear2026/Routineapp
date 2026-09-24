@@ -2,16 +2,23 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
+import 'package:routine_timer/application/review/review_prompt.dart';
 import 'package:routine_timer/application/routine_app_controller.dart';
 import 'package:routine_timer/application/services/routine_data_service.dart';
 import 'package:routine_timer/application/services/routine_notification_service.dart';
+import 'package:routine_timer/data/repositories/routine_log_repository.dart';
 import 'package:routine_timer/domain/models/routine.dart';
+import 'package:routine_timer/domain/models/routine_icon_id.dart';
+import 'package:routine_timer/domain/models/routine_log.dart';
 import 'package:routine_timer/domain/models/routine_log_status.dart';
 import 'package:routine_timer/domain/settings/notification_preferences.dart';
 import 'package:routine_timer/screens/home_screen.dart';
+import 'package:routine_timer/widgets/ds/animated_cat.dart';
+import 'package:routine_timer/widgets/ds/routine_mark.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/test_doubles.dart';
+import 'support/localization.dart';
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
@@ -40,13 +47,16 @@ void main() {
     WidgetTester tester, {
     required DateTime now,
     List<Routine>? withRoutines,
+    RoutineLogRepository? logRepository,
+    ReviewPrompt? reviewPrompt,
   }) async {
     final controller = RoutineAppController(
       dataService: RoutineDataService(
         routineRepository: MemoryRoutineRepository(withRoutines ?? routines),
-        logRepository: MemoryLogRepository(),
+        logRepository: logRepository ?? MemoryLogRepository(),
       ),
       notificationService: RoutineNotificationService(
+        exactAlarmsAllowed: () async => false,
         gateway: NoopNotificationGateway(),
         preferencesLoader: () async =>
             NotificationPreferences.firstLaunchDefaults,
@@ -55,10 +65,13 @@ void main() {
       clockAutoRefreshEnabled: false,
     );
     await controller.load();
+    final app = localizedApp(home: const HomeScreen());
     await tester.pumpWidget(
       ChangeNotifierProvider.value(
         value: controller,
-        child: const MaterialApp(home: HomeScreen()),
+        child: reviewPrompt == null
+            ? app
+            : Provider.value(value: reviewPrompt, child: app),
       ),
     );
     await tester.pumpAndSettle();
@@ -89,28 +102,157 @@ void main() {
     expect(find.text('1개'), findsOneWidget);
   });
 
-  testWidgets('진행 중인 루틴이 없으면 NOW가 아니라 NEXT를 보여준다', (tester) async {
+  testWidgets('진행 중인 루틴이 없으면 예정을 보여준다', (tester) async {
     final controller = await pumpHome(
       tester,
       now: DateTime(2026, 8, 4, 16, 24),
     );
     addTearDown(controller.dispose);
 
-    expect(find.text('NEXT'), findsOneWidget);
-    expect(find.text('NOW'), findsNothing);
+    expect(find.text('예정'), findsWidgets);
+    expect(find.text('진행 중'), findsNothing);
   });
 
-  testWidgets('진행 중인 루틴이 있으면 NOW를 보여준다', (tester) async {
+  testWidgets('진행 중인 루틴이 있으면 진행 중을 보여준다', (tester) async {
     final controller = await pumpHome(
       tester,
       now: DateTime(2026, 8, 4, 12, 30),
     );
     addTearDown(controller.dispose);
 
-    expect(find.text('NOW'), findsOneWidget);
+    expect(find.text('진행 중'), findsOneWidget);
+    expect(find.text('NOW'), findsNothing);
     expect(find.text('NEXT'), findsNothing);
     // 원형 시간표 중앙이 같은 이름을 반복하지 않는다.
     expect(find.text('점심식사'), findsOneWidget);
+  });
+
+  testWidgets('원형 시간표의 지금 배지 없이 현재 시각을 중앙에 놓는다', (tester) async {
+    final semantics = tester.ensureSemantics();
+    final controller = await pumpHome(
+      tester,
+      now: DateTime(2026, 8, 4, 12, 30),
+    );
+    addTearDown(controller.dispose);
+
+    expect(find.text('지금'), findsNothing);
+    final ring = tester.getRect(find.byKey(const Key('home-timetable-ring')));
+    final time =
+        tester.getRect(find.byKey(const Key('home-ring-current-time')));
+    expect(time.center.dy, closeTo(ring.center.dy, 1));
+    expect(find.bySemanticsLabel('지금 12:30'), findsOneWidget);
+    semantics.dispose();
+  });
+
+  testWidgets('선택한 루틴 아이콘을 원형 시간표 안에도 표시한다', (tester) async {
+    final controller = await pumpHome(
+      tester,
+      now: DateTime(2026, 8, 4, 12, 30),
+      withRoutines: [
+        dailyRoutine(id: 'reading', title: '독서', startHour: 12, endHour: 13)
+            .copyWith(iconId: RoutineIconId.paw),
+      ],
+    );
+    addTearDown(controller.dispose);
+
+    final badge = find.byKey(const Key('home-ring-icon-reading'));
+    expect(badge, findsOneWidget);
+    expect(
+      tester
+          .widget<RoutineMark>(
+            find.descendant(of: badge, matching: find.byType(RoutineMark)),
+          )
+          .icon,
+      RoutineIconId.paw,
+    );
+    final ring = tester.getRect(find.byKey(const Key('home-timetable-ring')));
+    expect(ring.contains(tester.getRect(badge).center), isTrue);
+  });
+
+  testWidgets('고양이와 화분이 원형 시간표 아래에 균형 있게 배치된다', (tester) async {
+    tester.view
+      ..physicalSize = const Size(390, 844)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    final controller = await pumpHome(
+      tester,
+      now: DateTime(2026, 8, 4, 12, 30),
+    );
+    addTearDown(controller.dispose);
+
+    final ring = tester.getRect(find.byKey(const Key('home-timetable-ring')));
+    final scene = tester.getRect(find.byKey(const Key('home-timetable-scene')));
+    final cat = tester.getRect(find.byKey(const Key('home-timetable-cat')));
+    final plant = tester.getRect(find.byKey(const Key('home-timetable-plant')));
+    final button =
+        tester.getRect(find.byKey(const Key('home-complete-button')));
+
+    expect(cat.width, greaterThanOrEqualTo(120));
+    expect(cat.left, lessThan(ring.right));
+    expect(cat.top, lessThan(ring.bottom));
+    expect(cat.right, lessThanOrEqualTo(390));
+    expect(cat.bottom, lessThanOrEqualTo(button.top));
+    expect(plant.width, greaterThanOrEqualTo(65));
+    expect(plant.left, greaterThan(scene.left));
+    expect(plant.right, lessThan(ring.center.dx));
+    expect(plant.top, greaterThan(ring.center.dy));
+    expect(plant.bottom, closeTo(cat.bottom, 0.1));
+    expect(plant.bottom, lessThanOrEqualTo(button.top));
+  });
+
+  testWidgets('작은 화면에서도 시간표와 고양이가 버튼을 가리지 않는다', (tester) async {
+    tester.view
+      ..physicalSize = const Size(320, 700)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    final controller = await pumpHome(
+      tester,
+      now: DateTime(2026, 8, 4, 12, 30),
+    );
+    addTearDown(controller.dispose);
+
+    final ring = tester.getRect(
+      find.byKey(const Key('home-timetable-ring')),
+    );
+    final scene = tester.getRect(
+      find.byKey(const Key('home-timetable-scene')),
+    );
+    final cat = tester.getRect(
+      find.byKey(const Key('home-timetable-cat')),
+    );
+    final plant = tester.getRect(
+      find.byKey(const Key('home-timetable-plant')),
+    );
+    final completeButton = tester.getRect(
+      find.byKey(const Key('home-complete-button')),
+    );
+
+    expect(find.byKey(const Key('home-timetable-cat')), findsOneWidget);
+    expect(find.byKey(const Key('home-timetable-plant')), findsOneWidget);
+    expect(
+      tester
+          .widget<AnimatedCat>(find.descendant(
+            of: find.byKey(const Key('home-timetable-cat')),
+            matching: find.byType(AnimatedCat),
+          ))
+          .pose,
+      CatPose.activity,
+    );
+    expect(ring.center.dx, closeTo(scene.center.dx, 0.1));
+    expect(ring.width, closeTo(ring.height, 0.1));
+    expect(cat.left, lessThan(ring.right));
+    expect(cat.top, lessThan(ring.bottom));
+    expect(cat.right, lessThanOrEqualTo(320));
+    expect(cat.bottom, lessThanOrEqualTo(completeButton.top));
+    expect(plant.left, greaterThanOrEqualTo(scene.left));
+    expect(plant.right, lessThan(ring.center.dx));
+    expect(plant.top, greaterThan(ring.center.dy));
+    expect(plant.bottom, closeTo(cat.bottom, 0.1));
+    expect(plant.bottom, lessThanOrEqualTo(completeButton.top));
+    expect(scene.bottom, lessThanOrEqualTo(completeButton.top));
+    expect(scene.width, lessThanOrEqualTo(272));
   });
 
   testWidgets('현재 루틴을 완료로 기록하고 되돌릴 수 있다', (tester) async {
@@ -128,6 +270,15 @@ void main() {
     expect(controller.todayLogs.single.routineId, 'lunch');
     expect(controller.todayLogs.single.status, RoutineLogStatus.completed);
     expect(controller.progressSummary.completed, 1);
+    expect(
+      tester
+          .widget<AnimatedCat>(find.descendant(
+            of: find.byKey(const Key('home-timetable-cat')),
+            matching: find.byType(AnimatedCat),
+          ))
+          .pose,
+      CatPose.complete,
+    );
 
     // 되돌리기 스낵바로 원상복구된다.
     expect(find.text('되돌리기'), findsOneWidget);
@@ -136,6 +287,76 @@ void main() {
 
     expect(controller.todayLogs, isEmpty);
     expect(controller.progressSummary.completed, 0);
+  });
+
+  testWidgets('완료 기록 쓰기가 실패하면 성공으로 오해하지 않게 알린다', (tester) async {
+    final controller = await pumpHome(
+      tester,
+      now: DateTime(2026, 8, 4, 12, 30),
+      logRepository: _FailingLogWriteRepository(),
+    );
+    addTearDown(controller.dispose);
+
+    await tapAction(tester, 'home-complete-button');
+
+    expect(controller.todayLogs, isEmpty);
+    expect(find.text('기록을 저장하지 못했어요. 다시 시도해 주세요.'), findsOneWidget);
+    expect(find.text('완료로 기록했어요'), findsNothing);
+    expect(find.text('되돌리기'), findsNothing);
+  });
+
+  group('리뷰 요청', () {
+    late int requests;
+    ReviewPrompt readyPrompt() => ReviewPrompt(
+          available: true,
+          installTimeLoader: () async => DateTime(2026, 8, 1),
+          requester: () async => requests++,
+          now: () => DateTime(2026, 8, 4, 12, 30),
+        );
+
+    setUp(() => requests = 0);
+
+    testWidgets('루틴을 완료하면 스낵바 뒤에 한 박자 쉬고 묻는다', (tester) async {
+      final controller = await pumpHome(
+        tester,
+        now: DateTime(2026, 8, 4, 12, 30),
+        reviewPrompt: readyPrompt(),
+      );
+      addTearDown(controller.dispose);
+
+      await tapAction(tester, 'home-complete-button');
+      expect(find.text('완료로 기록했어요'), findsOneWidget);
+
+      await tester.pump(const Duration(milliseconds: 1300));
+      expect(requests, 1);
+    });
+
+    testWidgets('스킵이나 나중에는 묻지 않는다', (tester) async {
+      final controller = await pumpHome(
+        tester,
+        now: DateTime(2026, 8, 4, 12, 30),
+        reviewPrompt: readyPrompt(),
+      );
+      addTearDown(controller.dispose);
+
+      await tapAction(tester, 'home-skip-button');
+      await tester.pump(const Duration(seconds: 2));
+      expect(requests, 0);
+    });
+
+    testWidgets('완료 저장이 실패하면 묻지 않는다', (tester) async {
+      final controller = await pumpHome(
+        tester,
+        now: DateTime(2026, 8, 4, 12, 30),
+        logRepository: _FailingLogWriteRepository(),
+        reviewPrompt: readyPrompt(),
+      );
+      addTearDown(controller.dispose);
+
+      await tapAction(tester, 'home-complete-button');
+      await tester.pump(const Duration(seconds: 2));
+      expect(requests, 0);
+    });
   });
 
   testWidgets('스킵과 나중에도 홈에서 기록된다', (tester) async {
@@ -166,7 +387,7 @@ void main() {
     expect(controller.todayLogs, isEmpty);
 
     // 버튼 라벨은 사유가 아니라 할 일을 말한다.
-    expect(find.text('저녁식사 완료하기'), findsOneWidget);
+    expect(find.text('저녁식사 완료'), findsOneWidget);
     expect(find.text('지금은 루틴 시간이 아니에요'), findsNothing);
 
     // 왜 누를 수 없는지는 버튼 아래에서 따로 설명한다 (UI_STANDARDS 4).
@@ -180,12 +401,12 @@ void main() {
     );
     addTearDown(controller.dispose);
 
-    expect(find.text('점심식사 완료하기'), findsOneWidget);
+    expect(find.text('점심식사 완료'), findsOneWidget);
 
     await tapAction(tester, 'home-complete-button');
 
     expect(controller.canActOnCurrentSlot, isFalse);
-    expect(find.text('점심식사 완료하기'), findsOneWidget);
+    expect(find.text('점심식사 완료'), findsOneWidget);
     expect(find.textContaining('이미 완료했어요'), findsOneWidget);
   });
 
@@ -225,8 +446,8 @@ void main() {
       );
       addTearDown(controller.dispose);
 
-      // 기상은 NEXT 스트립이 맡고, 남은 5개가 다음 일정이 된다.
-      expect(controller.homeSnapshot.upcomingRoutines.length, 5);
+      // 기상은 포커스 스트립이 맡고, 남은 5개가 다음 일정이 된다.
+      expect(controller.homeSnapshotFor(testL10n).upcomingRoutines.length, 5);
       // 전체 개수만 적으면 3개만 그려진 화면과 어긋난다.
       expect(find.text('3 / 5'), findsOneWidget);
       expect(find.text('5개'), findsNothing);
@@ -244,4 +465,26 @@ void main() {
       expect(find.byKey(const Key('home-more-upcoming-link')), findsNothing);
     });
   });
+}
+
+class _FailingLogWriteRepository implements RoutineLogRepository {
+  @override
+  Future<void> deleteLogForRoutineOnDate(
+    String routineId,
+    String dateYmd,
+  ) async =>
+      throw Exception('disk full');
+
+  @override
+  Future<void> deleteLogsForRoutine(String routineId) async {}
+
+  @override
+  Future<List<RoutineLog>> loadAllLogs() async => const [];
+
+  @override
+  Future<List<RoutineLog>> loadLogsForDate(DateTime dateLocal) async =>
+      const [];
+
+  @override
+  Future<void> upsertLog(RoutineLog log) async => throw Exception('disk full');
 }

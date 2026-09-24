@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
+import 'app_colors.dart';
 
 class AppThemePreset {
   const AppThemePreset({
     required this.id,
-    required this.label,
     required this.previewColors,
     required this.pageGradient,
     required this.shellGradient,
@@ -14,10 +14,13 @@ class AppThemePreset {
     required this.textMuted,
     required this.accentPink,
     required this.accentLavender,
+    this.pageBackground = AppColors.pageBackground,
+    this.primaryColor = AppColors.orbitPrimary,
+    this.surfaceColor = AppColors.orbitSurface,
+    this.selectedSurface = AppColors.orbitHalo,
   });
 
   final String id;
-  final String label;
   final List<Color> previewColors;
   final LinearGradient pageGradient;
   final LinearGradient shellGradient;
@@ -28,10 +31,13 @@ class AppThemePreset {
   final Color textMuted;
   final Color accentPink;
   final Color accentLavender;
+  final Color pageBackground;
+  final Color primaryColor;
+  final Color surfaceColor;
+  final Color selectedSurface;
 
   static const softDay = AppThemePreset(
     id: 'soft_day',
-    label: '오빗 데이',
     previewColors: [Color(0xFFF7F4EE), Color(0xFFF2EDF8), Color(0xFFF1ECE4)],
     pageGradient: LinearGradient(
       begin: Alignment.topLeft,
@@ -60,7 +66,6 @@ class AppThemePreset {
 
   static const peachSunset = AppThemePreset(
     id: 'peach_sunset',
-    label: '피치 선셋',
     previewColors: [Color(0xFFFFF0E8), Color(0xFFFFE1D6), Color(0xFFFFF3E6)],
     pageGradient: LinearGradient(
       begin: Alignment.topLeft,
@@ -89,7 +94,6 @@ class AppThemePreset {
 
   static const mintLavender = AppThemePreset(
     id: 'mint_lavender',
-    label: '민트 라벤더',
     previewColors: [Color(0xFFF1FFF8), Color(0xFFF1F7FF), Color(0xFFF7F0FF)],
     pageGradient: LinearGradient(
       begin: Alignment.topLeft,
@@ -116,7 +120,42 @@ class AppThemePreset {
     accentLavender: Color(0xFFBFD1F0),
   );
 
-  static const all = [softDay, peachSunset, mintLavender];
+  static const poodleGarden = AppThemePreset(
+    id: 'poodle_garden',
+    previewColors: [
+      Color(0xFF087E78),
+      Color(0xFF53B987),
+      Color(0xFFFFB740),
+      Color(0xFFDDD1FA),
+      Color(0xFFEEEAF7),
+      Color(0xFF22294D),
+    ],
+    pageGradient: LinearGradient(
+      colors: [Color(0xFFEEEAF7), Color(0xFFF8F6FC)],
+    ),
+    shellGradient: LinearGradient(
+      colors: [Color(0xFFF8F6FC), Color(0xFFEEEAF7)],
+    ),
+    primaryButtonGradient: LinearGradient(
+      colors: [Color(0xFF087E78), Color(0xFF20A999)],
+    ),
+    softAccentGradient: LinearGradient(
+      colors: [Color(0xFFC9F1E5), Color(0xFFDDF7ED)],
+    ),
+    highlightGradient: LinearGradient(
+      colors: [Color(0xFFFFD980), Color(0xFFFFB740)],
+    ),
+    textPrimary: Color(0xFF22294D),
+    textMuted: Color(0xFF5E6482),
+    accentPink: Color(0xFFFFB740),
+    accentLavender: Color(0xFFDDD1FA),
+    pageBackground: Color(0xFFEEEAF7),
+    primaryColor: Color(0xFF087E78),
+    surfaceColor: Color(0xFFFFFEFB),
+    selectedSurface: Color(0xFFDDF7ED),
+  );
+
+  static const all = [softDay, peachSunset, mintLavender, poodleGarden];
 
   static AppThemePreset byId(String? id) {
     return all.firstWhere(

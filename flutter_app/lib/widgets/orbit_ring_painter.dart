@@ -4,6 +4,7 @@ import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
+import '../theme/app_pixel_style.dart';
 
 /// 24시간 링에 그릴 한 구간.
 ///
@@ -54,6 +55,10 @@ class OrbitRingPainter extends CustomPainter {
     this.showHourLabels = true,
     this.showNowPointer = true,
     this.radiusFactor = 0.34,
+    this.referenceSize = 292,
+    this.hourLabelRadiusFactor,
+    this.trackColor = AppColors.orbitHalo,
+    this.pointerColor = AppColors.orbitPrimary,
   });
 
   final List<OrbitRingSegment> segments;
@@ -70,7 +75,20 @@ class OrbitRingPainter extends CustomPainter {
   /// 링 반지름 / 박스 폭. 라벨을 그리려면 바깥 여백이 필요하다.
   final double radiusFactor;
 
-  static const double referenceSize = 292;
+  /// 선 굵기·글자·눈금이 이 크기를 1배로 보고 비례한다.
+  ///
+  /// 홈(286)에 맞춘 292를 작은 위젯에 그대로 쓰면 눈금이 0.4px, 시각 라벨이
+  /// 4px로 줄어 사라진다. 작은 원판은 기준을 낮춰 굵기를 되찾는다.
+  final double referenceSize;
+
+  /// 시각 라벨이 앉는 반지름 / 박스 폭. 비우면 링 바깥 34(비례)에 두되
+  /// 박스의 0.448을 넘지 않는다.
+  ///
+  /// 이 상한은 홈 크기에서 정해진 값이라, 기준 크기를 낮춰 글자가 상대적으로
+  /// 커진 작은 원판에서는 라벨이 원판 테두리 밖으로 걸친다. 그럴 때만 준다.
+  final double? hourLabelRadiusFactor;
+  final Color trackColor;
+  final Color pointerColor;
 
   double _minutesToRad(int minutes) =>
       (minutes / (24 * 60)) * 2 * math.pi - math.pi / 2;
@@ -90,10 +108,11 @@ class OrbitRingPainter extends CustomPainter {
       math.pi * 2,
       false,
       Paint()
-        ..color = AppColors.orbitHalo
+        ..isAntiAlias = false
+        ..color = trackColor
         ..style = PaintingStyle.stroke
         ..strokeWidth = trackStroke
-        ..strokeCap = StrokeCap.round,
+        ..strokeCap = StrokeCap.butt,
     );
 
     _paintHourTicks(canvas, center, orbitRadius, trackStroke, scale);
@@ -111,10 +130,11 @@ class OrbitRingPainter extends CustomPainter {
         safeSweep,
         false,
         Paint()
+          ..isAntiAlias = false
           ..color = segment.color
           ..style = PaintingStyle.stroke
           ..strokeWidth = segmentStroke
-          ..strokeCap = StrokeCap.round,
+          ..strokeCap = StrokeCap.butt,
       );
     }
 
@@ -129,7 +149,9 @@ class OrbitRingPainter extends CustomPainter {
         _paintHourLabel(
           canvas,
           center,
-          orbitRadius + 34 * scale,
+          hourLabelRadiusFactor != null
+              ? size.width * hourLabelRadiusFactor!
+              : math.min(orbitRadius + 34 * scale, size.width * 0.448),
           angle,
           text,
           scale,
@@ -164,9 +186,10 @@ class OrbitRingPainter extends CustomPainter {
           center.dy + math.sin(angle) * (base - tickLength),
         ),
         Paint()
-          ..color = AppColors.textMuted.withValues(alpha: isMajor ? 0.34 : 0.18)
+          ..isAntiAlias = false
+          ..color = AppColors.textMuted.withValues(alpha: isMajor ? 0.65 : 0.45)
           ..strokeWidth = isMajor ? 2.4 * scale : 1.3 * scale
-          ..strokeCap = StrokeCap.round,
+          ..strokeCap = StrokeCap.butt,
       );
     }
   }
@@ -187,6 +210,8 @@ class OrbitRingPainter extends CustomPainter {
       text: TextSpan(
         text: text,
         style: TextStyle(
+          fontFamily: AppPixelStyle.numberFont,
+          fontVariations: const [FontVariation('wght', 700)],
           color: AppColors.textStrong.withValues(alpha: 0.82),
           fontSize: 10.5 * scale,
           fontWeight: FontWeight.w700,
@@ -222,18 +247,17 @@ class OrbitRingPainter extends CustomPainter {
       center,
       nowCenter,
       Paint()
-        ..color = AppColors.orbitPrimary.withValues(alpha: 0.5)
+        ..isAntiAlias = false
+        ..color = pointerColor.withValues(alpha: 0.5)
         ..strokeWidth = 1.5 * scale,
     );
-    canvas.drawCircle(
-      nowCenter,
-      7 * scale,
+    canvas.drawRect(
+      Rect.fromCenter(center: nowCenter, width: 14 * scale, height: 14 * scale),
       Paint()..color = AppColors.orbitSurface,
     );
-    canvas.drawCircle(
-      nowCenter,
-      4.5 * scale,
-      Paint()..color = AppColors.orbitPrimary,
+    canvas.drawRect(
+      Rect.fromCenter(center: nowCenter, width: 9 * scale, height: 9 * scale),
+      Paint()..color = pointerColor,
     );
   }
 
@@ -244,6 +268,10 @@ class OrbitRingPainter extends CustomPainter {
         oldDelegate.showHourLabels != showHourLabels ||
         oldDelegate.showNowPointer != showNowPointer ||
         oldDelegate.radiusFactor != radiusFactor ||
+        oldDelegate.referenceSize != referenceSize ||
+        oldDelegate.hourLabelRadiusFactor != hourLabelRadiusFactor ||
+        oldDelegate.trackColor != trackColor ||
+        oldDelegate.pointerColor != pointerColor ||
         !listEquals(oldDelegate.segments, segments);
   }
 }

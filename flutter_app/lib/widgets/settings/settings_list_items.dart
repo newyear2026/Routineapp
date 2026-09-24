@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
 import '../ds/ds.dart';
+import '../ds/app_pixel_switch.dart';
 
 class SettingsToggleTile extends StatelessWidget {
   const SettingsToggleTile({
@@ -32,11 +33,11 @@ class SettingsToggleTile extends StatelessWidget {
       accent: accent,
       description: description,
       enabled: enabled,
-      trailing: _SettingsToggleSwitch(
+      trailing: AppPixelSwitch(
+        label: label,
         value: value,
         accent: accent,
-        enabled: enabled,
-        onChanged: onChanged,
+        onChanged: enabled ? onChanged : null,
       ),
     );
   }
@@ -50,6 +51,7 @@ class SettingsNavigationTile extends StatelessWidget {
     this.accent = AppColors.orbitPrimary,
     this.onTap,
     this.statusLabel,
+    this.statusTone = AppStatusBadgeTone.readySoon,
     this.description,
   });
 
@@ -58,6 +60,7 @@ class SettingsNavigationTile extends StatelessWidget {
   final Color accent;
   final VoidCallback? onTap;
   final String? statusLabel;
+  final AppStatusBadgeTone statusTone;
   final String? description;
 
   @override
@@ -71,11 +74,11 @@ class SettingsNavigationTile extends StatelessWidget {
       onTap: onTap,
       enabled: enabled,
       statusLabel: statusLabel,
-      statusTone: AppStatusBadgeTone.readySoon,
+      statusTone: statusTone,
       // 비활성 항목에는 갈 곳이 없으므로 화살표 자리를 비운다.
       // '준비 중' 배지가 이미 상태를 말한다.
       trailing: enabled
-          ? const Icon(
+          ? const AppIcon(
               Icons.chevron_right_rounded,
               color: AppColors.textMuted,
               size: 22,
@@ -107,65 +110,13 @@ class SettingsInfoTile extends StatelessWidget {
       accent: accent,
       trailing: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
-        decoration: BoxDecoration(
+        decoration: const BoxDecoration(
           color: AppColors.orbitSurfaceSoft,
-          borderRadius: BorderRadius.circular(12),
+          borderRadius: BorderRadius.zero,
         ),
         child: Text(
           value,
           style: AppTextStyles.caption.copyWith(fontWeight: FontWeight.w700),
-        ),
-      ),
-    );
-  }
-}
-
-class _SettingsToggleSwitch extends StatelessWidget {
-  const _SettingsToggleSwitch({
-    required this.value,
-    required this.accent,
-    required this.enabled,
-    required this.onChanged,
-  });
-
-  final bool value;
-  final Color accent;
-  final bool enabled;
-  final ValueChanged<bool> onChanged;
-
-  @override
-  Widget build(BuildContext context) {
-    return Semantics(
-      toggled: value,
-      enabled: enabled,
-      child: GestureDetector(
-        onTap: enabled ? () => onChanged(!value) : null,
-        child: AnimatedContainer(
-          duration: const Duration(milliseconds: 220),
-          width: 52,
-          height: 30,
-          padding: const EdgeInsets.all(3),
-          decoration: BoxDecoration(
-            color: value
-                ? accent.withValues(alpha: enabled ? 1 : 0.35)
-                : AppColors.orbitSurfaceSoft,
-            borderRadius: BorderRadius.circular(15),
-            border: Border.all(
-              color: value ? Colors.transparent : AppColors.orbitBorder,
-            ),
-          ),
-          child: AnimatedAlign(
-            duration: const Duration(milliseconds: 220),
-            alignment: value ? Alignment.centerRight : Alignment.centerLeft,
-            child: Container(
-              width: 22,
-              height: 22,
-              decoration: const BoxDecoration(
-                color: Colors.white,
-                shape: BoxShape.circle,
-              ),
-            ),
-          ),
         ),
       ),
     );

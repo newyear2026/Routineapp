@@ -4,11 +4,27 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
 import '../data/local/onboarding_local_storage.dart';
+import '../domain/onboarding/onboarding_preview_nav.dart';
 import '../domain/onboarding/onboarding_route_selector.dart';
+import '../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_spacing.dart';
+import '../theme/app_text_styles.dart';
+import '../widgets/ds/pixel_steps.dart';
+import '../widgets/home/orbit_brand_mark.dart';
 
 class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key});
+  const SplashScreen({
+    super.key,
+    this.preview = false,
+    this.previewFlow = false,
+  });
+
+  /// 설정 미리보기 — 온보딩 상태를 읽거나 바꾸지 않는다.
+  final bool preview;
+
+  /// 미리보기 전체 흐름의 첫 화면. 2초 뒤 시작 안내 미리보기로 이어진다.
+  final bool previewFlow;
 
   @override
   State<SplashScreen> createState() => _SplashScreenState();
@@ -19,6 +35,7 @@ class _SplashScreenState extends State<SplashScreen>
   late AnimationController _controller;
   late Animation<double> _scaleAnimation;
   late Animation<double> _fadeAnimation;
+  Timer? _advance;
 
   @override
   void initState() {
@@ -39,9 +56,14 @@ class _SplashScreenState extends State<SplashScreen>
 
     _controller.forward();
 
-    // 2초 후 온보딩 상태에 따라 Home 또는 미완료 단계로 이동
-    Timer(const Duration(seconds: 2), () async {
+    _advance = Timer(const Duration(seconds: 2), () async {
       if (!mounted) return;
+      if (widget.preview) {
+        if (widget.previewFlow) {
+          context.push(OnboardingPreviewNav.introFlow);
+        }
+        return;
+      }
       final state = await OnboardingLocalStorage.load();
       final path = OnboardingRouteSelector.resolveStartPath(state);
       if (!mounted) return;
@@ -51,18 +73,33 @@ class _SplashScreenState extends State<SplashScreen>
 
   @override
   void dispose() {
+    _advance?.cancel();
     _controller.dispose();
     super.dispose();
   }
 
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     return Scaffold(
       body: Container(
         decoration: const BoxDecoration(gradient: AppColors.pageGradient),
         child: Stack(
           children: [
             _buildGlowDecorations(),
+            if (widget.preview)
+              SafeArea(
+                child: Align(
+                  alignment: Alignment.topLeft,
+                  child: IconButton(
+                    key: const Key('splash-preview-back'),
+                    tooltip: l10n.commonBack,
+                    onPressed: () => context.pop(),
+                    icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+              ),
             Center(
               child: AnimatedBuilder(
                 animation: _controller,
@@ -74,48 +111,19 @@ class _SplashScreenState extends State<SplashScreen>
                       child: Column(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Container(
-                            width: 120,
-                            height: 120,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(40),
-                              gradient: AppColors.orbitPrimaryGradient,
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.orbitPrimary
-                                      .withValues(alpha: 0.28),
-                                  blurRadius: 30,
-                                  offset: const Offset(0, 10),
-                                ),
-                              ],
-                            ),
-                            child: const Center(
-                              child: Icon(
-                                Icons.timeline_rounded,
-                                size: 58,
-                                color: Colors.white,
-                              ),
-                            ),
+                          const OrbitBrandMark(size: 228),
+                          const SizedBox(height: AppSpacing.xxl),
+                          Text(
+                            l10n.appName,
+                            style: AppTextStyles.hero,
                           ),
-                          const SizedBox(height: 24),
-                          const Text(
-                            'Routine Timer',
-                            style: TextStyle(
-                              fontSize: 30,
-                              fontWeight: FontWeight.w800,
-                              letterSpacing: -0.8,
-                              color: AppColors.textPrimary,
-                            ),
+                          const SizedBox(height: AppSpacing.sm),
+                          Text(
+                            l10n.appTagline,
+                            style: AppTextStyles.label,
                           ),
-                          const SizedBox(height: 8),
-                          const Text(
-                            'Design your daily rhythm',
-                            style: TextStyle(
-                              fontSize: 14,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.textMuted,
-                            ),
-                          ),
+                          const SizedBox(height: AppSpacing.xl),
+                          const PixelSteps(total: 3, current: 0),
                         ],
                       ),
                     ),

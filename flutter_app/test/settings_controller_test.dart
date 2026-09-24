@@ -4,6 +4,7 @@ import 'package:routine_timer/data/repositories/settings_repository.dart';
 import 'package:routine_timer/domain/models/app_settings.dart';
 import 'package:routine_timer/domain/models/watch_state.dart';
 import 'package:routine_timer/domain/settings/notification_preferences.dart';
+import 'support/localization.dart';
 
 void main() {
   test('settings controller recovers when saving notification settings fails',
@@ -12,10 +13,10 @@ void main() {
         SettingsController(repository: _FailingSettingsRepository());
 
     await controller.load();
-    await controller.setNotificationsEnabled(false, const []);
+    await controller.setNotificationsEnabled(false, const [], testL10n);
 
     expect(controller.isUpdating, isFalse);
-    expect(controller.errorMessage, isNotNull);
+    expect(controller.error, isNotNull);
   });
 }
 

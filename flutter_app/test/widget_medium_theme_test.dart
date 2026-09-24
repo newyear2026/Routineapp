@@ -112,7 +112,7 @@ void main() {
 
     test('Kotlin 링 비트맵 토큰', () {
       final kotlin = File(
-        'android/app/src/main/kotlin/com/example/routine_timer/RoutineWidgetRingBitmap.kt',
+        'android/app/src/main/kotlin/com/dayround/app/RoutineWidgetRingBitmap.kt',
       ).readAsStringSync();
       for (final color in <Color>[
         WidgetTheme.surface,
