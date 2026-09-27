@@ -331,5 +331,8 @@
   "releaseAnnouncementAction": "確認しました",
   "releaseAnnouncementMore": "過去の変更点を見る",
   "releaseNote101Snooze": "後回しにしたルーティンを、決めた時刻にもう一度お知らせします。",
-  "releaseNote101PixelClouds": "ホーム時間割の雲がピクセルアートになりました。"
+  "releaseNote101PixelClouds": "ホーム時間割の雲がピクセルアートになりました。",
+  "releaseNote101CharacterPacks": "キャラクターパックを選ぶと、テーマも一緒に変わります。",
+  "releaseNote101GardenTrial": "プードルガーデンパックは、広告を見ると1日使えます。",
+  "releaseNote101Languages": "日本語とポルトガル語でも使えます。"
 }

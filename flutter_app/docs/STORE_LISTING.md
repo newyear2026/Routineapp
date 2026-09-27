@@ -241,6 +241,63 @@ fluye su día, y para quien encontró agotadoras las apps de tareas.
 
 ---
 
+## 출시 노트 — 1.0.1 (versionCode 4)
+
+Play Console 출시 노트 칸에 언어별로 붙여 넣는다. 한 언어당 500자 이내.
+앱 안 «새로운 소식»과 같은 줄이다. 광고 자리·권한 변경 같은 내부 사정은 적지 않는다.
+
+**한국어 (ko-KR)**
+
+```
+미뤄둔 루틴을 정한 시각에 다시 알려줘요.
+홈 시간표의 구름이 픽셀 아트로 바뀌었어요.
+캐릭터 팩을 고르면 테마도 함께 바뀌어요.
+푸들 정원 팩은 광고를 보면 하루 동안 써볼 수 있어요.
+일본어와 포르투갈어로도 쓸 수 있어요.
+```
+
+**English (en-US)**
+
+```
+Routines you put off now remind you again at the time you picked.
+The clouds on the home timetable are now pixel art.
+Pick a character pack and the theme changes with it.
+Watch an ad to use the Poodle Garden pack for a day.
+The app now also speaks Japanese and Portuguese.
+```
+
+**Español (es-ES)**
+
+```
+Las rutinas que pospones vuelven a avisarte a la hora que elegiste.
+Las nubes del horario de inicio ahora son pixel art.
+Elige un pack de personaje y el tema cambia con él.
+Mira un anuncio para usar el Pack Jardín Poodle durante un día.
+Ahora también está en japonés y portugués.
+```
+
+**日本語 (ja-JP)**
+
+```
+後回しにしたルーティンを、決めた時刻にもう一度お知らせします。
+ホーム時間割の雲がピクセルアートになりました。
+キャラクターパックを選ぶと、テーマも一緒に変わります。
+プードルガーデンパックは、広告を見ると1日使えます。
+日本語とポルトガル語でも使えます。
+```
+
+**Português (pt-BR)**
+
+```
+As rotinas que você adia voltam a avisar no horário que você escolheu.
+As nuvens da agenda no início agora são pixel art.
+Escolha um pacote de personagem e o tema muda junto.
+Assista a um anúncio para usar o Pacote Jardim Poodle por um dia.
+Agora também dá para usar em japonês e português.
+```
+
+---
+
 ## 그래픽 자료 체크리스트
 
 | 자료 | 규격 | 비고 |

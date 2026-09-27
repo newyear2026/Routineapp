@@ -41,10 +41,13 @@ class ReleaseNote {
 final releaseNotes = <ReleaseNote>[
   ReleaseNote(
     version: '1.0.1',
-    releasedOn: DateTime(2026, 9, 22),
+    releasedOn: DateTime(2026, 9, 23),
     lines: [
       (l10n) => l10n.releaseNote101Snooze,
       (l10n) => l10n.releaseNote101PixelClouds,
+      (l10n) => l10n.releaseNote101CharacterPacks,
+      (l10n) => l10n.releaseNote101GardenTrial,
+      (l10n) => l10n.releaseNote101Languages,
     ],
   ),
 ];

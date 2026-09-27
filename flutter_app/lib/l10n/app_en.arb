@@ -799,5 +799,11 @@
   "releaseNote101Snooze": "Routines you put off now remind you again at the time you picked.",
   "@releaseNote101Snooze": {},
   "releaseNote101PixelClouds": "The clouds on the home timetable are now pixel art.",
-  "@releaseNote101PixelClouds": {}
+  "@releaseNote101PixelClouds": {},
+  "releaseNote101CharacterPacks": "Pick a character pack and the theme changes with it.",
+  "@releaseNote101CharacterPacks": {},
+  "releaseNote101GardenTrial": "Watch an ad to use the Poodle Garden pack for a day.",
+  "@releaseNote101GardenTrial": {},
+  "releaseNote101Languages": "The app now also speaks Japanese and Portuguese.",
+  "@releaseNote101Languages": {}
 }

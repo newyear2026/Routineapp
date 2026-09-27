@@ -63,6 +63,26 @@ flutter build appbundle --release
 
 결과: `build/app/outputs/bundle/release/app-release.aab`
 
+### 광고 빌드 플래그
+
+광고 단위는 빌드 플래그로 갈린다(`lib/application/services/ad_config.dart`).
+플래그 없이 빌드하면 **Google 테스트 광고**가 나온다. 깜빡해도 안전한 쪽으로
+틀리게 하려고 일부러 기본값을 테스트로 뒀다.
+
+| 트랙 | 명령 |
+|------|------|
+| 비공개 테스트 | `flutter build appbundle --release --dart-define=AD_WARMUP_HOURS=0` |
+| 프로덕션 | `flutter build appbundle --release --dart-define=USE_TEST_ADS=false` |
+
+- 비공개 테스트는 테스트 광고를 쓴다. 지인 테스터가 실제 광고를 누르면 무효
+  트래픽이 되어 AdMob 계정이 정지될 수 있다.
+- `AD_WARMUP_HOURS=0`은 설치 직후 광고 유예를 끈다. 켜 두면 테스터가 광고를
+  한 번도 못 본 채 14일이 끝날 수 있다.
+- 프로덕션 빌드에만 `USE_TEST_ADS=false`를 넘긴다. 빠뜨리면 수익이 0이 된다.
+
+테스트 광고를 쓰더라도 광고 SDK와 광고 ID는 그대로 들어가므로, 6장의 Play
+선언은 트랙과 관계없이 «광고 포함»이다.
+
 빌드 로그에 서명 관련 경고가 없는지, `key.properties`가 실제로 읽혔는지 확인한다. 확인 방법은 debug 키로 서명된 AAB를 올리면 Play가 거부하므로, 업로드 단계에서 바로 드러난다.
 
 버전을 올릴 때는 `pubspec.yaml`의 `version: 1.0.0+1`에서 `+` 뒤 숫자(versionCode)를 반드시 증가시킨다. 같은 versionCode는 재업로드가 안 된다.
@@ -118,15 +138,27 @@ dart run flutter_launcher_icons             # 플랫폼별 해상도 생성
 | 항목 | 답변 |
 |------|------|
 | 개인정보처리방침 | URL 필수 — `docs/PRIVACY_POLICY.md`를 웹에 올린다 |
-| 광고 | 없음 |
+| 광고 | **광고 포함** (Google AdMob) |
+| 광고 ID | **사용함** — 목적: 광고. `AD_ID` 권한이 `google_mobile_ads`에서 병합된다 |
 | 앱 액세스 권한 | 제한 없음 (로그인 없음) |
 | 알람 및 리마인더 권한 | 해당 없음 — `USE_EXACT_ALARM` 을 쓰지 않는다. 아래 참고 |
 | 콘텐츠 등급 | 설문 후 자동 산정 (유틸리티, 전체이용가 예상) |
 | 타겟층 | 만 13세 이상 권장 |
-| 데이터 안전성 | **데이터를 수집하거나 공유하지 않음** |
+| 데이터 안전성 | **기기 또는 기타 ID(광고 ID) 수집·공유 — 광고 목적** |
 | 정부 앱 | 아니요 |
 
-데이터 안전성을 "수집 안 함"으로 신고할 수 있는 근거는 아래와 같다. 서버가 없고, `AndroidManifest.xml`에 `INTERNET` 권한조차 없으며, 모든 저장이 `SharedPreferences` 로컬이다. 이후 광고 SDK나 분석 도구를 넣으면 이 답변을 반드시 갱신해야 한다.
+앱 자체는 서버가 없고 루틴·기록은 모두 `SharedPreferences` 로컬에만 저장한다. 앱이 직접 모으는 데이터는 없다.
+
+다만 Google AdMob SDK가 광고를 게재하려고 광고 ID를 처리하고 Google에 보낸다. 그래서 데이터 안전성에는 아래처럼 신고한다.
+
+- 수집: 기기 또는 기타 ID — 목적: 광고 또는 마케팅
+- 공유: 같은 항목을 Google(광고 네트워크)과 공유
+- 전송 중 암호화: 예
+- 삭제 요청: 사용자가 기기 설정에서 광고 ID를 재설정하거나 삭제할 수 있다
+
+EEA 사용자에게는 UMP 동의 창을 먼저 띄우고, 동의 상태를 확인한 뒤에만 광고를 요청한다(`ad_bootstrap.dart`). 개인정보처리방침(`PRIVACY_POLICY.md`, `docs/privacy/index.html`)도 같은 내용으로 맞춰 두었다.
+
+**선언과 실제 SDK가 어긋난 채 올리면 정책 위반으로 거부되거나 정지된다.** 빌드를 올리기 전에 위 네 항목(광고, 광고 ID, 데이터 안전성, 개인정보처리방침 URL)을 Play Console에서 먼저 고친다. 분석 도구 같은 SDK를 더 넣으면 이 답변도 다시 갱신한다.
 
 ### 정확한 알람: `USE_EXACT_ALARM` 을 쓰지 않는 이유
 
@@ -174,7 +206,7 @@ dart run flutter_launcher_icons             # 플랫폼별 해상도 생성
 ## 8. 출시 순서 요약
 
 1. 업로드 키스토어 생성 → `key.properties` 작성
-2. `flutter build appbundle --release`
+2. `flutter build appbundle --release` (트랙별 광고 플래그는 2장 참고)
 3. Play Console에서 앱 생성 (패키지 이름 확정 — 되돌릴 수 없음)
 4. 스토어 등록정보 + 앱 콘텐츠 설문 작성
 5. 비공개 테스트 트랙에 AAB 업로드 → 테스터 12명 × 14일

@@ -331,5 +331,8 @@
   "releaseAnnouncementAction": "확인했어요",
   "releaseAnnouncementMore": "지난 변경점 보기",
   "releaseNote101Snooze": "미뤄둔 루틴을 정한 시각에 다시 알려줘요.",
-  "releaseNote101PixelClouds": "홈 시간표의 구름이 픽셀 아트로 바뀌었어요."
+  "releaseNote101PixelClouds": "홈 시간표의 구름이 픽셀 아트로 바뀌었어요.",
+  "releaseNote101CharacterPacks": "캐릭터 팩을 고르면 테마도 함께 바뀌어요.",
+  "releaseNote101GardenTrial": "푸들 정원 팩은 광고를 보면 하루 동안 써볼 수 있어요.",
+  "releaseNote101Languages": "일본어와 포르투갈어로도 쓸 수 있어요."
 }

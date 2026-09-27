@@ -331,5 +331,8 @@
   "releaseAnnouncementAction": "Entendi",
   "releaseAnnouncementMore": "Ver mudanças anteriores",
   "releaseNote101Snooze": "As rotinas que você adia voltam a avisar no horário que você escolheu.",
-  "releaseNote101PixelClouds": "As nuvens da agenda no início agora são pixel art."
+  "releaseNote101PixelClouds": "As nuvens da agenda no início agora são pixel art.",
+  "releaseNote101CharacterPacks": "Escolha um pacote de personagem e o tema muda junto.",
+  "releaseNote101GardenTrial": "Assista a um anúncio para usar o Pacote Jardim Poodle por um dia.",
+  "releaseNote101Languages": "Agora também dá para usar em japonês e português."
 }
