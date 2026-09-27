@@ -3,6 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../domain/utils/time_minutes.dart';
+import '../theme/app_text_styles.dart';
+import '../theme/app_colors.dart';
 import '../widgets/home/pixel_orbit_plate.dart';
 import '../widgets/orbit_ring_painter.dart';
 import 'medium_ring_segment.dart';
@@ -13,8 +15,8 @@ import 'widget_theme.dart';
 /// 홈 화면과 **같은 [OrbitRingPainter]**를 쓴다. 예전에는 위젯만 두꺼운
 /// 동심원 도넛으로 그려서, 같은 하루를 앱과 위젯이 다른 모양으로 보여줬다.
 ///
-/// 위젯 크기(120 안팎)에서는 00·06·12·18 라벨이 4px 남짓으로 줄어 읽히지
-/// 않으므로 라벨을 끄고, 그만큼 링을 키운다. 현재 시각은 중앙 숫자가 말한다.
+/// 작은 위젯에서도 00·06·12·18 라벨과 현재 시각이 읽히도록
+/// 픽셀 원판의 계단과 시계 글자 크기를 별도로 조정한다.
 class MiniCircularTimetable extends StatelessWidget {
   const MiniCircularTimetable({
     super.key,
@@ -95,22 +97,26 @@ class MiniCircularTimetable extends StatelessWidget {
             children: [
               Text(
                 timeText,
-                style: TextStyle(
-                  fontSize: size * 0.19,
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: -0.8,
-                  height: 1,
+                style: AppTextStyles.clock.copyWith(
+                  fontSize: size * 0.20,
                   color: WidgetTheme.textPrimary,
                 ),
               ),
               SizedBox(height: size * 0.03),
-              Text(
-                centerLabel,
-                style: TextStyle(
-                  fontSize: math.max(9, size * 0.083),
-                  fontWeight: FontWeight.w800,
-                  letterSpacing: 1.1,
-                  color: WidgetTheme.textMuted,
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
+                decoration: BoxDecoration(
+                  color: AppColors.orbitSurfaceSoft,
+                  border: Border.all(color: AppColors.orbitBorder),
+                ),
+                child: Text(
+                  centerLabel,
+                  style: TextStyle(
+                    fontSize: math.max(9, size * 0.083),
+                    fontWeight: FontWeight.w800,
+                    letterSpacing: 0.5,
+                    color: WidgetTheme.textMuted,
+                  ),
                 ),
               ),
             ],

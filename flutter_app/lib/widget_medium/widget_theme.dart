@@ -18,25 +18,25 @@ import '../theme/app_colors.dart';
 /// 매핑 근거: 위젯은 홈 화면의 축소판이므로, 앱 홈에서 원형 시간표가 놓이는
 /// 배경([AppColors.pageBackground])과 같은 서피스를 쓴다.
 abstract final class WidgetTheme {
-  /// #EEE8DE — 위젯 바탕 (앱 홈 배경과 동일)
+  /// #F5EEDA — 위젯 바탕 (앱 홈 배경과 동일)
   static const Color background = AppColors.pageBackground;
 
-  /// #FFFFFF — 링 내부 원반, '다음' 칩 등 올라오는 면
+  /// #FFFFFF — 링 내부 원반
   static const Color surface = AppColors.orbitSurface;
 
-  /// #DCD3C4 — 칩 테두리
+  /// #E5DCC8 — 정보 구분선
   static const Color border = AppColors.orbitBorder;
 
-  /// #241F31 — 루틴 이름·시각. 배경 위 13.6:1
+  /// #221C42 — 루틴 이름·시각
   static const Color textPrimary = AppColors.textPrimary;
 
-  /// #6B6478 — 보조 문구. 배경 위 4.63:1 (AA 통과)
+  /// #6A6489 — 보조 문구
   static const Color textMuted = AppColors.textMuted;
 
   /// #6744F4 — 상태 배지 채움·현재 시각 포인터. 흰 글자와 5.66:1
   static const Color accent = AppColors.orbitPrimary;
 
-  /// #D9D1F2 — 24시간 트랙
+  /// #E4DCFB — 24시간 트랙
   static const Color ringTrack = AppColors.orbitHalo;
 
   /// 배지 위 글자

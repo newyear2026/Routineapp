@@ -363,3 +363,42 @@ final result: passed
 - This is a Flutter-rendered review; no physical-device screenshot was captured after the change.
 
 final result: passed
+
+---
+
+# Medium home widget redesign QA — 2026-09-26
+
+## Scope and evidence
+
+- Source visual truth: `design/widget-redesign/source.png` (1828 × 860 px), the image selected by the user. Its cropped widget occupies approximately 1680 × 690 px; the generated mock is wider than the platform Medium aspect ratio.
+- Rendered implementation: `design/widget-redesign/preview.png` (1520 × 880 px), captured from the Flutter widget at device-pixel ratio 2. The sheet includes 330 × 155 and 250 × 140 logical-pixel widgets. The 330 × 155 crop is 670 × 325 px including its shadow.
+- Side-by-side comparison: `design/widget-redesign/comparison.png` (1360 × 365 px), source on the left and the 330 × 155 implementation on the right. Both widget crops are width-normalized to 670 px without stretching; the different heights show the mock's wider aspect ratio.
+- State: Korean, current routine “저녁식사,” 58 minutes left, next “취침” at 23:00, clock at 18:02. The test ring segments are illustrative; production segments come from the shared widget payload.
+
+## Findings
+
+- No actionable P0/P1/P2 difference remains in the Flutter implementation at either tested Medium size. Current routine, countdown, next routine, and clock are readable without clipping.
+- P3: The mock has a softer cream glow and slightly more stylized status badge. The implementation uses the existing app color tokens and crisp pixel border so the widget stays consistent with the app.
+- Native iOS and Android rendering was not captured on physical launchers. Their source follows the same hierarchy; Android Kotlin/XML compilation and iOS extension plus Runner packaging builds passed.
+
+## Required fidelity surfaces
+
+- Typography and copy: bold Korean current routine, accent countdown with larger duration, muted “남음,” and pixel-style clock match the source hierarchy. Long localized titles use single-line ellipsis.
+- Spacing and layout: left information and right orbit are divided vertically; a lower rule separates the next routine. The orbit was enlarged after the first comparison. The narrower 250 × 140 layout retains all four information groups.
+- Colors and tokens: cream background, purple accent, dark ink outline, muted secondary text, and lavender orbit use the existing app palette.
+- Image quality: the dynamic orbit and pixel plate remain sharp at 2× capture. No raster placeholder is used for the live clock. Android's picker-only preview uses a static sample ring.
+- Content and behavior: routine values and ring segments come from the existing shared payload; only their presentation changed. Empty status and timing lines still collapse.
+
+## Comparison history
+
+1. First render: the 112dp orbit looked too small beside the selected mock (P2). Enlarged the wide widget orbit to 124dp and the title to 22sp, then captured again.
+2. Second render: the remaining duration lacked the mock's stronger numeric emphasis (P3). Increased the Korean duration span while preserving the muted suffix, then captured the final preview and comparison above.
+
+## Validation and limits
+
+- Flutter widget tests and selected-size render test passed; targeted Flutter analysis passed.
+- Android `:app:compileDebugKotlin` passed after the XML, bitmap, and provider changes.
+- The iOS extension is registered in `Runner.xcodeproj`; the extension target and the Runner workspace build passed with code signing disabled and an iOS 15 deployment override required by Xcode 27. The built Runner.app contains `RoutineWidgetExtension.appex`.
+- Signing, App Group provisioning, and physical launcher appearance remain device-release checks.
+
+final result: passed

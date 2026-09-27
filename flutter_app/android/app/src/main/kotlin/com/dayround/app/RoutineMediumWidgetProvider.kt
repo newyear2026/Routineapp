@@ -3,6 +3,11 @@ package com.dayround.app
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.SharedPreferences
+import android.graphics.Color
+import android.text.Spannable
+import android.text.SpannableString
+import android.text.style.ForegroundColorSpan
+import android.text.style.RelativeSizeSpan
 import android.view.View
 import android.widget.RemoteViews
 import es.antonborri.home_widget.HomeWidgetProvider
@@ -42,7 +47,7 @@ class RoutineMediumWidgetProvider : HomeWidgetProvider() {
             val views = RemoteViews(context.packageName, R.layout.widget_routine_medium)
             bindText(views, R.id.widget_status_badge, json.optString("currentRoutineStatus", ""))
             bindText(views, R.id.widget_current_title, json.optString("currentRoutineTitle", ""))
-            bindText(views, R.id.widget_timing_hint, json.optString("currentRoutineTimingHint", ""))
+            bindTimingHint(views, json.optString("currentRoutineTimingHint", ""))
             bindText(views, R.id.widget_next_title, json.optString("nextRoutineTitle", "없음"))
             bindText(views, R.id.widget_next_time, json.optString("nextRoutineTime", ""))
 
@@ -57,9 +62,25 @@ class RoutineMediumWidgetProvider : HomeWidgetProvider() {
         views.setViewVisibility(viewId, if (text.isBlank()) View.GONE else View.VISIBLE)
     }
 
+    private fun bindTimingHint(views: RemoteViews, text: String) {
+        val styled = SpannableString(text)
+        val suffix = if (text.endsWith(" 남음")) text.length - 3 else text.length
+        if (suffix < text.length) {
+            styled.setSpan(ForegroundColorSpan(Color.parseColor("#6A6489")),
+                suffix, text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+        val duration = Regex("\\d+(?:시간\\s*\\d+)?분|\\d+시간").find(text)
+        if (duration != null) {
+            styled.setSpan(RelativeSizeSpan(1.12f), duration.range.first,
+                duration.range.last + 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
+        }
+        views.setTextViewText(R.id.widget_timing_hint, styled)
+        views.setViewVisibility(R.id.widget_timing_hint, if (text.isBlank()) View.GONE else View.VISIBLE)
+    }
+
     private fun ringSizePx(context: Context): Int {
         val density = context.resources.displayMetrics.density
-        return max((96 * density).toInt(), 96)
+        return max((104 * density).toInt(), 104)
     }
 
     private fun showPlaceholder(

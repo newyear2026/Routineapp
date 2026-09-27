@@ -5,6 +5,7 @@ import 'package:routine_timer/domain/models/routine.dart';
 import 'package:routine_timer/widget_medium/home_medium_widget.dart';
 import 'package:routine_timer/widget_medium/home_medium_widget_selector.dart';
 import 'package:routine_timer/widget_medium/home_medium_widget_view_model.dart';
+import 'package:routine_timer/widget_medium/mini_circular_timetable.dart';
 import 'support/localization.dart';
 
 void main() {
@@ -49,10 +50,7 @@ void main() {
     expect(medium.ringSegments[1].sweepMinutes, 120);
   });
 
-  testWidgets('다음 칩의 시각은 칩 오른쪽 끝에 붙는다', (tester) async {
-    // 라벨을 Flexible로 두면 Row가 여유 공간을 라벨과 제목에 반씩 미리
-    // 나눠 준다. 라벨이 안 쓴 몫이 칩 끝에 죽은 공간으로 남아 시각이
-    // 테두리에서 44px이나 떨어져 떴다.
+  testWidgets('다음 루틴 시각은 왼쪽 정보 칸 끝에 붙는다', (tester) async {
     await tester.pumpWidget(localizedApp(
       home: Center(
         child: SizedBox(
@@ -67,7 +65,7 @@ void main() {
     await tester.pumpAndSettle();
 
     final time = tester.getRect(find.text('18:00'));
-    final card = tester.getRect(find.byType(HomeMediumWidget));
-    expect(card.right - time.right, lessThan(28));
+    final ring = tester.getRect(find.byType(MiniCircularTimetable));
+    expect(ring.left - time.right, lessThan(35));
   });
 }

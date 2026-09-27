@@ -3,16 +3,18 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item>
         <shape android:shape="oval">
-            <solid android:color="@color/widget_surface" />
+            <solid android:color="@color/widget_dial_surface" />
+            <stroke android:width="2dp" android:color="@color/widget_text_primary" />
         </shape>
     </item>
     <item
-        android:bottom="18dp"
-        android:left="18dp"
-        android:right="18dp"
-        android:top="18dp">
+        android:bottom="15dp"
+        android:left="15dp"
+        android:right="15dp"
+        android:top="15dp">
         <shape android:shape="oval">
-            <stroke android:width="5dp" android:color="@color/widget_ring_track" />
+            <solid android:color="@color/widget_surface" />
+            <stroke android:width="6dp" android:color="@color/widget_ring_track" />
         </shape>
     </item>
 </layer-list>

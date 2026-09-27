@@ -14,4 +14,6 @@
     <!-- 흰 글자와 5.66:1 -->
     <color name="widget_accent">#6744F4</color>
     <color name="widget_ring_track">#E4DCFB</color>
+    <color name="widget_dial_surface">#F3EDF9</color>
+    <color name="widget_label_surface">#F0E9D9</color>
 </resources>

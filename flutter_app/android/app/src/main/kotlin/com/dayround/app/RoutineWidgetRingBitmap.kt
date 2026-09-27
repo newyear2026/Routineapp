@@ -4,6 +4,7 @@ import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
+import android.graphics.Path
 import android.graphics.RectF
 import android.graphics.Typeface
 import org.json.JSONObject
@@ -11,6 +12,7 @@ import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.max
 import kotlin.math.sin
+import kotlin.math.sqrt
 
 /**
  * 24시간 원형 시간표 비트맵.
@@ -26,9 +28,9 @@ import kotlin.math.sin
 object RoutineWidgetRingBitmap {
 
     private const val MIN_PER_DAY = 24 * 60
-    private const val REFERENCE_SIZE = 292f
-    private const val RADIUS_FACTOR = 0.40f
-    private const val GAP_RAD = 0.04
+    private const val REFERENCE_SIZE = 150f
+    private const val RADIUS_FACTOR = 0.395f
+    private const val GAP_RAD = 0.05
 
     private object Tokens {
         const val SURFACE = "#FFFFFF"
@@ -36,6 +38,8 @@ object RoutineWidgetRingBitmap {
         const val TEXT_MUTED = "#6A6489"
         const val ACCENT = "#6744F4"
         const val RING_TRACK = "#E4DCFB"
+        const val DIAL_SURFACE = "#F3EDF9"
+        const val LABEL_SURFACE = "#F0E9D9"
     }
 
     fun create(json: JSONObject, sizePx: Int): Bitmap {
@@ -48,9 +52,24 @@ object RoutineWidgetRingBitmap {
         val segmentStroke = 11f * scale
         val trackStroke = 9f * scale
 
-        canvas.drawCircle(
-            cx, cy, sizePx / 2f,
-            Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor(Tokens.SURFACE) },
+        val step = max(2f, sizePx / 46f)
+        val plate = pixelDisk(cx, cy, sizePx * 0.48f, step)
+        canvas.drawPath(
+            plate,
+            Paint().apply { color = Color.parseColor(Tokens.DIAL_SURFACE); isAntiAlias = false },
+        )
+        canvas.drawPath(
+            plate,
+            Paint().apply {
+                color = Color.parseColor(Tokens.TEXT_PRIMARY)
+                style = Paint.Style.STROKE
+                strokeWidth = max(2f, 1.5f * sizePx / 104f)
+                isAntiAlias = false
+            },
+        )
+        canvas.drawPath(
+            pixelDisk(cx, cy, sizePx * 0.335f, step),
+            Paint().apply { color = Color.parseColor(Tokens.SURFACE); isAntiAlias = false },
         )
 
         val oval = RectF(cx - orbitRadius, cy - orbitRadius, cx + orbitRadius, cy + orbitRadius)
@@ -65,11 +84,34 @@ object RoutineWidgetRingBitmap {
         )
 
         drawHourTicks(canvas, cx, cy, orbitRadius, trackStroke, scale)
+        drawHourLabels(canvas, cx, cy, sizePx.toFloat())
         drawSegments(canvas, json, oval, segmentStroke)
         drawNowPointer(canvas, json, cx, cy, orbitRadius, scale)
         drawCenterTime(canvas, json, cx, cy, scale)
 
         return bmp
+    }
+
+    private fun pixelDisk(cx: Float, cy: Float, radius: Float, step: Float): Path {
+        val path = Path()
+        val rows = (radius / step).toInt() + 1
+        val right = mutableListOf<Pair<Float, Float>>()
+        val left = mutableListOf<Pair<Float, Float>>()
+        for (i in -rows until rows) {
+            val y = i * step
+            val middle = y + step / 2f
+            val half = ((sqrt(max(0f, radius * radius - middle * middle)) / step) + 0.5f).toInt() * step
+            if (half <= 0f) continue
+            right.add((cx + half) to (cy + y))
+            right.add((cx + half) to (cy + y + step))
+            left.add((cx - half) to (cy + y))
+            left.add((cx - half) to (cy + y + step))
+        }
+        if (right.isEmpty()) return path
+        path.moveTo(right.first().first, right.first().second)
+        for (point in right.drop(1) + left.reversed()) path.lineTo(point.first, point.second)
+        path.close()
+        return path
     }
 
     private fun drawHourTicks(
@@ -80,11 +122,11 @@ object RoutineWidgetRingBitmap {
         trackStroke: Float,
         scale: Float,
     ) {
-        for (hour in 0 until 24) {
+        for (hour in 0 until 24 step 4) {
             val angle = minutesToRad(hour * 60.0)
-            val isMajor = hour % 6 == 0
-            val tickLength = (if (isMajor) 11f else 6f) * scale
-            val base = orbitRadius - trackStroke / 2f - 10f * scale
+            val isMajor = hour % 12 == 0
+            val tickLength = (if (isMajor) 9f else 6f) * scale
+            val base = orbitRadius - trackStroke / 2f - 7f * scale
             val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = Color.parseColor(Tokens.TEXT_MUTED)
                 alpha = if (isMajor) 87 else 46
@@ -99,6 +141,20 @@ object RoutineWidgetRingBitmap {
                 paint,
             )
         }
+    }
+
+    private fun drawHourLabels(canvas: Canvas, cx: Float, cy: Float, size: Float) {
+        val offset = size * 0.445f
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+            color = Color.parseColor(Tokens.TEXT_PRIMARY)
+            textSize = size * 0.085f
+            typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
+            textAlign = Paint.Align.CENTER
+        }
+        canvas.drawText("00", cx, cy - offset + paint.textSize * 0.35f, paint)
+        canvas.drawText("06", cx + offset, cy + paint.textSize * 0.35f, paint)
+        canvas.drawText("12", cx, cy + offset + paint.textSize * 0.35f, paint)
+        canvas.drawText("18", cx - offset, cy + paint.textSize * 0.35f, paint)
     }
 
     private fun drawSegments(
@@ -155,14 +211,12 @@ object RoutineWidgetRingBitmap {
                 strokeWidth = 1.5f * scale
             },
         )
-        canvas.drawCircle(
-            px, py, 7f * scale,
-            Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor(Tokens.SURFACE) },
-        )
-        canvas.drawCircle(
-            px, py, 4.5f * scale,
-            Paint(Paint.ANTI_ALIAS_FLAG).apply { color = Color.parseColor(Tokens.ACCENT) },
-        )
+        val outer = 12f * scale
+        val inner = 8f * scale
+        canvas.drawRect(px - outer / 2, py - outer / 2, px + outer / 2, py + outer / 2,
+            Paint().apply { color = Color.parseColor(Tokens.SURFACE); isAntiAlias = false })
+        canvas.drawRect(px - inner / 2, py - inner / 2, px + inner / 2, py + inner / 2,
+            Paint().apply { color = Color.parseColor(Tokens.ACCENT); isAntiAlias = false })
     }
 
     private fun drawCenterTime(
@@ -176,24 +230,29 @@ object RoutineWidgetRingBitmap {
         val minute = json.optInt("currentTimeMinute")
         val timePaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.parseColor(Tokens.TEXT_PRIMARY)
-            textSize = 55f * scale
-            typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
+            textSize = 30f * scale
+            typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
             textAlign = Paint.Align.CENTER
         }
-        canvas.drawText("%02d:%02d".format(hour, minute), cx, cy + 6f * scale, timePaint)
+        canvas.drawText("%02d:%02d".format(hour, minute), cx, cy + 2f * scale, timePaint)
 
+        val label = json.optString("centerTimeLabel", "지금")
         val labelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = Color.parseColor(Tokens.TEXT_MUTED)
-            textSize = 25f * scale
+            textSize = 12f * scale
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             textAlign = Paint.Align.CENTER
         }
-        canvas.drawText(
-            json.optString("centerTimeLabel", "지금"),
-            cx,
-            cy + 32f * scale,
-            labelPaint,
-        )
+        val labelWidth = labelPaint.measureText(label) + 12f * scale
+        val box = RectF(cx - labelWidth / 2, cy + 8f * scale,
+            cx + labelWidth / 2, cy + 26f * scale)
+        canvas.drawRect(box, Paint().apply { color = Color.parseColor(Tokens.LABEL_SURFACE) })
+        canvas.drawRect(box, Paint().apply {
+            color = Color.parseColor(Tokens.TEXT_MUTED)
+            style = Paint.Style.STROKE
+            strokeWidth = 0.7f * scale
+        })
+        canvas.drawText(label, cx, cy + 21f * scale, labelPaint)
     }
 
     private fun minutesToRad(minutes: Double): Double =

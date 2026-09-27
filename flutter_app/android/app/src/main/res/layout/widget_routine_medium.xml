@@ -11,9 +11,9 @@
     android:background="@drawable/widget_medium_bg"
     android:orientation="horizontal"
     android:paddingStart="14dp"
-    android:paddingTop="12dp"
-    android:paddingEnd="14dp"
-    android:paddingBottom="12dp">
+    android:paddingTop="10dp"
+    android:paddingEnd="11dp"
+    android:paddingBottom="10dp">
 
     <LinearLayout
         android:layout_width="0dp"
@@ -42,11 +42,11 @@
             android:id="@+id/widget_current_title"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
+            android:layout_marginTop="7dp"
             android:ellipsize="end"
             android:maxLines="1"
             android:textColor="@color/widget_text_primary"
-            android:textSize="20sp"
+            android:textSize="21sp"
             android:textStyle="bold" />
 
         <TextView
@@ -56,18 +56,21 @@
             android:layout_marginTop="4dp"
             android:ellipsize="end"
             android:maxLines="1"
-            android:textColor="@color/widget_text_muted"
-            android:textSize="13sp" />
+            android:textColor="@color/widget_accent"
+            android:textSize="13sp"
+            android:textStyle="bold" />
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="11dp"
+            android:background="@color/widget_border" />
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:background="@drawable/widget_next_chip_bg"
+            android:layout_marginTop="7dp"
             android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="7dp">
+            android:orientation="horizontal">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -81,7 +84,7 @@
                 android:id="@+id/widget_next_title"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="5dp"
                 android:layout_weight="1"
                 android:ellipsize="end"
                 android:maxLines="1"
@@ -93,18 +96,24 @@
                 android:id="@+id/widget_next_time"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
+                android:layout_marginStart="4dp"
                 android:textColor="@color/widget_text_muted"
                 android:textSize="12sp" />
         </LinearLayout>
     </LinearLayout>
 
+    <View
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:layout_marginStart="8dp"
+        android:background="@color/widget_border" />
+
     <ImageView
         android:id="@+id/widget_ring"
-        android:layout_width="96dp"
-        android:layout_height="96dp"
+        android:layout_width="104dp"
+        android:layout_height="104dp"
         android:layout_gravity="center_vertical"
-        android:layout_marginStart="10dp"
+        android:layout_marginStart="5dp"
         android:contentDescription="@string/widget_medium_description"
         android:scaleType="fitCenter" />
 </LinearLayout>

@@ -13,9 +13,9 @@
     android:background="@drawable/widget_medium_bg"
     android:orientation="horizontal"
     android:paddingStart="14dp"
-    android:paddingTop="12dp"
-    android:paddingEnd="14dp"
-    android:paddingBottom="12dp">
+    android:paddingTop="10dp"
+    android:paddingEnd="11dp"
+    android:paddingBottom="10dp">
 
     <LinearLayout
         android:layout_width="0dp"
@@ -41,35 +41,38 @@
             android:textStyle="bold" />
 
         <TextView
-            android:text="공부"
+            android:text="저녁식사"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="6dp"
+            android:layout_marginTop="7dp"
             android:ellipsize="end"
             android:maxLines="1"
             android:textColor="@color/widget_text_primary"
-            android:textSize="20sp"
+            android:textSize="21sp"
             android:textStyle="bold" />
 
         <TextView
-            android:text="종료까지 1시간 56분 남음"
+            android:text="종료까지 58분 남음"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:ellipsize="end"
             android:maxLines="1"
-            android:textColor="@color/widget_text_muted"
-            android:textSize="13sp" />
+            android:textColor="@color/widget_accent"
+            android:textSize="13sp"
+            android:textStyle="bold" />
 
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="11dp"
+            android:background="@color/widget_border" />
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:background="@drawable/widget_next_chip_bg"
+            android:layout_marginTop="7dp"
             android:gravity="center_vertical"
-            android:orientation="horizontal"
-            android:paddingHorizontal="10dp"
-            android:paddingVertical="7dp">
+            android:orientation="horizontal">
 
             <TextView
                 android:layout_width="wrap_content"
@@ -80,10 +83,10 @@
                 android:textStyle="bold" />
 
             <TextView
-                android:text="점심식사"
+                android:text="취침"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="5dp"
                 android:layout_weight="1"
                 android:ellipsize="end"
                 android:maxLines="1"
@@ -92,21 +95,56 @@
                 android:textStyle="bold" />
 
             <TextView
-                android:text="12:00"
+                android:text="23:00"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="6dp"
+                android:layout_marginStart="4dp"
                 android:textColor="@color/widget_text_muted"
                 android:textSize="12sp" />
         </LinearLayout>
     </LinearLayout>
 
-    <ImageView
-        android:src="@drawable/widget_ring_preview"
-        android:layout_width="96dp"
-        android:layout_height="96dp"
+    <View
+        android:layout_width="1dp"
+        android:layout_height="match_parent"
+        android:layout_marginStart="8dp"
+        android:background="@color/widget_border" />
+
+    <FrameLayout
+        android:layout_width="104dp"
+        android:layout_height="104dp"
         android:layout_gravity="center_vertical"
-        android:layout_marginStart="10dp"
-        android:contentDescription="@string/widget_medium_description"
-        android:scaleType="fitCenter" />
+        android:layout_marginStart="5dp">
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:src="@drawable/widget_ring_preview"
+            android:contentDescription="@string/widget_medium_description"
+            android:scaleType="fitCenter" />
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:gravity="center"
+            android:orientation="vertical">
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="18:02"
+                android:textColor="@color/widget_text_primary"
+                android:textSize="20sp"
+                android:fontFamily="monospace"
+                android:textStyle="bold" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="1dp"
+                android:background="@color/widget_label_surface"
+                android:paddingHorizontal="4dp"
+                android:text="지금"
+                android:textColor="@color/widget_text_muted"
+                android:textSize="10sp"
+                android:textStyle="bold" />
+        </LinearLayout>
+    </FrameLayout>
 </LinearLayout>
