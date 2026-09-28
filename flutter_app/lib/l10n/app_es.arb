@@ -281,6 +281,7 @@
   "widgetNoRoutines": "No hay rutinas hoy",
   "widgetNone": "Ninguna",
   "widgetAddHint": "Puedes agregar una en la pestaña Rutinas",
+  "widgetRefreshHint": "Abre la app",
   "characterPackTitle": "Packs de personaje",
   "characterPackSubtitle": "Cambia personaje y tema como un conjunto",
   "characterPackKicker": "Pack de tema con personaje",

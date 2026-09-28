@@ -5,4 +5,6 @@
     <string name="widget_ring_desc">Today\'s routine ring</string>
     <string name="widget_medium_description">Today\'s routines in a circle</string>
     <string name="widget_next_label">Next</string>
+    <string name="widget_sync_prompt">Open the app</string>
+    <string name="widget_now_label">Now</string>
 </resources>

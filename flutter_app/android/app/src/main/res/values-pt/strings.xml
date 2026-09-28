@@ -4,4 +4,6 @@
     <string name="widget_ring_desc">Anel das rotinas de hoje</string>
     <string name="widget_medium_description">Suas rotinas de hoje num círculo</string>
     <string name="widget_next_label">Próxima</string>
+    <string name="widget_sync_prompt">Abra o app</string>
+    <string name="widget_now_label">Agora</string>
 </resources>

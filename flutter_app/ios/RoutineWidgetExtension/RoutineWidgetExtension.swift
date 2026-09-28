@@ -29,6 +29,14 @@ private enum WidgetTokens {
     static let labelSurface = Color(hex: 0xF0E9D9)
 }
 
+private enum PackArtwork {
+    static func image(_ name: String) -> Image {
+        guard let path = Bundle.main.path(forResource: name, ofType: "png", inDirectory: "Artwork"),
+              let uiImage = UIImage(contentsOfFile: path) else { return Image(systemName: "sparkle") }
+        return Image(uiImage: uiImage)
+    }
+}
+
 private struct RingSegDto: Codable {
     let id: String
     let startMinutesFromMidnight: Int
@@ -39,6 +47,7 @@ private struct RingSegDto: Codable {
 /// 페이로드 스키마가 올라가도 위젯이 빈 화면으로 죽지 않도록 전부 옵셔널로 읽는다.
 private struct PayloadDto: Codable {
     let schemaVersion: Int?
+    let characterPackId: String?
     let currentRoutineTitle: String?
     let currentRoutineStatus: String?
     let currentRoutineTimingHint: String?
@@ -50,6 +59,50 @@ private struct PayloadDto: Codable {
     let centerTimeLabel: String?
     let ringSegments: [RingSegDto]?
     let activeSegmentId: String?
+    let nextLabel: String?
+    let refreshHint: String?
+    let validUntilEpochMs: Int64?
+    let timelineStates: [WidgetStateDto]?
+    let timingStartTemplate: String?
+    let timingEndTemplate: String?
+    let durationHoursMinutesTemplate: String?
+    let durationHoursTemplate: String?
+    let durationMinutesTemplate: String?
+}
+
+private struct WidgetStateDto: Codable {
+    let effectiveAtEpochMs: Int64?
+    let currentRoutineTitle: String?
+    let currentRoutineStatus: String?
+    let currentRoutineTimingHint: String?
+    let nextRoutineTitle: String?
+    let nextRoutineTime: String?
+    let centerTimeLabel: String?
+    let ringSegments: [RingSegDto]?
+    let activeSegmentId: String?
+    let timingTargetEpochMs: Int64?
+    let timingMode: String?
+}
+
+private func stateAt(_ payload: PayloadDto?, date: Date) -> WidgetStateDto? {
+    guard let payload = payload else { return nil }
+    if let states = payload.timelineStates, !states.isEmpty {
+        let nowMs = Int64(date.timeIntervalSince1970 * 1000)
+        return states.last(where: { ($0.effectiveAtEpochMs ?? Int64.max) <= nowMs })
+    }
+    return WidgetStateDto(
+        effectiveAtEpochMs: nil,
+        currentRoutineTitle: payload.currentRoutineTitle,
+        currentRoutineStatus: payload.currentRoutineStatus,
+        currentRoutineTimingHint: payload.currentRoutineTimingHint,
+        nextRoutineTitle: payload.nextRoutineTitle,
+        nextRoutineTime: payload.nextRoutineTime,
+        centerTimeLabel: payload.centerTimeLabel,
+        ringSegments: payload.ringSegments,
+        activeSegmentId: payload.activeSegmentId,
+        timingTargetEpochMs: nil,
+        timingMode: nil
+    )
 }
 
 private func loadPayload() -> PayloadDto? {
@@ -62,21 +115,39 @@ private func loadPayload() -> PayloadDto? {
 private struct RoutineEntry: TimelineEntry {
     let date: Date
     let payload: PayloadDto?
+    let state: WidgetStateDto?
 }
 
 private struct Provider: TimelineProvider {
     func placeholder(in context: Context) -> RoutineEntry {
-        RoutineEntry(date: Date(), payload: nil)
+        RoutineEntry(date: Date(), payload: nil, state: nil)
     }
 
     func getSnapshot(in context: Context, completion: @escaping (RoutineEntry) -> Void) {
-        completion(RoutineEntry(date: Date(), payload: loadPayload()))
+        let date = Date()
+        let payload = loadPayload()
+        completion(RoutineEntry(date: date, payload: payload, state: stateAt(payload, date: date)))
     }
 
     func getTimeline(in context: Context, completion: @escaping (Timeline<RoutineEntry>) -> Void) {
-        let entry = RoutineEntry(date: Date(), payload: loadPayload())
-        let next = Calendar.current.date(byAdding: .minute, value: 15, to: Date()) ?? Date().addingTimeInterval(900)
-        let timeline = Timeline(entries: [entry], policy: .after(next))
+        let now = Date()
+        let payload = loadPayload()
+        let horizon = now.addingTimeInterval(24 * 3600)
+        var dates = Set<Date>([now])
+        var tick = (floor(now.timeIntervalSince1970 / 300) + 1) * 300
+        while tick < horizon.timeIntervalSince1970 {
+            dates.insert(Date(timeIntervalSince1970: tick))
+            tick += 300
+        }
+        for state in payload?.timelineStates ?? [] {
+            guard let ms = state.effectiveAtEpochMs else { continue }
+            let date = Date(timeIntervalSince1970: Double(ms) / 1000)
+            if date > now && date < horizon { dates.insert(date) }
+        }
+        let entries = dates.sorted().map { date in
+            RoutineEntry(date: date, payload: payload, state: stateAt(payload, date: date))
+        }
+        let timeline = Timeline(entries: entries, policy: .after(horizon))
         completion(timeline)
     }
 }
@@ -84,10 +155,24 @@ private struct Provider: TimelineProvider {
 private struct RoutineMediumWidgetEntryView: View {
     var entry: RoutineEntry
 
+    private var garden: Bool { entry.payload?.characterPackId == "poodle_garden" }
+    private var packAccent: Color { garden ? Color(hex: 0x078F96) : WidgetTokens.accent }
+    private var packBackground: LinearGradient {
+        LinearGradient(colors: garden
+            ? [Color(hex: 0xF7F0FF), Color(hex: 0xD4F7E8)]
+            : [Color(hex: 0xFFF4DC), Color(hex: 0xE6D8FF)],
+            startPoint: .topLeading, endPoint: .bottomTrailing)
+    }
+
+    private var expired: Bool {
+        guard let until = entry.payload?.validUntilEpochMs, until > 0 else { return false }
+        return Int64(entry.date.timeIntervalSince1970 * 1000) >= until
+    }
+
     @ViewBuilder var body: some View {
         if #available(iOS 17.0, *) {
             content.containerBackground(for: .widget) {
-                WidgetTokens.background
+                packBackground
             }
         } else {
             content
@@ -95,17 +180,36 @@ private struct RoutineMediumWidgetEntryView: View {
     }
 
     private var content: some View {
-        HStack(alignment: .center, spacing: 8) {
-            leftColumn
-            Rectangle()
-                .fill(WidgetTokens.border)
-                .frame(width: 1)
-            RoutineRingView(payload: entry.payload)
-                .frame(width: 124, height: 124)
+        ZStack {
+            packBackground
+            if garden {
+                PackArtwork.image("widget_leaf")
+                    .resizable().interpolation(.none).frame(width: 20, height: 20)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
+                    .padding(10)
+                PackArtwork.image("widget_daisy")
+                    .resizable().interpolation(.none).frame(width: 33, height: 33)
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
+            } else {
+                PackArtwork.image("widget_stars")
+                    .resizable().interpolation(.none).scaledToFill()
+                    .opacity(0.45).clipped()
+            }
+            HStack(alignment: .center, spacing: 5) {
+                PackArtwork.image(garden ? "widget_poodle" : "widget_cat")
+                    .resizable().interpolation(.none).scaledToFit()
+                    .frame(width: 56, height: 70, alignment: .bottom)
+                    .frame(maxHeight: .infinity, alignment: .bottom)
+                leftColumn
+                Rectangle().fill(WidgetTokens.border).frame(width: 1)
+                RoutineRingView(state: expired ? nil : entry.state,
+                                date: entry.date,
+                                centerLabel: entry.state?.centerTimeLabel ?? entry.payload?.centerTimeLabel ?? "")
+                    .frame(width: 106, height: 106)
+            }
+            .padding(.horizontal, 7)
+            .padding(.vertical, 8)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .background(WidgetTokens.background)
         .overlay(PixelWidgetShape().stroke(WidgetTokens.textPrimary, lineWidth: 1.5))
     }
 
@@ -116,26 +220,28 @@ private struct RoutineMediumWidgetEntryView: View {
             Spacer(minLength: 0)
             // 시작·종료 시각은 싣지 않는다. 좁은 왼쪽 칸에서 배지와 나란히 두면
             // 잘리고, 아래 타이밍 힌트가 같은 것을 더 쓸모 있게 말한다.
-            let status = entry.payload?.currentRoutineStatus ?? ""
+            let status = expired ? "" : (entry.state?.currentRoutineStatus ?? "")
             if !status.isEmpty {
                 Text(status)
                     .font(.system(size: 12, weight: .bold))
                     .foregroundColor(.white)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
-                    .background(WidgetTokens.accent)
+                    .background(packAccent)
                     .clipShape(PixelWidgetShape(step: 2, steps: 1))
                     .padding(.bottom, 7)
             }
 
             // 루틴의 정체성은 색상으로 표현한다 (Routine.iconEmoji 주석 참고).
-            Text(entry.payload?.currentRoutineTitle ?? "앱을 열어 동기화해 주세요")
+            Text(expired
+                 ? (entry.payload?.refreshHint ?? localizedFallback("refresh"))
+                 : (entry.state?.currentRoutineTitle ?? localizedFallback("refresh")))
                 .font(.system(size: 22, weight: .heavy))
                 .foregroundColor(WidgetTokens.textPrimary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
 
-            let hint = entry.payload?.currentRoutineTimingHint ?? ""
+            let hint = expired ? "" : currentTimingHint
             if !hint.isEmpty {
                 timingText(hint)
                     .font(.system(size: 13, weight: .bold))
@@ -151,6 +257,38 @@ private struct RoutineMediumWidgetEntryView: View {
             Spacer(minLength: 0)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
+    }
+
+    private var currentTimingHint: String {
+        guard let state = entry.state else { return "" }
+        guard let targetMs = state.timingTargetEpochMs,
+              let mode = state.timingMode,
+              targetMs > Int64(entry.date.timeIntervalSince1970 * 1000),
+              let payload = entry.payload else {
+            return state.currentRoutineTimingHint ?? ""
+        }
+        let remaining = Int(ceil((Double(targetMs) / 1000 - entry.date.timeIntervalSince1970) / 60))
+        let hours = remaining / 60
+        let minutes = remaining % 60
+        let duration: String
+        if hours > 0 && minutes > 0 {
+            duration = (payload.durationHoursMinutesTemplate ?? "")
+                .replacingOccurrences(of: "{hours}", with: String(hours))
+                .replacingOccurrences(of: "{minutes}", with: String(minutes))
+        } else if hours > 0 {
+            duration = (payload.durationHoursTemplate ?? "")
+                .replacingOccurrences(of: "{hours}", with: String(hours))
+        } else {
+            duration = (payload.durationMinutesTemplate ?? "")
+                .replacingOccurrences(of: "{minutes}", with: String(minutes))
+        }
+        let template = mode == "start"
+            ? (payload.timingStartTemplate ?? "")
+            : (payload.timingEndTemplate ?? "")
+        if template.contains("{duration}") && !duration.isEmpty {
+            return template.replacingOccurrences(of: "{duration}", with: duration)
+        }
+        return state.currentRoutineTimingHint ?? ""
     }
 
     private func timingText(_ hint: String) -> Text {
@@ -177,19 +315,31 @@ private struct RoutineMediumWidgetEntryView: View {
             Image(systemName: "clock")
                 .font(.system(size: 13, weight: .bold))
                 .foregroundColor(WidgetTokens.textMuted)
-            Text("다음")
+            Text(entry.payload?.nextLabel ?? localizedFallback("next"))
                 .font(.system(size: 12, weight: .bold))
                 .foregroundColor(WidgetTokens.textMuted)
-            Text(entry.payload?.nextRoutineTitle ?? "없음")
+            Text(expired ? "" : (entry.state?.nextRoutineTitle ?? localizedFallback("none")))
                 .font(.system(size: 13, weight: .heavy))
                 .foregroundColor(WidgetTokens.textPrimary)
                 .lineLimit(1)
             Spacer(minLength: 0)
-            Text(entry.payload?.nextRoutineTime ?? "")
+            Text(expired ? "" : (entry.state?.nextRoutineTime ?? ""))
                 .font(.system(size: 12, weight: .semibold))
                 .foregroundColor(WidgetTokens.textMuted)
         }
     }
+}
+
+private func localizedFallback(_ key: String) -> String {
+    let language = Locale.current.languageCode ?? "en"
+    let strings: [String: [String: String]] = [
+        "ko": ["next": "다음", "none": "없음", "now": "지금", "refresh": "앱을 열어주세요"],
+        "en": ["next": "Next", "none": "None", "now": "Now", "refresh": "Open the app"],
+        "es": ["next": "Siguiente", "none": "Ninguna", "now": "Ahora", "refresh": "Abre la app"],
+        "ja": ["next": "次", "none": "なし", "now": "今", "refresh": "アプリを開く"],
+        "pt": ["next": "Próxima", "none": "Nenhuma", "now": "Agora", "refresh": "Abra o app"]
+    ]
+    return strings[language]?[key] ?? strings["en"]?[key] ?? ""
 }
 
 private struct PixelWidgetShape: Shape {
@@ -236,7 +386,9 @@ private struct PixelWidgetShape: Shape {
 /// `OrbitRingPainter`(Dart)와 같은 형태 — 얇은 호 + 24시간 틱 + 세그먼트 간격.
 /// 치수는 모두 referenceSize 292 기준 비례값이다.
 private struct RoutineRingView: View {
-    let payload: PayloadDto?
+    let state: WidgetStateDto?
+    let date: Date
+    let centerLabel: String
 
     private static let referenceSize: CGFloat = 150
     private static let radiusFactor: CGFloat = 0.395
@@ -301,7 +453,7 @@ private struct RoutineRingView: View {
                     )
                 }
 
-                for seg in payload?.ringSegments ?? [] {
+                for seg in state?.ringSegments ?? [] {
                     let sweep = Double(seg.sweepMinutes) / minPerDay * 2 * .pi
                     if sweep <= 0 { continue }
                     let start = angle(Double(seg.startMinutesFromMidnight)) + Self.gapRad
@@ -315,7 +467,10 @@ private struct RoutineRingView: View {
                                    style: StrokeStyle(lineWidth: segmentStroke, lineCap: .butt))
                 }
 
-                if let ptr = payload?.pointerAngleRad {
+                let components = Calendar.current.dateComponents([.hour, .minute], from: date)
+                let minuteOfDay = Double((components.hour ?? 0) * 60 + (components.minute ?? 0))
+                let ptr = angle(minuteOfDay)
+                if state != nil {
                     let nowPoint = CGPoint(x: c.x + cos(ptr) * (orbitRadius + 4 * scale),
                                            y: c.y + sin(ptr) * (orbitRadius + 4 * scale))
                     var line = Path()
@@ -336,11 +491,11 @@ private struct RoutineRingView: View {
 
             VStack(spacing: 3) {
                 Text(String(format: "%02d:%02d",
-                            payload?.currentTimeHour ?? 0,
-                            payload?.currentTimeMinute ?? 0))
+                            Calendar.current.component(.hour, from: date),
+                            Calendar.current.component(.minute, from: date)))
                     .font(.system(size: 23, weight: .heavy, design: .monospaced))
                     .foregroundColor(WidgetTokens.textPrimary)
-                Text(payload?.centerTimeLabel ?? "지금")
+                Text(centerLabel.isEmpty ? localizedFallback("now") : centerLabel)
                     .font(.system(size: 10, weight: .heavy))
                     .foregroundColor(WidgetTokens.textMuted)
                     .padding(.horizontal, 5)

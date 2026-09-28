@@ -272,8 +272,12 @@ class RoutineAppController extends ChangeNotifier {
   Future<void> _pushHomeWidget() async {
     if (kIsWeb) return;
     try {
-      await HomeWidgetSyncService.instance
-          .push(_snapshotForBackground, strings);
+      await HomeWidgetSyncService.instance.push(
+          now: _now,
+          routines: _routines,
+          logsToday: _logsToday,
+          l10n: strings,
+          characterPackId: currentPack.id);
     } catch (e, st) {
       debugPrint('home widget sync failed: $e\n$st');
     }
@@ -365,6 +369,7 @@ class RoutineAppController extends ChangeNotifier {
       notifyListeners();
       return false;
     }
+    await _pushHomeWidget();
     return true;
   }
 
@@ -667,8 +672,12 @@ class RoutineAppController extends ChangeNotifier {
 
       notifyListeners();
       if (!kIsWeb) {
-        await HomeWidgetSyncService.instance
-            .push(_snapshotForBackground, strings);
+        await HomeWidgetSyncService.instance.push(
+            now: now,
+            routines: _routines,
+            logsToday: _logsToday,
+            l10n: strings,
+            characterPackId: currentPack.id);
       }
     } finally {
       _clockRefreshInFlight = false;

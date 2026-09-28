@@ -281,6 +281,7 @@
   "widgetNoRoutines": "오늘 루틴이 없어요",
   "widgetNone": "없음",
   "widgetAddHint": "루틴 탭에서 추가할 수 있어요",
+  "widgetRefreshHint": "앱을 열어주세요",
   "characterPackTitle": "캐릭터 팩",
   "characterPackSubtitle": "캐릭터와 테마를 한 벌로 바꿔요",
   "characterPackKicker": "캐릭터 테마 팩",

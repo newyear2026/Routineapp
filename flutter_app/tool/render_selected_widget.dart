@@ -25,6 +25,17 @@ void main() {
     await (FontLoader('PixelifySans')
           ..addFont(rootBundle.load('assets/fonts/PixelifySans.ttf')))
         .load();
+    await tester.runAsync(() async {
+      for (final path in [
+        'assets/characters/cat_starlight/v1/approved/idle.png',
+        'assets/characters/poodle_garden/v1/approved/idle.png',
+        'assets/decorations/home-sky.png',
+        'assets/decorations/garden-leaf.png',
+        'assets/decorations/garden-daisy.png',
+      ]) {
+        await rootBundle.load(path);
+      }
+    });
 
     tester.view
       ..physicalSize = const Size(760, 440)
@@ -32,6 +43,8 @@ void main() {
     addTearDown(tester.view.reset);
 
     final key = GlobalKey();
+    final catKey = GlobalKey();
+    final poodleKey = GlobalKey();
     const vm = HomeMediumWidgetViewModel(
       currentRoutineTitle: '저녁식사',
       currentRoutineTimingHint: '종료까지 58분 남음',
@@ -75,15 +88,28 @@ void main() {
         backgroundColor: const Color(0xFFE9E4F7),
         body: RepaintBoundary(
           key: key,
-          child: const ColoredBox(
-            color: Color(0xFFE9E4F7),
+          child: ColoredBox(
+            color: const Color(0xFFE9E4F7),
             child: Center(
               child: Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  SizedBox(width: 330, child: HomeMediumWidget(viewModel: vm)),
-                  SizedBox(height: 30),
-                  SizedBox(width: 250, child: HomeMediumWidget(viewModel: vm)),
+                  RepaintBoundary(
+                    key: catKey,
+                    child: const SizedBox(
+                        width: 330, child: HomeMediumWidget(viewModel: vm)),
+                  ),
+                  const SizedBox(height: 30),
+                  RepaintBoundary(
+                    key: poodleKey,
+                    child: const SizedBox(
+                      width: 330,
+                      child: HomeMediumWidget(
+                        viewModel: vm,
+                        characterPackId: 'poodle_garden',
+                      ),
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -91,6 +117,17 @@ void main() {
         ),
       ),
     ));
+    await tester.runAsync(() async {
+      for (final path in [
+        'assets/characters/cat_starlight/v1/approved/idle.png',
+        'assets/characters/poodle_garden/v1/approved/idle.png',
+        'assets/decorations/home-sky.png',
+        'assets/decorations/garden-leaf.png',
+        'assets/decorations/garden-daisy.png',
+      ]) {
+        await precacheImage(AssetImage(path), key.currentContext!);
+      }
+    });
     await tester.pumpAndSettle();
     expect(tester.takeException(), isNull);
 
@@ -105,5 +142,17 @@ void main() {
     final file = File('output/widget-redesign-2026-09-26/preview.png');
     file.parent.createSync(recursive: true);
     file.writeAsBytesSync(bytes!);
+    for (final (name, cardKey) in [('cat', catKey), ('poodle', poodleKey)]) {
+      final cardBoundary =
+          cardKey.currentContext!.findRenderObject()! as RenderRepaintBoundary;
+      final cardBytes = await tester.runAsync(() async {
+        final image = await cardBoundary.toImage(pixelRatio: 2);
+        final data = await image.toByteData(format: ui.ImageByteFormat.png);
+        image.dispose();
+        return data!.buffer.asUint8List();
+      });
+      File('output/widget-redesign-2026-09-26/$name.png')
+          .writeAsBytesSync(cardBytes!);
+    }
   });
 }

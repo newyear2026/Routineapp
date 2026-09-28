@@ -1,10 +1,12 @@
 import 'package:home_widget/home_widget.dart';
 
-import '../application/home/home_snapshot.dart';
+import '../domain/models/routine.dart';
+import '../domain/models/routine_log.dart';
 import '../l10n/app_localizations.dart';
 import 'system_home_widget_payload.dart';
+import 'system_home_widget_timeline.dart';
 
-/// [HomeSnapshot] → `home_widget` 저장 및 네이티브 위젯 갱신.
+/// 현재 루틴·로그에서 미래 상태를 계산해 `home_widget`에 저장하고 갱신한다.
 ///
 /// iOS: [init]에서 App Group 필요. Android: App Group 무시.
 class HomeWidgetSyncService {
@@ -28,9 +30,20 @@ class HomeWidgetSyncService {
     _inited = true;
   }
 
-  Future<void> push(HomeSnapshot snapshot, AppLocalizations l10n) async {
+  Future<void> push({
+    required DateTime now,
+    required List<Routine> routines,
+    required List<RoutineLog> logsToday,
+    required AppLocalizations l10n,
+    required String characterPackId,
+  }) async {
     await init();
-    final payload = SystemHomeWidgetPayload.fromHomeSnapshot(snapshot, l10n);
+    final payload = SystemHomeWidgetTimeline.build(
+      now: now,
+      l10n: l10n,
+      routines: routines,
+      logsToday: logsToday,
+    ).withCharacterPack(characterPackId);
     await HomeWidget.saveWidgetData<String>(
       SystemHomeWidgetPayload.storageKey,
       payload.encode(),

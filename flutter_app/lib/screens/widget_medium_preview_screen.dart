@@ -84,7 +84,9 @@ class _WidgetMediumPreviewScreenState extends State<WidgetMediumPreviewScreen> {
                     child: SizedBox(
                         width: 340,
                         child: MediaQuery.withNoTextScaling(
-                            child: HomeMediumWidget(viewModel: vm))),
+                            child: HomeMediumWidget(
+                                viewModel: vm,
+                                characterPackId: app.currentPack.id))),
                   ),
                 ),
                 const SizedBox(height: 10),

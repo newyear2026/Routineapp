@@ -4,4 +4,6 @@
     <string name="widget_ring_desc">Anillo de rutinas de hoy</string>
     <string name="widget_medium_description">Tus rutinas de hoy en un círculo</string>
     <string name="widget_next_label">Siguiente</string>
+    <string name="widget_sync_prompt">Abre la app</string>
+    <string name="widget_now_label">Ahora</string>
 </resources>

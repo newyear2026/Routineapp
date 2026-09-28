@@ -20,7 +20,7 @@ abstract final class HomeMediumWidgetSelector {
     AppLocalizations l10n,
   ) {
     final display = h.displayRoutine;
-    final next = h.nextRoutine;
+    final next = h.nextAfterDisplay;
 
     final title = display?.title ?? l10n.widgetNoRoutines;
 

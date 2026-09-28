@@ -674,6 +674,8 @@
   "@widgetNone": {},
   "widgetAddHint": "You can add one from the Routines tab",
   "@widgetAddHint": {},
+  "widgetRefreshHint": "Open the app",
+  "@widgetRefreshHint": {},
   "characterPackTitle": "Character Packs",
   "@characterPackTitle": {},
   "characterPackSubtitle": "Swap the character and theme as one set",

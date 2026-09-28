@@ -42,7 +42,7 @@ object RoutineWidgetRingBitmap {
         const val LABEL_SURFACE = "#F0E9D9"
     }
 
-    fun create(json: JSONObject, sizePx: Int): Bitmap {
+    fun create(json: JSONObject, sizePx: Int, drawCenter: Boolean = true): Bitmap {
         val bmp = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bmp)
         val cx = sizePx / 2f
@@ -87,7 +87,7 @@ object RoutineWidgetRingBitmap {
         drawHourLabels(canvas, cx, cy, sizePx.toFloat())
         drawSegments(canvas, json, oval, segmentStroke)
         drawNowPointer(canvas, json, cx, cy, orbitRadius, scale)
-        drawCenterTime(canvas, json, cx, cy, scale)
+        if (drawCenter) drawCenterTime(canvas, json, cx, cy, scale)
 
         return bmp
     }

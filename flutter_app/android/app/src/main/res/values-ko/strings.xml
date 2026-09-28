@@ -4,4 +4,6 @@
     <string name="widget_ring_desc">오늘 루틴 링</string>
     <string name="widget_medium_description">오늘 루틴을 원으로 한눈에</string>
     <string name="widget_next_label">다음</string>
+    <string name="widget_sync_prompt">앱을 열어주세요</string>
+    <string name="widget_now_label">지금</string>
 </resources>

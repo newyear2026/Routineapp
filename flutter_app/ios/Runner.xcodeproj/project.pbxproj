@@ -18,6 +18,7 @@
 		9B374218192E320D27D7AF8D /* Pods_RunnerTests.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 549FA152AA486B9CBE091EEC /* Pods_RunnerTests.framework */; };
 		A1F210042CF9000F007C117D /* InfoPlist.strings in Resources */ = {isa = PBXBuildFile; fileRef = A1F210002CF9000F007C117D /* InfoPlist.strings */; };
 		DDC369722A81AA74EDC78659 /* RoutineWidgetExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = D258BFAB5E1827A76C0C350C /* RoutineWidgetExtension.swift */; };
+		A4CA7A570F714B5590F11501 /* Artwork in Resources */ = {isa = PBXBuildFile; fileRef = A4CA7A570F714B5590F11502 /* Artwork */; };
 		ED68A4961EADF9FEC0F1A84F /* RoutineWidgetExtension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = A838774B3B466CE2D96E9C1E /* RoutineWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
@@ -92,6 +93,7 @@
 		B849DBF76EAF08A8DF0D2AEC /* RoutineWidgetExtension.entitlements */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.plist.entitlements; path = RoutineWidgetExtension.entitlements; sourceTree = "<group>"; };
 		C87E6AE889A6E1B37330C605 /* Pods-Runner.debug.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = "Pods-Runner.debug.xcconfig"; path = "Target Support Files/Pods-Runner/Pods-Runner.debug.xcconfig"; sourceTree = "<group>"; };
 		D258BFAB5E1827A76C0C350C /* RoutineWidgetExtension.swift */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = sourcecode.swift; path = RoutineWidgetExtension.swift; sourceTree = "<group>"; };
+		A4CA7A570F714B5590F11502 /* Artwork */ = {isa = PBXFileReference; lastKnownFileType = folder; path = Artwork; sourceTree = "<group>"; };
 		F80DEB54F2A72217FE073728 /* Pods_Runner.framework */ = {isa = PBXFileReference; explicitFileType = wrapper.framework; includeInIndex = 0; path = Pods_Runner.framework; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -134,6 +136,7 @@
 			isa = PBXGroup;
 			children = (
 				D258BFAB5E1827A76C0C350C /* RoutineWidgetExtension.swift */,
+				A4CA7A570F714B5590F11502 /* Artwork */,
 				0A9B83E88599EBA6CDF89086 /* Info.plist */,
 				B849DBF76EAF08A8DF0D2AEC /* RoutineWidgetExtension.entitlements */,
 			);
@@ -349,6 +352,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				A4CA7A570F714B5590F11501 /* Artwork in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
