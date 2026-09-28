@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:routine_timer/domain/models/routine_log_status.dart';
+import 'package:routine_timer/domain/models/routine_log.dart';
 import 'package:routine_timer/widgets/ds/pixel_digits.dart';
 import 'package:provider/provider.dart';
 import 'package:routine_timer/application/routine_app_controller.dart';
@@ -39,11 +41,12 @@ void main() {
     Widget screen, {
     required List<Routine> routines,
     DateTime? now,
+    MemoryLogRepository? logs,
   }) async {
     final controller = RoutineAppController(
       dataService: RoutineDataService(
         routineRepository: MemoryRoutineRepository(routines),
-        logRepository: MemoryLogRepository(),
+        logRepository: logs ?? MemoryLogRepository(),
       ),
       notificationService: RoutineNotificationService(
         exactAlarmsAllowed: () async => false,
@@ -65,6 +68,91 @@ void main() {
     return controller;
   }
 
+  group('루틴 오늘', () {
+    final dayRoutines = [
+      dailyRoutine(id: 'wake', title: '기상', startHour: 7, endHour: 8),
+      dailyRoutine(
+          id: 'lunch', title: '점심', startHour: 12, endHour: 13, updatedAtMs: 2),
+      dailyRoutine(
+          id: 'rest', title: '휴식', startHour: 16, endHour: 17, updatedAtMs: 3),
+      dailyRoutine(
+          id: 'dinner', title: '저녁', startHour: 18, endHour: 19, updatedAtMs: 4),
+    ];
+
+    testWidgets('탭을 열면 오늘 루틴이 시간 순서로 상태와 함께 보인다', (tester) async {
+      final logs = MemoryLogRepository()
+        ..logs.add(const RoutineLog(
+          id: 'wake-2026-08-04',
+          routineId: 'wake',
+          dateYmd: '2026-08-04',
+          status: RoutineLogStatus.completed,
+        ));
+      final controller = await pump(
+        tester,
+        const RoutinesScreen(),
+        routines: dayRoutines,
+        logs: logs,
+      );
+      addTearDown(controller.dispose);
+
+      expect(
+        tester
+            .getRect(find.byKey(const Key('routines-today-wake')))
+            .top,
+        lessThan(
+            tester.getRect(find.byKey(const Key('routines-today-lunch'))).top),
+      );
+      expect(findPixelDigits('1/4'), findsOneWidget);
+
+      Finder inCard(String id, String text) => find.descendant(
+            of: find.byKey(Key('routines-today-$id')),
+            matching: find.text(text),
+          );
+      expect(inCard('wake', '완료'), findsOneWidget);
+      expect(inCard('lunch', '놓침'), findsOneWidget);
+      expect(inCard('rest', '진행 중'), findsOneWidget);
+      expect(inCard('rest', '종료까지 36분 남음'), findsOneWidget);
+      expect(inCard('dinner', '예정'), findsOneWidget);
+      // 지금 루틴 카드에만 고양이가 탄다.
+      expect(find.byKey(const Key('routines-today-cat-rest')), findsOneWidget);
+      expect(find.byKey(const Key('routines-today-cat-dinner')), findsNothing);
+
+      // 완료는 취소선 대신 초록 체크로 말한다.
+      final wakeTitle = tester.widget<Text>(inCard('wake', '기상'));
+      expect(wakeTitle.style?.decoration, isNot(TextDecoration.lineThrough));
+      expect(
+        find.descendant(
+          of: find.byKey(const Key('routines-today-wake')),
+          matching: find.byIcon(Icons.check_rounded),
+        ),
+        findsOneWidget,
+      );
+    });
+
+    testWidgets('오늘 루틴이 없는 날이면 빈 날 안내를 보여준다', (tester) async {
+      final controller = await pump(
+        tester,
+        const RoutinesScreen(),
+        routines: const [
+          Routine(
+            id: 'weekend',
+            title: '주말 산책',
+            startMinutesFromMidnight: 9 * 60,
+            endMinutesFromMidnight: 10 * 60,
+            repeatWeekdays: {6, 7},
+            colorValue: 0xFF62C688,
+            iconEmoji: '🌿',
+            updatedAtMs: 1,
+          ),
+        ],
+      );
+      addTearDown(controller.dispose);
+
+      expect(find.byKey(const Key('routines-today-summary')), findsNothing);
+      expect(find.text('주말 산책'), findsNothing);
+    });
+  });
+
   group('루틴 목록', () {
     testWidgets('카드에 시간과 반복 요일을 함께 보여준다', (tester) async {
       final controller = await pump(
@@ -85,6 +173,8 @@ void main() {
         ],
       );
       addTearDown(controller.dispose);
+      await tester.tap(find.byKey(const Key('routine-view-목록')));
+      await tester.pumpAndSettle();
 
       // 목록만 보고도 매일인지 평일인지 알 수 있어야 한다.
       // 시각과 반복 주기는 성격이 다르므로 한 문자열로 잇지 않고 배지로

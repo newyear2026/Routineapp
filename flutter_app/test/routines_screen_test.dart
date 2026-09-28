@@ -179,6 +179,10 @@ void main() {
       ),
     );
     await tester.pumpAndSettle();
+    // 떠 있는 추가 버튼은 목록 탭에만 있다. «오늘»은 목록 끝에 글자 버튼을 둔다.
+    expect(find.byKey(const Key('routine-add-button')), findsNothing);
+    await tester.tap(find.byKey(const Key('routine-view-목록')));
+    await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('routine-add-button')), findsOneWidget);
     expect(find.bySemanticsLabel('루틴 추가'), findsOneWidget);
@@ -248,6 +252,9 @@ void main() {
           .scaffoldBackgroundColor,
       const Color(0xFFEEEAF7),
     );
+    // 탭을 열면 «오늘»이 먼저다. 목록의 반복 배지는 목록으로 옮겨 가서 본다.
+    await tester.tap(find.byKey(const Key('routine-view-목록')));
+    await tester.pumpAndSettle();
     final selectedTab = tester.widget<Material>(find
         .ancestor(
           of: find.byKey(const Key('routine-view-목록')),

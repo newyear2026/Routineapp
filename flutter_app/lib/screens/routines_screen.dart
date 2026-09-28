@@ -3,14 +3,17 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../application/home/home_snapshot.dart';
 import '../application/routine_app_controller.dart';
 import '../domain/calendar/routine_calendar.dart';
 import '../domain/models/routine.dart';
+import '../domain/models/routine_log.dart';
 import '../domain/utils/repeat_days_label.dart';
 import '../domain/utils/app_date_formats.dart';
 import '../domain/utils/time_minutes.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/routine_load_failure_view.dart';
+import '../widgets/routines/routine_today_timeline.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/ds/ds.dart';
@@ -19,7 +22,8 @@ import '../widgets/store/character_pack_scope.dart';
 import '../theme/app_theme_preset.dart';
 import '../theme/app_pixel_style.dart';
 
-enum _RoutineView { list, calendar }
+/// 오늘(타임라인) · 목록 · 달력. 탭을 열면 오늘 흐름부터 보여 준다.
+enum _RoutineView { today, list, calendar }
 
 class RoutinesScreen extends StatefulWidget {
   const RoutinesScreen({super.key});
@@ -29,7 +33,7 @@ class RoutinesScreen extends StatefulWidget {
 }
 
 class _RoutinesScreenState extends State<RoutinesScreen> {
-  _RoutineView _view = _RoutineView.list;
+  _RoutineView _view = _RoutineView.today;
   DateTime? _selectedDate;
   DateTime? _visibleMonth;
 
@@ -64,6 +68,8 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
             onRoutines: () {},
             onSettings: () => context.go('/settings'),
           ),
+          // «오늘»은 지금 루틴 카드가 맨 아래에 올 수 있어 떠 있는 버튼이
+          // 카드의 고양이를 가린다. 달력처럼 목록 끝에 추가 버튼을 둔다.
           floatingActionButton: _view == _RoutineView.list
               ? Material(
                   color: Theme.of(context).colorScheme.primary,
@@ -92,6 +98,9 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
             child: app.isLoaded
                 ? _RoutineContent(
                     view: _view,
+                    home: app.homeSnapshotFor(AppLocalizations.of(context)),
+                    logsToday: app.todayLogs,
+                    now: app.now,
                     today: DateTime(app.now.year, app.now.month, app.now.day),
                     selectedDate: _selectedDate!,
                     visibleMonth: _visibleMonth!,
@@ -123,6 +132,9 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
 class _RoutineContent extends StatelessWidget {
   const _RoutineContent({
     required this.view,
+    required this.home,
+    required this.logsToday,
+    required this.now,
     required this.today,
     required this.selectedDate,
     required this.visibleMonth,
@@ -135,6 +147,9 @@ class _RoutineContent extends StatelessWidget {
   });
 
   final _RoutineView view;
+  final HomeSnapshot home;
+  final List<RoutineLog> logsToday;
+  final DateTime now;
   final DateTime today;
   final DateTime selectedDate;
   final DateTime visibleMonth;
@@ -155,7 +170,30 @@ class _RoutineContent extends StatelessWidget {
         const SizedBox(height: 18),
         _ViewSwitcher(value: view, onChanged: onViewChanged),
         const SizedBox(height: 22),
-        if (view == _RoutineView.list)
+        if (view == _RoutineView.today)
+          if (routines.isEmpty)
+            const _EmptyRoutines()
+          else if (home.todayRoutines.isEmpty)
+            const _SelectedDateEmpty()
+          else
+            RoutineTodayTimeline(
+              home: home,
+              logsToday: logsToday,
+              now: now,
+              onOpen: (routine) => context.push(
+                '/routine-add?id=${routine.id}&returnTo=routines',
+              ),
+            ),
+        if (view == _RoutineView.today) ...[
+          const SizedBox(height: 16),
+          AppButton(
+            key: const Key('routines-today-add-button'),
+            label: AppLocalizations.of(context).homeAddRoutine,
+            icon: Icons.add_rounded,
+            variant: AppButtonVariant.secondary,
+            onPressed: onAdd,
+          ),
+        ] else if (view == _RoutineView.list)
           _RoutineList(routines: routines)
         else
           _CalendarRoutineView(
@@ -322,6 +360,12 @@ class _ViewSwitcher extends StatelessWidget {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.center,
         children: [
+          _ViewSwitchButton(
+            label: AppLocalizations.of(context).commonToday,
+            icon: Icons.today_rounded,
+            selected: value == _RoutineView.today,
+            onTap: () => onChanged(_RoutineView.today),
+          ),
           _ViewSwitchButton(
             label: AppLocalizations.of(context).routinesViewList,
             icon: Icons.format_list_bulleted_rounded,
