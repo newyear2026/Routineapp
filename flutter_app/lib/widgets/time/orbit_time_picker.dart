@@ -200,11 +200,14 @@ class _Header extends StatelessWidget {
             onTap: () => onModeChanged(_DialMode.hour),
           ),
         ),
-        Padding(
-          padding: const EdgeInsets.only(top: 14),
-          child: Text(
-            ':',
-            style: AppTextStyles.statHero.copyWith(
+        // 숫자 칸(높이 72)의 가운데에 콜론을 맞춘다.
+        const SizedBox(
+          width: 20,
+          height: 72,
+          child: Center(
+            child: PixelDigits(
+              ':',
+              height: 34,
               color: AppColors.textMuted,
             ),
           ),
@@ -258,14 +261,14 @@ class _HeaderField extends StatelessWidget {
                 height: 72,
                 alignment: Alignment.center,
                 padding: const EdgeInsets.symmetric(horizontal: 8),
-                child: FittedBox(
-                  child: Text(
+                child: LayoutBuilder(
+                  builder: (context, constraints) => PixelDigits(
                     value,
-                    style: AppTextStyles.statHero.copyWith(
-                      color: selected
-                          ? AppColors.orbitPrimary
-                          : AppColors.textPrimary,
-                    ),
+                    height: 34,
+                    maxWidth: constraints.maxWidth,
+                    color: selected
+                        ? AppColors.orbitPrimary
+                        : AppColors.textPrimary,
                   ),
                 ),
               ),

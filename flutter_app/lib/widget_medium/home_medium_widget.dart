@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../l10n/app_localizations.dart';
 import '../theme/app_pixel_style.dart';
-import '../theme/app_text_styles.dart';
 import '../widgets/ds/pixel_icon.dart';
 import 'home_medium_widget_view_model.dart';
 import 'mini_circular_timetable.dart';
@@ -199,9 +198,12 @@ class _RoutineColumn extends StatelessWidget {
             ),
             if (vm.nextRoutineTime.isNotEmpty) ...[
               const SizedBox(width: 4),
+              // 작은 시각은 격자 숫자보다 본문 글꼴이 잘 읽힌다. 앱 첫 카드의
+              // «다음» 줄과 같은 모양이다.
               Text(vm.nextRoutineTime,
-                  style: AppTextStyles.clock.copyWith(
+                  style: TextStyle(
                     fontSize: narrow ? 11 : 12,
+                    fontWeight: FontWeight.w700,
                     color: WidgetTheme.textMuted,
                   )),
             ],

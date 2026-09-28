@@ -5,7 +5,7 @@ import '../../domain/utils/time_minutes.dart';
 import '../../models/home_models.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_pixel_style.dart';
-import '../../theme/app_text_styles.dart';
+import '../ds/pixel_digits.dart';
 import '../ds/routine_mark.dart';
 import '../orbit_ring_painter.dart';
 import 'pixel_orbit_plate.dart';
@@ -99,6 +99,7 @@ class _CircularTimetableView extends StatelessWidget {
             size: Size.square(size),
             // 링은 홈 위젯과 같은 구현을 쓴다 (OrbitRingPainter).
             painter: OrbitRingPainter(
+              devicePixelRatio: MediaQuery.devicePixelRatioOf(context),
               segments: [
                 for (final segment in segments)
                   OrbitRingSegment(
@@ -142,16 +143,15 @@ class _CircularTimetableView extends StatelessWidget {
                   child: Column(
                     mainAxisSize: MainAxisSize.min,
                     children: [
-                      Text(
+                      PixelDigits(
                         timeText,
                         key: const Key('home-ring-current-time'),
-                        style: AppTextStyles.clock.copyWith(
-                          fontSize: size >= 280
-                              ? 38
-                              : size >= 232
-                                  ? 32
-                                  : 28,
-                        ),
+                        height: size >= 280
+                            ? 30
+                            : size >= 232
+                                ? 26
+                                : 22,
+                        maxWidth: size * .44 * .86,
                       ),
                       if (showNowLabel) ...[
                         const SizedBox(height: 6),

@@ -3,8 +3,8 @@ import 'dart:math' as math;
 import 'package:flutter/material.dart';
 
 import '../domain/utils/time_minutes.dart';
-import '../theme/app_text_styles.dart';
 import '../theme/app_colors.dart';
+import '../widgets/ds/pixel_digits.dart';
 import '../widgets/home/pixel_orbit_plate.dart';
 import '../widgets/orbit_ring_painter.dart';
 import 'medium_ring_segment.dart';
@@ -71,6 +71,7 @@ class MiniCircularTimetable extends StatelessWidget {
           CustomPaint(
             size: Size.square(size),
             painter: OrbitRingPainter(
+              devicePixelRatio: MediaQuery.devicePixelRatioOf(context),
               segments: [
                 for (final segment in segments)
                   OrbitRingSegment(
@@ -95,12 +96,11 @@ class MiniCircularTimetable extends StatelessWidget {
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
+              PixelDigits(
                 timeText,
-                style: AppTextStyles.clock.copyWith(
-                  fontSize: size * 0.20,
-                  color: WidgetTheme.textPrimary,
-                ),
+                height: size * 0.15,
+                maxWidth: size * 0.5,
+                color: WidgetTheme.textPrimary,
               ),
               SizedBox(height: size * 0.03),
               Container(

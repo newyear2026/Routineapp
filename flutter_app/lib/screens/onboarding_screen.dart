@@ -491,9 +491,9 @@ class _ProgressPreview extends StatelessWidget {
       children: [
         const Row(
           children: [
-            Text('3 / 5', style: AppTextStyles.statHero),
+            PixelDigits('3 / 5', height: 28),
             Spacer(),
-            Text('60%', style: AppTextStyles.statMedium),
+            PixelDigits('60%', height: 18),
           ],
         ),
         const SizedBox(height: 10),

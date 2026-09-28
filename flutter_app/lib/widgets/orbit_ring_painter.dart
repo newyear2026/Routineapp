@@ -4,7 +4,7 @@ import 'package:flutter/foundation.dart' show listEquals;
 import 'package:flutter/material.dart';
 
 import '../theme/app_colors.dart';
-import '../theme/app_pixel_style.dart';
+import 'ds/pixel_digits.dart';
 
 /// 24시간 링에 그릴 한 구간.
 ///
@@ -59,6 +59,7 @@ class OrbitRingPainter extends CustomPainter {
     this.hourLabelRadiusFactor,
     this.trackColor = AppColors.orbitHalo,
     this.pointerColor = AppColors.orbitPrimary,
+    this.devicePixelRatio = 1,
   });
 
   final List<OrbitRingSegment> segments;
@@ -89,6 +90,9 @@ class OrbitRingPainter extends CustomPainter {
   final double? hourLabelRadiusFactor;
   final Color trackColor;
   final Color pointerColor;
+
+  /// 시각 라벨의 격자 숫자를 기기 픽셀에 맞추는 데 쓴다.
+  final double devicePixelRatio;
 
   double _minutesToRad(int minutes) =>
       (minutes / (24 * 60)) * 2 * math.pi - math.pi / 2;
@@ -206,28 +210,22 @@ class OrbitRingPainter extends CustomPainter {
       center.dx + math.cos(angle) * radius,
       center.dy + math.sin(angle) * radius,
     );
-    final painter = TextPainter(
-      text: TextSpan(
-        text: text,
-        style: TextStyle(
-          fontFamily: AppPixelStyle.numberFont,
-          fontVariations: const [FontVariation('wght', 700)],
-          color: AppColors.textStrong.withValues(alpha: 0.82),
-          fontSize: 10.5 * scale,
-          fontWeight: FontWeight.w700,
-          letterSpacing: -0.15,
-        ),
-      ),
-      maxLines: 1,
-      ellipsis: '…',
-      textDirection: TextDirection.ltr,
-    )..layout(maxWidth: 56 * scale);
-    painter.paint(
+    // 작은 눈금도 시계 가운데와 같은 격자 숫자로 그린다. Pixelify로 그리면
+    // 이 크기에서 «12»가 «18»처럼 읽혔다.
+    final cell = PixelDigitGlyphs.snap(1.1 * scale, devicePixelRatio);
+    final width = PixelDigitGlyphs.columnsOf(text) * cell;
+    final height = PixelDigitGlyphs.rows * cell;
+    double snapped(double v) =>
+        (v * devicePixelRatio).roundToDouble() / devicePixelRatio;
+    PixelDigitGlyphs.paint(
       canvas,
-      Offset(
-        position.dx - painter.width / 2,
-        position.dy - painter.height / 2,
+      text,
+      origin: Offset(
+        snapped(position.dx - width / 2),
+        snapped(position.dy - height / 2),
       ),
+      cell: cell,
+      color: AppColors.textStrong.withValues(alpha: 0.82),
     );
   }
 
@@ -272,6 +270,7 @@ class OrbitRingPainter extends CustomPainter {
         oldDelegate.hourLabelRadiusFactor != hourLabelRadiusFactor ||
         oldDelegate.trackColor != trackColor ||
         oldDelegate.pointerColor != pointerColor ||
+        oldDelegate.devicePixelRatio != devicePixelRatio ||
         !listEquals(oldDelegate.segments, segments);
   }
 }

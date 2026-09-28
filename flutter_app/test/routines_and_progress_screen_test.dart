@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:routine_timer/widgets/ds/pixel_digits.dart';
 import 'package:provider/provider.dart';
 import 'package:routine_timer/application/routine_app_controller.dart';
 import 'package:routine_timer/application/services/routine_data_service.dart';
@@ -199,7 +200,7 @@ void main() {
 
       expect(find.text('9월 21일 (월)'), findsNothing);
       expect(find.byTooltip(testL10n.routinesViewCalendar), findsNothing);
-      expect(find.text('0 / 3'), findsOneWidget);
+      expect(findPixelDigits('0 / 3'), findsOneWidget);
       expect(
         tester.getRect(find.byKey(const Key('progress-active-group'))).bottom,
         lessThanOrEqualTo(
@@ -231,8 +232,8 @@ void main() {
           0);
       await controller.completeCurrent();
       await tester.pumpAndSettle();
-      expect(find.text('1 / 3'), findsOneWidget);
-      expect(find.text('33%'), findsOneWidget);
+      expect(findPixelDigits('1 / 3'), findsOneWidget);
+      expect(findPixelDigits('33%'), findsOneWidget);
       expect(
           tester
               .widget<SegmentedProgress>(find.byType(SegmentedProgress))
@@ -267,7 +268,7 @@ void main() {
       );
       addTearDown(controller.dispose);
 
-      expect(find.text('0 / 2'), findsOneWidget);
+      expect(findPixelDigits('0 / 2'), findsOneWidget);
       expect(find.text('아직 완료한 루틴이 없어요'), findsOneWidget);
       expect(find.text('차근차근 잘하고 있어요'), findsNothing);
       // 좁은 칸에 들어가므로 한 줄을 넘기면 안 된다.
@@ -309,7 +310,7 @@ void main() {
       addTearDown(controller.dispose);
 
       // 분모에는 남아 있으므로 목록에도 남아야 한다.
-      expect(find.text('0 / 2'), findsOneWidget);
+      expect(findPixelDigits('0 / 2'), findsOneWidget);
       expect(find.text('놓침'), findsNWidgets(2));
       expect(find.text('기상'), findsOneWidget);
     });
@@ -325,8 +326,8 @@ void main() {
       );
       addTearDown(controller.dispose);
 
-      expect(find.text('0 / 1'), findsOneWidget);
-      expect(find.text('0%'), findsOneWidget);
+      expect(findPixelDigits('0 / 1'), findsOneWidget);
+      expect(findPixelDigits('0%'), findsOneWidget);
       // 진행률은 막대가 형태로 보여주고, 값은 스크린 리더에 남긴다.
       expect(find.bySemanticsLabel('오늘 진행률 0 퍼센트'), findsOneWidget);
     });
@@ -410,10 +411,17 @@ void main() {
       );
       addTearDown(controller.dispose);
 
-      final count = find.text('0 / 12');
+      final count = findPixelDigits('0 / 12');
       expect(count, findsOneWidget);
-      // 한 줄이면 글자 크기(40) 언저리, 접히면 두 배가 된다.
-      expect(tester.getSize(count).height, lessThan(60));
+      // 격자 숫자는 접히지 않는다. 폭이 모자라 부모가 줄이지도 않아야 한다.
+      final painted = tester.getSize(count);
+      expect(painted.height, closeTo(21, 3));
+      expect(tester.getRect(count).right, lessThanOrEqualTo(390));
     });
   });
 }
+
+/// 진행 숫자는 글꼴이 아니라 격자로 그린다 ([PixelDigits]).
+Finder findPixelDigits(String text) => find.byWidgetPredicate(
+      (widget) => widget is PixelDigits && widget.text == text,
+    );

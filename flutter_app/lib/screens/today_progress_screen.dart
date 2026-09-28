@@ -221,17 +221,13 @@ class _ProgressHero extends StatelessWidget {
                     style: AppTextStyles.bodyStrong,
                   ),
                   const SizedBox(width: 8),
-                  Text(
-                    '$completed / $total',
-                    maxLines: 1,
-                    style: AppTextStyles.statMedium.copyWith(fontSize: 28),
-                  ),
+                  PixelDigits('$completed / $total', height: 21),
                   if (total > 0) ...[
-                    const Text(' · ', style: AppTextStyles.statMedium),
-                    Text(
-                      '$percent%',
-                      style: AppTextStyles.statMedium.copyWith(fontSize: 28),
+                    const Padding(
+                      padding: EdgeInsets.symmetric(horizontal: 10),
+                      child: Text('·', style: AppTextStyles.titleSection),
                     ),
+                    PixelDigits('$percent%', height: 21),
                   ],
                 ],
               ),
