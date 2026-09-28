@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../../domain/models/routine.dart';
 import '../../domain/models/routine_log_status.dart';
 import '../../models/home_models.dart';
+import 'home_focus_state.dart';
 import 'progress_summary.dart';
 
 /// Home 화면에 필요한 데이터를 한 번에 묶은 스냅샷 (ViewModel 역할).
@@ -37,7 +38,10 @@ class HomeSnapshot {
     required this.isDisplayUpcoming,
     required this.completeButtonLabel,
     required this.canActOnCurrentSlot,
-    this.actionDisabledMessage,
+    required this.focusState,
+    this.snoozedUntil,
+    required this.dayResult,
+    this.tomorrowFirstRoutine,
     required this.homeProgress,
     required this.progressSummary,
     required this.isEmptyDay,
@@ -100,7 +104,18 @@ class HomeSnapshot {
   final bool isDisplayUpcoming;
   final String completeButtonLabel;
   final bool canActOnCurrentSlot;
-  final String? actionDisabledMessage;
+
+  // —— 홈 첫 카드 ——
+  final HomeFocusState focusState;
+
+  /// [HomeFocusState.snoozed]일 때 다시 알릴 시각.
+  final DateTime? snoozedUntil;
+
+  /// 오늘 루틴의 결과. [HomeFocusState.dayDone] 카드가 쓴다.
+  final HomeDayResult dayResult;
+
+  /// 내일 첫 루틴. 하루가 끝난 카드의 «다음» 줄에 쓴다.
+  final Routine? tomorrowFirstRoutine;
   final HomeProgress homeProgress;
   final bool isEmptyDay;
 }

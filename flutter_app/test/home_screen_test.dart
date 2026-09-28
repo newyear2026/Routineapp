@@ -14,6 +14,7 @@ import 'package:routine_timer/domain/models/routine_log_status.dart';
 import 'package:routine_timer/domain/settings/notification_preferences.dart';
 import 'package:routine_timer/screens/home_screen.dart';
 import 'package:routine_timer/widgets/ds/animated_cat.dart';
+import 'package:routine_timer/widgets/ds/orbit_bottom_navigation.dart';
 import 'package:routine_timer/widgets/ds/routine_mark.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -169,7 +170,11 @@ void main() {
     expect(ring.contains(tester.getRect(badge).center), isTrue);
   });
 
-  testWidgets('고양이와 화분이 원형 시간표 아래에 균형 있게 배치된다', (tester) async {
+  /// 스크롤 없이 보이는 본문 아래 끝 — 하단 내비게이션 위.
+  double visibleBottom(WidgetTester tester) =>
+      tester.getRect(find.byType(OrbitBottomNavigation)).top;
+
+  testWidgets('고양이는 첫 카드 안에, 화분은 시간표 옆에 놓인다', (tester) async {
     tester.view
       ..physicalSize = const Size(390, 844)
       ..devicePixelRatio = 1;
@@ -181,27 +186,29 @@ void main() {
     );
     addTearDown(controller.dispose);
 
+    final card = tester.getRect(find.byKey(const Key('home-focus-card')));
+    final cat = tester.getRect(find.byKey(const Key('home-focus-cat')));
+    final line = tester.getRect(find.byKey(const Key('home-focus-line')));
     final ring = tester.getRect(find.byKey(const Key('home-timetable-ring')));
     final scene = tester.getRect(find.byKey(const Key('home-timetable-scene')));
-    final cat = tester.getRect(find.byKey(const Key('home-timetable-cat')));
     final plant = tester.getRect(find.byKey(const Key('home-timetable-plant')));
     final button =
         tester.getRect(find.byKey(const Key('home-complete-button')));
 
-    expect(cat.width, greaterThanOrEqualTo(120));
-    expect(cat.left, lessThan(ring.right));
-    expect(cat.top, lessThan(ring.bottom));
-    expect(cat.right, lessThanOrEqualTo(390));
-    expect(cat.bottom, lessThanOrEqualTo(button.top));
-    expect(plant.width, greaterThanOrEqualTo(65));
+    expect(find.byKey(const Key('home-timetable-cat')), findsNothing);
+    expect(card.contains(cat.topLeft) && card.contains(cat.bottomRight),
+        isTrue);
+    expect(cat.overlaps(line), isFalse);
+    expect(card.bottom, lessThanOrEqualTo(scene.top));
     expect(plant.left, greaterThan(scene.left));
     expect(plant.right, lessThan(ring.center.dx));
     expect(plant.top, greaterThan(ring.center.dy));
-    expect(plant.bottom, closeTo(cat.bottom, 0.1));
-    expect(plant.bottom, lessThanOrEqualTo(button.top));
+    expect(scene.bottom, lessThanOrEqualTo(button.top));
+    // 지금 할 일과 누를 버튼이 스크롤 없이 한 화면에 들어온다.
+    expect(button.bottom, lessThanOrEqualTo(visibleBottom(tester)));
   });
 
-  testWidgets('작은 화면에서도 시간표와 고양이가 버튼을 가리지 않는다', (tester) async {
+  testWidgets('작은 화면에서도 카드와 완료 버튼이 스크롤 없이 보인다', (tester) async {
     tester.view
       ..physicalSize = const Size(320, 700)
       ..devicePixelRatio = 1;
@@ -213,46 +220,27 @@ void main() {
     );
     addTearDown(controller.dispose);
 
-    final ring = tester.getRect(
-      find.byKey(const Key('home-timetable-ring')),
-    );
-    final scene = tester.getRect(
-      find.byKey(const Key('home-timetable-scene')),
-    );
-    final cat = tester.getRect(
-      find.byKey(const Key('home-timetable-cat')),
-    );
-    final plant = tester.getRect(
-      find.byKey(const Key('home-timetable-plant')),
-    );
-    final completeButton = tester.getRect(
-      find.byKey(const Key('home-complete-button')),
-    );
+    final card = tester.getRect(find.byKey(const Key('home-focus-card')));
+    final cat = tester.getRect(find.byKey(const Key('home-focus-cat')));
+    final line = tester.getRect(find.byKey(const Key('home-focus-line')));
+    final scene = tester.getRect(find.byKey(const Key('home-timetable-scene')));
+    final completeButton =
+        tester.getRect(find.byKey(const Key('home-complete-button')));
 
-    expect(find.byKey(const Key('home-timetable-cat')), findsOneWidget);
-    expect(find.byKey(const Key('home-timetable-plant')), findsOneWidget);
     expect(
       tester
           .widget<AnimatedCat>(find.descendant(
-            of: find.byKey(const Key('home-timetable-cat')),
+            of: find.byKey(const Key('home-focus-cat')),
             matching: find.byType(AnimatedCat),
           ))
           .pose,
       CatPose.activity,
     );
-    expect(ring.center.dx, closeTo(scene.center.dx, 0.1));
-    expect(ring.width, closeTo(ring.height, 0.1));
-    expect(cat.left, lessThan(ring.right));
-    expect(cat.top, lessThan(ring.bottom));
-    expect(cat.right, lessThanOrEqualTo(320));
-    expect(cat.bottom, lessThanOrEqualTo(completeButton.top));
-    expect(plant.left, greaterThanOrEqualTo(scene.left));
-    expect(plant.right, lessThan(ring.center.dx));
-    expect(plant.top, greaterThan(ring.center.dy));
-    expect(plant.bottom, closeTo(cat.bottom, 0.1));
-    expect(plant.bottom, lessThanOrEqualTo(completeButton.top));
+    expect(card.contains(cat.center), isTrue);
+    expect(cat.overlaps(line), isFalse);
     expect(scene.bottom, lessThanOrEqualTo(completeButton.top));
     expect(scene.width, lessThanOrEqualTo(272));
+    expect(completeButton.bottom, lessThanOrEqualTo(visibleBottom(tester)));
   });
 
   testWidgets('현재 루틴을 완료로 기록하고 되돌릴 수 있다', (tester) async {
@@ -273,7 +261,7 @@ void main() {
     expect(
       tester
           .widget<AnimatedCat>(find.descendant(
-            of: find.byKey(const Key('home-timetable-cat')),
+            of: find.byKey(const Key('home-focus-cat')),
             matching: find.byType(AnimatedCat),
           ))
           .pose,
@@ -359,7 +347,7 @@ void main() {
     });
   });
 
-  testWidgets('스킵과 나중에도 홈에서 기록된다', (tester) async {
+  testWidgets('건너뛰면 버튼을 숨기고 건너뜀 카드를 보여준다', (tester) async {
     final controller = await pumpHome(
       tester,
       now: DateTime(2026, 8, 4, 12, 30),
@@ -369,32 +357,61 @@ void main() {
     await tapAction(tester, 'home-skip-button');
     expect(controller.todayLogs.single.status, RoutineLogStatus.skipped);
 
-    expect(find.byKey(const Key('home-snooze-button')), findsOneWidget);
+    expect(find.text('건너뜀'), findsOneWidget);
+    expect(find.text('다음 루틴에서 다시 이어가요'), findsOneWidget);
+    expect(find.byKey(const Key('home-complete-button')), findsNothing);
+    expect(find.byKey(const Key('home-skip-button')), findsNothing);
   });
 
-  testWidgets('루틴 시간이 아니면 액션은 비활성이고 이유를 함께 보여준다', (tester) async {
+  testWidgets('미루면 다시 알릴 시각을 보여주고 나중에는 다시 내밀지 않는다', (tester) async {
     final controller = await pumpHome(
       tester,
-      now: DateTime(2026, 8, 4, 16, 24),
+      now: DateTime(2026, 8, 4, 12, 30),
+    );
+    addTearDown(controller.dispose);
+
+    await tapAction(tester, 'home-snooze-button');
+    expect(controller.todayLogs.single.status, RoutineLogStatus.snoozed);
+
+    expect(find.text('미룸'), findsOneWidget);
+    expect(find.text('12:45에 다시 알려 드려요'), findsOneWidget);
+    expect(find.byKey(const Key('home-snooze-button')), findsNothing);
+    expect(find.byKey(const Key('home-complete-button')), findsOneWidget);
+    expect(find.byKey(const Key('home-skip-button')), findsOneWidget);
+  });
+
+  testWidgets('예정이면 버튼 없이 시작까지 남은 시간을 이름 아래 한 줄로 보여준다',
+      (tester) async {
+    // 테스트 글꼴은 글자마다 폭이 글자 크기와 같아 실제보다 넓다.
+    // 360dp 실제 글꼴 확인은 기기에서 한다 (DEVICE_VALIDATION.md).
+    tester.view
+      ..physicalSize = const Size(390, 844)
+      ..devicePixelRatio = 1;
+    addTearDown(tester.view.reset);
+
+    final controller = await pumpHome(
+      tester,
+      now: DateTime(2026, 8, 4, 13, 35),
+      withRoutines: [
+        dailyRoutine(id: 'rest', title: '휴식', startHour: 18, endHour: 19),
+      ],
     );
     addTearDown(controller.dispose);
 
     expect(controller.canActOnCurrentSlot, isFalse);
-    // 버튼을 숨기지 않고 남겨두되 누를 수 없어야 한다.
-    expect(find.byKey(const Key('home-complete-button')), findsOneWidget);
+    expect(find.text('예정'), findsOneWidget);
+    // 누를 수 없는 버튼은 흐리게 남기지 않고 숨긴다.
+    expect(find.byKey(const Key('home-complete-button')), findsNothing);
+    expect(find.byKey(const Key('home-snooze-button')), findsNothing);
 
-    await tapAction(tester, 'home-complete-button');
-    expect(controller.todayLogs, isEmpty);
-
-    // 버튼 라벨은 사유가 아니라 할 일을 말한다.
-    expect(find.text('저녁식사 완료'), findsOneWidget);
-    expect(find.text('지금은 루틴 시간이 아니에요'), findsNothing);
-
-    // 왜 누를 수 없는지는 버튼 아래에서 따로 설명한다 (UI_STANDARDS 4).
-    expect(find.textContaining('18:00에 시작해요'), findsOneWidget);
+    final line = find.byKey(const Key('home-focus-line'));
+    expect(tester.widget<Text>(line).data, '시작까지 4시간 25분 남음');
+    final lineHeight = tester.getSize(line).height;
+    final oneLine = tester.getSize(find.text('휴식')).height;
+    expect(lineHeight, lessThan(oneLine));
   });
 
-  testWidgets('이미 완료한 뒤에도 라벨은 유지되고 사유만 바뀐다', (tester) async {
+  testWidgets('완료하면 버튼을 숨기고 완료 배지와 몇 번째인지 보여준다', (tester) async {
     final controller = await pumpHome(
       tester,
       now: DateTime(2026, 8, 4, 12, 30),
@@ -406,8 +423,47 @@ void main() {
     await tapAction(tester, 'home-complete-button');
 
     expect(controller.canActOnCurrentSlot, isFalse);
-    expect(find.text('점심식사 완료'), findsOneWidget);
-    expect(find.textContaining('이미 완료했어요'), findsOneWidget);
+    expect(find.byKey(const Key('home-complete-button')), findsNothing);
+    expect(find.text('완료'), findsOneWidget);
+    expect(find.text('잘했어요! 오늘 1번째 완료'), findsOneWidget);
+  });
+
+  testWidgets('하루가 끝나면 결과를 숫자로 말하고 내일 첫 루틴을 보여준다', (tester) async {
+    final logs = MemoryLogRepository()
+      ..logs.addAll(const [
+        RoutineLog(
+          id: 'wake-2026-08-04',
+          routineId: 'wake',
+          dateYmd: '2026-08-04',
+          status: RoutineLogStatus.completed,
+        ),
+        RoutineLog(
+          id: 'lunch-2026-08-04',
+          routineId: 'lunch',
+          dateYmd: '2026-08-04',
+          status: RoutineLogStatus.skipped,
+        ),
+      ]);
+    final controller = await pumpHome(
+      tester,
+      now: DateTime(2026, 8, 4, 20, 0),
+      withRoutines: routines.take(3).toList(),
+      logRepository: logs,
+    );
+    addTearDown(controller.dispose);
+
+    expect(find.text('오늘 끝'), findsOneWidget);
+    expect(find.text('오늘 일정이 끝났어요'), findsOneWidget);
+    // 놓친 루틴이 있으면 «모두 마쳤어요»라고 하지 않는다.
+    expect(find.text('완료 1 · 건너뜀 1 · 놓침 1'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byKey(const Key('home-focus-next')),
+        matching: find.text('07:00'),
+      ),
+      findsOneWidget,
+    );
+    expect(find.byKey(const Key('home-complete-button')), findsNothing);
   });
 
   testWidgets('오늘 루틴이 없으면 빈 상태와 다음 행동을 안내한다', (tester) async {
@@ -419,7 +475,8 @@ void main() {
     addTearDown(controller.dispose);
 
     expect(find.text('루틴을 추가하면\n하루의 흐름이 보여요'), findsOneWidget);
-    expect(find.text('오늘 루틴이 없어요.'), findsOneWidget);
+    expect(find.text('새 루틴을 만들어보세요'), findsOneWidget);
+    expect(find.byKey(const Key('home-complete-button')), findsNothing);
 
     // 홈에는 FAB이 없다. 없는 버튼을 안내하는 대신 실제 경로를 화면에 둔다.
     expect(find.byKey(const Key('home-add-routine-button')), findsOneWidget);

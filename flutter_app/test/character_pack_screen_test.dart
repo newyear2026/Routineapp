@@ -197,12 +197,8 @@ void main() {
       matching: find.byType(PixelDecoration),
     ));
     expect(wateringCan.asset, 'garden-watering-can');
-    expect(
-      tester
-          .getRect(find.byKey(const Key('home-timetable-watering-can')))
-          .overlaps(tester.getRect(find.byKey(const Key('home-timetable-cat')))),
-      isFalse,
-    );
+    // 고양이는 홈 첫 카드로 옮겼다. 시간표 장면에는 없어야 두 번 그리지 않는다.
+    expect(find.byKey(const Key('home-timetable-cat')), findsNothing);
     for (final key in const [
       Key('home-garden-leaf-left'),
       Key('home-garden-leaf-right'),

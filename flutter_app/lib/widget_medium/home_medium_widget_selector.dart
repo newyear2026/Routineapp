@@ -138,7 +138,7 @@ abstract final class HomeMediumWidgetSelector {
       case RoutineLogStatus.completed:
         return l10n.statusCompleted;
       case RoutineLogStatus.snoozed:
-        return l10n.statusSnoozed;
+        return l10n.statusSnoozedShort;
       case RoutineLogStatus.skipped:
         return l10n.statusSkippedShort;
       case RoutineLogStatus.noResponse:

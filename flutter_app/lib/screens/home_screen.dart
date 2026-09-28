@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 
 import '../app_optional_provider.dart';
 import '../app_route_observer.dart';
+import '../application/home/home_focus_state.dart';
 import '../application/release/release_announcements.dart';
 import '../application/review/review_prompt.dart';
 import '../application/routine_app_controller.dart';
@@ -20,6 +21,7 @@ import '../widgets/ds/app_pixel_hint.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/ds/ds.dart';
 import '../widgets/home/circular_timetable_area.dart';
+import '../widgets/home/home_focus_card.dart';
 import '../widgets/home/home_timetable_scene.dart';
 import '../widgets/release/release_announcement.dart';
 import '../widgets/update/update_banner.dart';
@@ -307,10 +309,8 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                     ],
                   ),
                   const SizedBox(height: 20),
-                  _FocusStrip(
-                    routine: home.displayRoutine,
-                    isUpcoming: home.isDisplayUpcoming,
-                    timingHint: home.currentRoutineCard?.timingHint,
+                  HomeFocusCard(
+                    home: home,
                     onTap: home.displayRoutine == null
                         ? () => context.push('/routine-add')
                         : () => context.push(
@@ -322,7 +322,6 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                     const _EmptyOrbit()
                   else
                     HomeTimetableScene(
-                      catPose: homeCatPose(home),
                       timetableBuilder: (size) => CircularTimetableArea(
                           routines: home.segments,
                           currentTime: home.clockTime,
@@ -330,35 +329,37 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                           showNowLabel: false,
                           size: size),
                     ),
-                  const SizedBox(height: 18),
-                  _SlotActionBar(
-                    enabled: home.canActOnCurrentSlot,
-                    completeLabel: home.completeButtonLabel,
-                    disabledMessage: home.actionDisabledMessage,
-                    onComplete: () => _runSlotAction(
-                      app.completeCurrent,
-                      l10n.homeMarkedDone,
-                      afterApplied: _askForReviewAfterComplete,
+                  // 누를 수 있을 때만 버튼을 둔다. 예정·완료·건너뜀에서 흐린
+                  // 버튼을 남기면 아직 시작도 안 한 루틴에 «완료»가 떠 있게 된다.
+                  if (home.focusState.showsSlotActions) ...[
+                    const SizedBox(height: 12),
+                    _SlotActionBar(
+                      enabled: home.canActOnCurrentSlot,
+                      completeLabel: home.completeButtonLabel,
+                      showSnooze: home.focusState == HomeFocusState.active,
+                      onComplete: () => _runSlotAction(
+                        app.completeCurrent,
+                        l10n.homeMarkedDone,
+                        afterApplied: _askForReviewAfterComplete,
+                      ),
+                      onSnooze: () => _runSlotAction(
+                        app.snoozeCurrent,
+                        l10n.homeMarkedSnoozed,
+                      ),
+                      onSkip: () => _runSlotAction(
+                        app.skipCurrent,
+                        l10n.homeMarkedSkipped,
+                      ),
                     ),
-                    onSnooze: () => _runSlotAction(
-                      app.snoozeCurrent,
-                      l10n.homeMarkedSnoozed,
-                    ),
-                    onSkip: () => _runSlotAction(
-                      app.skipCurrent,
-                      l10n.homeMarkedSkipped,
-                    ),
-                  ),
+                  ],
                   // 오늘 루틴이 하나도 없으면 여기가 유일한 다음 행동이다.
                   // 홈에는 FAB이 없으므로 화면 안에 경로를 둔다.
                   if (home.isEmptyDay) ...[
-                    const SizedBox(height: 10),
+                    const SizedBox(height: 18),
                     AppButton(
                       key: const Key('home-add-routine-button'),
                       label: l10n.homeAddRoutine,
                       icon: Icons.add_rounded,
-                      variant: AppButtonVariant.secondary,
-                      height: 46,
                       onPressed: () => context.push('/routine-add'),
                     ),
                   ],
@@ -434,117 +435,15 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
   }
 }
 
-/// 화면에서 가장 먼저 읽혀야 하는 줄 — 지금(NOW) 또는 다음(NEXT) 루틴.
-class _FocusStrip extends StatelessWidget {
-  const _FocusStrip({
-    required this.routine,
-    required this.isUpcoming,
-    required this.timingHint,
-    required this.onTap,
-  });
-
-  final Routine? routine;
-  final bool isUpcoming;
-  final String? timingHint;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    final l10n = AppLocalizations.of(context);
-    final routine = this.routine;
-    // 진행 중인 루틴이 없을 때 다가오는 루틴을 NOW로 부르면 사실과 달라진다.
-    final badge = routine == null
-        ? l10n.commonToday
-        : isUpcoming
-            ? l10n.statusUpcoming
-            : l10n.statusInProgress;
-    final name = routine?.title ?? l10n.homeCreateFirstRoutine;
-    final time = routine == null ? l10n.homeStartYourDay : _timeRange(routine);
-
-    return Material(
-      color: Colors.transparent,
-      borderRadius: BorderRadius.zero,
-      child: InkWell(
-        borderRadius: BorderRadius.zero,
-        onTap: onTap,
-        child: Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-          decoration: appSurfaceDecoration(radius: 24),
-          child: Row(
-            children: [
-              if (routine != null) ...[
-                RoutineMark(
-                  icon: routine.iconId,
-                  color: routine.color,
-                  size: 40,
-                ),
-                const SizedBox(width: 12),
-              ],
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    AppStatusBadge(
-                      label: badge,
-                      tone: isUpcoming
-                          ? AppStatusBadgeTone.neutral
-                          : AppStatusBadgeTone.info,
-                    ),
-                    const SizedBox(height: 6),
-                    Text(
-                      name,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.titleSection,
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 12),
-              // 시각과 남은 시간은 언어마다 길이가 크게 달라진다.
-              // 폭을 나눠 갖게 하고, 넘치면 오른쪽 열이 줄바꿈하도록 둔다.
-              ConstrainedBox(
-                constraints: const BoxConstraints(maxWidth: 132),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      time,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: AppTextStyles.caption,
-                    ),
-                    if (timingHint != null) ...[
-                      const SizedBox(height: 2),
-                      Text(
-                        timingHint!,
-                        maxLines: 2,
-                        textAlign: TextAlign.end,
-                        overflow: TextOverflow.ellipsis,
-                        style: AppTextStyles.captionTight.copyWith(
-                          color: AppColors.textMuted,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}
-
-/// 완료 / 나중에 / 스킵 — MVP 핵심 액션.
+/// 완료 / 나중에 / 건너뛰기 — MVP 핵심 액션.
 ///
-/// 누를 수 없을 때는 버튼을 숨기지 않고 이유를 함께 보여준다 (UI_STANDARDS 4).
+/// 진행 중·미룸 카드에서만 보인다 ([HomeFocusState.showsSlotActions]).
+/// 이미 미룬 루틴은 «나중에»를 다시 내밀지 않는다.
 class _SlotActionBar extends StatelessWidget {
   const _SlotActionBar({
     required this.enabled,
     required this.completeLabel,
-    required this.disabledMessage,
+    required this.showSnooze,
     required this.onComplete,
     required this.onSnooze,
     required this.onSkip,
@@ -552,7 +451,7 @@ class _SlotActionBar extends StatelessWidget {
 
   final bool enabled;
   final String completeLabel;
-  final String? disabledMessage;
+  final bool showSnooze;
   final VoidCallback onComplete;
   final VoidCallback onSnooze;
   final VoidCallback onSkip;
@@ -572,16 +471,18 @@ class _SlotActionBar extends StatelessWidget {
         const SizedBox(height: 10),
         Row(
           children: [
-            Expanded(
-              child: AppButton(
-                key: const Key('home-snooze-button'),
-                label: l10n.statusSnoozed,
-                variant: AppButtonVariant.secondary,
-                height: 46,
-                onPressed: enabled ? onSnooze : null,
+            if (showSnooze) ...[
+              Expanded(
+                child: AppButton(
+                  key: const Key('home-snooze-button'),
+                  label: l10n.statusSnoozed,
+                  variant: AppButtonVariant.secondary,
+                  height: 46,
+                  onPressed: enabled ? onSnooze : null,
+                ),
               ),
-            ),
-            const SizedBox(width: 10),
+              const SizedBox(width: 10),
+            ],
             Expanded(
               child: AppButton(
                 key: const Key('home-skip-button'),
@@ -593,17 +494,6 @@ class _SlotActionBar extends StatelessWidget {
             ),
           ],
         ),
-        if (!enabled && disabledMessage != null) ...[
-          const SizedBox(height: 8),
-          Semantics(
-            liveRegion: true,
-            child: Text(
-              disabledMessage!,
-              textAlign: TextAlign.center,
-              style: AppTextStyles.caption,
-            ),
-          ),
-        ],
       ],
     );
   }

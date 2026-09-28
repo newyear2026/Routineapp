@@ -2,22 +2,20 @@ import 'dart:math' as math;
 
 import 'package:flutter/material.dart';
 
-import '../ds/animated_cat.dart';
 import '../ds/pixel_decoration.dart';
 import '../store/character_pack_scope.dart';
 
 typedef HomeTimetableBuilder = Widget Function(double size);
 
-/// 원판 옆에 화분과, 지금 슬롯에 맞는 고양이 포즈를 둔다.
+/// 원판 옆에 화분을 둔다. 고양이는 홈 첫 카드(`HomeFocusCard`)로 옮겼다 —
+/// 지금 상태를 말하는 캐릭터가 상태 카드 안에 있어야 위젯과 같은 모습이 된다.
 class HomeTimetableScene extends StatelessWidget {
   const HomeTimetableScene({
     super.key,
     required this.timetableBuilder,
-    this.catPose = CatPose.rest,
   });
 
   final HomeTimetableBuilder timetableBuilder;
-  final CatPose catPose;
 
   @override
   Widget build(BuildContext context) {
@@ -25,8 +23,9 @@ class HomeTimetableScene extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = math.min(constraints.maxWidth, 374.0);
-        final ringSize = width * 0.76;
-        final catWidth = math.min(width * 0.39, 132.0);
+        // 첫 카드가 지금 할 일을 말한다. 원판은 하루 흐름을 보여 주는 두 번째
+        // 자리라, 완료·나중에·건너뛰기가 스크롤 없이 들어오는 크기로 둔다.
+        final ringSize = width * 0.63;
         final decoSize = garden
             ? math.min(width * 0.19, 56.0)
             : math.min(width * 0.23, 68.0);
@@ -34,7 +33,7 @@ class HomeTimetableScene extends StatelessWidget {
           child: SizedBox(
             key: const Key('home-timetable-scene'),
             width: width,
-            height: width * 0.89,
+            height: width * 0.66,
             child: Stack(clipBehavior: Clip.none, children: [
               if (!garden)
                 Positioned.fill(
@@ -106,16 +105,6 @@ class HomeTimetableScene extends StatelessWidget {
                     size: 42,
                   ),
                 ),
-              Positioned(
-                key: const Key('home-timetable-cat'),
-                right: -width * 0.065,
-                bottom: 0,
-                child: SizedBox(
-                  width: catWidth,
-                  height: catWidth * 0.8,
-                  child: AnimatedCat(pose: catPose),
-                ),
-              ),
             ]),
           ),
         );

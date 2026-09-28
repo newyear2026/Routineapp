@@ -18,6 +18,7 @@ class AppThemePreset {
     this.primaryColor = AppColors.orbitPrimary,
     this.surfaceColor = AppColors.orbitSurface,
     this.selectedSurface = AppColors.orbitHalo,
+    this.focusCardGradient = AppColors.focusCardGradient,
   });
 
   final String id;
@@ -35,6 +36,10 @@ class AppThemePreset {
   final Color primaryColor;
   final Color surfaceColor;
   final Color selectedSurface;
+
+  /// 홈 첫 카드 배경. 홈 화면 위젯 배경(`widget_medium_bg_*.xml`)과 같은 값이라
+  /// 위젯에서 앱으로 들어와도 같은 카드가 이어진다.
+  final LinearGradient focusCardGradient;
 
   static const softDay = AppThemePreset(
     id: 'soft_day',
@@ -153,6 +158,9 @@ class AppThemePreset {
     primaryColor: Color(0xFF087E78),
     surfaceColor: Color(0xFFFFFEFB),
     selectedSurface: Color(0xFFDDF7ED),
+    focusCardGradient: LinearGradient(
+      colors: [Color(0xFFF7F0FF), Color(0xFFD4F7E8)],
+    ),
   );
 
   static const all = [softDay, peachSunset, mintLavender, poodleGarden];

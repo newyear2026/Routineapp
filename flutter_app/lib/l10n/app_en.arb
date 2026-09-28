@@ -66,6 +66,64 @@
   "@statusSkippedShort": {},
   "statusMissed": "Missed",
   "@statusMissed": {},
+  "statusSnoozedShort": "Snoozed",
+  "@statusSnoozedShort": {
+    "description": "Badge for a routine the user snoozed (short)."
+  },
+  "statusDayDone": "Day done",
+  "@statusDayDone": {
+    "description": "Home focus card badge when every routine for today is over."
+  },
+  "homeFocusSnoozedUntil": "We'll remind you at {time}",
+  "@homeFocusSnoozedUntil": {
+    "description": "Home focus card line for a snoozed routine.",
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "example": "11:45"
+      }
+    }
+  },
+  "homeFocusCompleted": "Nice! That's {count} done today",
+  "@homeFocusCompleted": {
+    "description": "Home focus card line after completing the current routine.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "homeFocusSkipped": "Pick it back up with the next one",
+  "@homeFocusSkipped": {
+    "description": "Home focus card line after skipping the current routine."
+  },
+  "homeFocusDayDoneTitle": "Today's routines are over",
+  "@homeFocusDayDoneTitle": {
+    "description": "Home focus card title when every routine for today is over."
+  },
+  "homeFocusDayCount": "{label} {count}",
+  "@homeFocusDayCount": {
+    "description": "One item of the end-of-day result, e.g. \"Done 6\".",
+    "placeholders": {
+      "label": {
+        "type": "String",
+        "example": "Done"
+      },
+      "count": {
+        "type": "int",
+        "example": "6"
+      }
+    }
+  },
+  "homeFocusNext": "Next",
+  "@homeFocusNext": {
+    "description": "Label before the next routine name on the home focus card."
+  },
+  "homeFocusTomorrow": "Tomorrow",
+  "@homeFocusTomorrow": {
+    "description": "Label before tomorrow's first routine on the home focus card."
+  },
   "navHome": "Home",
   "@navHome": {},
   "navProgress": "Progress",
@@ -152,29 +210,6 @@
   "@slotSkippedNotice": {},
   "slotExpiredNotice": "That time has passed",
   "@slotExpiredNotice": {},
-  "slotDisabledCompleted": "This slot is already done. Rest until the next routine.",
-  "@slotDisabledCompleted": {},
-  "slotDisabledSkipped": "This slot was skipped. Pick it back up on the next routine.",
-  "@slotDisabledSkipped": {},
-  "slotDisabledSnoozed": "Pushed to later. You can handle it when the reminder returns.",
-  "@slotDisabledSnoozed": {},
-  "slotDisabledExpired": "This routine window has passed. Start fresh with the next one.",
-  "@slotDisabledExpired": {},
-  "noRoutinesToday": "No routines today.",
-  "@noRoutinesToday": {},
-  "nextRoutineStartsAt": "{title} starts at {time}.",
-  "@nextRoutineStartsAt": {
-    "placeholders": {
-      "title": {
-        "type": "String"
-      },
-      "time": {
-        "type": "String"
-      }
-    }
-  },
-  "allRoutinesDone": "You've finished everything planned for today.",
-  "@allRoutinesDone": {},
   "timingStartingSoon": "Starting soon",
   "@timingStartingSoon": {},
   "timingEndingNow": "Wrapping up now",

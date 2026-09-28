@@ -8,11 +8,17 @@ class SegmentedProgress extends StatelessWidget {
     required this.value,
     required this.semanticLabel,
     this.segmentCount = 10,
+    this.color = AppColors.orbitPrimary,
+    this.height = 18,
   });
 
   final double value;
   final String semanticLabel;
   final int segmentCount;
+
+  /// 채운 칸의 색. 팩 색을 따라야 하는 자리만 넘긴다.
+  final Color color;
+  final double height;
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +27,7 @@ class SegmentedProgress extends StatelessWidget {
       label: semanticLabel,
       child: ExcludeSemantics(
         child: SizedBox(
-          height: 18,
+          height: height,
           child: Row(
             children: List.generate(
                 segmentCount.clamp(1, 12),
@@ -42,8 +48,7 @@ class SegmentedProgress extends StatelessWidget {
                             widthFactor:
                                 (progress * count - index).clamp(0.0, 1.0),
                             heightFactor: 1,
-                            child:
-                                const ColoredBox(color: AppColors.orbitPrimary),
+                            child: ColoredBox(color: color),
                           ),
                         ),
                       ),

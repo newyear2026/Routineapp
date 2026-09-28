@@ -69,6 +69,16 @@ abstract final class AppColors {
     ],
   );
 
+  /// 홈 첫 카드 — 기본 팩(별빛 고양이). 위젯 `widget_medium_bg_cat.xml`과 같다.
+  static const LinearGradient focusCardGradient = LinearGradient(
+    colors: [Color(0xFFFFF4DC), Color(0xFFE6D8FF)],
+  );
+
+  /// 건너뛴 루틴 카드. 팩과 상관없이 채도를 낮춰 지나간 일로 읽히게 한다.
+  static const LinearGradient focusCardMutedGradient = LinearGradient(
+    colors: [Color(0xFFF7F2E6), Color(0xFFEEEAF2)],
+  );
+
   static const LinearGradient orbitPrimaryGradient = LinearGradient(
     colors: [Color(0xFF5C3AF0), Color(0xFF8A63F6)],
   );

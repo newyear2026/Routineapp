@@ -9,10 +9,10 @@ import '../../domain/services/routine_day_service.dart';
 import '../../domain/services/routine_progress_service.dart';
 import '../../domain/services/routine_state_resolver.dart';
 import '../../domain/utils/app_date_formats.dart';
-import '../../domain/utils/time_minutes.dart';
 import '../../l10n/app_localizations.dart';
 import '../../models/home_models.dart';
 import '../mappers/home_view_mapper.dart';
+import 'home_focus_state.dart';
 import 'home_snapshot.dart';
 import 'progress_summary.dart';
 
@@ -110,12 +110,18 @@ abstract final class HomeSnapshotBuilder {
           nowLocal: nowLocal,
         );
     final completeLabel = _completeLabel(l10n, display);
-    final disabledMessage = _actionDisabledMessage(
-      l10n: l10n,
-      todaySorted: todaySorted,
-      currentSlot: current,
-      nextRoutine: next,
-      effectiveOnCurrent: effectiveCurrent,
+    final focusState = HomeFocusState.resolve(
+      hasRoutinesToday: todaySorted.isNotEmpty,
+      hasCurrent: current != null,
+      hasNext: next != null,
+      currentStatus: effectiveCurrent,
+    );
+    final snoozedUntilMs = focusState == HomeFocusState.snoozed
+        ? dayService.logForRoutine(current!.id, logsToday)?.snoozedUntilMs
+        : null;
+    final tomorrow = HomeRoutineSchedule.getTodayRoutines(
+      DateTime(nowLocal.year, nowLocal.month, nowLocal.day + 1),
+      allRoutines,
     );
 
     return HomeSnapshot(
@@ -144,7 +150,17 @@ abstract final class HomeSnapshotBuilder {
       isDisplayUpcoming: isUpcoming,
       completeButtonLabel: completeLabel,
       canActOnCurrentSlot: canAct,
-      actionDisabledMessage: disabledMessage,
+      focusState: focusState,
+      snoozedUntil: snoozedUntilMs == null
+          ? null
+          : DateTime.fromMillisecondsSinceEpoch(snoozedUntilMs),
+      dayResult: _dayResult(
+        todaySorted: todaySorted,
+        logsToday: logsToday,
+        nowLocal: nowLocal,
+        dayService: dayService,
+      ),
+      tomorrowFirstRoutine: tomorrow.isEmpty ? null : tomorrow.first,
       homeProgress: HomeProgress(completed: completed, total: total),
       progressSummary: ProgressSummary.fromResult(dayProgress),
       isEmptyDay: todaySorted.isEmpty,
@@ -159,8 +175,7 @@ abstract final class HomeSnapshotBuilder {
 
   /// 버튼 라벨은 **항상 할 일**을 말한다.
   ///
-  /// 누를 수 없는 이유는 [_actionDisabledMessage]가 버튼 아래에서 따로 설명한다.
-  /// 라벨까지 사유로 바꾸면 같은 말이 화면에 두 번 남는다.
+  /// 누를 수 없는 상태에서는 버튼 자체를 숨긴다 ([HomeFocusState.showsSlotActions]).
   static String _completeLabel(AppLocalizations l10n, Routine? display) {
     if (display == null) return l10n.actionComplete;
     return l10n.actionCompleteNamed(display.title);
@@ -185,38 +200,40 @@ abstract final class HomeSnapshotBuilder {
     }
   }
 
-  static String? _actionDisabledMessage({
-    required AppLocalizations l10n,
+  static HomeDayResult _dayResult({
     required List<Routine> todaySorted,
-    required Routine? currentSlot,
-    required Routine? nextRoutine,
-    required RoutineLogStatus? effectiveOnCurrent,
+    required List<RoutineLog> logsToday,
+    required DateTime nowLocal,
+    required RoutineDayService dayService,
   }) {
-    if (currentSlot != null) {
-      switch (effectiveOnCurrent) {
+    var completed = 0;
+    var skipped = 0;
+    var missed = 0;
+    for (final routine in todaySorted) {
+      final status = RoutineStateResolver.effectiveStatus(
+        routine: routine,
+        log: dayService.logForRoutine(routine.id, logsToday),
+        nowLocal: nowLocal,
+      );
+      switch (status) {
         case RoutineLogStatus.completed:
-          return l10n.slotDisabledCompleted;
+          completed++;
         case RoutineLogStatus.skipped:
-          return l10n.slotDisabledSkipped;
-        case RoutineLogStatus.snoozed:
-          return l10n.slotDisabledSnoozed;
+          skipped++;
         case RoutineLogStatus.expired:
-          return l10n.slotDisabledExpired;
-        default:
-          return null;
+        case RoutineLogStatus.noResponse:
+          missed++;
+        case RoutineLogStatus.scheduled:
+        case RoutineLogStatus.active:
+        case RoutineLogStatus.snoozed:
+          break;
       }
     }
-
-    if (todaySorted.isEmpty) {
-      // 홈에는 FAB이 없다. 없는 버튼을 안내하면 그대로 막힌다.
-      // 다음 행동은 홈 화면의 '루틴 추가하기' 버튼이 맡는다.
-      return l10n.noRoutinesToday;
-    }
-    if (nextRoutine != null) {
-      final time = TimeMinutes.formatHm(nextRoutine.startMinutesFromMidnight);
-      return l10n.nextRoutineStartsAt(nextRoutine.title, time);
-    }
-    return l10n.allRoutinesDone;
+    return HomeDayResult(
+      completed: completed,
+      skipped: skipped,
+      missed: missed,
+    );
   }
 
   static String _timingHint({
