@@ -9,6 +9,7 @@ import '../l10n/app_localizations.dart';
 import '../data/routine_form_palette.dart';
 import '../domain/models/routine.dart';
 import '../domain/models/routine_icon_id.dart';
+import '../domain/models/routine_suggestion.dart';
 import '../domain/routine_overlap/routine_schedule_overlap.dart';
 import '../domain/utils/time_minutes.dart';
 import '../domain/validation/routine_form_validator.dart';
@@ -449,14 +450,13 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                           spacing: 8,
                           runSpacing: 8,
                           children: [
-                            for (final suggestion in [
-                              l10n.routineQuickMorning,
-                              l10n.routineQuickExercise,
-                              l10n.routineQuickReading,
-                            ])
+                            for (final suggestion in RoutineSuggestion.values)
                               RoutineSuggestionChip(
-                                label: suggestion,
-                                onTap: () => _applySuggestion(suggestion),
+                                label: _suggestionLabel(l10n, suggestion),
+                                onTap: () => _applySuggestion(
+                                  _suggestionLabel(l10n, suggestion),
+                                  suggestion.iconId,
+                                ),
                               ),
                           ],
                         ),
@@ -658,12 +658,34 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
     });
   }
 
-  void _applySuggestion(String title) {
+  void _applySuggestion(String title, RoutineIconId iconId) {
     setState(() {
       _nameController.text = title;
       _titleError = _titleValidationError(title);
-      _selectedIconId = RoutineIconId.guess(title: title);
+      _selectedIconId = iconId;
     });
+  }
+}
+
+/// 추천 칩 이름을 현재 언어로 옮긴다.
+String _suggestionLabel(AppLocalizations l10n, RoutineSuggestion suggestion) {
+  switch (suggestion) {
+    case RoutineSuggestion.wakeUp:
+      return l10n.routineQuickWakeUp;
+    case RoutineSuggestion.breakfast:
+      return l10n.routineQuickBreakfast;
+    case RoutineSuggestion.exercise:
+      return l10n.routineQuickExercise;
+    case RoutineSuggestion.focus:
+      return l10n.routineQuickFocus;
+    case RoutineSuggestion.rest:
+      return l10n.routineQuickBreak;
+    case RoutineSuggestion.walk:
+      return l10n.routineQuickWalk;
+    case RoutineSuggestion.reading:
+      return l10n.routineQuickReading;
+    case RoutineSuggestion.bedtime:
+      return l10n.routineQuickBedtime;
   }
 }
 

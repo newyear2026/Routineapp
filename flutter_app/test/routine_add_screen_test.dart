@@ -9,8 +9,12 @@ import 'package:routine_timer/application/services/routine_data_service.dart';
 import 'package:routine_timer/application/services/routine_notification_service.dart';
 import 'package:routine_timer/data/store/character_pack_catalog.dart';
 import 'package:routine_timer/domain/models/routine.dart';
+import 'package:routine_timer/domain/models/routine_icon_id.dart';
+import 'package:routine_timer/domain/models/routine_suggestion.dart';
 import 'package:routine_timer/domain/settings/notification_preferences.dart';
 import 'package:routine_timer/domain/store/character_pack.dart';
+import 'package:routine_timer/l10n/app_localizations.dart';
+import 'package:routine_timer/screens/routine_add/routine_form_controls.dart';
 import 'package:routine_timer/screens/routine_add/routine_form_preview.dart';
 import 'package:routine_timer/screens/routine_add_screen.dart';
 import 'package:routine_timer/theme/app_theme.dart';
@@ -44,6 +48,7 @@ void main() {
     String? editId,
     ThemeData? theme,
     CharacterPack? pack,
+    Locale locale = testLocale,
   }) async {
     final controller = RoutineAppController(
       dataService: RoutineDataService(
@@ -89,7 +94,11 @@ void main() {
     await tester.pumpWidget(
       ChangeNotifierProvider.value(
         value: controller,
-        child: localizedApp(routerConfig: router, theme: theme),
+        child: localizedApp(
+          routerConfig: router,
+          theme: theme,
+          locale: locale,
+        ),
       ),
     );
     await tester.pumpAndSettle();
@@ -204,6 +213,9 @@ void main() {
     addTearDown(controller.dispose);
 
     await tester.enterText(find.byType(TextField), '아침 산책');
+    // 입력칸이 커서를 보이려고 되돌리는 스크롤이 끝난 뒤에 요일 줄로 내려가야
+    // 아래 ensureVisible이 덮어써지지 않는다.
+    await tester.pumpAndSettle();
     // 요일 줄은 미리보기 아래라 기본 뷰포트에서는 접혀 있다.
     for (var day = DateTime.monday; day <= DateTime.friday; day++) {
       final finder = find.byKey(Key('routine-weekday-$day'));
@@ -219,6 +231,28 @@ void main() {
     expect(find.text('반복 요일을 하루 이상 선택해 주세요.'), findsOneWidget);
     expect(controller.routines, hasLength(1));
   });
+
+  // 칩 아이콘을 번역된 이름으로 추측하면 추측 규칙이 모르는 언어에서
+  // 전부 커피 아이콘이 됐다. 언어마다 같은 아이콘이 저장돼야 한다.
+  for (final locale in AppLocalizations.supportedLocales) {
+    testWidgets('${locale.languageCode}: 추천 칩은 언어와 무관하게 정해진 아이콘을 쓴다',
+        (tester) async {
+      final l10n = lookupAppLocalizations(locale);
+      final controller = await pumpAddScreen(tester, locale: locale);
+      addTearDown(controller.dispose);
+
+      expect(find.byType(RoutineSuggestionChip),
+          findsNWidgets(RoutineSuggestion.values.length));
+      await tester.tap(find.text(l10n.routineQuickExercise));
+      await tester.pump();
+      await tester.tap(find.text(l10n.routineAddSaveNew));
+      await tester.pumpAndSettle();
+
+      final saved = controller.routines.singleWhere((r) => r.id != 'wake');
+      expect(saved.title, l10n.routineQuickExercise);
+      expect(saved.iconId, RoutineIconId.dumbbell);
+    });
+  }
 
   testWidgets('이름과 요일이 유효하면 저장된다', (tester) async {
     final controller = await pumpAddScreen(tester);

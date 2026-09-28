@@ -15,12 +15,13 @@ MaterialApp localizedApp({
   Widget? home,
   RouterConfig<Object>? routerConfig,
   ThemeData? theme,
+  Locale locale = testLocale,
 }) {
   if (routerConfig != null) {
     return MaterialApp.router(
       theme: theme ?? buildRoutineTheme(),
       routerConfig: routerConfig,
-      locale: testLocale,
+      locale: locale,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
     );
@@ -28,7 +29,7 @@ MaterialApp localizedApp({
   return MaterialApp(
     theme: theme ?? buildRoutineTheme(),
     home: home,
-    locale: testLocale,
+    locale: locale,
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
   );
