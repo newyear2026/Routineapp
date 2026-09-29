@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">LOOPET</string>
+    <string name="widget_ring_desc">Anel das rotinas de hoje</string>
+    <string name="widget_medium_description">Suas rotinas de hoje num círculo</string>
+    <string name="widget_ring_name">LOOPET Círculo</string>
+    <string name="widget_timeline_name">LOOPET Linha do tempo</string>
+    <string name="widget_cards_name">LOOPET Cartões</string>
+    <string name="widget_timeline_description">Suas rotinas de hoje numa linha do tempo</string>
+    <string name="widget_cards_description">Cartões da rotina atual e da próxima</string>
+    <string name="widget_next_label">Próxima</string>
+    <string name="widget_sync_prompt">Abra o app</string>
+    <string name="widget_now_label">Agora</string>
+</resources>

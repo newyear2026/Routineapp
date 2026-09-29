@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  알림 아이콘은 코드에서 '@drawable/ic_notification' 문자열로만 참조한다.
+  리소스 축소기는 그 참조를 보지 못해 릴리스 빌드에서 아이콘을 지워 버리고,
+  그러면 알람은 울리는데 알림만 조용히 뜨지 않는다. 여기서 명시적으로 지킨다.
+-->
+<resources
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/ic_notification" />

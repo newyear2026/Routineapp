@@ -1,52 +1,32 @@
-# iOS — WidgetKit 확장 추가 (Routine Medium)
+# iOS Medium 위젯 설정
 
-Flutter는 `home_widget` + App Group으로 JSON을 저장한다. **시스템 위젯 UI**는 `ios/RoutineWidgetExtension/`의 Swift 소스로 구현한다.
+`Runner.xcodeproj`에는 `RoutineWidgetExtension` 타깃이 등록돼 있고,
+`Runner.app/PlugIns`에 자동으로 포함된다. SwiftUI 화면은
+`ios/RoutineWidgetExtension/RoutineWidgetExtension.swift`에 있다.
 
-## 전제
+## 빌드 설정
 
-- Xcode 15+ 권장  
-- 번들 ID 예: `com.example.routineTimer` (Runner와 동일 계열)  
-- App Group: `group.com.example.routineTimer` (코드·Runner.entitlements와 동일)
+- Widget Kind: `RoutineMediumWidget`
+- 확장 번들 ID: `com.dayround.app.RoutineWidgetExtension`
+- 확장 최소 버전: iOS 15
+- 앱과 확장의 App Group: `group.com.dayround.app`
+- 확장 버전은 Flutter의 `FLUTTER_BUILD_NAME` /
+  `FLUTTER_BUILD_NUMBER`를 따른다.
 
-## 1) App Group (Runner)
+배포 시 Xcode의 Runner·RoutineWidgetExtension 타깃에 같은 개발 팀을
+설정하고 두 App ID의 App Groups capability를 확인한다. 기기 서명은
+개발 팀의 프로비저닝 프로파일이 필요하다.
 
-1. Xcode에서 `ios/Runner.xcworkspace` 연다.  
-2. **Runner** 타깃 → **Signing & Capabilities** → **+ Capability** → **App Groups**.  
-3. `group.com.example.routineTimer` 추가 (이미 `Runner/Runner.entitlements`에 있으면 확인만).
+## 로컬 확인
 
-## 2) Widget Extension 타깃 생성
+1. `flutter pub get` 후 `cd ios && pod install`.
+2. Xcode에서 `Runner.xcworkspace`를 열어 Runner를 빌드한다.
+3. 앱을 한 번 실행해 위젯 공유 데이터를 저장한다.
+4. 홈 화면에서 위젯 추가 → 하루한바퀴 → Medium 선택.
 
-1. **File → New → Target…** → **Widget Extension**.  
-2. Product Name: `RoutineWidgetExtension`  
-3. **Include Live Activity** 끔.  
-4. Finish 후 활성화 스킴에서 **RoutineWidgetExtension** 빌드 확인.
+Xcode 27은 iOS 14 배포 타깃을 지원하지 않으므로 이 버전에서 서명 없는
+로컬 빌드를 확인할 때는 `IPHONEOS_DEPLOYMENT_TARGET=15.0`을
+빌드 옵션으로 지정한다. 저장소의 Runner 최소 버전 14.0은 변경하지 않았다.
 
-## 3) 기본 생성 파일 교체
-
-Xcode가 만든 기본 `*Widget.swift` / `*Bundle.swift`는 제거하거나 타깃에서 제외하고,  
-프로젝트에 이미 포함된 다음 파일을 **RoutineWidgetExtension 타깃에만** 넣는다:
-
-- `ios/RoutineWidgetExtension/RoutineWidgetExtension.swift` (단일 `@main` WidgetBundle + Medium 위젯)
-- `RoutineWidgetExtension.entitlements`에 동일 App Group 추가 (저장소에 샘플 있음).
-
-## 4) 위젯 타깃 설정
-
-- **Deployment Target**: iOS 14 이상  
-- **Signing**: Team 선택  
-- **Build Settings → Code Signing Entitlements**: `RoutineWidgetExtension/RoutineWidgetExtension.entitlements`  
-- **General → Frameworks**: SwiftUI, WidgetKit (기본 포함)
-
-## 5) Widget Kind
-
-- Swift의 `kWidgetKind` / `RoutineMediumWidget`의 `kind`는 **`RoutineMediumWidget`** 이어야 한다.  
-- Flutter `HomeWidget.updateWidget(iOSName: 'RoutineMediumWidget')`와 일치.
-
-## 6) 빌드·실행
-
-1. Runner로 앱 설치 후 한 번 실행 → 홈 데이터가 위젯 저장소에 기록됨.  
-2. 홈 화면 길게 누르기 → 위젯 추가 → 앱 이름 → **Medium** 크기 선택.
-
-## 문제 해결
-
-- 위젯이 비어 있음: App Group ID가 Runner·Extension·Dart `HomeWidgetSyncService.appGroupId` 모두 동일한지 확인.  
-- 타임라인 갱신 안 됨: 앱에서 `HomeWidget.updateWidget` 호출됨을 확인 (저장/로그 변경 후).
+위젯이 비어 있으면 앱을 열어 동기화하고 Runner·확장의 App Group ID가
+일치하는지 확인한다.

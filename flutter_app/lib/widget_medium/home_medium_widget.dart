@@ -1,185 +1,322 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
+import '../theme/app_pixel_style.dart';
+import '../widgets/ds/pixel_icon.dart';
 import 'home_medium_widget_view_model.dart';
 import 'mini_circular_timetable.dart';
 import 'widget_theme.dart';
 
-/// 홈 화면 Medium 위젯 카드 — 앱 홈의 축소판.
-///
-/// 정보 위계는 UI_STANDARDS 4를 따른다: 지금 할 루틴 → 상태 → 남은 시간 →
-/// 다음 일정. 예전에는 맨 위에 '하루 루틴 시간표' 제목과 '오늘 루틴 진행 중'
-/// 부제가 두 줄을 차지했는데, 앞의 것은 위젯 이름이 이미 말하고 뒤의 것은
-/// 실제 상태와 무관한 하드코딩이었다. 두 줄을 걷어낸 자리를 본문 글자
-/// 크기를 올리는 데 썼다.
+/// 시스템 Medium 위젯과 앱 미리보기가 공유하는 구성.
+/// 현재 루틴을 먼저 읽고, 오른쪽 원판에서 하루의 위치를 확인한다.
 class HomeMediumWidget extends StatelessWidget {
   const HomeMediumWidget({
     super.key,
     required this.viewModel,
-    this.ringSize = 96,
+    this.ringSize = 124,
+    this.characterPackId = 'cat_starlight',
   });
 
   final HomeMediumWidgetViewModel viewModel;
   final double ringSize;
+  final String characterPackId;
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: Container(
-        constraints: const BoxConstraints(minHeight: 152, maxHeight: 176),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-        decoration: BoxDecoration(
-          color: WidgetTheme.background,
-          borderRadius: BorderRadius.circular(22),
-        ),
-        child: Row(
-          children: [
-            Expanded(child: _LeftColumn(vm: viewModel)),
-            const SizedBox(width: 10),
-            MiniCircularTimetable(
-              segments: viewModel.ringSegments,
-              currentTime: viewModel.currentTime,
-              activeSegmentId: viewModel.activeSegmentId,
-              pointerAngleRad: viewModel.pointerAngleRad,
-              centerLabel: viewModel.centerTimeLabel,
-              size: ringSize,
+    final l10n = AppLocalizations.of(context);
+    return LayoutBuilder(builder: (context, constraints) {
+      final narrow = constraints.maxWidth < 300;
+      final garden = characterPackId == 'poodle_garden';
+      final stargazer = characterPackId == 'cat_stargazer';
+      final accent = stargazer
+          ? const Color(0xFFF4C430)
+          : garden
+              ? const Color(0xFF078F96)
+              : WidgetTheme.accent;
+      final textPrimary =
+          stargazer ? const Color(0xFFFFF9EA) : WidgetTheme.textPrimary;
+      final textMuted =
+          stargazer ? const Color(0xFFD6E6ED) : WidgetTheme.textMuted;
+      final border = stargazer ? const Color(0xFF668995) : WidgetTheme.border;
+      final dialSize = narrow ? 84.0 : ringSize.clamp(0.0, 112.0);
+      final mascotSize = narrow ? 40.0 : 50.0;
+      return SizedBox(
+        height: narrow ? 140 : 155,
+        child: Container(
+          padding: EdgeInsets.fromLTRB(narrow ? 7 : 10, 8, narrow ? 7 : 10, 8),
+          decoration: ShapeDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+              colors: stargazer
+                  ? const [Color(0xFF0B3D4A), Color(0xFF12365B)]
+                  : garden
+                      ? const [Color(0xFFF7F0FF), Color(0xFFD4F7E8)]
+                      : const [Color(0xFFFFF4DC), Color(0xFFE6D8FF)],
             ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _LeftColumn extends StatelessWidget {
-  const _LeftColumn({required this.vm});
-
-  final HomeMediumWidgetViewModel vm;
-
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        // 루틴이 없는 날에는 상태도 없다. 빈 배지나 '—'를 남기지 않는다.
-        //
-        // 시작·종료 시각은 싣지 않는다. 실제 위젯 폭에서 왼쪽 칸은 130dp 안팎이라
-        // 배지와 '10:00 – 12:00'을 한 줄에 놓으면 시간이 잘린다. 아래
-        // 타이밍 힌트('종료까지 1시간 56분 남음')가 같은 것을 더 쓸모 있게
-        // 말하므로 범위 쪽을 뺐다. 정확한 시각은 앱에서 본다.
-        if (vm.currentRoutineStatusLabel.isNotEmpty) ...[
-          Align(
-            alignment: Alignment.centerLeft,
-            child: _StatusBadge(label: vm.currentRoutineStatusLabel),
+            shape: AppPixelStyle.shape(width: 1.5),
+            shadows: const [
+              BoxShadow(
+                color: AppPixelStyle.shadow,
+                offset: Offset(2, 3),
+              )
+            ],
           ),
-          const SizedBox(height: 6),
-        ],
-        Text(
-          vm.currentRoutineTitle,
-          maxLines: 1,
-          overflow: TextOverflow.ellipsis,
-          style: const TextStyle(
-            fontSize: WidgetTheme.titleSize,
-            fontWeight: FontWeight.w800,
-            color: WidgetTheme.textPrimary,
-            height: 1.15,
-          ),
-        ),
-        if (vm.currentRoutineTimingHint.isNotEmpty) ...[
-          const SizedBox(height: 4),
-          Text(
-            vm.currentRoutineTimingHint,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: const TextStyle(
-              fontSize: WidgetTheme.bodySize,
-              fontWeight: FontWeight.w600,
-              color: WidgetTheme.textMuted,
-            ),
-          ),
-        ],
-        const SizedBox(height: 10),
-        _NextRoutineChip(
-          title: vm.nextRoutineTitle,
-          time: vm.nextRoutineTime,
-        ),
-      ],
-    );
-  }
-}
-
-class _StatusBadge extends StatelessWidget {
-  const _StatusBadge({required this.label});
-
-  final String label;
-
-  @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-        decoration: BoxDecoration(
-          // 흰 글자와 5.66:1. 예전 테라코타(#E07A5F)는 2.95:1이었다.
-          color: WidgetTheme.accent,
-          borderRadius: BorderRadius.circular(999),
-        ),
-        child: Text(
-          label,
-          style: const TextStyle(
-            fontSize: WidgetTheme.captionSize,
-            fontWeight: FontWeight.w700,
-            color: WidgetTheme.onAccent,
-          ),
-        ),
-      );
-}
-
-class _NextRoutineChip extends StatelessWidget {
-  const _NextRoutineChip({required this.title, required this.time});
-
-  final String title;
-  final String time;
-
-  @override
-  Widget build(BuildContext context) => Container(
-        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 7),
-        decoration: BoxDecoration(
-          color: WidgetTheme.surface,
-          borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: WidgetTheme.border),
-        ),
-        child: Row(
-          children: [
-            const Text(
-              '다음',
-              style: TextStyle(
-                fontSize: WidgetTheme.captionSize,
-                fontWeight: FontWeight.w700,
-                color: WidgetTheme.textMuted,
+          child: Stack(children: [
+            Positioned.fill(
+              child: IgnorePointer(
+                child: garden
+                    ? const _GardenDecor()
+                    : stargazer
+                        ? const SizedBox.shrink()
+                        : Opacity(
+                            opacity: 0.45,
+                            child: Image.asset(
+                                'assets/decorations/home-sky.png',
+                                fit: BoxFit.fill,
+                                filterQuality: FilterQuality.none),
+                          ),
               ),
             ),
-            const SizedBox(width: 8),
-            Expanded(
+            Row(children: [
+              SizedBox(
+                width: mascotSize,
+                child: OverflowBox(
+                  alignment: Alignment.bottomLeft,
+                  maxWidth: narrow ? 55 : 70,
+                  maxHeight: narrow ? 55 : 70,
+                  child: Transform.translate(
+                    offset: Offset(narrow ? -8 : -10, 0),
+                    child: Image.asset(
+                      stargazer
+                          ? 'assets/characters/cat_stargazer/v1/approved/idle.png'
+                          : garden
+                              ? 'assets/characters/poodle_garden/v1/approved/idle.png'
+                              : 'assets/characters/cat_starlight/v1/approved/idle.png',
+                      width: narrow ? 55 : 70,
+                      height: narrow ? 55 : 70,
+                      filterQuality: FilterQuality.none,
+                    ),
+                  ),
+                ),
+              ),
+              SizedBox(width: narrow ? 3 : 5),
+              Expanded(
+                child: _RoutineColumn(
+                  vm: viewModel,
+                  nextLabel: l10n.commonNext,
+                  narrow: narrow,
+                  accent: accent,
+                  textPrimary: textPrimary,
+                  textMuted: textMuted,
+                  border: border,
+                  onAccent: stargazer
+                      ? const Color(0xFF123041)
+                      : WidgetTheme.onAccent,
+                ),
+              ),
+              SizedBox(width: narrow ? 4 : 7),
+              Container(width: 1, color: border),
+              SizedBox(width: narrow ? 2 : 5),
+              MiniCircularTimetable(
+                segments: viewModel.ringSegments,
+                currentTime: viewModel.currentTime,
+                activeSegmentId: viewModel.activeSegmentId,
+                pointerAngleRad: viewModel.pointerAngleRad,
+                centerLabel: viewModel.centerTimeLabel,
+                size: dialSize,
+              ),
+            ]),
+          ]),
+        ),
+      );
+    });
+  }
+}
+
+class _RoutineColumn extends StatelessWidget {
+  const _RoutineColumn({
+    required this.vm,
+    required this.nextLabel,
+    required this.narrow,
+    required this.accent,
+    required this.textPrimary,
+    required this.textMuted,
+    required this.border,
+    required this.onAccent,
+  });
+
+  final HomeMediumWidgetViewModel vm;
+  final String nextLabel;
+  final bool narrow;
+  final Color accent;
+  final Color textPrimary;
+  final Color textMuted;
+  final Color border;
+  final Color onAccent;
+
+  @override
+  Widget build(BuildContext context) => Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          const Spacer(),
+          if (vm.currentRoutineStatusLabel.isNotEmpty) ...[
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+              decoration: ShapeDecoration(
+                color: accent,
+                shape: AppPixelStyle.shape(steps: 1, width: 1.2),
+              ),
               child: Text(
-                title,
+                vm.currentRoutineStatusLabel,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
-                  fontSize: WidgetTheme.bodySize,
-                  fontWeight: FontWeight.w700,
-                  color: WidgetTheme.textPrimary,
+                style: TextStyle(
+                  fontSize: WidgetTheme.captionSize,
+                  fontWeight: FontWeight.w800,
+                  color: onAccent,
+                  height: 1.1,
                 ),
               ),
             ),
-            const SizedBox(width: 6),
-            Text(
-              time,
-              style: const TextStyle(
-                fontSize: WidgetTheme.captionSize,
-                fontWeight: FontWeight.w600,
-                color: WidgetTheme.textMuted,
+            SizedBox(height: narrow ? 5 : 7),
+          ],
+          Text(
+            vm.currentRoutineTitle,
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: TextStyle(
+              fontSize: narrow ? 17 : 22,
+              fontWeight: FontWeight.w800,
+              color: textPrimary,
+              height: 1.08,
+            ),
+          ),
+          if (vm.currentRoutineTimingHint.isNotEmpty) ...[
+            const SizedBox(height: 5),
+            _TimingHint(vm.currentRoutineTimingHint,
+                narrow: narrow, accent: accent, textMuted: textMuted),
+          ],
+          const Spacer(),
+          Container(height: 1, color: border),
+          SizedBox(height: narrow ? 6 : 8),
+          Row(children: [
+            PixelIcon(PixelGlyph.progress,
+                size: narrow ? 15 : 17, color: textMuted),
+            const SizedBox(width: 5),
+            // 라벨과 제목을 한 문단으로 묶는다. 라벨을 따로 두면 «Siguiente»
+            // 처럼 긴 라벨이 제목 몫을 다 먹고 줄이 넘친다. 한 문단이면
+            // 넘칠 때 제목 끝이 말줄임표로 줄어든다.
+            Expanded(
+              child: Text.rich(
+                TextSpan(children: [
+                  TextSpan(
+                    text: nextLabel,
+                    style: TextStyle(
+                        fontSize: narrow ? 11 : 12,
+                        fontWeight: FontWeight.w700,
+                        color: textMuted),
+                  ),
+                  const WidgetSpan(child: SizedBox(width: 5)),
+                  TextSpan(text: vm.nextRoutineTitle),
+                ]),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: TextStyle(
+                    fontSize: narrow ? 12 : WidgetTheme.bodySize,
+                    fontWeight: FontWeight.w800,
+                    color: textPrimary),
               ),
             ),
-          ],
-        ),
+            if (vm.nextRoutineTime.isNotEmpty) ...[
+              const SizedBox(width: 4),
+              // 작은 시각은 격자 숫자보다 본문 글꼴이 잘 읽힌다. 앱 첫 카드의
+              // «다음» 줄과 같은 모양이다.
+              Text(vm.nextRoutineTime,
+                  style: TextStyle(
+                    fontSize: narrow ? 11 : 12,
+                    fontWeight: FontWeight.w700,
+                    color: textMuted,
+                  )),
+            ],
+          ]),
+          const Spacer(),
+        ],
       );
+}
+
+class _TimingHint extends StatelessWidget {
+  const _TimingHint(this.text,
+      {required this.narrow, required this.accent, required this.textMuted});
+
+  final String text;
+  final bool narrow;
+  final Color accent;
+  final Color textMuted;
+
+  @override
+  Widget build(BuildContext context) {
+    // 한국어의 마지막 '남음'만 중립색으로 두어 시안의 숫자 강조를 살린다.
+    // 다른 언어는 번역된 문구를 쪼개지 않고 한 줄 그대로 보여준다.
+    final suffixStart = text.endsWith(' 남음') ? text.length - 3 : text.length;
+    final duration = RegExp(r'\d+(?:시간\s*\d+)?분|\d+시간')
+        .firstMatch(text.substring(0, suffixStart));
+    final base = TextStyle(
+      fontSize: narrow ? 11 : WidgetTheme.bodySize,
+      fontWeight: FontWeight.w700,
+      color: accent,
+      height: 1.15,
+    );
+    return Text.rich(
+      TextSpan(children: [
+        if (duration == null)
+          TextSpan(text: text.substring(0, suffixStart))
+        else ...[
+          TextSpan(text: text.substring(0, duration.start)),
+          TextSpan(
+            text: duration.group(0),
+            style: TextStyle(
+              fontSize: narrow ? 11 : 16,
+              fontWeight: FontWeight.w800,
+            ),
+          ),
+          TextSpan(text: text.substring(duration.end, suffixStart)),
+        ],
+        if (suffixStart < text.length)
+          TextSpan(
+            text: text.substring(suffixStart),
+            style: TextStyle(color: textMuted),
+          ),
+      ]),
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: base,
+    );
+  }
+}
+
+class _GardenDecor extends StatelessWidget {
+  const _GardenDecor();
+
+  @override
+  Widget build(BuildContext context) => Stack(children: [
+        Positioned(
+          top: 8,
+          left: 4,
+          child: Image.asset('assets/decorations/garden-leaf.png',
+              width: 15, filterQuality: FilterQuality.none),
+        ),
+        Positioned(
+          top: 13,
+          right: 6,
+          child: Image.asset('assets/decorations/garden-leaf.png',
+              width: 17, filterQuality: FilterQuality.none),
+        ),
+        Positioned(
+          bottom: -5,
+          right: -5,
+          child: Image.asset('assets/decorations/garden-daisy.png',
+              width: 38, filterQuality: FilterQuality.none),
+        ),
+      ]);
 }

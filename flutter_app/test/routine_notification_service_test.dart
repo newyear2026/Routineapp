@@ -5,6 +5,7 @@ import 'package:routine_timer/application/services/routine_notification_service.
 import 'package:routine_timer/domain/models/routine.dart';
 import 'package:routine_timer/domain/settings/notification_permission_status.dart';
 import 'package:routine_timer/domain/settings/notification_preferences.dart';
+import 'support/localization.dart';
 
 void main() {
   test('syncAll cancels existing managed notifications and reschedules enabled routines', () async {
@@ -20,6 +21,7 @@ void main() {
       ],
     );
     final service = RoutineNotificationService(
+      exactAlarmsAllowed: () async => false,
       gateway: gateway,
       preferencesLoader: () async => const NotificationPreferences(
         notificationsEnabled: true,
@@ -39,7 +41,7 @@ void main() {
       notificationEnabled: true,
     );
 
-    await service.syncAll([routine]);
+    await service.syncAll([routine], testL10n);
 
     expect(gateway.cancelledIds, [10]);
     expect(gateway.scheduled.map((item) => item.id), [
@@ -51,6 +53,7 @@ void main() {
   test('syncAll skips scheduling when app notifications are disabled', () async {
     final gateway = _FakeLocalNotificationGateway();
     final service = RoutineNotificationService(
+      exactAlarmsAllowed: () async => false,
       gateway: gateway,
       preferencesLoader: () async => const NotificationPreferences(
         notificationsEnabled: false,
@@ -70,9 +73,214 @@ void main() {
       notificationEnabled: true,
     );
 
-    await service.syncAll([routine]);
+    await service.syncAll([routine], testL10n);
 
     expect(gateway.scheduled, isEmpty);
+  });
+
+  test('소리 설정에 따라 알림 채널이 갈린다', () async {
+    // Android 8.0+ 는 채널을 만든 시점의 소리 설정을 굳힌다. 같은 채널에
+    // playSound 만 바꿔 걸면 조용히 무시되므로, 설정이 채널을 가르는지 본다.
+    Future<AndroidNotificationDetails> scheduleWith(bool soundEnabled) async {
+      final gateway = _FakeLocalNotificationGateway();
+      final service = RoutineNotificationService(
+        exactAlarmsAllowed: () async => false,
+        gateway: gateway,
+        preferencesLoader: () async => NotificationPreferences(
+          notificationsEnabled: true,
+          permissionStatus: NotificationPermissionStatus.granted,
+          soundEnabled: soundEnabled,
+        ),
+      );
+
+      const routine = Routine(
+        id: 'routine_1',
+        title: '아침 산책',
+        startMinutesFromMidnight: 7 * 60,
+        endMinutesFromMidnight: 8 * 60,
+        repeatWeekdays: {1},
+        colorValue: 0xFF000000,
+        iconEmoji: '📌',
+        notificationEnabled: true,
+      );
+
+      await service.syncAll([routine], testL10n);
+      return gateway.scheduled.single.details.android!;
+    }
+
+    final withSound = await scheduleWith(true);
+    final silent = await scheduleWith(false);
+
+    expect(withSound.channelId, RoutineNotificationService.soundChannelId);
+    expect(withSound.playSound, isTrue);
+
+    expect(silent.channelId, RoutineNotificationService.silentChannelId);
+    expect(silent.playSound, isFalse);
+
+    // 두 채널이 시스템 설정에서 구분되도록 이름도 달라야 한다.
+    expect(withSound.channelName, isNot(silent.channelName));
+
+    // 무음이어도 진동은 남긴다.
+    expect(silent.enableVibration, isTrue);
+  });
+
+  test('정확 알람 권한이 있으면 정확 모드로, 없으면 부정확으로 예약한다', () async {
+    // 권한 없이 exact 로 걸면 Android 12+ 가 SecurityException 을 던져 예약이
+    // 통째로 실패한다. 권한 상태가 예약 모드로 그대로 이어지는지 본다.
+    Future<bool> scheduleWith(bool allowed) async {
+      final gateway = _FakeLocalNotificationGateway();
+      final service = RoutineNotificationService(
+        gateway: gateway,
+        exactAlarmsAllowed: () async => allowed,
+        preferencesLoader: () async => const NotificationPreferences(
+          notificationsEnabled: true,
+          permissionStatus: NotificationPermissionStatus.granted,
+          soundEnabled: true,
+        ),
+      );
+
+      const routine = Routine(
+        id: 'routine_1',
+        title: '아침 산책',
+        startMinutesFromMidnight: 7 * 60,
+        endMinutesFromMidnight: 8 * 60,
+        repeatWeekdays: {1},
+        colorValue: 0xFF000000,
+        iconEmoji: '📌',
+        notificationEnabled: true,
+      );
+
+      await service.syncAll([routine], testL10n);
+      return gateway.scheduled.single.exact;
+    }
+
+    expect(await scheduleWith(true), isTrue);
+    expect(await scheduleWith(false), isFalse);
+  });
+
+  group('미뤄둔 루틴 재알림', () {
+    const routine = Routine(
+      id: 'routine_1',
+      title: '아침 산책',
+      startMinutesFromMidnight: 7 * 60,
+      endMinutesFromMidnight: 8 * 60,
+      repeatWeekdays: {1, 3},
+      colorValue: 0xFF000000,
+      iconEmoji: '📌',
+      notificationEnabled: true,
+    );
+
+    final snoozeId =
+        RoutineNotificationService.snoozeNotificationIdFor('routine_1');
+    final snoozePayload =
+        RoutineNotificationService.snoozePayloadFor('routine_1');
+
+    RoutineNotificationService serviceOn(
+      _FakeLocalNotificationGateway gateway, {
+      bool notificationsEnabled = true,
+    }) {
+      return RoutineNotificationService(
+        exactAlarmsAllowed: () async => false,
+        gateway: gateway,
+        preferencesLoader: () async => NotificationPreferences(
+          notificationsEnabled: notificationsEnabled,
+          permissionStatus: NotificationPermissionStatus.granted,
+          soundEnabled: true,
+        ),
+      );
+    }
+
+    PendingNotificationRequest pendingSnooze() =>
+        PendingNotificationRequest(snoozeId, 'x', 'x', snoozePayload);
+
+    test('정한 시각에 한 번만 예약한다', () async {
+      final gateway = _FakeLocalNotificationGateway();
+      final when = DateTime(2026, 4, 9, 7, 45);
+
+      await serviceOn(gateway).scheduleSnooze(routine, when, testL10n);
+
+      expect(gateway.scheduledOnce, hasLength(1));
+      final once = gateway.scheduledOnce.single;
+      expect(once.id, snoozeId);
+      expect(once.payload, snoozePayload);
+      expect(once.whenLocal, when);
+      expect(once.title, '아침 산책');
+    });
+
+    test('주간 예약과 id 가 겹치지 않는다', () async {
+      for (var weekday = 1; weekday <= 7; weekday++) {
+        expect(
+          RoutineNotificationService.notificationIdFor('routine_1', weekday),
+          isNot(snoozeId),
+        );
+      }
+    });
+
+    test('syncAll 이 미뤄둔 재알림을 지우지 않는다', () async {
+      // 접두사를 나눠 둔 이유다. 루틴을 저장할 때마다 사라지면 «나중에»는
+      // 지켜지지 않는 약속이 된다.
+      final gateway = _FakeLocalNotificationGateway(pending: [
+        pendingSnooze(),
+        const PendingNotificationRequest(
+          10,
+          'old',
+          'old',
+          'routine_notification:legacy:1',
+        ),
+      ]);
+
+      await serviceOn(gateway).syncAll([routine], testL10n);
+
+      expect(gateway.cancelledIds, [10]);
+    });
+
+    test('앱 알림을 끄면 미뤄둔 재알림도 거둔다', () async {
+      final gateway =
+          _FakeLocalNotificationGateway(pending: [pendingSnooze()]);
+
+      await serviceOn(gateway, notificationsEnabled: false)
+          .syncAll([routine], testL10n);
+
+      expect(gateway.cancelledIds, contains(snoozeId));
+    });
+
+    test('앱 알림이 꺼져 있으면 미뤄도 예약하지 않는다', () async {
+      final gateway = _FakeLocalNotificationGateway();
+
+      await serviceOn(gateway, notificationsEnabled: false)
+          .scheduleSnooze(routine, DateTime(2026, 4, 9, 7, 45), testL10n);
+
+      expect(gateway.scheduledOnce, isEmpty);
+      expect(gateway.cancelledIds, contains(snoozeId));
+    });
+
+    test('루틴별 알림을 끈 루틴은 미뤄도 예약하지 않는다', () async {
+      // 원래 알림도 가지 않는 루틴인데 미뤘다고 울리면 설정을 어기는 셈이다.
+      final gateway = _FakeLocalNotificationGateway();
+      const silent = Routine(
+        id: 'routine_1',
+        title: '아침 산책',
+        startMinutesFromMidnight: 7 * 60,
+        endMinutesFromMidnight: 8 * 60,
+        repeatWeekdays: {1, 3},
+        colorValue: 0xFF000000,
+        iconEmoji: '📌',
+        notificationEnabled: false,
+      );
+
+      await serviceOn(gateway)
+          .scheduleSnooze(silent, DateTime(2026, 4, 9, 7, 45), testL10n);
+
+      expect(gateway.scheduledOnce, isEmpty);
+    });
+
+    test('cancelSnooze 는 그 루틴의 재알림을 거둔다', () async {
+      final gateway = _FakeLocalNotificationGateway();
+
+      await serviceOn(gateway).cancelSnooze('routine_1');
+
+      expect(gateway.cancelledIds, [snoozeId]);
+    });
   });
 }
 
@@ -84,6 +292,7 @@ class _FakeLocalNotificationGateway implements LocalNotificationGateway {
   final List<PendingNotificationRequest> _pending;
   final List<int> cancelledIds = [];
   final List<_ScheduledNotification> scheduled = [];
+  final List<_ScheduledOnce> scheduledOnce = [];
   bool initialized = false;
 
   @override
@@ -110,6 +319,7 @@ class _FakeLocalNotificationGateway implements LocalNotificationGateway {
     required TimeOfDay time,
     required NotificationDetails details,
     required String payload,
+    required bool exact,
   }) async {
     scheduled.add(
       _ScheduledNotification(
@@ -117,6 +327,30 @@ class _FakeLocalNotificationGateway implements LocalNotificationGateway {
         weekday: weekday,
         time: time,
         payload: payload,
+        details: details,
+        exact: exact,
+      ),
+    );
+  }
+
+  @override
+  Future<void> scheduleOnce({
+    required int id,
+    required String title,
+    required String body,
+    required DateTime whenLocal,
+    required NotificationDetails details,
+    required String payload,
+    required bool exact,
+  }) async {
+    scheduledOnce.add(
+      _ScheduledOnce(
+        id: id,
+        title: title,
+        body: body,
+        whenLocal: whenLocal,
+        payload: payload,
+        exact: exact,
       ),
     );
   }
@@ -128,10 +362,32 @@ class _ScheduledNotification {
     required this.weekday,
     required this.time,
     required this.payload,
+    required this.details,
+    required this.exact,
   });
 
   final int id;
   final int weekday;
   final TimeOfDay time;
   final String payload;
+  final NotificationDetails details;
+  final bool exact;
+}
+
+class _ScheduledOnce {
+  const _ScheduledOnce({
+    required this.id,
+    required this.title,
+    required this.body,
+    required this.whenLocal,
+    required this.payload,
+    required this.exact,
+  });
+
+  final int id;
+  final String title;
+  final String body;
+  final DateTime whenLocal;
+  final String payload;
+  final bool exact;
 }

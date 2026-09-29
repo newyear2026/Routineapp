@@ -12,8 +12,14 @@ abstract final class TimeMinutes {
   static String formatHm(int minutes) {
     final h = minutes ~/ 60;
     final m = minutes % 60;
-    return '${h.toString().padLeft(2, '0')}:${m.toString().padLeft(2, '0')}';
+    return '${formatTwoDigits(h)}:${formatTwoDigits(m)}';
   }
+
+  /// 시각의 한 조각을 두 자리로: `9` → `09`
+  ///
+  /// 시각 선택기처럼 시와 분을 따로 보여주는 화면에서 쓴다.
+  /// 자릿수 채우기도 여기 하나로 모아, 포맷이 갈라지지 않게 한다.
+  static String formatTwoDigits(int value) => value.toString().padLeft(2, '0');
 
   /// `HH:mm–HH:mm` — 구분자는 en dash, 공백 없음
   static String formatRange(int startMinutes, int endMinutes) =>

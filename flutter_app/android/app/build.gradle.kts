@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("kotlin-android")
@@ -5,8 +7,17 @@ plugins {
     id("dev.flutter.flutter-gradle-plugin")
 }
 
+// 업로드 키는 저장소에 두지 않는다. android/key.properties 가 있으면 릴리스를
+// 그 키로 서명하고, 없으면 debug 키로 떨어뜨려 로컬 `flutter run --release` 를
+// 계속 쓸 수 있게 한다. Play 에 올릴 AAB 는 반드시 key.properties 가 있어야 한다.
+val keystoreProperties = Properties().apply {
+    val f = rootProject.file("key.properties")
+    if (f.exists()) f.inputStream().use { load(it) }
+}
+val hasUploadKeystore = keystoreProperties.getProperty("storeFile") != null
+
 android {
-    namespace = "com.example.routine_timer"
+    namespace = "com.dayround.app"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
@@ -21,8 +32,8 @@ android {
     }
 
     defaultConfig {
-        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).
-        applicationId = "com.example.routine_timer"
+        // Play Console 에서 앱을 만든 뒤에는 절대 바꿀 수 없다.
+        applicationId = "com.dayround.app"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
@@ -31,11 +42,24 @@ android {
         versionName = flutter.versionName
     }
 
+    signingConfigs {
+        if (hasUploadKeystore) {
+            create("upload") {
+                storeFile = rootProject.file(keystoreProperties.getProperty("storeFile"))
+                storePassword = keystoreProperties.getProperty("storePassword")
+                keyAlias = keystoreProperties.getProperty("keyAlias")
+                keyPassword = keystoreProperties.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
-            // TODO: Add your own signing config for the release build.
-            // Signing with the debug keys for now, so `flutter run --release` works.
-            signingConfig = signingConfigs.getByName("debug")
+            signingConfig = if (hasUploadKeystore) {
+                signingConfigs.getByName("upload")
+            } else {
+                signingConfigs.getByName("debug")
+            }
 
             // flutter_local_notifications가 Gson TypeToken으로 예약 알림을
             // 되읽는다. 규칙이 없으면 R8이 제네릭 시그니처를 지워

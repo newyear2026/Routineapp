@@ -1,9 +1,17 @@
 import 'package:flutter/material.dart';
+import '../../domain/utils/app_date_formats.dart';
+import '../../l10n/app_localizations.dart';
 
 import '../../domain/models/routine.dart';
 import '../../domain/utils/time_minutes.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_text_styles.dart';
+import '../../widgets/ds/app_pixel_hint.dart';
+import '../../widgets/ds/pixel_icon.dart';
+import '../../theme/app_pixel_style.dart';
+import '../../theme/app_theme_preset.dart';
+import '../../widgets/ds/pixel_decoration.dart';
+import '../../widgets/store/character_pack_scope.dart';
 
 /// 루틴 폼의 상단 바.
 ///
@@ -22,34 +30,79 @@ class RoutineFormHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final garden = CharacterPackScope.currentOf(context).id == 'poodle_garden';
     return SizedBox(
       height: 62,
-      child: Row(
+      child: Stack(
         children: [
-          IconButton(
-            tooltip: '뒤로',
-            onPressed: onBack,
-            icon: const Icon(Icons.arrow_back_ios_new_rounded),
-          ),
-          Expanded(
-            child: Text(
-              title,
-              textAlign: TextAlign.center,
-              style: AppTextStyles.titleScreen,
-            ),
-          ),
-          SizedBox(
-            width: 54,
-            child: onDelete == null
-                ? null
-                : IconButton(
-                    tooltip: '루틴 삭제',
-                    onPressed: onDelete,
-                    icon: const Icon(
-                      Icons.delete_outline_rounded,
-                      color: AppColors.dangerText,
-                    ),
+          if (onDelete == null &&
+              MediaQuery.textScalerOf(context).scale(1) <= 1.2) ...[
+            if (garden) ...[
+              if (MediaQuery.sizeOf(context).width >= 360)
+                const Positioned(
+                  right: 15,
+                  top: 5,
+                  child: GardenLeaf(
+                    key: Key('routine-add-header-garden-leaf'),
+                    size: 28,
+                    angle: -0.3,
                   ),
+                ),
+              if (MediaQuery.sizeOf(context).width >= 360)
+                const Positioned(
+                  right: 66,
+                  top: 27,
+                  child: PixelDecoration(
+                    key: Key('routine-add-header-garden-daisy'),
+                    asset: 'garden-daisy',
+                    size: 24,
+                  ),
+                ),
+            ] else
+              Positioned(
+                right: 8,
+                top: 4,
+                child: IgnorePointer(
+                  child: Image.asset(
+                    'assets/decorations/settings-card-cloud.png',
+                    key: const Key('routine-add-header-cloud'),
+                    width: 104,
+                    height: 52,
+                    filterQuality: FilterQuality.none,
+                    excludeFromSemantics: true,
+                  ),
+                ),
+              ),
+          ],
+          Row(
+            children: [
+              IconButton(
+                tooltip: AppLocalizations.of(context).commonBack,
+                onPressed: onBack,
+                icon: const Icon(Icons.arrow_back_ios_new_rounded),
+              ),
+              Expanded(
+                child: Text(
+                  title,
+                  textAlign: TextAlign.start,
+                  style: AppTextStyles.titleScreen,
+                ),
+              ),
+              SizedBox(
+                width: 54,
+                child: onDelete == null
+                    ? null
+                    : IconButton(
+                        tooltip:
+                            AppLocalizations.of(context).routineDeleteTitle,
+                        onPressed: onDelete,
+                        icon: const Icon(
+                          Icons.delete_outline_rounded,
+                          color: AppColors.dangerText,
+                        ),
+                      ),
+              ),
+            ],
           ),
         ],
       ),
@@ -68,10 +121,9 @@ class RoutineFormSurface extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       padding: padding ?? const EdgeInsets.all(20),
-      decoration: BoxDecoration(
+      decoration: ShapeDecoration(
         color: AppColors.orbitSurface,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: AppColors.orbitBorder),
+        shape: AppPixelStyle.shape(),
       ),
       child: child,
     );
@@ -94,26 +146,34 @@ class RoutineTimeTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Material(
-      color: AppColors.orbitSurface,
-      borderRadius: BorderRadius.circular(16),
+      color: Colors.transparent,
+      borderRadius: BorderRadius.zero,
       child: InkWell(
         onTap: onTap,
-        borderRadius: BorderRadius.circular(16),
+        borderRadius: BorderRadius.zero,
         child: Container(
-          height: 84,
-          decoration: BoxDecoration(
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: AppColors.orbitBorder),
-          ),
+          // 'Hora de inicio'는 '시작 시간'보다 두 배 길다. 높이를 못 박으면
+          // 라벨이 두 줄로 접히면서 타일 아래가 잘린다.
+          constraints: const BoxConstraints(minHeight: 72),
+          padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
+          decoration: ShapeDecoration(
+              color: AppColors.orbitSurface, shape: AppPixelStyle.shape()),
           child: Column(
+            mainAxisSize: MainAxisSize.min,
             mainAxisAlignment: MainAxisAlignment.center,
             children: [
               Text(
                 TimeMinutes.formatTimeOfDay(value),
-                style: AppTextStyles.titleSection.copyWith(fontSize: 25),
+                style: AppTextStyles.titleSection.copyWith(fontSize: 22),
               ),
               const SizedBox(height: 3),
-              Text(label, style: AppTextStyles.caption),
+              Text(
+                label,
+                maxLines: 2,
+                textAlign: TextAlign.center,
+                overflow: TextOverflow.ellipsis,
+                style: AppTextStyles.caption,
+              ),
             ],
           ),
         ),
@@ -126,47 +186,53 @@ class RoutineTimeTile extends StatelessWidget {
 class RoutineWeekdayCircle extends StatelessWidget {
   const RoutineWeekdayCircle({
     super.key,
-    required this.label,
+    required this.weekday,
     required this.selected,
     required this.onTap,
   });
 
-  final String label;
+  /// 월요일=1 … 일요일=7.
+  ///
+  /// 라벨을 밖에서 받지 않는다 — 표시용 한 글자와 스크린리더용 전체 이름이
+  /// 서로 다른 형식이어서, 한 문자열로 받으면 둘 중 하나가 어색해진다.
+  final int weekday;
   final bool selected;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
+    final label = AppDateFormats.weekdayNarrowByIndex(context, weekday);
+    final primary = Theme.of(context).colorScheme.primary;
     return Semantics(
       selected: selected,
       button: true,
-      label: '$label요일',
+      label: AppDateFormats.weekdayFullByIndex(context, weekday),
       child: InkWell(
-        key: Key('routine-weekday-$label'),
+        // 키는 언어를 타면 안 된다 — 요일 번호로 고정한다.
+        key: Key('routine-weekday-$weekday'),
         onTap: onTap,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.zero,
         child: Center(
           child: AnimatedContainer(
             duration: const Duration(milliseconds: 160),
             width: 39,
             height: 39,
             alignment: Alignment.center,
-            decoration: BoxDecoration(
+            decoration: ShapeDecoration(
               color: selected
-                  ? AppColors.orbitPrimary.withValues(alpha: .15)
+                  ? primary.withValues(alpha: .15)
                   : AppColors.orbitSurface,
-              shape: BoxShape.circle,
-              border: Border.all(
-                color:
-                    selected ? AppColors.orbitPrimary : AppColors.orbitBorder,
+              shape: AppPixelStyle.shape(
+                step: AppPixelStyle.cornerStepSmall,
+                color: selected ? primary : AppColors.orbitBorder,
                 width: selected ? 1.8 : 1,
               ),
             ),
             child: Text(
               label,
+              maxLines: 1,
               style: AppTextStyles.bodyStrong.copyWith(
-                color:
-                    selected ? AppColors.orbitPrimary : AppColors.textPrimary,
+                color: selected ? primary : AppColors.textPrimary,
               ),
             ),
           ),
@@ -184,32 +250,7 @@ class RoutineFormInfoLine extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-      decoration: BoxDecoration(
-        color: AppColors.orbitHalo.withValues(alpha: .24),
-        borderRadius: BorderRadius.circular(13),
-      ),
-      child: Row(
-        children: [
-          const Icon(
-            Icons.auto_graph_rounded,
-            size: 17,
-            color: AppColors.orbitPrimary,
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              text,
-              style: AppTextStyles.caption.copyWith(
-                color: AppColors.orbitPrimary,
-                fontWeight: FontWeight.w700,
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
+    return AppPixelHint(message: text);
   }
 }
 
@@ -226,14 +267,17 @@ class RoutineSuggestionChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
     return ActionChip(
       label: Text(label),
-      avatar: const Icon(Icons.add_rounded, size: 16),
+      shape: const RoundedRectangleBorder(),
+      avatar: const AppIcon(Icons.add_rounded, size: 16),
       onPressed: onTap,
-      backgroundColor: AppColors.orbitHalo.withValues(alpha: .18),
-      side: BorderSide(color: AppColors.orbitPrimary.withValues(alpha: .2)),
+      backgroundColor:
+          context.appTheme.preset.selectedSurface.withValues(alpha: .18),
+      side: BorderSide(color: primary.withValues(alpha: .2)),
       labelStyle: AppTextStyles.caption.copyWith(
-        color: AppColors.orbitPrimary,
+        color: primary,
         fontWeight: FontWeight.w700,
       ),
     );
@@ -248,17 +292,9 @@ class RoutineOverlapNotice extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Container(
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: AppColors.orbitAccent.withValues(alpha: .14),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.warning.withValues(alpha: .45)),
-      ),
-      child: Text(
-        '“${routine.title}”과 시간이 겹쳐요. 저장 전에 시간을 확인해보세요.',
-        style: AppTextStyles.caption.copyWith(color: AppColors.textPrimary),
-      ),
+    return AppPixelHint(
+      message: AppLocalizations.of(context).routineOverlapInline(routine.title),
+      isError: true,
     );
   }
 }
