@@ -16,6 +16,7 @@ void main() {
     'assets/decorations',
     'assets/characters/cat_starlight/v1/approved',
     'assets/characters/poodle_garden/v1/approved',
+    'assets/characters/cat_stargazer/v1/approved',
     'assets/routine_icons',
   ];
 

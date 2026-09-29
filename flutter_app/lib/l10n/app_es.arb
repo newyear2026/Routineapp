@@ -347,6 +347,16 @@
   "releaseNote101Snooze": "Las rutinas que pospones vuelven a avisarte a la hora que elegiste.",
   "releaseNote101PixelClouds": "Las nubes del horario de inicio ahora son pixel art.",
   "releaseNote101CharacterPacks": "Elige un pack de personaje y el tema cambia con él.",
-  "releaseNote101GardenUnlock": "Mira dos anuncios para quedarte con el Pack Jardín Poodle.",
-  "releaseNote101Languages": "Ahora también está en japonés y portugués."
+  "releaseNote101GardenTrial": "Mira un anuncio para usar el Pack Jardín Poodle durante un día.",
+  "releaseNote101Languages": "Ahora también está en japonés y portugués.",
+  "releaseNote102Widgets": "Puedes poner en la pantalla de inicio un widget de círculo, de línea de tiempo o de tarjetas.",
+  "releaseNote102Timeline": "La pestaña de rutinas muestra el día de hoy en una línea de tiempo.",
+  "releaseNote102GardenUnlock": "Mira dos anuncios para quedarte con el Pack Jardín Poodle.",
+  "packStargazerName": "Gato astrónomo",
+  "packStargazerTagline": "Un gato de edición limitada y un widget de cielo nocturno",
+  "launchGiftBadge": "Regalo de lanzamiento",
+  "launchGiftLocked": "Un pack limitado para quienes empezaron durante el lanzamiento.",
+  "launchGiftTitle": "Llegó tu regalo de lanzamiento",
+  "launchGiftDescription": "Recibiste el Gato astrónomo, un widget nocturno y tres adornos.",
+  "launchGiftUseAction": "Usar ahora"
 }

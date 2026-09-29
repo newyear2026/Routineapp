@@ -22,6 +22,9 @@ enum CharacterPackAvailability {
   /// 채로 여는 방법이 없는 팩은 사용자에게 고장 난 버튼일 뿐이다.
   rewardedUnlock,
 
+  /// 앱 출시 기간에 처음 실행한 사용자에게 영구 제공.
+  launchGift,
+
   /// 자리는 정해졌고 그림이 아직 없다.
   comingSoon,
 }

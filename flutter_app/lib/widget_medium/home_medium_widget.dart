@@ -27,7 +27,17 @@ class HomeMediumWidget extends StatelessWidget {
     return LayoutBuilder(builder: (context, constraints) {
       final narrow = constraints.maxWidth < 300;
       final garden = characterPackId == 'poodle_garden';
-      final accent = garden ? const Color(0xFF078F96) : WidgetTheme.accent;
+      final stargazer = characterPackId == 'cat_stargazer';
+      final accent = stargazer
+          ? const Color(0xFFF4C430)
+          : garden
+              ? const Color(0xFF078F96)
+              : WidgetTheme.accent;
+      final textPrimary =
+          stargazer ? const Color(0xFFFFF9EA) : WidgetTheme.textPrimary;
+      final textMuted =
+          stargazer ? const Color(0xFFD6E6ED) : WidgetTheme.textMuted;
+      final border = stargazer ? const Color(0xFF668995) : WidgetTheme.border;
       final dialSize = narrow ? 84.0 : ringSize.clamp(0.0, 112.0);
       final mascotSize = narrow ? 40.0 : 50.0;
       return SizedBox(
@@ -38,9 +48,11 @@ class HomeMediumWidget extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: garden
-                  ? const [Color(0xFFF7F0FF), Color(0xFFD4F7E8)]
-                  : const [Color(0xFFFFF4DC), Color(0xFFE6D8FF)],
+              colors: stargazer
+                  ? const [Color(0xFF0B3D4A), Color(0xFF12365B)]
+                  : garden
+                      ? const [Color(0xFFF7F0FF), Color(0xFFD4F7E8)]
+                      : const [Color(0xFFFFF4DC), Color(0xFFE6D8FF)],
             ),
             shape: AppPixelStyle.shape(width: 1.5),
             shadows: const [
@@ -55,12 +67,15 @@ class HomeMediumWidget extends StatelessWidget {
               child: IgnorePointer(
                 child: garden
                     ? const _GardenDecor()
-                    : Opacity(
-                        opacity: 0.45,
-                        child: Image.asset('assets/decorations/home-sky.png',
-                            fit: BoxFit.fill,
-                            filterQuality: FilterQuality.none),
-                      ),
+                    : stargazer
+                        ? const SizedBox.shrink()
+                        : Opacity(
+                            opacity: 0.45,
+                            child: Image.asset(
+                                'assets/decorations/home-sky.png',
+                                fit: BoxFit.fill,
+                                filterQuality: FilterQuality.none),
+                          ),
               ),
             ),
             Row(children: [
@@ -73,9 +88,11 @@ class HomeMediumWidget extends StatelessWidget {
                   child: Transform.translate(
                     offset: Offset(narrow ? -8 : -10, 0),
                     child: Image.asset(
-                      garden
-                          ? 'assets/characters/poodle_garden/v1/approved/idle.png'
-                          : 'assets/characters/cat_starlight/v1/approved/idle.png',
+                      stargazer
+                          ? 'assets/characters/cat_stargazer/v1/approved/idle.png'
+                          : garden
+                              ? 'assets/characters/poodle_garden/v1/approved/idle.png'
+                              : 'assets/characters/cat_starlight/v1/approved/idle.png',
                       width: narrow ? 55 : 70,
                       height: narrow ? 55 : 70,
                       filterQuality: FilterQuality.none,
@@ -90,10 +107,16 @@ class HomeMediumWidget extends StatelessWidget {
                   nextLabel: l10n.commonNext,
                   narrow: narrow,
                   accent: accent,
+                  textPrimary: textPrimary,
+                  textMuted: textMuted,
+                  border: border,
+                  onAccent: stargazer
+                      ? const Color(0xFF123041)
+                      : WidgetTheme.onAccent,
                 ),
               ),
               SizedBox(width: narrow ? 4 : 7),
-              Container(width: 1, color: WidgetTheme.border),
+              Container(width: 1, color: border),
               SizedBox(width: narrow ? 2 : 5),
               MiniCircularTimetable(
                 segments: viewModel.ringSegments,
@@ -117,12 +140,20 @@ class _RoutineColumn extends StatelessWidget {
     required this.nextLabel,
     required this.narrow,
     required this.accent,
+    required this.textPrimary,
+    required this.textMuted,
+    required this.border,
+    required this.onAccent,
   });
 
   final HomeMediumWidgetViewModel vm;
   final String nextLabel;
   final bool narrow;
   final Color accent;
+  final Color textPrimary;
+  final Color textMuted;
+  final Color border;
+  final Color onAccent;
 
   @override
   Widget build(BuildContext context) => Column(
@@ -140,10 +171,10 @@ class _RoutineColumn extends StatelessWidget {
                 vm.currentRoutineStatusLabel,
                 maxLines: 1,
                 overflow: TextOverflow.ellipsis,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: WidgetTheme.captionSize,
                   fontWeight: FontWeight.w800,
-                  color: WidgetTheme.onAccent,
+                  color: onAccent,
                   height: 1.1,
                 ),
               ),
@@ -157,20 +188,21 @@ class _RoutineColumn extends StatelessWidget {
             style: TextStyle(
               fontSize: narrow ? 17 : 22,
               fontWeight: FontWeight.w800,
-              color: WidgetTheme.textPrimary,
+              color: textPrimary,
               height: 1.08,
             ),
           ),
           if (vm.currentRoutineTimingHint.isNotEmpty) ...[
             const SizedBox(height: 5),
-            _TimingHint(vm.currentRoutineTimingHint, narrow: narrow),
+            _TimingHint(vm.currentRoutineTimingHint,
+                narrow: narrow, accent: accent, textMuted: textMuted),
           ],
           const Spacer(),
-          Container(height: 1, color: WidgetTheme.border),
+          Container(height: 1, color: border),
           SizedBox(height: narrow ? 6 : 8),
           Row(children: [
             PixelIcon(PixelGlyph.progress,
-                size: narrow ? 15 : 17, color: WidgetTheme.textMuted),
+                size: narrow ? 15 : 17, color: textMuted),
             const SizedBox(width: 5),
             // 라벨과 제목을 한 문단으로 묶는다. 라벨을 따로 두면 «Siguiente»
             // 처럼 긴 라벨이 제목 몫을 다 먹고 줄이 넘친다. 한 문단이면
@@ -183,7 +215,7 @@ class _RoutineColumn extends StatelessWidget {
                     style: TextStyle(
                         fontSize: narrow ? 11 : 12,
                         fontWeight: FontWeight.w700,
-                        color: WidgetTheme.textMuted),
+                        color: textMuted),
                   ),
                   const WidgetSpan(child: SizedBox(width: 5)),
                   TextSpan(text: vm.nextRoutineTitle),
@@ -193,7 +225,7 @@ class _RoutineColumn extends StatelessWidget {
                 style: TextStyle(
                     fontSize: narrow ? 12 : WidgetTheme.bodySize,
                     fontWeight: FontWeight.w800,
-                    color: WidgetTheme.textPrimary),
+                    color: textPrimary),
               ),
             ),
             if (vm.nextRoutineTime.isNotEmpty) ...[
@@ -204,7 +236,7 @@ class _RoutineColumn extends StatelessWidget {
                   style: TextStyle(
                     fontSize: narrow ? 11 : 12,
                     fontWeight: FontWeight.w700,
-                    color: WidgetTheme.textMuted,
+                    color: textMuted,
                   )),
             ],
           ]),
@@ -214,10 +246,13 @@ class _RoutineColumn extends StatelessWidget {
 }
 
 class _TimingHint extends StatelessWidget {
-  const _TimingHint(this.text, {required this.narrow});
+  const _TimingHint(this.text,
+      {required this.narrow, required this.accent, required this.textMuted});
 
   final String text;
   final bool narrow;
+  final Color accent;
+  final Color textMuted;
 
   @override
   Widget build(BuildContext context) {
@@ -229,7 +264,7 @@ class _TimingHint extends StatelessWidget {
     final base = TextStyle(
       fontSize: narrow ? 11 : WidgetTheme.bodySize,
       fontWeight: FontWeight.w700,
-      color: WidgetTheme.accent,
+      color: accent,
       height: 1.15,
     );
     return Text.rich(
@@ -250,7 +285,7 @@ class _TimingHint extends StatelessWidget {
         if (suffixStart < text.length)
           TextSpan(
             text: text.substring(suffixStart),
-            style: const TextStyle(color: WidgetTheme.textMuted),
+            style: TextStyle(color: textMuted),
           ),
       ]),
       maxLines: 1,

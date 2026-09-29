@@ -100,7 +100,7 @@ void main() {
     expect(find.text('저녁식사'), findsOneWidget);
     // 취침도 다음 일정 목록에 한 번만 나온다 (예전에는 두 번 렌더됐다).
     expect(find.text('취침'), findsOneWidget);
-    expect(find.text('1개'), findsOneWidget);
+    expect(find.text('1개'), findsNothing);
   });
 
   testWidgets('진행 중인 루틴이 없으면 예정을 보여준다', (tester) async {
@@ -464,6 +464,7 @@ void main() {
       findsOneWidget,
     );
     expect(find.byKey(const Key('home-complete-button')), findsNothing);
+    expect(find.text('0개'), findsNothing);
   });
 
   testWidgets('오늘 루틴이 없으면 빈 상태와 다음 행동을 안내한다', (tester) async {
@@ -485,7 +486,7 @@ void main() {
     expect(find.textContaining('루틴 탭에서 하나 추가'), findsNothing);
   });
 
-  group('다음 일정 개수', () {
+  group('다음 일정', () {
     final many = <Routine>[
       dailyRoutine(id: 'r1', title: '기상', startHour: 7, endHour: 8),
       dailyRoutine(id: 'r2', title: '아침운동', startHour: 9, endHour: 10),
@@ -495,7 +496,7 @@ void main() {
       dailyRoutine(id: 'r6', title: '취침', startHour: 23, endHour: 24),
     ];
 
-    testWidgets('목록이 잘리면 헤더도 보이는 수를 함께 말한다', (tester) async {
+    testWidgets('목록이 잘리면 헤더 개수 없이 더 보기를 보여준다', (tester) async {
       final controller = await pumpHome(
         tester,
         now: DateTime(2026, 8, 4, 6, 0),
@@ -505,20 +506,20 @@ void main() {
 
       // 기상은 포커스 스트립이 맡고, 남은 5개가 다음 일정이 된다.
       expect(controller.homeSnapshotFor(testL10n).upcomingRoutines.length, 5);
-      // 전체 개수만 적으면 3개만 그려진 화면과 어긋난다.
-      expect(find.text('3 / 5'), findsOneWidget);
+      expect(find.text('3 / 5'), findsNothing);
       expect(find.text('5개'), findsNothing);
       expect(find.text('남은 2개 보기'), findsOneWidget);
     });
 
-    testWidgets('잘리지 않으면 개수만 적고 더 보기를 붙이지 않는다', (tester) async {
+    testWidgets('목록이 잘리지 않으면 헤더 개수와 더 보기를 표시하지 않는다', (tester) async {
       final controller = await pumpHome(
         tester,
         now: DateTime(2026, 8, 4, 16, 24),
       );
       addTearDown(controller.dispose);
 
-      expect(find.text('1개'), findsOneWidget);
+      expect(find.text('1개'), findsNothing);
+      expect(find.text('취침'), findsOneWidget);
       expect(find.byKey(const Key('home-more-upcoming-link')), findsNothing);
     });
   });

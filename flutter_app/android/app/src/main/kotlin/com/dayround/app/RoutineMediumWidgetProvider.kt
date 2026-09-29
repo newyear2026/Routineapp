@@ -91,9 +91,10 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
         val ringPx = ringSizePx(context)
         val ring = RoutineWidgetRingBitmap.create(ringJson, ringPx, drawCenter = false)
         val garden = json.optString("characterPackId") == "poodle_garden"
+        val stargazer = json.optString("characterPackId") == "cat_stargazer"
 
         for (id in appWidgetIds) {
-            val views = renderWidget(context, json, display, nowMs, ring, garden, expired)
+            val views = renderWidget(context, json, display, nowMs, ring, garden, stargazer, expired)
             appWidgetManager.updateAppWidget(id, views)
         }
         scheduleNextUpdate(context, appWidgetIds, json, nowMs)
@@ -106,6 +107,7 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
         nowMs: Long,
         ring: Bitmap,
         garden: Boolean,
+        stargazer: Boolean,
         expired: Boolean,
     ): RemoteViews {
         val nextTitle = display.optString("nextRoutineTitle", "")
@@ -120,10 +122,10 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
         val views = RemoteViews(context.packageName, layout)
         when (widgetStyle) {
             WidgetStyle.RING -> {
-                bindPackArtwork(views, garden)
+                bindPackArtwork(views, garden, stargazer)
                 bindText(views, R.id.widget_status_badge, display.optString("currentRoutineStatus", ""))
                 bindText(views, R.id.widget_current_title, display.optString("currentRoutineTitle", ""))
-                bindTimingHint(views, hint)
+                bindTimingHint(views, hint, stargazer)
                 bindText(views, R.id.widget_next_label, nextLabel)
                 bindText(views, R.id.widget_next_title, nextTitle)
                 bindText(views, R.id.widget_next_time, display.optString("nextRoutineTime", ""))
@@ -134,14 +136,14 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
             }
             WidgetStyle.TIMELINE -> {
                 views.setImageViewBitmap(R.id.widget_variant_art,
-                    RoutineWidgetVariantBitmap.create(context, "timeline", garden, display,
+                    RoutineWidgetVariantBitmap.create(context, "timeline", garden, stargazer, display,
                         display.optString("currentRoutineStatus", ""),
                         display.optString("currentRoutineTitle", ""), hint, nextLabel,
                         nextTitle, display.optString("nextRoutineTime", "")))
             }
             WidgetStyle.CARDS -> {
                 views.setImageViewBitmap(R.id.widget_variant_art,
-                    RoutineWidgetVariantBitmap.create(context, "cards", garden, display,
+                    RoutineWidgetVariantBitmap.create(context, "cards", garden, stargazer, display,
                         display.optString("currentRoutineStatus", ""),
                         display.optString("currentRoutineTitle", ""), hint, nextLabel,
                         nextTitle, display.optString("nextRoutineTime", "")))
@@ -251,11 +253,12 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
         views.setViewVisibility(viewId, if (text.isBlank()) View.GONE else View.VISIBLE)
     }
 
-    private fun bindTimingHint(views: RemoteViews, text: String) {
+    private fun bindTimingHint(views: RemoteViews, text: String, stargazer: Boolean) {
         val styled = SpannableString(text)
         val suffix = if (text.endsWith(" 남음")) text.length - 3 else text.length
         if (suffix < text.length) {
-            styled.setSpan(ForegroundColorSpan(Color.parseColor("#6A6489")),
+            styled.setSpan(ForegroundColorSpan(Color.parseColor(
+                if (stargazer) "#D6E6ED" else "#6A6489")),
                 suffix, text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
         val duration = Regex("\\d+(?:시간\\s*\\d+)?분|\\d+시간").find(text)
@@ -272,16 +275,29 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
         return max((63 * density).toInt(), 63)
     }
 
-    private fun bindPackArtwork(views: RemoteViews, garden: Boolean) {
+    private fun bindPackArtwork(views: RemoteViews, garden: Boolean, stargazer: Boolean) {
         views.setInt(R.id.widget_root, "setBackgroundResource",
-            if (garden) R.drawable.widget_medium_bg_poodle else R.drawable.widget_medium_bg_cat)
+            if (stargazer) R.drawable.widget_medium_bg_stargazer
+            else if (garden) R.drawable.widget_medium_bg_poodle else R.drawable.widget_medium_bg_cat)
         views.setInt(R.id.widget_status_badge, "setBackgroundResource",
-            if (garden) R.drawable.widget_badge_bg_poodle else R.drawable.widget_badge_bg)
+            if (stargazer) R.drawable.widget_badge_bg_stargazer
+            else if (garden) R.drawable.widget_badge_bg_poodle else R.drawable.widget_badge_bg)
         views.setImageViewResource(R.id.widget_mascot,
-            if (garden) R.drawable.widget_poodle else R.drawable.widget_cat)
-        views.setViewVisibility(R.id.widget_decor, if (garden) View.GONE else View.VISIBLE)
+            if (stargazer) R.drawable.widget_stargazer
+            else if (garden) R.drawable.widget_poodle else R.drawable.widget_cat)
+        views.setViewVisibility(R.id.widget_decor, if (garden || stargazer) View.GONE else View.VISIBLE)
         views.setViewVisibility(R.id.widget_leaf, if (garden) View.VISIBLE else View.GONE)
         views.setViewVisibility(R.id.widget_daisy, if (garden) View.VISIBLE else View.GONE)
+        val title = Color.parseColor(if (stargazer) "#FFF9EA" else "#191344")
+        val muted = Color.parseColor(if (stargazer) "#D6E6ED" else "#6B6492")
+        val accent = Color.parseColor(if (stargazer) "#F4C430" else "#643AF6")
+        views.setTextColor(R.id.widget_current_title, title)
+        views.setTextColor(R.id.widget_timing_hint, accent)
+        views.setTextColor(R.id.widget_next_label, muted)
+        views.setTextColor(R.id.widget_next_title, title)
+        views.setTextColor(R.id.widget_next_time, muted)
+        views.setTextColor(R.id.widget_status_badge,
+            Color.parseColor(if (stargazer) "#123041" else "#FFFFFF"))
     }
 
     private fun showPlaceholder(
@@ -304,7 +320,7 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
         for (id in appWidgetIds) {
             appWidgetManager.updateAppWidget(id,
                 renderWidget(context, placeholder, display, System.currentTimeMillis(),
-                    bmp, garden = false, expired = true))
+                    bmp, garden = false, stargazer = false, expired = true))
         }
     }
 

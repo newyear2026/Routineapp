@@ -17,6 +17,7 @@ import 'application/services/ad_bootstrap.dart';
 import 'application/services/play_update_port.dart';
 import 'application/update/app_updates_controller.dart';
 import 'application/review/review_prompt.dart';
+import 'data/local/first_launch_storage.dart';
 import 'domain/update/app_update_port.dart';
 import 'domain/settings/app_language.dart';
 import 'l10n/app_localizations.dart';
@@ -44,6 +45,13 @@ Future<void> main() async {
   // 날짜·시간 포맷을 로케일별로 쓰려면 심볼을 먼저 올려야 한다.
   // 빠뜨리면 ko/es에서 DateFormat이 예외를 던진다.
   await initializeDateFormatting();
+  // 선물 수령 기간과 광고 워밍업이 같은 첫 실행 시각을 사용한다. 광고 SDK가
+  // 시작되기 전 기록해 광고 노출 여부와 무관하게 남긴다.
+  try {
+    await FirstLaunchStorage.ensure(DateTime.now());
+  } catch (e) {
+    debugPrint('first launch timestamp failed: $e');
+  }
   if (!kIsWeb) {
     await HomeWidgetSyncService.instance.init();
     // 기다리지 않는다. 광고는 없어도 앱이 돌아가야 하는 기능이라, 여기서

@@ -1,7 +1,7 @@
 name: routine_timer
 description: 귀여운 감성 루틴 관리 앱
 publish_to: 'none'
-version: 1.0.1+5
+version: 1.0.2+6
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -104,6 +104,9 @@ flutter:
     - assets/decorations/settings-card-cloud.png
     - assets/decorations/settings-sky.png
     - assets/decorations/sleeping-cat.png
+    - assets/decorations/stargazer-celestial-globe.png
+    - assets/decorations/stargazer-meteor.png
+    - assets/decorations/stargazer-telescope.png
     - assets/characters/cat_starlight/v1/approved/idle.png
     - assets/characters/cat_starlight/v1/approved/activity.png
     - assets/characters/cat_starlight/v1/approved/focus.png
@@ -116,6 +119,12 @@ flutter:
     - assets/characters/poodle_garden/v1/approved/rest.png
     - assets/characters/poodle_garden/v1/approved/guide.png
     - assets/characters/cat_starlight/v1/approved/guide.png
+    - assets/characters/cat_stargazer/v1/approved/idle.png
+    - assets/characters/cat_stargazer/v1/approved/activity.png
+    - assets/characters/cat_stargazer/v1/approved/focus.png
+    - assets/characters/cat_stargazer/v1/approved/complete.png
+    - assets/characters/cat_stargazer/v1/approved/rest.png
+    - assets/characters/cat_stargazer/v1/approved/guide.png
 
   # ARB 기반 다국어 코드 생성 (lib/l10n/*.arb -> AppLocalizations)
   generate: true

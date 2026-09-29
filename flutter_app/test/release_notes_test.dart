@@ -143,10 +143,11 @@ void main() {
     testWidgets('보관 개수를 사용자에게 알린다', (tester) async {
       await pumpNotes(tester);
 
-      expect(
-        find.text(testL10n.releaseNotesRetentionHint(releaseNoteRetention)),
-        findsOneWidget,
+      final hint = find.text(
+        testL10n.releaseNotesRetentionHint(releaseNoteRetention),
       );
+      await tester.scrollUntilVisible(hint, 200);
+      expect(hint, findsOneWidget);
     });
   });
 
@@ -256,10 +257,11 @@ void main() {
       await tester.pumpAndSettle();
 
       expect(find.text(testL10n.releaseNotesTitle), findsOneWidget);
-      expect(
-        find.text(testL10n.releaseNotesRetentionHint(releaseNoteRetention)),
-        findsOneWidget,
+      final hint = find.text(
+        testL10n.releaseNotesRetentionHint(releaseNoteRetention),
       );
+      await tester.scrollUntilVisible(hint, 200);
+      expect(hint, findsOneWidget);
     });
   });
 }

@@ -156,11 +156,19 @@ private struct RoutineMediumWidgetEntryView: View {
     var entry: RoutineEntry
 
     private var garden: Bool { entry.payload?.characterPackId == "poodle_garden" }
-    private var packAccent: Color { garden ? Color(hex: 0x078F96) : WidgetTokens.accent }
+    private var stargazer: Bool { entry.payload?.characterPackId == "cat_stargazer" }
+    private var packAccent: Color {
+        stargazer ? Color(hex: 0xF4C430) : (garden ? Color(hex: 0x078F96) : WidgetTokens.accent)
+    }
+    private var packText: Color { stargazer ? Color(hex: 0xFFF9EA) : WidgetTokens.textPrimary }
+    private var packMuted: Color { stargazer ? Color(hex: 0xD6E6ED) : WidgetTokens.textMuted }
+    private var packBorder: Color { stargazer ? Color(hex: 0x668995) : WidgetTokens.border }
     private var packBackground: LinearGradient {
-        LinearGradient(colors: garden
-            ? [Color(hex: 0xF7F0FF), Color(hex: 0xD4F7E8)]
-            : [Color(hex: 0xFFF4DC), Color(hex: 0xE6D8FF)],
+        LinearGradient(colors: stargazer
+            ? [Color(hex: 0x0B3D4A), Color(hex: 0x12365B)]
+            : (garden
+                ? [Color(hex: 0xF7F0FF), Color(hex: 0xD4F7E8)]
+                : [Color(hex: 0xFFF4DC), Color(hex: 0xE6D8FF)]),
             startPoint: .topLeading, endPoint: .bottomTrailing)
     }
 
@@ -190,18 +198,19 @@ private struct RoutineMediumWidgetEntryView: View {
                 PackArtwork.image("widget_daisy")
                     .resizable().interpolation(.none).frame(width: 33, height: 33)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-            } else {
+            } else if !stargazer {
                 PackArtwork.image("widget_stars")
                     .resizable().interpolation(.none).scaledToFill()
                     .opacity(0.45).clipped()
             }
             HStack(alignment: .center, spacing: 5) {
-                PackArtwork.image(garden ? "widget_poodle" : "widget_cat")
+                PackArtwork.image(stargazer ? "widget_stargazer" :
+                    (garden ? "widget_poodle" : "widget_cat"))
                     .resizable().interpolation(.none).scaledToFit()
                     .frame(width: 56, height: 70, alignment: .bottom)
                     .frame(maxHeight: .infinity, alignment: .bottom)
                 leftColumn
-                Rectangle().fill(WidgetTokens.border).frame(width: 1)
+                Rectangle().fill(packBorder).frame(width: 1)
                 RoutineRingView(state: expired ? nil : entry.state,
                                 date: entry.date,
                                 centerLabel: entry.state?.centerTimeLabel ?? entry.payload?.centerTimeLabel ?? "")
@@ -210,7 +219,7 @@ private struct RoutineMediumWidgetEntryView: View {
             .padding(.horizontal, 7)
             .padding(.vertical, 8)
         }
-        .overlay(PixelWidgetShape().stroke(WidgetTokens.textPrimary, lineWidth: 1.5))
+        .overlay(PixelWidgetShape().stroke(packBorder, lineWidth: 1.5))
     }
 
     /// 정보 위계: 상태·시간 → 루틴 이름 → 남은 시간 → 다음 일정.
@@ -224,7 +233,7 @@ private struct RoutineMediumWidgetEntryView: View {
             if !status.isEmpty {
                 Text(status)
                     .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(.white)
+                    .foregroundColor(stargazer ? Color(hex: 0x123041) : .white)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
                     .background(packAccent)
@@ -237,7 +246,7 @@ private struct RoutineMediumWidgetEntryView: View {
                  ? (entry.payload?.refreshHint ?? localizedFallback("refresh"))
                  : (entry.state?.currentRoutineTitle ?? localizedFallback("refresh")))
                 .font(.system(size: 22, weight: .heavy))
-                .foregroundColor(WidgetTokens.textPrimary)
+                .foregroundColor(packText)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
 
@@ -251,7 +260,7 @@ private struct RoutineMediumWidgetEntryView: View {
             }
 
             Spacer(minLength: 0)
-            Rectangle().fill(WidgetTokens.border).frame(height: 1)
+            Rectangle().fill(packBorder).frame(height: 1)
                 .padding(.bottom, 7)
             nextRoutineRow
             Spacer(minLength: 0)
@@ -295,37 +304,37 @@ private struct RoutineMediumWidgetEntryView: View {
         let end = hint.hasSuffix(" 남음") ? String(hint.dropLast(3)) : hint
         guard let range = end.range(of: #"\d+(?:시간\s*\d+)?분|\d+시간"#,
                                    options: .regularExpression) else {
-            return Text(end).foregroundColor(WidgetTokens.accent)
+            return Text(end).foregroundColor(packAccent)
                 + Text(hint.hasSuffix(" 남음") ? " 남음" : "")
-                    .foregroundColor(WidgetTokens.textMuted)
+                    .foregroundColor(packMuted)
         }
         let prefix = String(end[..<range.lowerBound])
         let duration = String(end[range])
         let rest = String(end[range.upperBound...])
-        return Text(prefix).foregroundColor(WidgetTokens.accent)
+        return Text(prefix).foregroundColor(packAccent)
             + Text(duration).font(.system(size: 16, weight: .heavy))
-                .foregroundColor(WidgetTokens.accent)
-            + Text(rest).foregroundColor(WidgetTokens.accent)
+                .foregroundColor(packAccent)
+            + Text(rest).foregroundColor(packAccent)
             + Text(hint.hasSuffix(" 남음") ? " 남음" : "")
-                .foregroundColor(WidgetTokens.textMuted)
+                .foregroundColor(packMuted)
     }
 
     private var nextRoutineRow: some View {
         HStack(spacing: 5) {
             Image(systemName: "clock")
                 .font(.system(size: 13, weight: .bold))
-                .foregroundColor(WidgetTokens.textMuted)
+                .foregroundColor(packMuted)
             Text(entry.payload?.nextLabel ?? localizedFallback("next"))
                 .font(.system(size: 12, weight: .bold))
-                .foregroundColor(WidgetTokens.textMuted)
+                .foregroundColor(packMuted)
             Text(expired ? "" : (entry.state?.nextRoutineTitle ?? localizedFallback("none")))
                 .font(.system(size: 13, weight: .heavy))
-                .foregroundColor(WidgetTokens.textPrimary)
+                .foregroundColor(packText)
                 .lineLimit(1)
             Spacer(minLength: 0)
             Text(expired ? "" : (entry.state?.nextRoutineTime ?? ""))
                 .font(.system(size: 12, weight: .semibold))
-                .foregroundColor(WidgetTokens.textMuted)
+                .foregroundColor(packMuted)
         }
     }
 }

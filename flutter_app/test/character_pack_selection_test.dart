@@ -1,5 +1,6 @@
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:routine_timer/application/routine_app_controller.dart';
 import 'package:routine_timer/application/services/rewarded_ad_service.dart';
 import 'package:routine_timer/application/services/routine_data_service.dart';
@@ -40,6 +41,7 @@ void main() {
     PackAdUnlockStore? unlockStore,
     Future<RewardedAdOutcome> Function(AdSlot slot)? showRewardedAd,
     DateTime Function()? now,
+    DateTime? launchGiftDeadline,
   }) async {
     final controller = RoutineAppController(
       dataService: RoutineDataService(
@@ -59,6 +61,7 @@ void main() {
       showRewardedAd: showRewardedAd ?? (_) async => RewardedAdOutcome.earned,
       characterPacks: characterPacks,
       nowProvider: now ?? () => DateTime(2026, 9, 22, 10, 0),
+      launchGiftDeadline: launchGiftDeadline,
       clockAutoRefreshEnabled: false,
     );
     await controller.load();
@@ -334,6 +337,27 @@ void main() {
       expect(controller.packAdViews(CharacterPackCatalog.poodleGarden), isNull);
       expect(shown, 0);
     });
+  });
+
+  test('출시 전에 처음 연 사용자는 한정 팩을 골라도 기본 팩 규칙이 유지된다', () async {
+    SharedPreferences.setMockInitialValues({
+      'ads.first_launch_at_ms': DateTime.utc(2026, 9, 1).millisecondsSinceEpoch,
+    });
+    final settings = _MemorySettingsRepository();
+    final controller = await loadController(
+      settings,
+      characterPacks: CharacterPackCatalog.all,
+      launchGiftDeadline: DateTime.utc(2026, 11, 30, 14, 59, 59),
+    );
+
+    expect(controller.shouldShowLaunchGift, isTrue);
+    expect(controller.packOwnership.owns(CharacterPackCatalog.stargazerCat),
+        isTrue);
+    expect(
+        await controller.selectCharacterPack(CharacterPackCatalog.stargazerCat),
+        isTrue);
+    expect(controller.currentPack.id, 'cat_stargazer');
+    expect(controller.currentThemePreset.id, 'stargazer');
   });
 
   test('AppSettings는 고른 팩을 JSON으로 오간다', () {

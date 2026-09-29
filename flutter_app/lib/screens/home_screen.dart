@@ -24,6 +24,8 @@ import '../widgets/home/circular_timetable_area.dart';
 import '../widgets/home/home_focus_card.dart';
 import '../widgets/home/home_timetable_scene.dart';
 import '../widgets/release/release_announcement.dart';
+import '../widgets/store/launch_gift_dialog.dart';
+import '../data/store/character_pack_catalog.dart';
 import '../widgets/update/update_banner.dart';
 import '../widgets/update/update_prompt.dart';
 
@@ -46,6 +48,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
   ReviewPrompt? _reviewPrompt;
   bool _updatePromptScheduled = false;
   bool _announcementScheduled = false;
+  bool _launchGiftScheduled = false;
 
   /// 돌고 있는 빌드를 읽는 일이 끝났는지. 업데이트 다이얼로그가 «현재 버전»
   /// 행을 그리기 전에 이것을 기다린다.
@@ -93,12 +96,43 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
     if (!mounted) return;
     setState(() {});
     _scheduleUpdatePrompt();
+    _scheduleLaunchGift();
   }
 
   void _onAnnouncementsChanged() {
     if (!mounted) return;
     setState(() {});
     _scheduleAnnouncement();
+    _scheduleLaunchGift();
+  }
+
+  void _scheduleLaunchGift() {
+    if (_launchGiftScheduled || !mounted) return;
+    final app = context.read<RoutineAppController>();
+    if (!app.shouldShowLaunchGift) return;
+    _launchGiftScheduled = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      _launchGiftScheduled = false;
+      if (!mounted ||
+          !app.shouldShowLaunchGift ||
+          ModalRoute.of(context)?.isCurrent != true) {
+        return;
+      }
+      try {
+        await app.markLaunchGiftSeen();
+      } catch (e) {
+        debugPrint('launch gift acknowledgement failed: $e');
+        return;
+      }
+      if (!mounted) return;
+      final useNow = await showLaunchGiftDialog(context);
+      if (!mounted) return;
+      if (useNow) {
+        await app.selectCharacterPack(CharacterPackCatalog.stargazerCat);
+      }
+      _scheduleAnnouncement();
+      _scheduleUpdatePrompt();
+    });
   }
 
   /// 방금 설치한 업데이트가 무엇을 바꿨는지 말한다.
@@ -109,6 +143,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
     final announcements = _announcements;
     if (_announcementScheduled ||
         announcements == null ||
+        context.read<RoutineAppController>().shouldShowLaunchGift ||
         !announcements.shouldAnnounce) {
       return;
     }
@@ -132,6 +167,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
     final updates = _updates;
     if (_updatePromptScheduled ||
         updates == null ||
+        context.read<RoutineAppController>().shouldShowLaunchGift ||
         !updates.shouldPrompt ||
         (_announcements?.shouldAnnounce ?? false)) {
       return;
@@ -166,7 +202,10 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
   }
 
   @override
-  void didPopNext() => context.read<RoutineAppController>().reloadOnReturn();
+  void didPopNext() {
+    context.read<RoutineAppController>().reloadOnReturn();
+    _scheduleLaunchGift();
+  }
 
   /// 완료·나중에·스킵 실행 후 되돌리기 스낵바를 띄운다.
   ///
@@ -255,6 +294,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
             ),
           );
         }
+        _scheduleLaunchGift();
         final home = app.homeSnapshotFor(l10n);
         // 다음 일정은 upcomingRoutines 하나만 소비한다.
         // nextAfterDisplay를 함께 넣으면 첫 항목이 중복된다.
@@ -365,27 +405,11 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
                   ],
                   // 구분선은 1.22:1로 배경에 묻힌다. 여백으로 나눈다.
                   const SizedBox(height: 32),
-                  Row(
-                    children: [
-                      // 제목이 먼저 줄고 개수는 남긴다.
-                      Flexible(
-                        child: Text(
-                          l10n.homeUpcomingSection,
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                          style: AppTextStyles.titleSection,
-                        ),
-                      ),
-                      const Spacer(),
-                      // 목록은 최대 [_maxUpcomingTiles]개만 그린다.
-                      // 전체 개수만 적으면 화면에 보이는 수와 어긋난다.
-                      Text(
-                        upcoming.length > _maxUpcomingTiles
-                            ? '$_maxUpcomingTiles / ${upcoming.length}'
-                            : l10n.routineCount(upcoming.length),
-                        style: AppTextStyles.caption,
-                      ),
-                    ],
+                  Text(
+                    l10n.homeUpcomingSection,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppTextStyles.titleSection,
                   ),
                   const SizedBox(height: 10),
                   if (upcoming.isEmpty)

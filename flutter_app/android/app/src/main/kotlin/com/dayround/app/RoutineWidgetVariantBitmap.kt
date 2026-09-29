@@ -26,6 +26,7 @@ object RoutineWidgetVariantBitmap {
         context: Context,
         style: String,
         garden: Boolean,
+        stargazer: Boolean,
         state: JSONObject,
         status: String,
         title: String,
@@ -37,6 +38,11 @@ object RoutineWidgetVariantBitmap {
     ): Bitmap {
         val result = Bitmap.createBitmap(WIDTH, HEIGHT, Bitmap.Config.RGB_565)
         val canvas = Canvas(result)
+        if (stargazer) {
+            drawStargazer(canvas, context, style, state, status, title, hint,
+                nextLabel, nextTitle, nextTime, clock)
+            return result
+        }
         drawBackground(canvas, context, garden)
         if (style == "timeline") {
             drawTimeline(canvas, context, garden, state, status, title, hint,
@@ -46,6 +52,56 @@ object RoutineWidgetVariantBitmap {
                 nextLabel, nextTitle, nextTime)
         }
         return result
+    }
+
+    private fun drawStargazer(
+        canvas: Canvas, context: Context, style: String, state: JSONObject,
+        status: String, title: String, hint: String, nextLabel: String,
+        nextTitle: String, nextTime: String, clock: Calendar,
+    ) {
+        val cream = Color.rgb(255, 249, 234)
+        val pale = Color.rgb(214, 230, 237)
+        val gold = Color.rgb(244, 196, 48)
+        canvas.drawColor(Color.rgb(11, 61, 74))
+        val star = Paint().apply { color = gold; isAntiAlias = false }
+        for ((x, y) in listOf(94f to 26f, 308f to 18f, 573f to 31f,
+            704f to 85f, 421f to 197f)) {
+            canvas.drawRect(x, y, x + 4f, y + 4f, star)
+        }
+        if (style == "timeline") {
+            drawBadge(canvas, status, 48f, 31f, false, true)
+            drawFitted(canvas, title, 48f, 122f, 407f, 60f, 30f, cream)
+            drawFitted(canvas, hint, 48f, 177f, 410f, 40f, 23f, gold)
+            drawResource(canvas, context, R.drawable.widget_stargazer,
+                RectF(464f, 45f, 633f, 187f))
+            if (nextTitle.isNotBlank()) {
+                val next = listOf(nextLabel, nextTitle, nextTime)
+                    .filter { it.isNotBlank() }.joinToString(" ")
+                drawFitted(canvas, next, 482f, 199f, 240f, 20f, 14f, pale)
+            }
+            drawRuler(canvas, state, clock, true)
+        } else {
+            drawStargazerPanel(canvas, RectF(31f, 51f, 550f, 211f))
+            drawStargazerPanel(canvas, RectF(558f, 51f, 738f, 211f))
+            drawResource(canvas, context, R.drawable.widget_stargazer,
+                RectF(49f, 76f, 207f, 205f))
+            drawBadge(canvas, status, 214f, 65f, false, true)
+            drawFitted(canvas, title, 212f, 140f, 325f, 50f, 27f, cream)
+            drawFitted(canvas, hint, 212f, 191f, 325f, 37f, 20f, gold)
+            drawFitted(canvas, nextLabel, 648f, 102f, 160f, 25f, 17f, pale,
+                Paint.Align.CENTER)
+            drawFitted(canvas, nextTitle, 648f, 153f, 160f, 39f, 20f, cream,
+                Paint.Align.CENTER)
+            drawFitted(canvas, nextTime, 648f, 200f, 160f, 32f, 19f, gold,
+                Paint.Align.CENTER, Typeface.MONOSPACE)
+        }
+    }
+
+    private fun drawStargazerPanel(canvas: Canvas, bounds: RectF) {
+        canvas.drawRect(bounds, Paint().apply { color = Color.rgb(102, 137, 149) })
+        canvas.drawRect(RectF(bounds.left + 3, bounds.top + 3,
+            bounds.right - 3, bounds.bottom - 3),
+            Paint().apply { color = Color.rgb(20, 72, 85) })
     }
 
     private fun drawBackground(canvas: Canvas, context: Context, garden: Boolean) {
@@ -169,16 +225,18 @@ object RoutineWidgetVariantBitmap {
         canvas.drawPath(shape(8f), Paint().apply { color = fillColor; isAntiAlias = false })
     }
 
-    private fun drawBadge(canvas: Canvas, status: String, x: Float, y: Float, garden: Boolean) {
+    private fun drawBadge(canvas: Canvas, status: String, x: Float, y: Float,
+        garden: Boolean, stargazer: Boolean = false) {
         if (status.isBlank()) return
-        val text = textPaint(Color.WHITE, 24f)
+        val text = textPaint(if (stargazer) Color.rgb(18, 48, 65) else Color.WHITE, 24f)
         val width = (text.measureText(status) + 31f).coerceIn(78f, 175f)
         while (text.measureText(status) > width - 24f && text.textSize > 17f) {
             text.textSize -= 1f
         }
         val border = Paint().apply { color = navy; isAntiAlias = false }
         val fill = Paint().apply {
-            color = if (garden) Color.rgb(4, 145, 152) else purple
+            color = if (stargazer) Color.rgb(244, 196, 48)
+                else if (garden) Color.rgb(4, 145, 152) else purple
             isAntiAlias = false
         }
         canvas.drawRect(x + 6f, y, x + width - 6f, y + 36f, border)
@@ -218,7 +276,8 @@ object RoutineWidgetVariantBitmap {
         }
     }
 
-    private fun drawRuler(canvas: Canvas, state: JSONObject, clock: Calendar) {
+    private fun drawRuler(canvas: Canvas, state: JSONObject, clock: Calendar,
+        stargazer: Boolean = false) {
         val left = 44f
         val right = 724f
         val top = 209f
@@ -239,9 +298,11 @@ object RoutineWidgetVariantBitmap {
                 Paint().apply { this.color = color; isAntiAlias = false })
         }
         canvas.drawRect(left, top, right, bottom, Paint().apply {
-            color = muted; style = Paint.Style.STROKE; strokeWidth = 2f; isAntiAlias = false
+            color = if (stargazer) Color.rgb(214, 230, 237) else muted
+            style = Paint.Style.STROKE; strokeWidth = 2f; isAntiAlias = false
         })
-        val labels = textPaint(muted, 13f, Typeface.MONOSPACE)
+        val labels = textPaint(if (stargazer) Color.rgb(214, 230, 237) else muted,
+            13f, Typeface.MONOSPACE)
         for (hour in 0..24 step 6) {
             val x = left + (right - left) * hour / 24f
             labels.textAlign = when (hour) {
@@ -256,7 +317,8 @@ object RoutineWidgetVariantBitmap {
         canvas.drawRect(markerX - 5f, top - 4f, markerX + 5f, bottom + 4f,
             Paint().apply { color = Color.WHITE; isAntiAlias = false })
         canvas.drawRect(markerX - 3f, top - 2f, markerX + 3f, bottom + 2f,
-            Paint().apply { color = purple; isAntiAlias = false })
+            Paint().apply { color = if (stargazer) Color.rgb(244, 196, 48) else purple
+                isAntiAlias = false })
     }
 
     private fun drawClockIcon(canvas: Canvas, x: Float, y: Float, radius: Float) {

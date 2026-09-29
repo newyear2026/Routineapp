@@ -163,7 +163,51 @@ class AppThemePreset {
     ),
   );
 
-  static const all = [softDay, peachSunset, mintLavender, poodleGarden];
+  /// Stargazer Cat keeps app pages light; the home-screen widget gets the
+  /// darker midnight palette separately.
+  static const stargazer = AppThemePreset(
+    id: 'stargazer',
+    previewColors: [
+      Color(0xFF0B3D4A),
+      Color(0xFF3B5BD9),
+      Color(0xFFF4C430),
+      Color(0xFFFFF7E1),
+    ],
+    pageGradient: LinearGradient(
+      colors: [Color(0xFFFFFBF1), Color(0xFFF5F8F3)],
+    ),
+    shellGradient: LinearGradient(
+      colors: [Color(0xFFFFFCF5), Color(0xFFECF6F3)],
+    ),
+    primaryButtonGradient: LinearGradient(
+      colors: [Color(0xFF0B5968), Color(0xFF176F7A)],
+    ),
+    softAccentGradient: LinearGradient(
+      colors: [Color(0xFFDDF2EC), Color(0xFFE4EDFC)],
+    ),
+    highlightGradient: LinearGradient(
+      colors: [Color(0xFFFFF3CB), Color(0xFFFFE7A6)],
+    ),
+    textPrimary: Color(0xFF18334A),
+    textMuted: Color(0xFF536979),
+    accentPink: Color(0xFFE6AD2A),
+    accentLavender: Color(0xFFDCE8F8),
+    pageBackground: Color(0xFFFFFBF1),
+    primaryColor: Color(0xFF0B5968),
+    surfaceColor: Color(0xFFFFFEFA),
+    selectedSurface: Color(0xFFDDF2EC),
+    focusCardGradient: LinearGradient(
+      colors: [Color(0xFFFFF7E1), Color(0xFFE2F2EF)],
+    ),
+  );
+
+  static const all = [
+    softDay,
+    peachSunset,
+    mintLavender,
+    poodleGarden,
+    stargazer
+  ];
 
   static AppThemePreset byId(String? id) {
     return all.firstWhere(

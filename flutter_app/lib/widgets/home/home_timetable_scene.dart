@@ -20,6 +20,8 @@ class HomeTimetableScene extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final garden = CharacterPackScope.currentOf(context).id == 'poodle_garden';
+    final stargazer =
+        CharacterPackScope.currentOf(context).id == 'cat_stargazer';
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = math.min(constraints.maxWidth, 374.0);
@@ -35,7 +37,7 @@ class HomeTimetableScene extends StatelessWidget {
             width: width,
             height: width * 0.66,
             child: Stack(clipBehavior: Clip.none, children: [
-              if (!garden)
+              if (!garden && !stargazer)
                 Positioned.fill(
                   child: IgnorePointer(
                     child: Image.asset(
@@ -55,17 +57,38 @@ class HomeTimetableScene extends StatelessWidget {
                   child: timetableBuilder(ringSize),
                 ),
               ),
-              Positioned(
-                key: Key(garden
-                    ? 'home-timetable-watering-can'
-                    : 'home-timetable-plant'),
-                left: garden ? 0 : width * 0.08,
-                bottom: garden ? -6 : 0,
-                child: PixelDecoration(
-                  asset: garden ? 'garden-watering-can' : 'plant',
-                  size: decoSize,
+              if (!stargazer)
+                Positioned(
+                  key: Key(garden
+                      ? 'home-timetable-watering-can'
+                      : 'home-timetable-plant'),
+                  left: garden ? 0 : width * 0.08,
+                  bottom: garden ? -6 : 0,
+                  child: PixelDecoration(
+                    asset: garden ? 'garden-watering-can' : 'plant',
+                    size: decoSize,
+                  ),
                 ),
-              ),
+              if (stargazer) ...[
+                Positioned(
+                  left: width * 0.01,
+                  bottom: 0,
+                  child: PixelDecoration(
+                      asset: 'stargazer-telescope', size: decoSize),
+                ),
+                Positioned(
+                  right: width * 0.01,
+                  top: width * 0.03,
+                  child: const PixelDecoration(
+                      asset: 'stargazer-meteor', size: 46),
+                ),
+                Positioned(
+                  right: width * 0.01,
+                  bottom: 0,
+                  child: const PixelDecoration(
+                      asset: 'stargazer-celestial-globe', size: 46),
+                ),
+              ],
               if (garden) ...[
                 Positioned(
                   left: width * 0.01,

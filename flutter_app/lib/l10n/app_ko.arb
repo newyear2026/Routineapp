@@ -347,6 +347,16 @@
   "releaseNote101Snooze": "미뤄둔 루틴을 정한 시각에 다시 알려줘요.",
   "releaseNote101PixelClouds": "홈 시간표의 구름이 픽셀 아트로 바뀌었어요.",
   "releaseNote101CharacterPacks": "캐릭터 팩을 고르면 테마도 함께 바뀌어요.",
-  "releaseNote101GardenUnlock": "푸들 정원 팩은 광고를 두 번 보면 계속 쓸 수 있어요.",
-  "releaseNote101Languages": "일본어와 포르투갈어로도 쓸 수 있어요."
+  "releaseNote101GardenTrial": "푸들 정원 팩은 광고를 보면 하루 동안 써볼 수 있어요.",
+  "releaseNote101Languages": "일본어와 포르투갈어로도 쓸 수 있어요.",
+  "releaseNote102Widgets": "홈 화면에 원형, 시간선, 카드 위젯을 놓을 수 있어요.",
+  "releaseNote102Timeline": "루틴 탭에서 오늘 하루를 시간선으로 볼 수 있어요.",
+  "releaseNote102GardenUnlock": "푸들 정원 팩은 광고를 두 번 보면 계속 쓸 수 있어요.",
+  "packStargazerName": "유성 관측 고양이",
+  "packStargazerTagline": "별을 관측하는 한정 고양이와 밤하늘 위젯",
+  "launchGiftBadge": "출시 선물",
+  "launchGiftLocked": "출시 기간에 처음 시작한 사용자에게 드리는 한정 팩이에요.",
+  "launchGiftTitle": "출시 기념 선물이 도착했어요",
+  "launchGiftDescription": "유성 관측 고양이와 밤하늘 위젯, 장식 3종을 받았어요.",
+  "launchGiftUseAction": "지금 입혀 보기"
 }

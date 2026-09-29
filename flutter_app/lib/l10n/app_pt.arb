@@ -347,6 +347,16 @@
   "releaseNote101Snooze": "As rotinas que você adia voltam a avisar no horário que você escolheu.",
   "releaseNote101PixelClouds": "As nuvens da agenda no início agora são pixel art.",
   "releaseNote101CharacterPacks": "Escolha um pacote de personagem e o tema muda junto.",
-  "releaseNote101GardenUnlock": "Assista a dois anúncios para ficar com o Pacote Jardim Poodle.",
-  "releaseNote101Languages": "Agora também dá para usar em japonês e português."
+  "releaseNote101GardenTrial": "Assista a um anúncio para usar o Pacote Jardim Poodle por um dia.",
+  "releaseNote101Languages": "Agora também dá para usar em japonês e português.",
+  "releaseNote102Widgets": "Dá para colocar na tela inicial um widget de círculo, linha do tempo ou cartões.",
+  "releaseNote102Timeline": "A aba de rotinas mostra o dia de hoje numa linha do tempo.",
+  "releaseNote102GardenUnlock": "Assista a dois anúncios para ficar com o Pacote Jardim Poodle.",
+  "packStargazerName": "Gato Astrônomo",
+  "packStargazerTagline": "Um gato limitado com widget de céu noturno",
+  "launchGiftBadge": "Presente de lançamento",
+  "launchGiftLocked": "Um pacote limitado para quem começou no lançamento.",
+  "launchGiftTitle": "Seu presente de lançamento chegou",
+  "launchGiftDescription": "Você recebeu o Gato Astrônomo, um widget noturno e três enfeites.",
+  "launchGiftUseAction": "Usar agora"
 }

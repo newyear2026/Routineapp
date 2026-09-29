@@ -44,6 +44,17 @@ class CharacterArtwork {
         CatPose.guide: Rect.fromLTRB(47, 38, 350, 354),
       },
     ),
+    'cat_stargazer': CharacterArtwork(
+      canvas: 384,
+      bounds: {
+        CatPose.idle: Rect.fromLTRB(93, 62, 322, 332),
+        CatPose.activity: Rect.fromLTRB(36, 66, 318, 335),
+        CatPose.focus: Rect.fromLTRB(52, 67, 301, 324),
+        CatPose.complete: Rect.fromLTRB(85, 67, 323, 331),
+        CatPose.rest: Rect.fromLTRB(71, 116, 334, 310),
+        CatPose.guide: Rect.fromLTRB(63, 68, 321, 335),
+      },
+    ),
   };
 }
 

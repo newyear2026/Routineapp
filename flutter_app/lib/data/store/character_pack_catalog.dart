@@ -30,10 +30,22 @@ abstract final class CharacterPackCatalog {
     availability: CharacterPackAvailability.rewardedUnlock,
   );
 
+  static const stargazerCat = CharacterPack(
+    id: 'cat_stargazer',
+    characterId: 'cat_stargazer',
+    paletteIds: ['stargazer'],
+    decoIds: [
+      'stargazer-telescope',
+      'stargazer-meteor',
+      'stargazer-celestial-globe'
+    ],
+    availability: CharacterPackAvailability.launchGift,
+  );
+
   /// 아무것도 고르지 않았거나, 고른 팩을 쓸 수 없을 때 돌아가는 팩.
   static const defaultPack = starlightCat;
 
-  static const all = <CharacterPack>[starlightCat, poodleGarden];
+  static const all = <CharacterPack>[starlightCat, poodleGarden, stargazerCat];
 
   static CharacterPack? byId(
     String? id, {

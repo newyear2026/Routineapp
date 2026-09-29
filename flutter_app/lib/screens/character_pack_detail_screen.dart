@@ -82,6 +82,10 @@ class CharacterPackDetailScreen extends StatelessWidget {
               style: AppTextStyles.helper,
               textAlign: TextAlign.center,
             ),
+            if (pack.availability == CharacterPackAvailability.launchGift) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Center(child: AppStatusBadge(label: l10n.launchGiftBadge)),
+            ],
             const SizedBox(height: AppSpacing.xxl),
             Center(
               child: SizedBox(
@@ -372,6 +376,20 @@ class _PackActionState extends State<_PackAction> {
             textAlign: TextAlign.center,
             style: AppTextStyles.caption,
           ),
+        ],
+      );
+    }
+    if (widget.pack.availability == CharacterPackAvailability.launchGift) {
+      return Column(
+        children: [
+          AppButton(
+            label: l10n.launchGiftBadge,
+            icon: Icons.card_giftcard_rounded,
+            onPressed: null,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(l10n.launchGiftLocked,
+              textAlign: TextAlign.center, style: AppTextStyles.caption),
         ],
       );
     }

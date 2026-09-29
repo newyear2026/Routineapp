@@ -2,8 +2,11 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart' show MissingPluginException;
 
 import '../data/local/local_settings_repository.dart';
+import '../data/local/first_launch_storage.dart';
+import '../data/local/launch_gift_storage.dart';
 import '../data/local/pack_ad_unlock_storage.dart';
 import '../data/repositories/settings_repository.dart';
 import '../data/store/character_pack_catalog.dart';
@@ -16,6 +19,7 @@ import '../domain/models/routine_write_error.dart';
 import '../domain/models/app_settings.dart';
 import '../domain/settings/app_language.dart';
 import '../domain/store/character_pack.dart';
+import '../domain/store/launch_gift.dart';
 import '../domain/store/pack_ad_unlock.dart';
 import '../l10n/app_localizations.dart';
 import '../domain/services/routine_day_service.dart';
@@ -48,6 +52,7 @@ class RoutineAppController extends ChangeNotifier {
     @visibleForTesting
     List<CharacterPack> characterPacks = CharacterPackCatalog.all,
     DateTime Function()? nowProvider,
+    DateTime? launchGiftDeadline,
     bool clockAutoRefreshEnabled = true,
   })  : _data = dataService ?? RoutineDataService(),
         _dayService = dayService ?? const RoutineDayService(),
@@ -60,6 +65,8 @@ class RoutineAppController extends ChangeNotifier {
         _showRewardedAd = showRewardedAd ?? RewardedAdService.instance.show,
         _characterPacks = characterPacks,
         _nowProvider = nowProvider ?? DateTime.now,
+        _launchGiftDeadline =
+            launchGiftDeadline ?? LaunchGiftCampaign.lastEligibleAt,
         _clockAutoRefreshEnabled = clockAutoRefreshEnabled;
 
   final RoutineDataService _data;
@@ -77,6 +84,7 @@ class RoutineAppController extends ChangeNotifier {
   Map<String, int> _packAdViews = const {};
   final List<CharacterPack> _characterPacks;
   final DateTime Function() _nowProvider;
+  final DateTime? _launchGiftDeadline;
   final bool _clockAutoRefreshEnabled;
 
   List<Routine> _routines = [];
@@ -88,6 +96,8 @@ class RoutineAppController extends ChangeNotifier {
   DateTime? _loadedAt;
   Timer? _clockTimer;
   bool _clockRefreshInFlight = false;
+  bool _launchGiftEligible = false;
+  bool _launchGiftSeen = true;
 
   bool get isLoaded => _loaded;
 
@@ -101,10 +111,20 @@ class RoutineAppController extends ChangeNotifier {
   List<Routine> get routines => List<Routine>.unmodifiable(_routines);
   AppSettings get appSettings => _appSettings;
   String get themeId => _appSettings.themeId ?? AppThemePreset.softDay.id;
-  AppThemePreset get currentThemePreset =>
-      currentPack.id == CharacterPackCatalog.poodleGarden.id
-          ? AppThemePreset.poodleGarden
-          : AppThemePreset.byId(themeId);
+  AppThemePreset get currentThemePreset => switch (currentPack.id) {
+        'poodle_garden' => AppThemePreset.poodleGarden,
+        'cat_stargazer' => AppThemePreset.stargazer,
+        _ => AppThemePreset.byId(themeId),
+      };
+
+  bool get shouldShowLaunchGift => _launchGiftEligible && !_launchGiftSeen;
+
+  Future<void> markLaunchGiftSeen() async {
+    if (!shouldShowLaunchGift) return;
+    await LaunchGiftStorage.markSeen();
+    _launchGiftSeen = true;
+    notifyListeners();
+  }
 
   /// 팩 소유 판정 — 구매 판정에 광고 해금을 얹은 것.
   ///
@@ -119,7 +139,10 @@ class RoutineAppController extends ChangeNotifier {
 
   RewardedUnlockOwnership _buildPackOwnership(Map<String, int> adViews) =>
       RewardedUnlockOwnership(
-        base: _basePackOwnership,
+        base: LaunchGiftOwnership(
+          base: _basePackOwnership,
+          eligible: _launchGiftEligible,
+        ),
         adViews: adViews,
         rewardedAdsAvailable: _rewardedPackUnlocks,
       );
@@ -235,6 +258,20 @@ class RoutineAppController extends ChangeNotifier {
     _routines = routines;
     _logsToday = logs;
     _appSettings = settings;
+    try {
+      final firstLaunchAt = await FirstLaunchStorage.ensure(now);
+      _launchGiftEligible = LaunchGiftCampaign.eligible(
+        firstLaunchAt: firstLaunchAt,
+        lastEligibleAt: _launchGiftDeadline,
+      );
+      _launchGiftSeen = await LaunchGiftStorage.hasSeen();
+    } catch (e) {
+      if (e is! MissingPluginException) {
+        debugPrint('launch gift state failed: $e');
+      }
+      _launchGiftEligible = false;
+      _launchGiftSeen = true;
+    }
     _setPackAdViews(await _loadPackAdViews());
     _loadFailed = false;
     _loadedDateYmd = TimeMinutes.dateYmd(now);

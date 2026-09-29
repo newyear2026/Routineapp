@@ -94,7 +94,7 @@ class _PackListCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final watched = adViews ?? 0;
-    final status = inUse
+    final baseStatus = inUse
         ? l10n.themeInUse
         : owned
             ? pack.ownedLabel(l10n)
@@ -102,6 +102,9 @@ class _PackListCard extends StatelessWidget {
                 ? l10n.characterPackAdUnlockProgress(
                     watched, RewardedUnlockOwnership.adsRequired)
                 : pack.statusLabel(l10n);
+    final status = pack.availability == CharacterPackAvailability.launchGift
+        ? '${l10n.launchGiftBadge} · $baseStatus'
+        : baseStatus;
     return Semantics(
       button: true,
       label: '${pack.name(l10n)}, $status',

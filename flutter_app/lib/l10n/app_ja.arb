@@ -347,6 +347,16 @@
   "releaseNote101Snooze": "後回しにしたルーティンを、決めた時刻にもう一度お知らせします。",
   "releaseNote101PixelClouds": "ホーム時間割の雲がピクセルアートになりました。",
   "releaseNote101CharacterPacks": "キャラクターパックを選ぶと、テーマも一緒に変わります。",
-  "releaseNote101GardenUnlock": "プードルガーデンパックは、広告を2回見るとずっと使えます。",
-  "releaseNote101Languages": "日本語とポルトガル語でも使えます。"
+  "releaseNote101GardenTrial": "プードルガーデンパックは、広告を見ると1日使えます。",
+  "releaseNote101Languages": "日本語とポルトガル語でも使えます。",
+  "releaseNote102Widgets": "ホーム画面に、円・タイムライン・カードのウィジェットを置けます。",
+  "releaseNote102Timeline": "ルーティンタブで、今日の一日をタイムラインで見られます。",
+  "releaseNote102GardenUnlock": "プードルガーデンパックは、広告を2回見るとずっと使えます。",
+  "packStargazerName": "星を見つめる猫",
+  "packStargazerTagline": "夜空のウィジェットが付いた限定の星見猫",
+  "launchGiftBadge": "リリース記念ギフト",
+  "launchGiftLocked": "リリース期間中に始めた方への限定パックです。",
+  "launchGiftTitle": "リリース記念ギフトが届きました",
+  "launchGiftDescription": "星を見つめる猫、夜空のウィジェット、飾り3種を受け取りました。",
+  "launchGiftUseAction": "今すぐ使う"
 }

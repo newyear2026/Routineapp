@@ -8,11 +8,13 @@ import '../../l10n/app_localizations.dart';
 extension CharacterPackText on CharacterPack {
   String name(AppLocalizations l10n) => switch (id) {
         'poodle_garden' => l10n.packPoodleGardenName,
+        'cat_stargazer' => l10n.packStargazerName,
         _ => l10n.packStarlightCatName,
       };
 
   String tagline(AppLocalizations l10n) => switch (id) {
         'poodle_garden' => l10n.packPoodleGardenTagline,
+        'cat_stargazer' => l10n.packStargazerTagline,
         _ => l10n.packStarlightCatTagline,
       };
 
@@ -28,6 +30,7 @@ extension CharacterPackText on CharacterPack {
         CharacterPackAvailability.forSale => l10n.characterPackOwnAction,
         CharacterPackAvailability.rewardedUnlock =>
           l10n.characterPackAdUnlockBadge,
+        CharacterPackAvailability.launchGift => l10n.launchGiftBadge,
         CharacterPackAvailability.comingSoon => l10n.commonComingSoon,
       };
 }
