@@ -3,6 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../data/store/character_pack_catalog.dart';
 import '../domain/store/character_pack.dart';
+import '../domain/store/pack_ad_unlock.dart';
 import '../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
@@ -59,8 +60,7 @@ class CharacterPackStoreScreen extends StatelessWidget {
                 pack: pack,
                 inUse: pack.id == current.id,
                 owned: ownership.owns(pack),
-                onTrial:
-                    CharacterPackScope.trialEndsAtOf(context, pack) != null,
+                adViews: CharacterPackScope.adViewsOf(context, pack),
                 onTap: () => context.push('/character-packs/${pack.id}'),
               ),
               const SizedBox(height: AppSpacing.md),
@@ -77,7 +77,7 @@ class _PackListCard extends StatelessWidget {
     required this.pack,
     required this.inUse,
     required this.owned,
-    required this.onTrial,
+    required this.adViews,
     required this.onTap,
   });
 
@@ -85,19 +85,22 @@ class _PackListCard extends StatelessWidget {
   final bool inUse;
   final bool owned;
 
-  /// 광고로 연 팩을 쓰는 중인가. 산 팩과 달리 끝이 있으니 따로 표시한다.
-  final bool onTrial;
+  /// 광고로 여는 중이면 끝까지 본 광고 수. 한 번이라도 봤으면 남은 만큼을
+  /// 목록에서도 보인다 — 반쯤 연 팩을 잊지 않게.
+  final int? adViews;
   final VoidCallback onTap;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final watched = adViews ?? 0;
     final status = inUse
         ? l10n.themeInUse
-        : onTrial
-            ? l10n.characterPackTrialActive
-            : owned
-                ? pack.ownedLabel(l10n)
+        : owned
+            ? pack.ownedLabel(l10n)
+            : watched > 0
+                ? l10n.characterPackAdUnlockProgress(
+                    watched, RewardedUnlockOwnership.adsRequired)
                 : pack.statusLabel(l10n);
     return Semantics(
       button: true,

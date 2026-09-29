@@ -23,6 +23,30 @@ class AdBootstrap {
   /// SDK가 올라와 광고를 요청해도 되는 상태인가.
   bool get isReady => _ready;
 
+  /// 설정에 «광고 개인정보 설정» 행을 보여야 하는가.
+  ///
+  /// UMP가 동의 양식을 띄운 사용자(EEA·영국 등)는 나중에 마음을 바꿀 길이
+  /// 있어야 한다 — AdMob 정책이 요구한다. 동의 정보를 받아 온 뒤에야 답이
+  /// 나오므로, 설정 화면이 먼저 열려 있어도 따라 바뀌게 알림으로 둔다.
+  final ValueNotifier<bool> privacyOptionsRequired = ValueNotifier(false);
+
+  /// 동의를 다시 고르는 UMP 양식을 연다. 양식을 띄우지 못하면 false.
+  Future<bool> showPrivacyOptions() async {
+    final completer = Completer<bool>();
+    try {
+      await ConsentForm.showPrivacyOptionsForm((error) {
+        if (error != null) {
+          debugPrint('[ads] 개인정보 옵션 양식 실패: ${error.message}');
+        }
+        if (!completer.isCompleted) completer.complete(error == null);
+      });
+    } on Object catch (error) {
+      debugPrint('[ads] 개인정보 옵션 양식을 열지 못했다: $error');
+      if (!completer.isCompleted) completer.complete(false);
+    }
+    return completer.future;
+  }
+
   /// 여러 번 불러도 초기화는 한 번만 하고, **끝날 때까지 기다릴 수 있다.**
   ///
   /// bool 플래그로 «시작했음»만 표시하면, 초기화가 도는 중에 부른 쪽은
@@ -83,6 +107,13 @@ class AdBootstrap {
             debugPrint('[ads] 동의 양식 실패: ${error.message}');
           }
         });
+        try {
+          privacyOptionsRequired.value = await ConsentInformation.instance
+                  .getPrivacyOptionsRequirementStatus() ==
+              PrivacyOptionsRequirementStatus.required;
+        } on Object catch (error) {
+          debugPrint('[ads] 개인정보 옵션 필요 여부를 읽지 못했다: $error');
+        }
         if (!completer.isCompleted) completer.complete();
       },
       (error) {

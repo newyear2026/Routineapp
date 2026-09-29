@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -11,6 +12,7 @@ import 'package:routine_timer/data/store/character_pack_catalog.dart';
 import 'package:routine_timer/domain/onboarding/onboarding_preview_nav.dart';
 import 'package:routine_timer/domain/store/character_pack.dart';
 import 'package:routine_timer/domain/settings/notification_preferences.dart';
+import 'package:routine_timer/application/services/support_contact.dart';
 import 'package:routine_timer/screens/settings_screen.dart';
 import 'package:routine_timer/widgets/ds/animated_cat.dart';
 import 'package:routine_timer/widgets/settings/current_pack_card.dart';
@@ -40,6 +42,11 @@ void main() {
     WidgetTester tester, {
     Future<bool> Function()? openStoreReview,
     bool showStoreReview = true,
+    Future<bool> Function()? openPrivacyPolicy,
+    bool showPrivacyPolicy = true,
+    ValueListenable<bool>? adPrivacyOptionsRequired,
+    Future<bool> Function()? openAdPrivacyOptions,
+    Future<bool> Function()? openSupportContact,
   }) async {
     final controller = RoutineAppController(
       dataService: RoutineDataService(
@@ -66,6 +73,12 @@ void main() {
           builder: (_, __) => SettingsScreen(
             openStoreReview: openStoreReview ?? () async => true,
             showStoreReview: showStoreReview,
+            openPrivacyPolicy: openPrivacyPolicy ?? () async => true,
+            showPrivacyPolicy: showPrivacyPolicy,
+            adPrivacyOptionsRequired:
+                adPrivacyOptionsRequired ?? ValueNotifier(false),
+            openAdPrivacyOptions: openAdPrivacyOptions ?? () async => true,
+            openSupportContact: openSupportContact ?? () async => true,
           ),
         ),
         GoRoute(
@@ -112,18 +125,39 @@ void main() {
     expect(find.text('루틴 진행 중'), findsNothing);
   });
 
-  testWidgets('준비 중 항목은 배지로 알리고 이동 화살표를 두지 않는다', (tester) async {
-    final controller = await pumpSettings(tester);
+  testWidgets('문의하기는 누르면 메일 앱을 연다', (tester) async {
+    var opened = 0;
+    final controller = await pumpSettings(tester, openSupportContact: () async {
+      opened++;
+      return true;
+    });
     addTearDown(controller.dispose);
 
-    // '캐릭터'는 캐릭터 팩 화면으로 가는 살아 있는 행이 됐다. 아직 갈 곳이
-    // 없는 행으로 앵커를 옮긴다.
     await tester.scrollUntilVisible(find.text('문의하기'), 200,
         scrollable: find.byType(Scrollable).first);
     await tester.pumpAndSettle();
-    expect(find.text('준비 중'), findsWidgets);
-    // 갈 곳이 없는 행에 화살표/줄표를 남기지 않는다.
-    expect(find.byIcon(Icons.remove_rounded), findsNothing);
+    expect(find.text('준비 중'), findsNothing);
+    await tester.tap(find.text('문의하기'));
+    await tester.pumpAndSettle();
+
+    expect(opened, 1);
+    expect(find.textContaining('메일 앱을 열 수 없어요'), findsNothing);
+  });
+
+  testWidgets('메일 앱이 없으면 보낼 주소를 알려 준다', (tester) async {
+    final controller = await pumpSettings(
+      tester,
+      openSupportContact: () async => false,
+    );
+    addTearDown(controller.dispose);
+
+    await tester.scrollUntilVisible(find.text('문의하기'), 200,
+        scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('문의하기'));
+    await tester.pump();
+
+    expect(find.textContaining(supportEmail), findsOneWidget);
   });
 
   testWidgets('현재 팩 카드가 지금 쓰는 캐릭터를 보여 준다', (tester) async {
@@ -163,8 +197,7 @@ void main() {
     expect(find.text('푸들 정원 팩'), findsOneWidget);
     expect(find.byKey(const Key('settings-current-pack-portrait')),
         findsOneWidget);
-    expect(find.byKey(const Key('settings-pack-sky-decoration')),
-        findsNothing);
+    expect(find.byKey(const Key('settings-pack-sky-decoration')), findsNothing);
     expect(find.byKey(const Key('settings-pack-sky-decoration-right')),
         findsNothing);
   });
@@ -272,5 +305,70 @@ void main() {
         scrollable: find.byType(Scrollable).first);
     await tester.pumpAndSettle();
     expect(find.text('리뷰 남기기'), findsNothing);
+  });
+
+  testWidgets('개인정보처리방침은 누르면 문서를 연다', (tester) async {
+    var opened = 0;
+    final controller = await pumpSettings(tester, openPrivacyPolicy: () async {
+      opened++;
+      return true;
+    });
+    addTearDown(controller.dispose);
+
+    await tester.scrollUntilVisible(find.text('개인정보처리방침'), 200,
+        scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('개인정보처리방침'));
+    await tester.pumpAndSettle();
+
+    expect(opened, 1);
+    expect(find.text('열 수 없어요. 잠시 후 다시 시도해 주세요.'), findsNothing);
+  });
+
+  testWidgets('개인정보처리방침을 열지 못하면 알린다', (tester) async {
+    final controller = await pumpSettings(
+      tester,
+      openPrivacyPolicy: () async => false,
+    );
+    addTearDown(controller.dispose);
+
+    await tester.scrollUntilVisible(find.text('개인정보처리방침'), 200,
+        scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('개인정보처리방침'));
+    await tester.pump();
+
+    expect(find.text('열 수 없어요. 잠시 후 다시 시도해 주세요.'), findsOneWidget);
+  });
+
+  testWidgets('광고 개인정보 설정은 UMP가 요구할 때만 보이고, 누르면 양식을 연다', (tester) async {
+    final required = ValueNotifier(false);
+    addTearDown(required.dispose);
+    var opened = 0;
+    final controller = await pumpSettings(
+      tester,
+      adPrivacyOptionsRequired: required,
+      openAdPrivacyOptions: () async {
+        opened++;
+        return true;
+      },
+    );
+    addTearDown(controller.dispose);
+
+    await tester.scrollUntilVisible(find.text('앱 버전'), 200,
+        scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
+    expect(find.text('광고 개인정보 설정'), findsNothing);
+
+    // 동의 정보는 설정 화면이 열린 뒤에 도착할 수 있다.
+    required.value = true;
+    await tester.pumpAndSettle();
+    await tester.scrollUntilVisible(find.text('광고 개인정보 설정'), 200,
+        scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('광고 개인정보 설정'));
+    await tester.pumpAndSettle();
+
+    expect(opened, 1);
   });
 }

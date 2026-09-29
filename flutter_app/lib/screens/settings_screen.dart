@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -5,7 +6,10 @@ import 'package:provider/provider.dart';
 import '../app_optional_provider.dart';
 import '../application/release/release_announcements.dart';
 import '../application/routine_app_controller.dart';
+import '../application/services/ad_bootstrap.dart';
+import '../application/services/privacy_policy_link.dart';
 import '../application/services/store_review_launcher.dart';
+import '../application/services/support_contact.dart';
 import '../application/update/app_updates_controller.dart';
 import '../application/settings/settings_controller.dart';
 import '../domain/onboarding/onboarding_preview_nav.dart';
@@ -30,6 +34,11 @@ class SettingsScreen extends StatelessWidget {
     super.key,
     this.openStoreReview = openPlayStoreReview,
     this.showStoreReview,
+    this.openPrivacyPolicy = openPrivacyPolicyPage,
+    this.showPrivacyPolicy,
+    this.adPrivacyOptionsRequired,
+    this.openAdPrivacyOptions,
+    this.openSupportContact = openSupportEmail,
   });
 
   final StoreReviewLauncher openStoreReview;
@@ -38,6 +47,19 @@ class SettingsScreen extends StatelessWidget {
   /// 행을 켜고 끌 수 있도록 열어 둔다.
   final bool? showStoreReview;
 
+  final PrivacyPolicyLauncher openPrivacyPolicy;
+
+  /// 비워 두면 [privacyPolicyUrl]이 채워져 있는지를 따른다.
+  final bool? showPrivacyPolicy;
+
+  /// 비워 두면 [AdBootstrap]의 UMP 판정을 따른다.
+  final ValueListenable<bool>? adPrivacyOptionsRequired;
+
+  /// 비워 두면 [AdBootstrap.showPrivacyOptions]로 UMP 양식을 연다.
+  final Future<bool> Function()? openAdPrivacyOptions;
+
+  final SupportContactLauncher openSupportContact;
+
   @override
   Widget build(BuildContext context) {
     return ChangeNotifierProvider(
@@ -45,6 +67,13 @@ class SettingsScreen extends StatelessWidget {
       child: _SettingsScreenContent(
         openStoreReview: openStoreReview,
         showStoreReview: showStoreReview ?? storeReviewAvailable,
+        openPrivacyPolicy: openPrivacyPolicy,
+        showPrivacyPolicy: showPrivacyPolicy ?? privacyPolicyUrl.isNotEmpty,
+        adPrivacyOptionsRequired: adPrivacyOptionsRequired ??
+            AdBootstrap.instance.privacyOptionsRequired,
+        openAdPrivacyOptions:
+            openAdPrivacyOptions ?? AdBootstrap.instance.showPrivacyOptions,
+        openSupportContact: openSupportContact,
       ),
     );
   }
@@ -54,10 +83,20 @@ class _SettingsScreenContent extends StatelessWidget {
   const _SettingsScreenContent({
     required this.openStoreReview,
     required this.showStoreReview,
+    required this.openPrivacyPolicy,
+    required this.showPrivacyPolicy,
+    required this.adPrivacyOptionsRequired,
+    required this.openAdPrivacyOptions,
+    required this.openSupportContact,
   });
 
   final StoreReviewLauncher openStoreReview;
   final bool showStoreReview;
+  final PrivacyPolicyLauncher openPrivacyPolicy;
+  final bool showPrivacyPolicy;
+  final ValueListenable<bool> adPrivacyOptionsRequired;
+  final Future<bool> Function() openAdPrivacyOptions;
+  final SupportContactLauncher openSupportContact;
 
   @override
   Widget build(BuildContext context) {
@@ -162,60 +201,99 @@ class _SettingsScreenContent extends StatelessWidget {
               title: l10n.settingsSectionSupport,
               icon: Icons.support_rounded,
             ),
-            SettingsList(children: [
-              SettingsNavigationTile(
-                icon: Icons.widgets_outlined,
-                label: l10n.settingsWidgetPreview,
-                description: l10n.settingsWidgetPreviewDesc,
-                onTap: () => context.push('/widget-medium-preview'),
-              ),
-              SettingsNavigationTile(
-                icon: Icons.mail_outline_rounded,
-                label: l10n.settingsContact,
-                statusLabel: l10n.commonComingSoon,
-                description: l10n.settingsContactDesc,
-              ),
-              if (showStoreReview)
+            // UMP 판정은 앱이 뜬 뒤에 도착한다. 행 하나만 감싸면 빈 행 앞뒤로
+            // 구분선이 겹치므로 목록째 다시 그린다.
+            ValueListenableBuilder<bool>(
+              valueListenable: adPrivacyOptionsRequired,
+              builder: (context, adPrivacyRequired, _) =>
+                  SettingsList(children: [
                 SettingsNavigationTile(
-                  icon: Icons.star_outline_rounded,
-                  label: l10n.settingsReview,
-                  description: l10n.settingsReviewDesc,
-                  onTap: () => _openStoreReview(context),
+                  icon: Icons.widgets_outlined,
+                  label: l10n.settingsWidgetPreview,
+                  description: l10n.settingsWidgetPreviewDesc,
+                  onTap: () => context.push('/widget-medium-preview'),
                 ),
-              // 물어볼 스토어가 없는 빌드에서는 행 자체를 빼야 한다. 두면
-              // 무엇을 눌러도 «최신 버전이에요»라고 답한다.
-              if (updates != null && updates.canCheck)
                 SettingsNavigationTile(
-                  icon: Icons.system_update_alt_rounded,
-                  label: l10n.settingsCheckUpdate,
-                  description: _updateCheckDescription(l10n, updates),
-                  // 확인 중에도 살려 둔다. 컨트롤러가 겹친 호출을 버리므로
-                  // 비활성으로 만들 이유가 없고, 그러면 화살표가 사라져 줄이
-                  // 눌릴 때마다 흔들린다.
-                  onTap: () => updates.refresh(force: true),
+                  icon: Icons.mail_outline_rounded,
+                  label: l10n.settingsContact,
+                  description: l10n.settingsContactDesc,
+                  // 메일 앱이 없어도 막다른 길로 끝내지 않는다. 주소를 보여 준다.
+                  onTap: () => _openOrReport(
+                    context,
+                    openSupportContact,
+                    l10n.settingsContactOpenFailed(supportEmail),
+                  ),
                 ),
-              if (announcements != null)
-                SettingsNavigationTile(
-                  icon: Icons.auto_awesome_rounded,
-                  // 업데이트 안내와 색을 나눈다. 그쪽은 요청이라 행동색을 쓰고
-                  // 이쪽은 알림이다.
-                  accent: AppColors.orbitAccent,
-                  label: l10n.settingsReleaseNotes,
-                  description: l10n.settingsReleaseNotesDesc,
-                  // 점이 아니라 글자다. 스크린리더는 점을 읽지 못한다.
-                  statusLabel: announcements.hasUnreadNotes
-                      ? l10n.settingsReleaseNotesUnread
-                      : null,
-                  onTap: () => context.push('/release-notes'),
+                if (showStoreReview)
+                  SettingsNavigationTile(
+                    icon: Icons.star_outline_rounded,
+                    label: l10n.settingsReview,
+                    description: l10n.settingsReviewDesc,
+                    onTap: () => _openOrReport(
+                      context,
+                      openStoreReview,
+                      l10n.settingsReviewOpenFailed,
+                    ),
+                  ),
+                // 물어볼 스토어가 없는 빌드에서는 행 자체를 빼야 한다. 두면
+                // 무엇을 눌러도 «최신 버전이에요»라고 답한다.
+                if (updates != null && updates.canCheck)
+                  SettingsNavigationTile(
+                    icon: Icons.system_update_alt_rounded,
+                    label: l10n.settingsCheckUpdate,
+                    description: _updateCheckDescription(l10n, updates),
+                    // 확인 중에도 살려 둔다. 컨트롤러가 겹친 호출을 버리므로
+                    // 비활성으로 만들 이유가 없고, 그러면 화살표가 사라져 줄이
+                    // 눌릴 때마다 흔들린다.
+                    onTap: () => updates.refresh(force: true),
+                  ),
+                if (announcements != null)
+                  SettingsNavigationTile(
+                    icon: Icons.auto_awesome_rounded,
+                    // 업데이트 안내와 색을 나눈다. 그쪽은 요청이라 행동색을 쓰고
+                    // 이쪽은 알림이다.
+                    accent: AppColors.orbitAccent,
+                    label: l10n.settingsReleaseNotes,
+                    description: l10n.settingsReleaseNotesDesc,
+                    // 점이 아니라 글자다. 스크린리더는 점을 읽지 못한다.
+                    statusLabel: announcements.hasUnreadNotes
+                        ? l10n.settingsReleaseNotesUnread
+                        : null,
+                    onTap: () => context.push('/release-notes'),
+                  ),
+                if (showPrivacyPolicy)
+                  SettingsNavigationTile(
+                    icon: Icons.privacy_tip_outlined,
+                    label: l10n.settingsPrivacyPolicy,
+                    description: l10n.settingsPrivacyPolicyDesc,
+                    onTap: () => _openOrReport(
+                      context,
+                      openPrivacyPolicy,
+                      l10n.settingsOpenFailed,
+                    ),
+                  ),
+                // UMP가 동의를 받은 사용자(EEA·영국 등)에게만 보인다. 동의를 다시
+                // 고를 길을 두는 것은 AdMob 정책이 요구하는 것이다.
+                if (adPrivacyRequired)
+                  SettingsNavigationTile(
+                    icon: Icons.tune_rounded,
+                    label: l10n.settingsAdPrivacy,
+                    description: l10n.settingsAdPrivacyDesc,
+                    onTap: () => _openOrReport(
+                      context,
+                      openAdPrivacyOptions,
+                      l10n.settingsOpenFailed,
+                    ),
+                  ),
+                SettingsInfoTile(
+                  icon: Icons.info_outline_rounded,
+                  label: l10n.settingsVersion,
+                  // 플랫폼이 알려 주지 않으면 줄표다. 여기 상수를 적어 두면 실제
+                  // 버전이 그것을 지나친 뒤에도 틀린 값이 권위 있어 보인다.
+                  value: announcements?.version?.displayLabel ?? '—',
                 ),
-              SettingsInfoTile(
-                icon: Icons.info_outline_rounded,
-                label: l10n.settingsVersion,
-                // 플랫폼이 알려 주지 않으면 줄표다. 여기 상수를 적어 두면 실제
-                // 버전이 그것을 지나친 뒤에도 틀린 값이 권위 있어 보인다.
-                value: announcements?.version?.displayLabel ?? '—',
-              ),
-            ]),
+              ]),
+            ),
             const SizedBox(height: 28),
             Center(
               child: Text(
@@ -231,16 +309,17 @@ class _SettingsScreenContent extends StatelessWidget {
     );
   }
 
-  Future<void> _openStoreReview(BuildContext context) async {
-    final opened = await openStoreReview();
+  /// 바깥 화면을 연다. 열지 못하면 조용히 끝내지 않고 [failureMessage]로 알린다.
+  Future<void> _openOrReport(
+    BuildContext context,
+    Future<bool> Function() open,
+    String failureMessage,
+  ) async {
+    final opened = await open();
     if (opened || !context.mounted) return;
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(AppLocalizations.of(context).settingsReviewOpenFailed),
-        ),
-      );
+      ..showSnackBar(SnackBar(content: Text(failureMessage)));
   }
 
   Future<void> _confirmReplayOnboarding(BuildContext context) async {

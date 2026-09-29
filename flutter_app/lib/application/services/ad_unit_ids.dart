@@ -33,8 +33,8 @@ abstract final class AdUnitIds {
     return _isIos ? _testNativeIos : _liveNativeAndroid;
   }
 
-  /// Slot B — 설정 보너스 테마.
-  static String get packTrialRewarded {
+  /// Slot B — 광고로 여는 캐릭터 팩.
+  static String get packUnlockRewarded {
     if (AdConfig.useTestAds) {
       return _isIos ? _testRewardedIos : _testRewardedAndroid;
     }

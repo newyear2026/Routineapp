@@ -16,17 +16,18 @@ abstract final class CharacterPackCatalog {
     availability: CharacterPackAvailability.included,
   );
 
-  /// 푸들 정원 팩. 보상형 광고를 보면 하루 동안 쓴다.
+  /// 푸들 정원 팩. 보상형 광고를 두 번 끝까지 보면 영구히 쓴다.
   ///
   /// 결제가 붙기 전의 첫 잠긴 팩이다. 몇 %가 팩 하나를 위해 광고를 보는지가
-  /// 평생 이용권 가격의 근거가 된다(`BUSINESS_MODEL.md`). 광고를 켤 수 없는
-  /// 플랫폼(지금은 iOS)에서는 무료로 풀린다 — `RewardedTrialOwnership`.
+  /// 평생 이용권 가격의 근거가 된다(`BUSINESS_MODEL.md`). 결제가 붙으면
+  /// 사서 여는 길이 옆에 선다. 광고를 켤 수 없는 플랫폼(지금은 iOS)에서는
+  /// 무료로 풀린다 — `RewardedUnlockOwnership`.
   static const poodleGarden = CharacterPack(
     id: 'poodle_garden',
     characterId: 'poodle_garden',
     paletteIds: ['poodle_garden'],
     decoIds: ['garden-watering-can', 'garden-daisy', 'garden-leaf'],
-    availability: CharacterPackAvailability.rewardedTrial,
+    availability: CharacterPackAvailability.rewardedUnlock,
   );
 
   /// 아무것도 고르지 않았거나, 고른 팩을 쓸 수 없을 때 돌아가는 팩.

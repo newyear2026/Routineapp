@@ -77,15 +77,22 @@ AdMob 정책 위반이다. 현재 구조에서는 32px 여백 + 섹션 헤더 + 
 ### Slot B — 캐릭터 팩 · 보상형 · Phase 1
 
 **자리:** 광고로 여는 캐릭터 팩(지금은 푸들 정원 팩)의 상세 화면에서
-«광고 보고 하루 써보기»를 눌렀을 때 (`character_pack_detail_screen.dart`)
+«광고 보고 열기»를 눌렀을 때 (`character_pack_detail_screen.dart`)
 
-**"광고 보고 하루 써보기"** — 누른 사람에게만. 하루 3회까지. 끝까지 보면
-본 시각부터 24시간 동안 팩을 쓰고, 바로 적용한다. «오늘 자정까지»로 두면
-밤늦게 본 광고가 몇 분짜리가 되므로 24시간으로 둔다.
+**"광고 보고 열기 (0/2)"** — 누른 사람에게만. 하루 3회까지. 끝까지 본 광고가
+**두 번** 쌓이면 팩을 **영구히** 열고 바로 적용한다. 나눠 봐도 되고, 본 수는
+앱을 다시 켜도 남는다. 한 번 보고 나면 남은 수를 알린다.
+
+한 번으로 열면 결제가 붙었을 때 같은 팩을 살 이유가 사라지고, 너무 많으면
+하루 상한에 걸려 며칠을 기다리게 된다. 두 번은 하루 안에 끝나는 선이다.
+결제가 붙으면 «사서 열기»가 옆에 서고, 산 팩은 광고 수와 상관없이 소유다.
+
+1.0.1+4까지는 «광고 한 번에 24시간 체험»이었다. 그때 광고를 본 사람은 한 번
+본 것으로 옮긴다(`LocalPackAdUnlockStore`).
 
 **iOS는 무료로 푼다.** AdMob에 iOS 앱을 등록하기 전이라 광고를 켤 수 없는데,
 그렇다고 팩을 잠가 두면 여는 방법이 없는 버튼이 된다. 판정은
-`RewardedTrialOwnership`이 한다.
+`RewardedUnlockOwnership`이 한다.
 
 **왜 보상형인가.** 강제 노출이 아니라 교환이다. 사용자가 먼저 누르므로
 **리텐션 위험이 구조적으로 0**이고 — 안 누르면 만날 일이 없다 — 형식 중
@@ -203,5 +210,5 @@ App ID는 테스트/실제 구분이 없다. 매니페스트에는 항상 실제
 | `application/services/ad_config.dart` | 빌드 주입 설정 |
 | `data/local/ad_local_storage.dart` | 첫 실행 시각, 보상형 하루 횟수 |
 | `application/services/rewarded_ad_service.dart` | 보상형 로드 · 표시. 끝까지 봤는지를 돌려준다 |
-| `domain/store/pack_trial.dart` | 광고로 연 팩의 소유 판정 · 24시간 |
-| `data/local/pack_trial_storage.dart` | 팩마다 체험이 끝나는 시각 |
+| `domain/store/pack_ad_unlock.dart` | 광고로 여는 팩의 소유 판정 · 필요한 광고 수 |
+| `data/local/pack_ad_unlock_storage.dart` | 팩마다 끝까지 본 광고 수 |

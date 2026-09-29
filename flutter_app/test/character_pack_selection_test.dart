@@ -11,7 +11,7 @@ import 'package:routine_timer/domain/models/app_settings.dart';
 import 'package:routine_timer/domain/models/watch_state.dart';
 import 'package:routine_timer/domain/settings/notification_preferences.dart';
 import 'package:routine_timer/domain/store/character_pack.dart';
-import 'package:routine_timer/domain/store/pack_trial.dart';
+import 'package:routine_timer/domain/store/pack_ad_unlock.dart';
 
 import 'support/test_doubles.dart';
 
@@ -36,8 +36,8 @@ void main() {
     _MemorySettingsRepository settings, {
     CharacterPackOwnership ownership = const _Owns({'cat_twin'}),
     List<CharacterPack> characterPacks = packs,
-    bool rewardedPackTrials = false,
-    PackTrialStore? trialStore,
+    bool rewardedPackUnlocks = false,
+    PackAdUnlockStore? unlockStore,
     Future<RewardedAdOutcome> Function(AdSlot slot)? showRewardedAd,
     DateTime Function()? now,
   }) async {
@@ -54,8 +54,8 @@ void main() {
       ),
       settingsRepository: settings,
       packOwnership: ownership,
-      packTrialStore: trialStore ?? _MemoryTrialStore(),
-      rewardedPackTrials: rewardedPackTrials,
+      packAdUnlockStore: unlockStore ?? _MemoryUnlockStore(),
+      rewardedPackUnlocks: rewardedPackUnlocks,
       showRewardedAd: showRewardedAd ?? (_) async => RewardedAdOutcome.earned,
       characterPacks: characterPacks,
       nowProvider: now ?? () => DateTime(2026, 9, 22, 10, 0),
@@ -148,23 +148,26 @@ void main() {
     test('광고를 보지 않으면 고를 수 없다', () async {
       final settings = _MemorySettingsRepository();
       final controller = await loadController(settings,
-          characterPacks: CharacterPackCatalog.all, rewardedPackTrials: true);
+          characterPacks: CharacterPackCatalog.all, rewardedPackUnlocks: true);
 
       expect(
         await controller.selectCharacterPack(CharacterPackCatalog.poodleGarden),
         isFalse,
       );
+      expect(controller.packAdViews(CharacterPackCatalog.poodleGarden), 0);
       expect(settings.saveCount, 0);
     });
 
-    test('광고를 끝까지 보면 바로 적용되고 24시간 뒤 기본 팩으로 돌아간다', () async {
+    test('두 번째 광고를 끝까지 보면 영구히 열리고 바로 적용된다', () async {
       var clock = DateTime(2026, 9, 22, 10, 0);
       final settings = _MemorySettingsRepository();
+      final store = _MemoryUnlockStore();
       final shown = <AdSlot>[];
       final controller = await loadController(
         settings,
         characterPacks: CharacterPackCatalog.all,
-        rewardedPackTrials: true,
+        rewardedPackUnlocks: true,
+        unlockStore: store,
         now: () => clock,
         showRewardedAd: (slot) async {
           shown.add(slot);
@@ -173,99 +176,116 @@ void main() {
       );
 
       expect(
-        await controller.watchAdForPackTrial(CharacterPackCatalog.poodleGarden),
-        PackTrialOutcome.started,
+        await controller
+            .watchAdForPackUnlock(CharacterPackCatalog.poodleGarden),
+        PackAdUnlockOutcome.progressed,
       );
-      expect(shown, [AdSlot.packTrialReward]);
-      expect(controller.currentPack.id, 'poodle_garden');
-      expect(
-        controller.packTrialEndsAt(CharacterPackCatalog.poodleGarden),
-        DateTime(2026, 9, 23, 10, 0),
-      );
-
-      clock = DateTime(2026, 9, 23, 9, 59);
-      expect(controller.currentPack.id, 'poodle_garden');
-
-      clock = DateTime(2026, 9, 23, 10, 0);
       expect(controller.currentPack.id, 'cat_starlight');
-      expect(controller.currentThemePreset.id, isNot('poodle_garden'));
-      expect(controller.packTrialEndsAt(CharacterPackCatalog.poodleGarden),
-          isNull);
-      // 저장값은 남는다 — 다시 광고를 보면 고른 팩이 그대로 살아난다.
-      expect(settings.saved.characterPackId, 'poodle_garden');
+      expect(controller.packAdViews(CharacterPackCatalog.poodleGarden), 1);
+      expect(store.views, {'poodle_garden': 1});
+      expect(settings.saveCount, 0);
+
+      expect(
+        await controller
+            .watchAdForPackUnlock(CharacterPackCatalog.poodleGarden),
+        PackAdUnlockOutcome.unlocked,
+      );
+      expect(shown, [AdSlot.packUnlockReward, AdSlot.packUnlockReward]);
+      expect(controller.currentPack.id, 'poodle_garden');
+      expect(controller.packAdViews(CharacterPackCatalog.poodleGarden), isNull);
+
+      // 끝나는 때가 없다.
+      clock = DateTime(2027, 9, 22, 10, 0);
+      expect(controller.currentPack.id, 'poodle_garden');
     });
 
-    test('체험은 앱을 다시 켜도 남는다', () async {
+    test('본 수는 앱을 다시 켜도 남고, 나눠 봐도 이어진다', () async {
       final settings = _MemorySettingsRepository();
-      final store = _MemoryTrialStore();
+      final store = _MemoryUnlockStore();
       final first = await loadController(settings,
           characterPacks: CharacterPackCatalog.all,
-          rewardedPackTrials: true,
-          trialStore: store);
-      await first.watchAdForPackTrial(CharacterPackCatalog.poodleGarden);
+          rewardedPackUnlocks: true,
+          unlockStore: store);
+      await first.watchAdForPackUnlock(CharacterPackCatalog.poodleGarden);
 
-      final reopened = await loadController(settings,
+      final second = await loadController(settings,
           characterPacks: CharacterPackCatalog.all,
-          rewardedPackTrials: true,
-          trialStore: store);
-      expect(reopened.currentPack.id, 'poodle_garden');
+          rewardedPackUnlocks: true,
+          unlockStore: store);
+      expect(second.packAdViews(CharacterPackCatalog.poodleGarden), 1);
+      expect(
+        await second.watchAdForPackUnlock(CharacterPackCatalog.poodleGarden),
+        PackAdUnlockOutcome.unlocked,
+      );
+
+      final third = await loadController(settings,
+          characterPacks: CharacterPackCatalog.all,
+          rewardedPackUnlocks: true,
+          unlockStore: store);
+      expect(third.currentPack.id, 'poodle_garden');
     });
 
-    test('광고를 도중에 닫으면 열리지 않는다', () async {
+    test('광고를 도중에 닫으면 세지 않는다', () async {
       final settings = _MemorySettingsRepository();
-      final store = _MemoryTrialStore();
+      final store = _MemoryUnlockStore();
       final controller = await loadController(
         settings,
         characterPacks: CharacterPackCatalog.all,
-        rewardedPackTrials: true,
-        trialStore: store,
+        rewardedPackUnlocks: true,
+        unlockStore: store,
         showRewardedAd: (_) async => RewardedAdOutcome.dismissed,
       );
 
       expect(
-        await controller.watchAdForPackTrial(CharacterPackCatalog.poodleGarden),
-        PackTrialOutcome.adNotCompleted,
+        await controller
+            .watchAdForPackUnlock(CharacterPackCatalog.poodleGarden),
+        PackAdUnlockOutcome.adNotCompleted,
       );
       expect(controller.currentPack.id, 'cat_starlight');
-      expect(store.ends, isEmpty);
+      expect(store.views, isEmpty);
       expect(settings.saveCount, 0);
     });
 
     test('하루 상한과 로드 실패를 구분해 돌려준다', () async {
       for (final (ad, expected) in [
-        (RewardedAdOutcome.dailyCapReached, PackTrialOutcome.dailyLimitReached),
-        (RewardedAdOutcome.unavailable, PackTrialOutcome.adUnavailable),
+        (
+          RewardedAdOutcome.dailyCapReached,
+          PackAdUnlockOutcome.dailyLimitReached
+        ),
+        (RewardedAdOutcome.unavailable, PackAdUnlockOutcome.adUnavailable),
       ]) {
         final controller = await loadController(
           _MemorySettingsRepository(),
           characterPacks: CharacterPackCatalog.all,
-          rewardedPackTrials: true,
+          rewardedPackUnlocks: true,
           showRewardedAd: (_) async => ad,
         );
         expect(
           await controller
-              .watchAdForPackTrial(CharacterPackCatalog.poodleGarden),
+              .watchAdForPackUnlock(CharacterPackCatalog.poodleGarden),
           expected,
         );
       }
     });
 
-    test('체험 저장이 실패해도 광고를 본 이번 실행에는 열어 준다', () async {
+    test('저장이 실패해도 광고를 본 이번 실행에는 센 수를 쥐고 있다', () async {
       final controller = await loadController(
         _MemorySettingsRepository(),
         characterPacks: CharacterPackCatalog.all,
-        rewardedPackTrials: true,
-        trialStore: _MemoryTrialStore()..failSaves = true,
+        rewardedPackUnlocks: true,
+        unlockStore: _MemoryUnlockStore()..failSaves = true,
       );
 
+      await controller.watchAdForPackUnlock(CharacterPackCatalog.poodleGarden);
       expect(
-        await controller.watchAdForPackTrial(CharacterPackCatalog.poodleGarden),
-        PackTrialOutcome.started,
+        await controller
+            .watchAdForPackUnlock(CharacterPackCatalog.poodleGarden),
+        PackAdUnlockOutcome.unlocked,
       );
       expect(controller.currentPack.id, 'poodle_garden');
     });
 
-    test('광고를 켤 수 없는 플랫폼에서는 광고를 띄우지 않는다', () async {
+    test('광고를 켤 수 없는 플랫폼에서는 광고 없이 풀려 있다', () async {
       var shown = 0;
       final controller = await loadController(
         _MemorySettingsRepository(),
@@ -277,21 +297,25 @@ void main() {
       );
 
       expect(
-        await controller.watchAdForPackTrial(CharacterPackCatalog.poodleGarden),
-        PackTrialOutcome.failed,
+        await controller
+            .watchAdForPackUnlock(CharacterPackCatalog.poodleGarden),
+        PackAdUnlockOutcome.failed,
       );
       expect(shown, 0);
-      expect(controller.packTrialEndsAt(CharacterPackCatalog.poodleGarden),
-          isNull);
+      expect(controller.packAdViews(CharacterPackCatalog.poodleGarden), isNull);
+      expect(
+        await controller.selectCharacterPack(CharacterPackCatalog.poodleGarden),
+        isTrue,
+      );
     });
 
-    test('산 팩은 체험이 아니다', () async {
+    test('산 팩은 광고를 셀 것이 없다', () async {
       var shown = 0;
       final controller = await loadController(
         _MemorySettingsRepository(),
         ownership: const _Owns({'poodle_garden'}),
         characterPacks: CharacterPackCatalog.all,
-        rewardedPackTrials: true,
+        rewardedPackUnlocks: true,
         showRewardedAd: (_) async {
           shown++;
           return RewardedAdOutcome.earned;
@@ -303,9 +327,11 @@ void main() {
         isTrue,
       );
       expect(
-        await controller.watchAdForPackTrial(CharacterPackCatalog.poodleGarden),
-        PackTrialOutcome.failed,
+        await controller
+            .watchAdForPackUnlock(CharacterPackCatalog.poodleGarden),
+        PackAdUnlockOutcome.failed,
       );
+      expect(controller.packAdViews(CharacterPackCatalog.poodleGarden), isNull);
       expect(shown, 0);
     });
   });
@@ -373,16 +399,16 @@ class _MemorySettingsRepository implements SettingsRepository {
   ) async {}
 }
 
-class _MemoryTrialStore implements PackTrialStore {
-  final Map<String, DateTime> ends = {};
+class _MemoryUnlockStore implements PackAdUnlockStore {
+  final Map<String, int> views = {};
   bool failSaves = false;
 
   @override
-  Future<Map<String, DateTime>> loadTrialEnds() async => Map.of(ends);
+  Future<Map<String, int>> loadAdViews() async => Map.of(views);
 
   @override
-  Future<void> saveTrialEnd(String packId, DateTime endsAt) async {
+  Future<void> saveAdViews(String packId, int count) async {
     if (failSaves) throw StateError('save failed');
-    ends[packId] = endsAt;
+    views[packId] = count;
   }
 }

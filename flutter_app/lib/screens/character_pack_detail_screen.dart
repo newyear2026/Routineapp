@@ -3,9 +3,7 @@ import 'package:go_router/go_router.dart';
 
 import '../data/store/character_pack_catalog.dart';
 import '../domain/store/character_pack.dart';
-import '../domain/store/pack_trial.dart';
-import '../domain/utils/app_date_formats.dart';
-import '../domain/utils/time_minutes.dart';
+import '../domain/store/pack_ad_unlock.dart';
 import '../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
@@ -153,9 +151,9 @@ class CharacterPackDetailScreen extends StatelessWidget {
               inUse: inUse,
               owned: ownership.owns(pack),
               selectable: CharacterPackCatalog.isSelectable(pack, ownership),
-              trialEndsAt: CharacterPackScope.trialEndsAtOf(context, pack),
+              adViews: CharacterPackScope.adViewsOf(context, pack) ?? 0,
               onSelect: CharacterPackScope.onSelectOf(context),
-              onStartTrial: CharacterPackScope.onStartTrialOf(context),
+              onWatchAd: CharacterPackScope.onWatchAdOf(context),
             ),
           ],
         ),
@@ -241,7 +239,7 @@ class _ContentsRow extends StatelessWidget {
   }
 }
 
-/// 사용 중 · 쓰기 · 광고로 체험 · 구매 표시. **판정은 여기 한 곳에서만 한다.**
+/// 사용 중 · 쓰기 · 광고로 열기 · 구매 표시. **판정은 여기 한 곳에서만 한다.**
 ///
 /// 조건이 화면 곳곳에 흩어지면 가격 정책을 바꿀 수 없게 된다
 /// (`BUSINESS_MODEL.md` 6장).
@@ -251,9 +249,9 @@ class _PackAction extends StatefulWidget {
     required this.inUse,
     required this.owned,
     required this.selectable,
-    required this.trialEndsAt,
+    required this.adViews,
     required this.onSelect,
-    required this.onStartTrial,
+    required this.onWatchAd,
   });
 
   final CharacterPack pack;
@@ -261,10 +259,10 @@ class _PackAction extends StatefulWidget {
   final bool owned;
   final bool selectable;
 
-  /// 광고로 체험 중이면 끝나는 시각.
-  final DateTime? trialEndsAt;
+  /// 이 팩을 위해 끝까지 본 광고 수.
+  final int adViews;
   final Future<bool> Function(CharacterPack pack)? onSelect;
-  final Future<PackTrialOutcome> Function(CharacterPack pack)? onStartTrial;
+  final Future<PackAdUnlockOutcome> Function(CharacterPack pack)? onWatchAd;
 
   @override
   State<_PackAction> createState() => _PackActionState();
@@ -289,23 +287,32 @@ class _PackActionState extends State<_PackAction> {
       ..showSnackBar(SnackBar(content: Text(failureMessage)));
   }
 
-  Future<void> _startTrial() async {
-    final onStartTrial = widget.onStartTrial;
-    if (onStartTrial == null || _saving) return;
+  Future<void> _watchAd() async {
+    final onWatchAd = widget.onWatchAd;
+    if (onWatchAd == null || _saving) return;
     final messenger = ScaffoldMessenger.of(context);
     final l10n = AppLocalizations.of(context);
+    // 광고를 보는 사이 스코프가 새 수로 다시 그려질 수 있어 본 뒤의 남은 수를
+    // 미리 셈해 둔다.
+    final remainingAfterThis =
+        RewardedUnlockOwnership.adsRequired - widget.adViews - 1;
     setState(() => _saving = true);
-    final outcome = await onStartTrial(widget.pack);
+    final outcome = await onWatchAd(widget.pack);
     if (!mounted) return;
     setState(() => _saving = false);
-    // 성공하면 알리지 않는다. 버튼이 «사용 중»으로 바뀌고 캐릭터가 바뀌는
-    // 것이 곧 결과다.
+    // 다 열리면 알리지 않는다. 버튼이 «사용 중»으로 바뀌고 캐릭터가 바뀌는
+    // 것이 곧 결과다. 반만 채웠을 때는 화면이 거의 그대로라 남은 수를 말한다.
     final message = switch (outcome) {
-      PackTrialOutcome.started => null,
-      PackTrialOutcome.adNotCompleted => l10n.characterPackTrialNotCompleted,
-      PackTrialOutcome.dailyLimitReached => l10n.characterPackTrialDailyLimit,
-      PackTrialOutcome.adUnavailable => l10n.characterPackTrialUnavailable,
-      PackTrialOutcome.failed => l10n.characterPackSelectFailed,
+      PackAdUnlockOutcome.unlocked => null,
+      PackAdUnlockOutcome.progressed =>
+        l10n.characterPackAdUnlockProgressed(remainingAfterThis),
+      PackAdUnlockOutcome.adNotCompleted =>
+        l10n.characterPackAdUnlockNotCompleted,
+      PackAdUnlockOutcome.dailyLimitReached =>
+        l10n.characterPackAdUnlockDailyLimit,
+      PackAdUnlockOutcome.adUnavailable =>
+        l10n.characterPackAdUnlockUnavailable,
+      PackAdUnlockOutcome.failed => l10n.characterPackSelectFailed,
     };
     if (message == null) return;
     messenger
@@ -313,37 +320,15 @@ class _PackActionState extends State<_PackAction> {
       ..showSnackBar(SnackBar(content: Text(message)));
   }
 
-  /// 체험이 끝나는 때 — 내일 이맘때라 날짜까지 적는다.
-  Widget? _trialCaption(AppLocalizations l10n) {
-    final end = widget.trialEndsAt;
-    if (end == null) return null;
-    final when = '${AppDateFormats.monthDay(context, end)} '
-        '${TimeMinutes.formatHm(end.hour * 60 + end.minute)}';
-    return Padding(
-      padding: const EdgeInsets.only(top: AppSpacing.sm),
-      child: Text(
-        l10n.characterPackTrialEndsAt(when),
-        textAlign: TextAlign.center,
-        style: AppTextStyles.caption,
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
-    final trialCaption = _trialCaption(l10n);
     if (widget.inUse) {
-      return Column(
-        children: [
-          Center(
-            child: AppStatusBadge(
-              label: l10n.themeInUse,
-              tone: AppStatusBadgeTone.success,
-            ),
-          ),
-          if (trialCaption != null) trialCaption,
-        ],
+      return Center(
+        child: AppStatusBadge(
+          label: l10n.themeInUse,
+          tone: AppStatusBadgeTone.success,
+        ),
       );
     }
     if (widget.owned) {
@@ -356,7 +341,6 @@ class _PackActionState extends State<_PackAction> {
             onPressed:
                 widget.selectable && widget.onSelect != null ? _select : null,
           ),
-          if (trialCaption != null) trialCaption,
           // 산 팩이라도 그림이 오기 전에는 쓸 수 없다. 잠긴 이유를 말한다
           // (`PROJECT_RULES.md` 9장).
           if (!widget.pack.hasArtwork) ...[
@@ -370,20 +354,21 @@ class _PackActionState extends State<_PackAction> {
         ],
       );
     }
-    if (widget.pack.availability == CharacterPackAvailability.rewardedTrial) {
+    if (widget.pack.availability == CharacterPackAvailability.rewardedUnlock) {
       return Column(
         children: [
           AppButton(
-            label: l10n.characterPackTrialAction,
+            label: l10n.characterPackAdUnlockAction(
+                widget.adViews, RewardedUnlockOwnership.adsRequired),
             icon: Icons.play_circle_outline_rounded,
             isLoading: _saving,
-            onPressed: widget.onStartTrial != null ? _startTrial : null,
+            onPressed: widget.onWatchAd != null ? _watchAd : null,
           ),
           const SizedBox(height: AppSpacing.sm),
           // 무엇을 내고 무엇을 받는지 누르기 전에 말한다. 보상형 광고 정책도
           // 보상 내용을 미리 알리도록 요구한다.
           Text(
-            l10n.characterPackTrialHint,
+            l10n.characterPackAdUnlockHint(RewardedUnlockOwnership.adsRequired),
             textAlign: TextAlign.center,
             style: AppTextStyles.caption,
           ),

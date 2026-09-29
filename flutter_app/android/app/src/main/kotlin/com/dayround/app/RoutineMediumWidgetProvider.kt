@@ -7,6 +7,7 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.graphics.Bitmap
 import android.graphics.Color
 import android.os.Build
 import android.text.Spannable
@@ -28,17 +29,21 @@ import kotlin.math.max
  * 표시 항목·문구는 Dart(`home_medium_widget.dart`)·iOS와 같다.
  * 값이 비면 '—' 같은 자리표시자를 남기지 않고 그 줄을 숨긴다.
  */
-class RoutineMediumWidgetProvider : HomeWidgetProvider() {
+open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
+
+    protected open val widgetStyle: WidgetStyle = WidgetStyle.RING
+
+    protected enum class WidgetStyle { RING, TIMELINE, CARDS }
 
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action == Intent.ACTION_BOOT_COMPLETED ||
             intent.action == Intent.ACTION_MY_PACKAGE_REPLACED) {
             val manager = AppWidgetManager.getInstance(context)
             val ids = manager.getAppWidgetIds(
-                ComponentName(context, RoutineMediumWidgetProvider::class.java)
+                ComponentName(context, javaClass)
             )
             if (ids.isNotEmpty()) {
-                context.sendBroadcast(Intent(context, RoutineMediumWidgetProvider::class.java).apply {
+                context.sendBroadcast(Intent(context, javaClass).apply {
                     action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
                     putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
                 })
@@ -88,23 +93,61 @@ class RoutineMediumWidgetProvider : HomeWidgetProvider() {
         val garden = json.optString("characterPackId") == "poodle_garden"
 
         for (id in appWidgetIds) {
-            val views = RemoteViews(context.packageName, R.layout.widget_routine_medium)
-            bindPackArtwork(views, garden)
-            bindText(views, R.id.widget_status_badge, display.optString("currentRoutineStatus", ""))
-            bindText(views, R.id.widget_current_title, display.optString("currentRoutineTitle", ""))
-            bindTimingHint(views, if (expired) "" else timingHint(json, display, nowMs))
-            bindText(views, R.id.widget_next_label,
-                json.optString("nextLabel").ifBlank { context.getString(R.string.widget_next_label) })
-            bindText(views, R.id.widget_next_title, display.optString("nextRoutineTitle", ""))
-            bindText(views, R.id.widget_next_time, display.optString("nextRoutineTime", ""))
-            bindText(views, R.id.widget_now_label,
-                display.optString("centerTimeLabel", json.optString("centerTimeLabel"))
-                    .ifBlank { context.getString(R.string.widget_now_label) })
-
-            views.setImageViewBitmap(R.id.widget_ring, ring)
+            val views = renderWidget(context, json, display, nowMs, ring, garden, expired)
             appWidgetManager.updateAppWidget(id, views)
         }
         scheduleNextUpdate(context, appWidgetIds, json, nowMs)
+    }
+
+    private fun renderWidget(
+        context: Context,
+        payload: JSONObject,
+        display: JSONObject,
+        nowMs: Long,
+        ring: Bitmap,
+        garden: Boolean,
+        expired: Boolean,
+    ): RemoteViews {
+        val nextTitle = display.optString("nextRoutineTitle", "")
+        val nextLabel = if (nextTitle.isBlank()) "" else
+            payload.optString("nextLabel").ifBlank { context.getString(R.string.widget_next_label) }
+        val hint = if (expired) "" else timingHint(payload, display, nowMs)
+        val layout = when (widgetStyle) {
+            WidgetStyle.RING -> R.layout.widget_routine_medium
+            WidgetStyle.TIMELINE -> R.layout.widget_routine_timeline
+            WidgetStyle.CARDS -> R.layout.widget_routine_cards
+        }
+        val views = RemoteViews(context.packageName, layout)
+        when (widgetStyle) {
+            WidgetStyle.RING -> {
+                bindPackArtwork(views, garden)
+                bindText(views, R.id.widget_status_badge, display.optString("currentRoutineStatus", ""))
+                bindText(views, R.id.widget_current_title, display.optString("currentRoutineTitle", ""))
+                bindTimingHint(views, hint)
+                bindText(views, R.id.widget_next_label, nextLabel)
+                bindText(views, R.id.widget_next_title, nextTitle)
+                bindText(views, R.id.widget_next_time, display.optString("nextRoutineTime", ""))
+                bindText(views, R.id.widget_now_label,
+                    display.optString("centerTimeLabel", payload.optString("centerTimeLabel"))
+                        .ifBlank { context.getString(R.string.widget_now_label) })
+                views.setImageViewBitmap(R.id.widget_ring, ring)
+            }
+            WidgetStyle.TIMELINE -> {
+                views.setImageViewBitmap(R.id.widget_variant_art,
+                    RoutineWidgetVariantBitmap.create(context, "timeline", garden, display,
+                        display.optString("currentRoutineStatus", ""),
+                        display.optString("currentRoutineTitle", ""), hint, nextLabel,
+                        nextTitle, display.optString("nextRoutineTime", "")))
+            }
+            WidgetStyle.CARDS -> {
+                views.setImageViewBitmap(R.id.widget_variant_art,
+                    RoutineWidgetVariantBitmap.create(context, "cards", garden, display,
+                        display.optString("currentRoutineStatus", ""),
+                        display.optString("currentRoutineTitle", ""), hint, nextLabel,
+                        nextTitle, display.optString("nextRoutineTime", "")))
+            }
+        }
+        return views
     }
 
     private fun stateAt(payload: JSONObject, nowMs: Long): JSONObject? {
@@ -146,7 +189,7 @@ class RoutineMediumWidgetProvider : HomeWidgetProvider() {
     private fun scheduleNextUpdate(context: Context, ids: IntArray, payload: JSONObject, nowMs: Long) {
         if (ids.isEmpty()) return
         val manager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(context, RoutineMediumWidgetProvider::class.java).apply {
+        val intent = Intent(context, javaClass).apply {
             action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
             putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids)
         }
@@ -190,7 +233,7 @@ class RoutineMediumWidgetProvider : HomeWidgetProvider() {
     }
 
     override fun onDisabled(context: Context) {
-        val intent = Intent(context, RoutineMediumWidgetProvider::class.java).apply {
+        val intent = Intent(context, javaClass).apply {
             action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
         }
         PendingIntent.getBroadcast(
@@ -226,7 +269,7 @@ class RoutineMediumWidgetProvider : HomeWidgetProvider() {
 
     private fun ringSizePx(context: Context): Int {
         val density = context.resources.displayMetrics.density
-        return max((101 * density).toInt(), 101)
+        return max((63 * density).toInt(), 63)
     }
 
     private fun bindPackArtwork(views: RemoteViews, garden: Boolean) {
@@ -254,22 +297,26 @@ class RoutineMediumWidgetProvider : HomeWidgetProvider() {
             put("ringSegments", JSONArray())
         }
         val bmp = RoutineWidgetRingBitmap.create(placeholder, ringSizePx(context), drawCenter = false)
+        val display = JSONObject().apply {
+            put("currentRoutineTitle", context.getString(R.string.widget_sync_prompt))
+            put("ringSegments", JSONArray())
+        }
         for (id in appWidgetIds) {
-            val views = RemoteViews(context.packageName, R.layout.widget_routine_medium)
-            bindPackArtwork(views, false)
-            bindText(views, R.id.widget_status_badge, "")
-            bindText(views, R.id.widget_current_title, context.getString(R.string.widget_sync_prompt))
-            bindText(views, R.id.widget_next_label, context.getString(R.string.widget_next_label))
-            bindText(views, R.id.widget_timing_hint, "")
-            bindText(views, R.id.widget_next_title, "없음")
-            bindText(views, R.id.widget_next_time, "")
-            bindText(views, R.id.widget_now_label, context.getString(R.string.widget_now_label))
-            views.setImageViewBitmap(R.id.widget_ring, bmp)
-            appWidgetManager.updateAppWidget(id, views)
+            appWidgetManager.updateAppWidget(id,
+                renderWidget(context, placeholder, display, System.currentTimeMillis(),
+                    bmp, garden = false, expired = true))
         }
     }
 
     companion object {
         private const val PAYLOAD_KEY = "routine_widget_payload"
     }
+}
+
+class RoutineTimelineWidgetProvider : RoutineMediumWidgetProvider() {
+    override val widgetStyle = WidgetStyle.TIMELINE
+}
+
+class RoutineCardsWidgetProvider : RoutineMediumWidgetProvider() {
+    override val widgetStyle = WidgetStyle.CARDS
 }

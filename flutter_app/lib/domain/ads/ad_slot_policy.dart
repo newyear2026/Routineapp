@@ -77,7 +77,7 @@ abstract final class AdSlotPolicy {
       case AdSlot.progressBeforeUpcoming:
         return context.todayRoutineCount >=
             AdPlacementCaps.minTodayRoutinesForProgressSlot;
-      case AdSlot.packTrialReward:
+      case AdSlot.packUnlockReward:
         // 잠긴 팩에서 사용자가 눌렀을 때만 호출되므로 별도 조건이 없다.
         return true;
     }

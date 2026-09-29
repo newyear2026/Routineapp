@@ -5,7 +5,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:routine_timer/data/store/character_pack_catalog.dart';
 import 'package:routine_timer/domain/store/character_pack.dart';
-import 'package:routine_timer/domain/store/pack_trial.dart';
+import 'package:routine_timer/domain/store/pack_ad_unlock.dart';
 import 'package:routine_timer/screens/character_pack_detail_screen.dart';
 import 'package:routine_timer/screens/character_pack_store_screen.dart';
 import 'package:routine_timer/widgets/ds/animated_cat.dart';
@@ -125,16 +125,14 @@ void main() {
       expect(find.byType(GardenLeaf), findsNWidgets(4));
       expect(
         find.byWidgetPredicate((widget) =>
-            widget is PixelDecoration &&
-            widget.asset == 'garden-watering-can'),
+            widget is PixelDecoration && widget.asset == 'garden-watering-can'),
         findsNothing,
       );
 
       await scrollToBottom(tester, find.byType(CharacterPackDecoRow));
       expect(
         find.byWidgetPredicate((widget) =>
-            widget is PixelDecoration &&
-            widget.asset == 'garden-watering-can'),
+            widget is PixelDecoration && widget.asset == 'garden-watering-can'),
         findsOneWidget,
       );
 
@@ -142,7 +140,7 @@ void main() {
       await scrollToBottom(tester, find.byType(AppButton));
       final button = tester.widget<AppButton>(find.byType(AppButton));
       expect(button.onPressed, isNull);
-      expect(button.label, testL10n.characterPackTrialAction);
+      expect(button.label, testL10n.characterPackAdUnlockAction(0, 2));
     });
 
     testWidgets('기본 팩은 사용 중으로 표시하고 구매 버튼을 두지 않는다', (tester) async {
@@ -353,80 +351,117 @@ void main() {
   });
 
   group('광고로 여는 팩', () {
-    Widget trialScoped(
+    Widget unlockScoped(
       Widget home, {
       CharacterPack current = CharacterPackCatalog.starlightCat,
       CharacterPackOwnership ownership = const BundledOnlyOwnership(),
-      DateTime? Function(CharacterPack)? trialEndsAt,
-      Future<PackTrialOutcome> Function(CharacterPack)? onStartTrial,
+      int? Function(CharacterPack)? adViews,
+      Future<PackAdUnlockOutcome> Function(CharacterPack)? onWatchAd,
     }) {
       return localizedApp(
         home: CharacterPackScope(
           current: current,
           ownership: ownership,
           onSelect: (_) async => true,
-          trialEndsAt: trialEndsAt,
-          onStartTrial: onStartTrial,
+          adViews: adViews,
+          onWatchAd: onWatchAd,
           child: home,
         ),
       );
     }
 
-    testWidgets('목록에서 잠긴 팩은 광고로 체험, 체험 중인 팩은 체험 중이다', (tester) async {
-      await tester.pumpWidget(trialScoped(const CharacterPackStoreScreen()));
+    testWidgets('목록에서 잠긴 팩은 광고로 열기, 한 번 본 팩은 본 수를 보인다', (tester) async {
+      await tester.pumpWidget(unlockScoped(const CharacterPackStoreScreen()));
       await tester.pump();
-      expect(find.text(testL10n.characterPackTrialBadge), findsOneWidget);
+      expect(find.text(testL10n.characterPackAdUnlockBadge), findsOneWidget);
 
-      await tester.pumpWidget(trialScoped(
+      await tester.pumpWidget(unlockScoped(
         const CharacterPackStoreScreen(),
-        ownership: const _OwnsEverything(),
-        trialEndsAt: (pack) =>
-            pack.id == 'poodle_garden' ? DateTime(2026, 9, 24, 15, 20) : null,
+        adViews: (pack) => pack.id == 'poodle_garden' ? 1 : null,
       ));
       await tester.pump();
-      expect(find.text(testL10n.characterPackTrialActive), findsOneWidget);
+      expect(find.text(testL10n.characterPackAdUnlockProgress(1, 2)),
+          findsOneWidget);
     });
 
-    testWidgets('잠긴 팩은 무엇을 받는지 알리고 광고 버튼을 누르면 체험을 시작한다', (tester) async {
-      final started = <String>[];
-      await tester.pumpWidget(trialScoped(
+    testWidgets('광고로 연 팩은 목록에서 다른 산 팩과 똑같이 보유 중이다', (tester) async {
+      await tester.pumpWidget(unlockScoped(
+        const CharacterPackStoreScreen(),
+        ownership: const _OwnsEverything(),
+      ));
+      await tester.pump();
+      expect(find.text(testL10n.characterPackOwned), findsOneWidget);
+      expect(find.text(testL10n.characterPackAdUnlockBadge), findsNothing);
+    });
+
+    testWidgets('잠긴 팩은 몇 번 봐야 하는지 알리고 광고 버튼을 누르면 센다', (tester) async {
+      final watched = <String>[];
+      await tester.pumpWidget(unlockScoped(
         const CharacterPackDetailScreen(packId: 'poodle_garden'),
-        onStartTrial: (pack) async {
-          started.add(pack.id);
-          return PackTrialOutcome.started;
+        onWatchAd: (pack) async {
+          watched.add(pack.id);
+          return PackAdUnlockOutcome.unlocked;
         },
       ));
       await tester.pump();
 
       await scrollToBottom(tester, find.byType(AppButton));
-      expect(find.text(testL10n.characterPackTrialHint), findsOneWidget);
+      expect(find.text(testL10n.characterPackAdUnlockHint(2)), findsOneWidget);
       final button = tester.widget<AppButton>(find.byType(AppButton));
-      expect(button.label, testL10n.characterPackTrialAction);
+      expect(button.label, testL10n.characterPackAdUnlockAction(0, 2));
 
       await tester.tap(find.byType(AppButton));
       await tester.pump();
       await tester.pump();
-      expect(started, ['poodle_garden']);
-      // 성공은 화면이 바뀌는 것으로 알린다. 따로 안내하지 않는다.
+      expect(watched, ['poodle_garden']);
+      // 다 열리면 화면이 바뀌는 것으로 알린다. 따로 안내하지 않는다.
       expect(find.byType(SnackBar), findsNothing);
+    });
+
+    testWidgets('한 번 본 팩은 버튼에 본 수를 보이고, 반만 채우면 남은 수를 알린다', (tester) async {
+      await tester.pumpWidget(unlockScoped(
+        const CharacterPackDetailScreen(packId: 'poodle_garden'),
+        adViews: (_) => 0,
+        onWatchAd: (_) async => PackAdUnlockOutcome.progressed,
+      ));
+      await tester.pump();
+
+      await scrollToBottom(tester, find.byType(AppButton));
+      await tester.tap(find.byType(AppButton));
+      await tester.pump();
+      await tester.pump();
+      expect(find.text(testL10n.characterPackAdUnlockProgressed(1)),
+          findsOneWidget);
+
+      await tester.pumpWidget(unlockScoped(
+        const CharacterPackDetailScreen(packId: 'poodle_garden'),
+        adViews: (_) => 1,
+        onWatchAd: (_) async => PackAdUnlockOutcome.unlocked,
+      ));
+      await tester.pump();
+      final button = tester.widget<AppButton>(find.byType(AppButton));
+      expect(button.label, testL10n.characterPackAdUnlockAction(1, 2));
     });
 
     for (final (outcome, message) in [
       (
-        PackTrialOutcome.adNotCompleted,
-        testL10n.characterPackTrialNotCompleted
+        PackAdUnlockOutcome.adNotCompleted,
+        testL10n.characterPackAdUnlockNotCompleted
       ),
       (
-        PackTrialOutcome.dailyLimitReached,
-        testL10n.characterPackTrialDailyLimit
+        PackAdUnlockOutcome.dailyLimitReached,
+        testL10n.characterPackAdUnlockDailyLimit
       ),
-      (PackTrialOutcome.adUnavailable, testL10n.characterPackTrialUnavailable),
-      (PackTrialOutcome.failed, testL10n.characterPackSelectFailed),
+      (
+        PackAdUnlockOutcome.adUnavailable,
+        testL10n.characterPackAdUnlockUnavailable
+      ),
+      (PackAdUnlockOutcome.failed, testL10n.characterPackSelectFailed),
     ]) {
-      testWidgets('체험을 못 열면 이유를 알린다 — ${outcome.name}', (tester) async {
-        await tester.pumpWidget(trialScoped(
+      testWidgets('광고를 세지 못하면 이유를 알린다 — ${outcome.name}', (tester) async {
+        await tester.pumpWidget(unlockScoped(
           const CharacterPackDetailScreen(packId: 'poodle_garden'),
-          onStartTrial: (_) async => outcome,
+          onWatchAd: (_) async => outcome,
         ));
         await tester.pump();
 
@@ -438,18 +473,16 @@ void main() {
       });
     }
 
-    testWidgets('체험 중인 팩은 사용 중 아래에 끝나는 때를 보여 준다', (tester) async {
-      final end = DateTime(2026, 9, 24, 15, 20);
-      await tester.pumpWidget(trialScoped(
+    testWidgets('광고로 연 팩은 끝나는 때 없이 사용 중으로만 보인다', (tester) async {
+      await tester.pumpWidget(unlockScoped(
         const CharacterPackDetailScreen(packId: 'poodle_garden'),
         current: CharacterPackCatalog.poodleGarden,
         ownership: const _OwnsEverything(),
-        trialEndsAt: (_) => end,
       ));
       await tester.pump();
 
       await scrollToBottom(tester, find.text(testL10n.themeInUse));
-      expect(find.textContaining('15:20'), findsOneWidget);
+      expect(find.text(testL10n.themeInUse), findsOneWidget);
       expect(find.byType(AppButton), findsNothing);
     });
   });

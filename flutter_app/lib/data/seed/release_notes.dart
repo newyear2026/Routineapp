@@ -46,7 +46,7 @@ final releaseNotes = <ReleaseNote>[
       (l10n) => l10n.releaseNote101Snooze,
       (l10n) => l10n.releaseNote101PixelClouds,
       (l10n) => l10n.releaseNote101CharacterPacks,
-      (l10n) => l10n.releaseNote101GardenTrial,
+      (l10n) => l10n.releaseNote101GardenUnlock,
       (l10n) => l10n.releaseNote101Languages,
     ],
   ),

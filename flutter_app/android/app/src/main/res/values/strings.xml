@@ -4,6 +4,11 @@
     <string name="app_name">LOOPET</string>
     <string name="widget_ring_desc">Today\'s routine ring</string>
     <string name="widget_medium_description">Today\'s routines in a circle</string>
+    <string name="widget_ring_name">LOOPET Circle</string>
+    <string name="widget_timeline_name">LOOPET Timeline</string>
+    <string name="widget_cards_name">LOOPET Cards</string>
+    <string name="widget_timeline_description">Today\'s routines on a timeline</string>
+    <string name="widget_cards_description">Current and next routine cards</string>
     <string name="widget_next_label">Next</string>
     <string name="widget_sync_prompt">Open the app</string>
     <string name="widget_now_label">Now</string>

@@ -523,14 +523,32 @@
   "@settingsWidgetPreviewDesc": {},
   "settingsContact": "Contact us",
   "@settingsContact": {},
-  "settingsContactDesc": "Support channel not connected yet",
+  "settingsContactDesc": "Send us feedback or report a problem by email",
   "@settingsContactDesc": {},
+  "settingsContactOpenFailed": "Couldn't open a mail app. Please write to {email}.",
+  "@settingsContactOpenFailed": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
   "settingsReview": "Leave a review",
   "@settingsReview": {},
   "settingsReviewDesc": "Rate LOOPET and share your thoughts on Google Play",
   "@settingsReviewDesc": {},
   "settingsReviewOpenFailed": "Couldn't open Google Play.",
   "@settingsReviewOpenFailed": {},
+  "settingsPrivacyPolicy": "Privacy policy",
+  "@settingsPrivacyPolicy": {},
+  "settingsPrivacyPolicyDesc": "See what LOOPET stores and what ads use",
+  "@settingsPrivacyPolicyDesc": {},
+  "settingsAdPrivacy": "Ad privacy choices",
+  "@settingsAdPrivacy": {},
+  "settingsAdPrivacyDesc": "Change your consent for personalized ads",
+  "@settingsAdPrivacyDesc": {},
+  "settingsOpenFailed": "Couldn't open it. Please try again later.",
+  "@settingsOpenFailed": {},
   "settingsVersion": "App version",
   "@settingsVersion": {},
   "settingsError": "Settings error: {message}",
@@ -761,28 +779,52 @@
   "@characterPackSelectFailed": {},
   "characterPackArtworkPending": "Artwork in progress",
   "@characterPackArtworkPending": {},
-  "characterPackTrialAction": "Watch an ad to use for a day",
-  "@characterPackTrialAction": {},
-  "characterPackTrialHint": "Watch the whole ad to use this pack for 24 hours.",
-  "@characterPackTrialHint": {},
-  "characterPackTrialBadge": "Try with an ad",
-  "@characterPackTrialBadge": {},
-  "characterPackTrialActive": "Trial",
-  "@characterPackTrialActive": {},
-  "characterPackTrialEndsAt": "Available until {time}",
-  "@characterPackTrialEndsAt": {
+  "characterPackAdUnlockAction": "Watch an ad to unlock ({watched}/{required})",
+  "@characterPackAdUnlockAction": {
     "placeholders": {
-      "time": {
-        "type": "String"
+      "watched": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
       }
     }
   },
-  "characterPackTrialNotCompleted": "Watch the whole ad to unlock this pack.",
-  "@characterPackTrialNotCompleted": {},
-  "characterPackTrialDailyLimit": "No more ads today. Please try again tomorrow.",
-  "@characterPackTrialDailyLimit": {},
-  "characterPackTrialUnavailable": "Couldn't load an ad right now. Please try again in a moment.",
-  "@characterPackTrialUnavailable": {},
+  "characterPackAdUnlockHint": "{count, plural, =1{Watch 1 full ad to keep this pack for good.} other{Watch {count} full ads to keep this pack for good. You don't have to watch them in one go.}}",
+  "@characterPackAdUnlockHint": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "characterPackAdUnlockBadge": "Unlock with ads",
+  "@characterPackAdUnlockBadge": {},
+  "characterPackAdUnlockProgress": "Ads {watched}/{required}",
+  "@characterPackAdUnlockProgress": {
+    "placeholders": {
+      "watched": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
+  "characterPackAdUnlockProgressed": "{remaining, plural, =1{Watch 1 more ad to keep this pack for good.} other{Watch {remaining} more ads to keep this pack for good.}}",
+  "@characterPackAdUnlockProgressed": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      }
+    }
+  },
+  "characterPackAdUnlockNotCompleted": "Only fully watched ads count.",
+  "@characterPackAdUnlockNotCompleted": {},
+  "characterPackAdUnlockDailyLimit": "No more ads today. Please try again tomorrow.",
+  "@characterPackAdUnlockDailyLimit": {},
+  "characterPackAdUnlockUnavailable": "Couldn't load an ad right now. Please try again in a moment.",
+  "@characterPackAdUnlockUnavailable": {},
   "packStarlightCatName": "Starlight Cat",
   "@packStarlightCatName": {},
   "packStarlightCatTagline": "The original companion on a cream backdrop",
@@ -795,7 +837,7 @@
   "@updateAvailableTitle": {},
   "updateAvailableBody": "Update to get the latest LOOPET.",
   "@updateAvailableBody": {},
-  "updateCurrentVersion": "Your version \u00b7 v{version}",
+  "updateCurrentVersion": "Your version · v{version}",
   "@updateCurrentVersion": {
     "placeholders": {
       "version": {
@@ -811,23 +853,23 @@
   "@updateBannerMessage": {},
   "updateBannerDismiss": "Dismiss update notice",
   "@updateBannerDismiss": {},
-  "updateStoreFailed": "Couldn\u2019t open Google Play.",
+  "updateStoreFailed": "Couldn’t open Google Play.",
   "@updateStoreFailed": {},
   "settingsCheckUpdate": "Check for updates",
   "@settingsCheckUpdate": {},
-  "settingsCheckUpdateBusy": "Checking\u2026",
+  "settingsCheckUpdateBusy": "Checking…",
   "@settingsCheckUpdateBusy": {},
-  "settingsCheckUpdateUpToDate": "You\u2019re up to date",
+  "settingsCheckUpdateUpToDate": "You’re up to date",
   "@settingsCheckUpdateUpToDate": {},
   "settingsCheckUpdateAvailable": "A new version is waiting",
   "@settingsCheckUpdateAvailable": {},
-  "settingsReleaseNotes": "What\u2019s new",
+  "settingsReleaseNotes": "What’s new",
   "@settingsReleaseNotes": {},
   "settingsReleaseNotesDesc": "See what changed in this update",
   "@settingsReleaseNotesDesc": {},
   "settingsReleaseNotesUnread": "Unread",
   "@settingsReleaseNotesUnread": {},
-  "releaseNotesTitle": "What\u2019s new",
+  "releaseNotesTitle": "What’s new",
   "@releaseNotesTitle": {},
   "releaseNotesCurrentBadge": "Current",
   "@releaseNotesCurrentBadge": {},
@@ -849,8 +891,8 @@
   "@releaseNote101PixelClouds": {},
   "releaseNote101CharacterPacks": "Pick a character pack and the theme changes with it.",
   "@releaseNote101CharacterPacks": {},
-  "releaseNote101GardenTrial": "Watch an ad to use the Poodle Garden pack for a day.",
-  "@releaseNote101GardenTrial": {},
+  "releaseNote101GardenUnlock": "Watch two ads to keep the Poodle Garden pack for good.",
+  "@releaseNote101GardenUnlock": {},
   "releaseNote101Languages": "The app now also speaks Japanese and Portuguese.",
   "@releaseNote101Languages": {}
 }

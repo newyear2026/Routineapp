@@ -47,7 +47,7 @@ void main() {
 
     test('보상형도 뜬다', () {
       expect(
-        AdSlotPolicy.decide(AdSlot.packTrialReward, _context()).isAllowed,
+        AdSlotPolicy.decide(AdSlot.packUnlockReward, _context()).isAllowed,
         isTrue,
       );
     });
@@ -107,7 +107,7 @@ void main() {
         firstLaunchAt: _now.subtract(const Duration(hours: 1)),
       );
       expect(
-        AdSlotPolicy.decide(AdSlot.packTrialReward, context).isAllowed,
+        AdSlotPolicy.decide(AdSlot.packUnlockReward, context).isAllowed,
         isTrue,
       );
     });
@@ -127,7 +127,7 @@ void main() {
       // 본인 의사다. 여기까지 막으면 기능이 사라진 것처럼 보인다.
       final context = _context(startedFromNotification: true);
       expect(
-        AdSlotPolicy.decide(AdSlot.packTrialReward, context).isAllowed,
+        AdSlotPolicy.decide(AdSlot.packUnlockReward, context).isAllowed,
         isTrue,
       );
     });
@@ -145,7 +145,7 @@ void main() {
     test('네이티브 상한은 보상형을 막지 않는다', () {
       final context = _context(nativeImpressionsThisSession: 9);
       expect(
-        AdSlotPolicy.decide(AdSlot.packTrialReward, context).isAllowed,
+        AdSlotPolicy.decide(AdSlot.packUnlockReward, context).isAllowed,
         isTrue,
       );
     });
@@ -167,7 +167,7 @@ void main() {
         rewardedShownToday: AdPlacementCaps.rewardedPerDay,
       );
       expect(
-        _reason(AdSlot.packTrialReward, context),
+        _reason(AdSlot.packUnlockReward, context),
         AdDenialReason.dailyRewardCap,
       );
     });
@@ -175,7 +175,7 @@ void main() {
     test('2회까지는 뜬다', () {
       final context = _context(rewardedShownToday: 2);
       expect(
-        AdSlotPolicy.decide(AdSlot.packTrialReward, context).isAllowed,
+        AdSlotPolicy.decide(AdSlot.packUnlockReward, context).isAllowed,
         isTrue,
       );
     });
@@ -214,7 +214,7 @@ void main() {
     test('보상형은 남는다 — 시즌 테마 체험용', () {
       expect(
         AdSlotPolicy.decide(
-          AdSlot.packTrialReward,
+          AdSlot.packUnlockReward,
           _context(isPro: true),
         ).isAllowed,
         isTrue,

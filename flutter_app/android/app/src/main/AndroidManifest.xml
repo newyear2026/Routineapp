@@ -84,6 +84,7 @@
 
         <receiver
             android:name=".RoutineMediumWidgetProvider"
+            android:label="@string/widget_ring_name"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -93,6 +94,30 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/routine_medium_widget_info" />
+        </receiver>
+        <receiver
+            android:name=".RoutineTimelineWidgetProvider"
+            android:label="@string/widget_timeline_name"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider"
+                android:resource="@xml/routine_timeline_widget_info" />
+        </receiver>
+        <receiver
+            android:name=".RoutineCardsWidgetProvider"
+            android:label="@string/widget_cards_name"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider"
+                android:resource="@xml/routine_cards_widget_info" />
         </receiver>
     </application>
     <!-- Required to query activities that can process text, see:

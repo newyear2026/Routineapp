@@ -16,11 +16,11 @@ enum AdSlot {
   /// 둘을 같이 켜면 리텐션이 떨어져도 어느 쪽 탓인지 가를 수 없다.
   progressBeforeUpcoming(isUserInitiated: false, enabled: false),
 
-  /// Slot B — 캐릭터 팩 상세, 광고로 여는 팩의 «광고 보고 하루 써보기»를
+  /// Slot B — 캐릭터 팩 상세, 광고로 여는 팩의 «광고 보고 열기»를
   /// 눌렀을 때. 보상형.
   ///
   /// 사용자가 먼저 누르는 교환이라 강제 노출이 아니다.
-  packTrialReward(isUserInitiated: true, enabled: true);
+  packUnlockReward(isUserInitiated: true, enabled: true);
 
   const AdSlot({required this.isUserInitiated, required this.enabled});
 

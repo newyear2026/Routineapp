@@ -51,7 +51,7 @@ class RewardedAdService {
       }
 
       final decision = await AdPolicyService.instance.decide(slot);
-      debugPrint('[ads] 보상형 판정: $decision (단위=${AdUnitIds.packTrialRewarded})');
+      debugPrint('[ads] 보상형 판정: $decision (단위=${AdUnitIds.packUnlockRewarded})');
       if (!decision.isAllowed) {
         return decision.reason == AdDenialReason.dailyRewardCap
             ? RewardedAdOutcome.dailyCapReached
@@ -69,7 +69,7 @@ class RewardedAdService {
   Future<RewardedAd?> _load() {
     final completer = Completer<RewardedAd?>();
     RewardedAd.load(
-      adUnitId: AdUnitIds.packTrialRewarded,
+      adUnitId: AdUnitIds.packUnlockRewarded,
       request: const AdRequest(),
       rewardedAdLoadCallback: RewardedAdLoadCallback(
         onAdLoaded: (ad) {

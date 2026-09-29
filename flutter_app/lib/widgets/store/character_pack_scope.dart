@@ -2,7 +2,7 @@ import 'package:flutter/widgets.dart';
 
 import '../../data/store/character_pack_catalog.dart';
 import '../../domain/store/character_pack.dart';
-import '../../domain/store/pack_trial.dart';
+import '../../domain/store/pack_ad_unlock.dart';
 
 /// 지금 쓰는 팩과 팩을 바꾸는 길을 화면 트리에 내려 준다.
 ///
@@ -17,8 +17,8 @@ class CharacterPackScope extends InheritedWidget {
     required this.current,
     required this.ownership,
     this.onSelect,
-    this.trialEndsAt,
-    this.onStartTrial,
+    this.adViews,
+    this.onWatchAd,
     required super.child,
   });
 
@@ -30,11 +30,12 @@ class CharacterPackScope extends InheritedWidget {
   /// 팩을 바꾼다. 저장까지 끝나야 true다. null이면 바꿀 수 없는 자리다.
   final Future<bool> Function(CharacterPack pack)? onSelect;
 
-  /// 광고로 체험 중인 팩이면 끝나는 시각. null이면 체험이 없는 자리다.
-  final DateTime? Function(CharacterPack pack)? trialEndsAt;
+  /// 광고로 여는 중인 팩이면 끝까지 본 광고 수. null이면 셀 것이 없는 팩이다.
+  final int? Function(CharacterPack pack)? adViews;
 
-  /// 광고를 보고 팩을 하루 동안 연다. null이면 광고로 열 수 없는 자리다.
-  final Future<PackTrialOutcome> Function(CharacterPack pack)? onStartTrial;
+  /// 광고를 한 번 보고 센다. 다 채우면 팩이 영구히 열린다. null이면 광고로
+  /// 열 수 없는 자리다.
+  final Future<PackAdUnlockOutcome> Function(CharacterPack pack)? onWatchAd;
 
   static CharacterPackScope? _maybeOf(BuildContext context) =>
       context.dependOnInheritedWidgetOfExactType<CharacterPackScope>();
@@ -50,12 +51,12 @@ class CharacterPackScope extends InheritedWidget {
   ) =>
       _maybeOf(context)?.onSelect;
 
-  static DateTime? trialEndsAtOf(BuildContext context, CharacterPack pack) =>
-      _maybeOf(context)?.trialEndsAt?.call(pack);
+  static int? adViewsOf(BuildContext context, CharacterPack pack) =>
+      _maybeOf(context)?.adViews?.call(pack);
 
-  static Future<PackTrialOutcome> Function(CharacterPack pack)? onStartTrialOf(
+  static Future<PackAdUnlockOutcome> Function(CharacterPack pack)? onWatchAdOf(
           BuildContext context) =>
-      _maybeOf(context)?.onStartTrial;
+      _maybeOf(context)?.onWatchAd;
 
   /// 소유 판정은 객체가 같으면 같다고 본다. 결제가 붙어 소유가 객체 안에서
   /// 바뀌게 되면, 그 변화는 [current]가 바뀌거나 이 스코프를 새 판정
@@ -65,6 +66,6 @@ class CharacterPackScope extends InheritedWidget {
       current.id != oldWidget.current.id ||
       ownership != oldWidget.ownership ||
       onSelect != oldWidget.onSelect ||
-      trialEndsAt != oldWidget.trialEndsAt ||
-      onStartTrial != oldWidget.onStartTrial;
+      adViews != oldWidget.adViews ||
+      onWatchAd != oldWidget.onWatchAd;
 }

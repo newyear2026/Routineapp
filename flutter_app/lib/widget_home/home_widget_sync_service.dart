@@ -1,4 +1,5 @@
 import 'package:home_widget/home_widget.dart';
+import 'package:flutter/foundation.dart';
 
 import '../domain/models/routine.dart';
 import '../domain/models/routine_log.dart';
@@ -53,5 +54,16 @@ class HomeWidgetSyncService {
       qualifiedAndroidName: androidWidgetQualifiedName,
       iOSName: iosWidgetKind,
     );
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      for (final provider in [
+        'RoutineTimelineWidgetProvider',
+        'RoutineCardsWidgetProvider',
+      ]) {
+        await HomeWidget.updateWidget(
+          androidName: provider,
+          qualifiedAndroidName: 'com.dayround.app.$provider',
+        );
+      }
+    }
   }
 }
