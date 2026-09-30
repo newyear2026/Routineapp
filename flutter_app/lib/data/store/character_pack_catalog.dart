@@ -42,10 +42,24 @@ abstract final class CharacterPackCatalog {
     availability: CharacterPackAvailability.launchGift,
   );
 
+  /// 우편배달부 토끼. 결제 경로가 아직 없어 기본 제공으로 둔다.
+  static const postmanRabbit = CharacterPack(
+    id: 'rabbit_postman',
+    characterId: 'rabbit_postman',
+    paletteIds: ['rabbit_postman'],
+    decoIds: ['rabbit-letter', 'rabbit-satchel', 'rabbit-carrot-stamp'],
+    availability: CharacterPackAvailability.included,
+  );
+
   /// 아무것도 고르지 않았거나, 고른 팩을 쓸 수 없을 때 돌아가는 팩.
   static const defaultPack = starlightCat;
 
-  static const all = <CharacterPack>[starlightCat, poodleGarden, stargazerCat];
+  static const all = <CharacterPack>[
+    starlightCat,
+    poodleGarden,
+    stargazerCat,
+    postmanRabbit
+  ];
 
   static CharacterPack? byId(
     String? id, {

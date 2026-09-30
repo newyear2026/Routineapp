@@ -114,6 +114,24 @@ void main() {
   });
 
   group('판매 화면', () {
+    testWidgets('토끼 팩은 실제 초상과 우편 장식을 보여 준다', (tester) async {
+      await tester.pumpWidget(localizedApp(
+        home: const CharacterPackDetailScreen(packId: 'rabbit_postman'),
+      ));
+      await tester.pump();
+
+      expect(find.byType(AnimatedCat), findsOneWidget);
+      expect(find.text(testL10n.packPostmanRabbitName), findsOneWidget);
+      await scrollToBottom(tester, find.byType(CharacterPackDecoRow));
+      for (final asset in CharacterPackCatalog.postmanRabbit.decoIds) {
+        expect(
+          find.byWidgetPredicate((widget) =>
+              widget is PixelDecoration && widget.asset == asset),
+          findsOneWidget,
+        );
+      }
+    });
+
     testWidgets('푸들 팩은 실제 초상과 정원 장식을 보여 준다', (tester) async {
       await tester.pumpWidget(localizedApp(
         home: const CharacterPackDetailScreen(packId: 'poodle_garden'),

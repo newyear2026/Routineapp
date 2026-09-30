@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import '../l10n/app_localizations.dart';
 import '../theme/app_pixel_style.dart';
 import '../widgets/ds/pixel_icon.dart';
+import '../widgets/ds/pixel_decoration.dart';
 import 'home_medium_widget_view_model.dart';
 import 'mini_circular_timetable.dart';
 import 'widget_theme.dart';
@@ -28,18 +29,24 @@ class HomeMediumWidget extends StatelessWidget {
       final narrow = constraints.maxWidth < 300;
       final garden = characterPackId == 'poodle_garden';
       final stargazer = characterPackId == 'cat_stargazer';
+      final rabbit = characterPackId == 'rabbit_postman';
       final accent = stargazer
           ? const Color(0xFFF4C430)
-          : garden
-              ? const Color(0xFF078F96)
-              : WidgetTheme.accent;
+          : rabbit
+              ? const Color(0xFFE97068)
+              : garden
+                  ? const Color(0xFF078F96)
+                  : WidgetTheme.accent;
       final textPrimary =
           stargazer ? const Color(0xFFFFF9EA) : WidgetTheme.textPrimary;
       final textMuted =
           stargazer ? const Color(0xFFD6E6ED) : WidgetTheme.textMuted;
       final border = stargazer ? const Color(0xFF668995) : WidgetTheme.border;
-      final dialSize = narrow ? 84.0 : ringSize.clamp(0.0, 112.0);
-      final mascotSize = narrow ? 40.0 : 50.0;
+      final dialSize = narrow
+          ? 84.0
+          : ringSize.clamp(0.0, rabbit || stargazer ? 96.0 : 112.0);
+      final mascotSize =
+          rabbit || stargazer ? (narrow ? 54.0 : 68.0) : (narrow ? 40.0 : 50.0);
       return SizedBox(
         height: narrow ? 140 : 155,
         child: Container(
@@ -50,9 +57,11 @@ class HomeMediumWidget extends StatelessWidget {
               end: Alignment.bottomRight,
               colors: stargazer
                   ? const [Color(0xFF0B3D4A), Color(0xFF12365B)]
-                  : garden
-                      ? const [Color(0xFFF7F0FF), Color(0xFFD4F7E8)]
-                      : const [Color(0xFFFFF4DC), Color(0xFFE6D8FF)],
+                  : rabbit
+                      ? const [Color(0xFFFFD1C2), Color(0xFFFFEFC9)]
+                      : garden
+                          ? const [Color(0xFFF7F0FF), Color(0xFFD4F7E8)]
+                          : const [Color(0xFFFFF4DC), Color(0xFFE6D8FF)],
             ),
             shape: AppPixelStyle.shape(width: 1.5),
             shadows: const [
@@ -68,14 +77,27 @@ class HomeMediumWidget extends StatelessWidget {
                 child: garden
                     ? const _GardenDecor()
                     : stargazer
-                        ? const SizedBox.shrink()
-                        : Opacity(
-                            opacity: 0.45,
-                            child: Image.asset(
-                                'assets/decorations/home-sky.png',
-                                fit: BoxFit.fill,
-                                filterQuality: FilterQuality.none),
-                          ),
+                        ? const _StargazerDecor()
+                        : rabbit
+                            ? Align(
+                                alignment: Alignment.topRight,
+                                child: Opacity(
+                                  opacity: 0.7,
+                                  child: Image.asset(
+                                    'assets/decorations/rabbit-carrot-stamp.png',
+                                    width: 27,
+                                    height: 27,
+                                    filterQuality: FilterQuality.none,
+                                  ),
+                                ),
+                              )
+                            : Opacity(
+                                opacity: 0.45,
+                                child: Image.asset(
+                                    'assets/decorations/home-sky.png',
+                                    fit: BoxFit.fill,
+                                    filterQuality: FilterQuality.none),
+                              ),
               ),
             ),
             Row(children: [
@@ -83,19 +105,44 @@ class HomeMediumWidget extends StatelessWidget {
                 width: mascotSize,
                 child: OverflowBox(
                   alignment: Alignment.bottomLeft,
-                  maxWidth: narrow ? 55 : 70,
-                  maxHeight: narrow ? 55 : 70,
+                  maxWidth: rabbit || stargazer
+                      ? (narrow ? 80 : 100)
+                      : (narrow ? 55 : 70),
+                  maxHeight: rabbit || stargazer
+                      ? (narrow ? 80 : 100)
+                      : (narrow ? 55 : 70),
                   child: Transform.translate(
-                    offset: Offset(narrow ? -8 : -10, 0),
-                    child: Image.asset(
-                      stargazer
-                          ? 'assets/characters/cat_stargazer/v1/approved/idle.png'
-                          : garden
-                              ? 'assets/characters/poodle_garden/v1/approved/idle.png'
-                              : 'assets/characters/cat_starlight/v1/approved/idle.png',
-                      width: narrow ? 55 : 70,
-                      height: narrow ? 55 : 70,
-                      filterQuality: FilterQuality.none,
+                    offset: Offset(
+                        rabbit || stargazer ? -14 : (narrow ? -8 : -10), 0),
+                    child: Stack(
+                      alignment: Alignment.center,
+                      children: [
+                        if (stargazer)
+                          Container(
+                            width: narrow ? 52 : 65,
+                            height: narrow ? 52 : 65,
+                            decoration: const BoxDecoration(
+                              color: Color(0xFFFFE7A6),
+                              shape: BoxShape.circle,
+                            ),
+                          ),
+                        Image.asset(
+                          stargazer
+                              ? 'assets/characters/cat_stargazer/v1/approved/idle.png'
+                              : rabbit
+                                  ? 'assets/characters/rabbit_postman/v1/approved/idle.png'
+                                  : garden
+                                      ? 'assets/characters/poodle_garden/v1/approved/idle.png'
+                                      : 'assets/characters/cat_starlight/v1/approved/idle.png',
+                          width: rabbit || stargazer
+                              ? (narrow ? 80 : 100)
+                              : (narrow ? 55 : 70),
+                          height: rabbit || stargazer
+                              ? (narrow ? 80 : 100)
+                              : (narrow ? 55 : 70),
+                          filterQuality: FilterQuality.none,
+                        ),
+                      ],
                     ),
                   ),
                 ),
@@ -125,6 +172,8 @@ class HomeMediumWidget extends StatelessWidget {
                 pointerAngleRad: viewModel.pointerAngleRad,
                 centerLabel: viewModel.centerTimeLabel,
                 size: dialSize,
+                rabbitPalette: rabbit,
+                stargazerPalette: stargazer,
               ),
             ]),
           ]),
@@ -317,6 +366,29 @@ class _GardenDecor extends StatelessWidget {
           right: -5,
           child: Image.asset('assets/decorations/garden-daisy.png',
               width: 38, filterQuality: FilterQuality.none),
+        ),
+      ]);
+}
+
+class _StargazerDecor extends StatelessWidget {
+  const _StargazerDecor();
+
+  @override
+  Widget build(BuildContext context) => const Stack(children: [
+        Positioned(
+          top: 6,
+          left: 8,
+          child: PixelSpark(size: 6, color: Color(0xFFF4C430)),
+        ),
+        Positioned(
+          top: 12,
+          right: 78,
+          child: PixelSpark(size: 5, color: Color(0xFFFFF0BB)),
+        ),
+        Positioned(
+          bottom: 9,
+          left: 55,
+          child: PixelSpark(size: 5, color: Color(0xFF9DE2DF)),
         ),
       ]);
 }

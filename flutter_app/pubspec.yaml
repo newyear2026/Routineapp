@@ -108,6 +108,9 @@ flutter:
     - assets/decorations/stargazer-celestial-globe.png
     - assets/decorations/stargazer-meteor.png
     - assets/decorations/stargazer-telescope.png
+    - assets/decorations/rabbit-letter.png
+    - assets/decorations/rabbit-satchel.png
+    - assets/decorations/rabbit-carrot-stamp.png
     - assets/characters/cat_starlight/v1/approved/idle.png
     - assets/characters/cat_starlight/v1/approved/activity.png
     - assets/characters/cat_starlight/v1/approved/focus.png
@@ -126,6 +129,12 @@ flutter:
     - assets/characters/cat_stargazer/v1/approved/complete.png
     - assets/characters/cat_stargazer/v1/approved/rest.png
     - assets/characters/cat_stargazer/v1/approved/guide.png
+    - assets/characters/rabbit_postman/v1/approved/idle.png
+    - assets/characters/rabbit_postman/v1/approved/activity.png
+    - assets/characters/rabbit_postman/v1/approved/focus.png
+    - assets/characters/rabbit_postman/v1/approved/complete.png
+    - assets/characters/rabbit_postman/v1/approved/rest.png
+    - assets/characters/rabbit_postman/v1/approved/guide.png
 
   # ARB 기반 다국어 코드 생성 (lib/l10n/*.arb -> AppLocalizations)
   generate: true

@@ -14,6 +14,14 @@
         android:scaleType="fitXY"
         android:src="@drawable/widget_stars" />
     <ImageView
+        android:id="@+id/widget_stargazer_scene"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@null"
+        android:scaleType="fitXY"
+        android:src="@drawable/widget_stargazer_scene"
+        android:visibility="gone" />
+    <ImageView
         android:id="@+id/widget_leaf"
         android:layout_width="14dp"
         android:layout_height="14dp"
@@ -50,7 +58,31 @@
             android:scaleType="fitCenter"
             android:src="@drawable/widget_cat" />
 
+        <FrameLayout
+            android:id="@+id/widget_stargazer_mascot"
+            android:layout_width="58dp"
+            android:layout_height="match_parent"
+            android:clipChildren="false"
+            android:clipToPadding="false"
+            android:visibility="gone">
+            <ImageView
+                android:layout_width="53dp"
+                android:layout_height="53dp"
+                android:layout_gravity="center"
+                android:background="@drawable/widget_stargazer_halo"
+                android:contentDescription="@null" />
+            <ImageView
+                android:id="@+id/widget_featured_mascot_art"
+                android:layout_width="82dp"
+                android:layout_height="82dp"
+                android:layout_gravity="center"
+                android:contentDescription="@null"
+                android:scaleType="fitCenter"
+                android:src="@drawable/widget_stargazer" />
+        </FrameLayout>
+
         <LinearLayout
+            android:id="@+id/widget_regular_column"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="3dp"
@@ -127,6 +159,81 @@
             </LinearLayout>
         </LinearLayout>
 
+        <LinearLayout
+            android:id="@+id/widget_stargazer_column"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="2dp"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:orientation="vertical"
+            android:visibility="gone">
+            <TextView
+                android:id="@+id/widget_stargazer_status"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:background="@drawable/widget_badge_bg_stargazer"
+                android:paddingHorizontal="4dp"
+                android:paddingVertical="1dp"
+                android:textColor="#123041"
+                android:textSize="8sp"
+                android:textStyle="bold" />
+            <TextView
+                android:id="@+id/widget_stargazer_title"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="#FFF9EA"
+                android:textSize="15sp"
+                android:textStyle="bold" />
+            <TextView
+                android:id="@+id/widget_stargazer_hint"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="#F4C430"
+                android:textSize="11sp"
+                android:textStyle="bold" />
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginTop="2dp"
+                android:layout_marginBottom="2dp"
+                android:background="#668995" />
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center_vertical"
+                android:orientation="horizontal">
+                <TextView
+                    android:id="@+id/widget_stargazer_next_label"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textColor="#D6E6ED"
+                    android:textSize="9sp" />
+                <TextView
+                    android:id="@+id/widget_stargazer_next_title"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="2dp"
+                    android:layout_weight="1"
+                    android:ellipsize="end"
+                    android:maxLines="1"
+                    android:textColor="#FFF9EA"
+                    android:textSize="9sp"
+                    android:textStyle="bold" />
+                <TextView
+                    android:id="@+id/widget_stargazer_next_time"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="2dp"
+                    android:textColor="#D6E6ED"
+                    android:textSize="9sp" />
+            </LinearLayout>
+        </LinearLayout>
+
         <FrameLayout
             android:layout_width="63dp"
             android:layout_height="63dp"
@@ -144,6 +251,7 @@
                 android:gravity="center"
                 android:orientation="vertical">
                 <TextClock
+                    android:id="@+id/widget_live_clock"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:format12Hour="HH:mm"

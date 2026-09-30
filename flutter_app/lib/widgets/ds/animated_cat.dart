@@ -55,6 +55,17 @@ class CharacterArtwork {
         CatPose.guide: Rect.fromLTRB(63, 68, 321, 335),
       },
     ),
+    'rabbit_postman': CharacterArtwork(
+      canvas: 384,
+      bounds: {
+        CatPose.idle: Rect.fromLTRB(96, 57, 305, 371),
+        CatPose.activity: Rect.fromLTRB(74, 47, 355, 371),
+        CatPose.focus: Rect.fromLTRB(78, 57, 291, 374),
+        CatPose.complete: Rect.fromLTRB(67, 10, 350, 350),
+        CatPose.rest: Rect.fromLTRB(38, 107, 362, 324),
+        CatPose.guide: Rect.fromLTRB(83, 22, 332, 350),
+      },
+    ),
   };
 }
 

@@ -27,6 +27,7 @@ object RoutineWidgetVariantBitmap {
         style: String,
         garden: Boolean,
         stargazer: Boolean,
+        rabbit: Boolean,
         state: JSONObject,
         status: String,
         title: String,
@@ -43,6 +44,11 @@ object RoutineWidgetVariantBitmap {
                 nextLabel, nextTitle, nextTime, clock)
             return result
         }
+        if (rabbit) {
+            drawRabbit(canvas, context, style, state, status, title, hint,
+                nextLabel, nextTitle, nextTime, clock)
+            return result
+        }
         drawBackground(canvas, context, garden)
         if (style == "timeline") {
             drawTimeline(canvas, context, garden, state, status, title, hint,
@@ -52,6 +58,50 @@ object RoutineWidgetVariantBitmap {
                 nextLabel, nextTitle, nextTime)
         }
         return result
+    }
+
+    private fun drawRabbit(
+        canvas: Canvas, context: Context, style: String, state: JSONObject,
+        status: String, title: String, hint: String, nextLabel: String,
+        nextTitle: String, nextTime: String, clock: Calendar,
+    ) {
+        val ink = Color.rgb(73, 51, 48)
+        val coral = Color.rgb(197, 81, 74)
+        val muted = Color.rgb(128, 100, 92)
+        canvas.drawColor(Color.rgb(255, 232, 208))
+        canvas.drawRect(0f, 190f, 768f, 240f,
+            Paint().apply { color = Color.rgb(180, 221, 185) })
+        canvas.drawCircle(640f, 91f, 45f,
+            Paint().apply { color = Color.rgb(255, 247, 219) })
+        if (style == "timeline") {
+            drawBadge(canvas, status, 48f, 31f, false, rabbit = true)
+            drawFitted(canvas, title, 48f, 122f, 407f, 60f, 30f, ink)
+            drawFitted(canvas, hint, 48f, 177f, 410f, 40f, 23f, coral)
+            drawResource(canvas, context, R.drawable.widget_variant_rabbit,
+                RectF(464f, 20f, 633f, 188f))
+            if (nextTitle.isNotBlank()) {
+                val next = listOf(nextLabel, nextTitle, nextTime)
+                    .filter { it.isNotBlank() }.joinToString(" ")
+                drawFitted(canvas, next, 482f, 216f, 240f, 20f, 14f, ink)
+            }
+            drawRuler(canvas, state, clock)
+        } else {
+            drawPixelPanel(canvas, RectF(31f, 51f, 550f, 211f),
+                Color.rgb(255, 251, 239), Color.rgb(255, 227, 207))
+            drawPixelPanel(canvas, RectF(558f, 51f, 738f, 211f),
+                Color.rgb(246, 255, 236), Color.rgb(207, 234, 200))
+            drawResource(canvas, context, R.drawable.widget_variant_rabbit,
+                RectF(49f, 49f, 207f, 205f))
+            drawBadge(canvas, status, 214f, 65f, false, rabbit = true)
+            drawFitted(canvas, title, 212f, 140f, 325f, 50f, 27f, ink)
+            drawFitted(canvas, hint, 212f, 191f, 325f, 37f, 20f, coral)
+            drawFitted(canvas, nextLabel, 648f, 102f, 160f, 25f, 17f, muted,
+                Paint.Align.CENTER)
+            drawFitted(canvas, nextTitle, 648f, 153f, 160f, 39f, 20f, ink,
+                Paint.Align.CENTER)
+            drawFitted(canvas, nextTime, 648f, 200f, 160f, 32f, 19f, coral,
+                Paint.Align.CENTER, Typeface.MONOSPACE)
+        }
     }
 
     private fun drawStargazer(
@@ -226,7 +276,7 @@ object RoutineWidgetVariantBitmap {
     }
 
     private fun drawBadge(canvas: Canvas, status: String, x: Float, y: Float,
-        garden: Boolean, stargazer: Boolean = false) {
+        garden: Boolean, stargazer: Boolean = false, rabbit: Boolean = false) {
         if (status.isBlank()) return
         val text = textPaint(if (stargazer) Color.rgb(18, 48, 65) else Color.WHITE, 24f)
         val width = (text.measureText(status) + 31f).coerceIn(78f, 175f)
@@ -236,6 +286,7 @@ object RoutineWidgetVariantBitmap {
         val border = Paint().apply { color = navy; isAntiAlias = false }
         val fill = Paint().apply {
             color = if (stargazer) Color.rgb(244, 196, 48)
+                else if (rabbit) Color.rgb(219, 102, 94)
                 else if (garden) Color.rgb(4, 145, 152) else purple
             isAntiAlias = false
         }

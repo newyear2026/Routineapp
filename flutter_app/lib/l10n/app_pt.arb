@@ -330,6 +330,8 @@
   "packStarlightCatTagline": "O companheiro de sempre num fundo creme",
   "packPoodleGardenName": "Pacote Jardim Poodle",
   "packPoodleGardenTagline": "Passe o dia com um poodle num jardim aconchegante",
+  "packPostmanRabbitName": "Pacote Coelho Carteiro",
+  "packPostmanRabbitTagline": "Uma manhã acolhedora com uma cartinha",
   "updateAvailableTitle": "Há uma versão nova",
   "updateAvailableBody": "Atualize para usar o LOOPET mais recente.",
   "updateCurrentVersion": "Sua versão · v{version}",

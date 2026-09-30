@@ -9,12 +9,14 @@ extension CharacterPackText on CharacterPack {
   String name(AppLocalizations l10n) => switch (id) {
         'poodle_garden' => l10n.packPoodleGardenName,
         'cat_stargazer' => l10n.packStargazerName,
+        'rabbit_postman' => l10n.packPostmanRabbitName,
         _ => l10n.packStarlightCatName,
       };
 
   String tagline(AppLocalizations l10n) => switch (id) {
         'poodle_garden' => l10n.packPoodleGardenTagline,
         'cat_stargazer' => l10n.packStargazerTagline,
+        'rabbit_postman' => l10n.packPostmanRabbitTagline,
         _ => l10n.packStarlightCatTagline,
       };
 

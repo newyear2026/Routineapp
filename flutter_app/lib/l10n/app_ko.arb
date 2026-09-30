@@ -330,6 +330,8 @@
   "packStarlightCatTagline": "처음부터 함께한 기본 캐릭터와 크림빛 배경",
   "packPoodleGardenName": "푸들 정원 팩",
   "packPoodleGardenTagline": "포근한 정원 속 푸들과 하루를 함께 보내요",
+  "packPostmanRabbitName": "우편배달부 토끼 팩",
+  "packPostmanRabbitTagline": "작은 편지와 함께 시작하는 따뜻한 아침",
   "updateAvailableTitle": "새 버전이 있어요",
   "updateAvailableBody": "업데이트하면 최신 LOOPET을 쓸 수 있어요.",
   "updateCurrentVersion": "현재 버전 · v{version}",

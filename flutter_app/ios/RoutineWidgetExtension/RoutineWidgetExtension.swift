@@ -157,18 +157,24 @@ private struct RoutineMediumWidgetEntryView: View {
 
     private var garden: Bool { entry.payload?.characterPackId == "poodle_garden" }
     private var stargazer: Bool { entry.payload?.characterPackId == "cat_stargazer" }
+    private var rabbit: Bool { entry.payload?.characterPackId == "rabbit_postman" }
     private var packAccent: Color {
-        stargazer ? Color(hex: 0xF4C430) : (garden ? Color(hex: 0x078F96) : WidgetTokens.accent)
+        stargazer ? Color(hex: 0xF4C430) : (rabbit ? Color(hex: 0xDB665E) :
+            (garden ? Color(hex: 0x078F96) : WidgetTokens.accent))
     }
-    private var packText: Color { stargazer ? Color(hex: 0xFFF9EA) : WidgetTokens.textPrimary }
-    private var packMuted: Color { stargazer ? Color(hex: 0xD6E6ED) : WidgetTokens.textMuted }
-    private var packBorder: Color { stargazer ? Color(hex: 0x668995) : WidgetTokens.border }
+    private var packText: Color { stargazer ? Color(hex: 0xFFF9EA) :
+        (rabbit ? Color(hex: 0x493330) : WidgetTokens.textPrimary) }
+    private var packMuted: Color { stargazer ? Color(hex: 0xD6E6ED) :
+        (rabbit ? Color(hex: 0x80645C) : WidgetTokens.textMuted) }
+    private var packBorder: Color { stargazer ? Color(hex: 0x668995) :
+        (rabbit ? Color(hex: 0xC6887A) : WidgetTokens.border) }
     private var packBackground: LinearGradient {
         LinearGradient(colors: stargazer
             ? [Color(hex: 0x0B3D4A), Color(hex: 0x12365B)]
+            : (rabbit ? [Color(hex: 0xFFE7CE), Color(hex: 0xFFC4B8)]
             : (garden
                 ? [Color(hex: 0xF7F0FF), Color(hex: 0xD4F7E8)]
-                : [Color(hex: 0xFFF4DC), Color(hex: 0xE6D8FF)]),
+                : [Color(hex: 0xFFF4DC), Color(hex: 0xE6D8FF)])),
             startPoint: .topLeading, endPoint: .bottomTrailing)
     }
 
@@ -190,7 +196,7 @@ private struct RoutineMediumWidgetEntryView: View {
     private var content: some View {
         ZStack {
             packBackground
-            if garden {
+            if garden || rabbit {
                 PackArtwork.image("widget_leaf")
                     .resizable().interpolation(.none).frame(width: 20, height: 20)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
@@ -205,7 +211,8 @@ private struct RoutineMediumWidgetEntryView: View {
             }
             HStack(alignment: .center, spacing: 5) {
                 PackArtwork.image(stargazer ? "widget_stargazer" :
-                    (garden ? "widget_poodle" : "widget_cat"))
+                    (rabbit ? "widget_rabbit" :
+                    (garden ? "widget_poodle" : "widget_cat")))
                     .resizable().interpolation(.none).scaledToFit()
                     .frame(width: 56, height: 70, alignment: .bottom)
                     .frame(maxHeight: .infinity, alignment: .bottom)
@@ -213,6 +220,7 @@ private struct RoutineMediumWidgetEntryView: View {
                 Rectangle().fill(packBorder).frame(width: 1)
                 RoutineRingView(state: expired ? nil : entry.state,
                                 date: entry.date,
+                                rabbit: rabbit,
                                 centerLabel: entry.state?.centerTimeLabel ?? entry.payload?.centerTimeLabel ?? "")
                     .frame(width: 106, height: 106)
             }
@@ -397,7 +405,13 @@ private struct PixelWidgetShape: Shape {
 private struct RoutineRingView: View {
     let state: WidgetStateDto?
     let date: Date
+    let rabbit: Bool
     let centerLabel: String
+
+    private var dialColor: Color { rabbit ? Color(hex: 0xFFE3D0) : WidgetTokens.dialSurface }
+    private var trackColor: Color { rabbit ? Color(hex: 0xC5E4CA) : WidgetTokens.ringTrack }
+    private var accentColor: Color { rabbit ? Color(hex: 0xDB665E) : WidgetTokens.accent }
+    private var inkColor: Color { rabbit ? Color(hex: 0x493330) : WidgetTokens.textPrimary }
 
     private static let referenceSize: CGFloat = 150
     private static let radiusFactor: CGFloat = 0.395
@@ -406,9 +420,9 @@ private struct RoutineRingView: View {
     var body: some View {
         ZStack {
             PixelDialShape(radiusFactor: 0.48)
-                .fill(WidgetTokens.dialSurface)
+                .fill(dialColor)
             PixelDialShape(radiusFactor: 0.48)
-                .stroke(WidgetTokens.textPrimary, lineWidth: 1.5)
+                .stroke(inkColor, lineWidth: 1.5)
             PixelDialShape(radiusFactor: 0.335)
                 .fill(WidgetTokens.surface)
 
@@ -430,7 +444,7 @@ private struct RoutineRingView: View {
                              startAngle: .radians(-.pi / 2),
                              endAngle: .radians(3 * .pi / 2),
                              clockwise: false)
-                context.stroke(track, with: .color(WidgetTokens.ringTrack),
+                context.stroke(track, with: .color(trackColor),
                                style: StrokeStyle(lineWidth: trackStroke, lineCap: .butt))
 
                 for hour in stride(from: 0, to: 24, by: 4) {
@@ -457,7 +471,7 @@ private struct RoutineRingView: View {
                     context.draw(
                         Text(label)
                             .font(.system(size: 9, weight: .bold, design: .monospaced))
-                            .foregroundColor(WidgetTokens.textPrimary),
+                            .foregroundColor(inkColor),
                         at: position
                     )
                 }
@@ -485,7 +499,7 @@ private struct RoutineRingView: View {
                     var line = Path()
                     line.move(to: c)
                     line.addLine(to: nowPoint)
-                    context.stroke(line, with: .color(WidgetTokens.accent.opacity(0.5)),
+                    context.stroke(line, with: .color(accentColor.opacity(0.5)),
                                    lineWidth: 1.5 * scale)
                     context.fill(Path(CGRect(x: nowPoint.x - 6 * scale,
                                              y: nowPoint.y - 6 * scale,
@@ -494,7 +508,7 @@ private struct RoutineRingView: View {
                     context.fill(Path(CGRect(x: nowPoint.x - 4 * scale,
                                              y: nowPoint.y - 4 * scale,
                                              width: 8 * scale, height: 8 * scale)),
-                                 with: .color(WidgetTokens.accent))
+                                 with: .color(accentColor))
                 }
             }
 
@@ -503,7 +517,7 @@ private struct RoutineRingView: View {
                             Calendar.current.component(.hour, from: date),
                             Calendar.current.component(.minute, from: date)))
                     .font(.system(size: 23, weight: .heavy, design: .monospaced))
-                    .foregroundColor(WidgetTokens.textPrimary)
+                    .foregroundColor(inkColor)
                 Text(centerLabel.isEmpty ? localizedFallback("now") : centerLabel)
                     .font(.system(size: 10, weight: .heavy))
                     .foregroundColor(WidgetTokens.textMuted)

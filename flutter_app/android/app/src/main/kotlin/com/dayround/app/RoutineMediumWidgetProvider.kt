@@ -88,13 +88,16 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
             put("pointerAngleRad", minuteOfDay / 1440.0 * 2 * PI - PI / 2)
             put("centerTimeLabel", display.optString("centerTimeLabel", json.optString("centerTimeLabel", "")))
         }
-        val ringPx = ringSizePx(context)
-        val ring = RoutineWidgetRingBitmap.create(ringJson, ringPx, drawCenter = false)
         val garden = json.optString("characterPackId") == "poodle_garden"
         val stargazer = json.optString("characterPackId") == "cat_stargazer"
+        val rabbit = json.optString("characterPackId") == "rabbit_postman"
+        val ringPx = ringSizePx(context)
+        val ring = RoutineWidgetRingBitmap.create(ringJson, ringPx,
+            drawCenter = false, stargazer = stargazer, rabbit = rabbit)
 
         for (id in appWidgetIds) {
-            val views = renderWidget(context, json, display, nowMs, ring, garden, stargazer, expired)
+            val views = renderWidget(context, json, display, nowMs, ring,
+                garden, stargazer, rabbit, expired)
             appWidgetManager.updateAppWidget(id, views)
         }
         scheduleNextUpdate(context, appWidgetIds, json, nowMs)
@@ -108,6 +111,7 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
         ring: Bitmap,
         garden: Boolean,
         stargazer: Boolean,
+        rabbit: Boolean,
         expired: Boolean,
     ): RemoteViews {
         val nextTitle = display.optString("nextRoutineTitle", "")
@@ -122,13 +126,24 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
         val views = RemoteViews(context.packageName, layout)
         when (widgetStyle) {
             WidgetStyle.RING -> {
-                bindPackArtwork(views, garden, stargazer)
+                bindPackArtwork(views, garden, stargazer, rabbit)
                 bindText(views, R.id.widget_status_badge, display.optString("currentRoutineStatus", ""))
                 bindText(views, R.id.widget_current_title, display.optString("currentRoutineTitle", ""))
-                bindTimingHint(views, hint, stargazer)
+                bindTimingHint(views, R.id.widget_timing_hint, hint, false)
                 bindText(views, R.id.widget_next_label, nextLabel)
                 bindText(views, R.id.widget_next_title, nextTitle)
                 bindText(views, R.id.widget_next_time, display.optString("nextRoutineTime", ""))
+                if (stargazer) {
+                    bindText(views, R.id.widget_stargazer_status,
+                        display.optString("currentRoutineStatus", ""))
+                    bindText(views, R.id.widget_stargazer_title,
+                        display.optString("currentRoutineTitle", ""))
+                    bindTimingHint(views, R.id.widget_stargazer_hint, hint, true)
+                    bindText(views, R.id.widget_stargazer_next_label, nextLabel)
+                    bindText(views, R.id.widget_stargazer_next_title, nextTitle)
+                    bindText(views, R.id.widget_stargazer_next_time,
+                        display.optString("nextRoutineTime", ""))
+                }
                 bindText(views, R.id.widget_now_label,
                     display.optString("centerTimeLabel", payload.optString("centerTimeLabel"))
                         .ifBlank { context.getString(R.string.widget_now_label) })
@@ -136,14 +151,14 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
             }
             WidgetStyle.TIMELINE -> {
                 views.setImageViewBitmap(R.id.widget_variant_art,
-                    RoutineWidgetVariantBitmap.create(context, "timeline", garden, stargazer, display,
+                    RoutineWidgetVariantBitmap.create(context, "timeline", garden, stargazer, rabbit, display,
                         display.optString("currentRoutineStatus", ""),
                         display.optString("currentRoutineTitle", ""), hint, nextLabel,
                         nextTitle, display.optString("nextRoutineTime", "")))
             }
             WidgetStyle.CARDS -> {
                 views.setImageViewBitmap(R.id.widget_variant_art,
-                    RoutineWidgetVariantBitmap.create(context, "cards", garden, stargazer, display,
+                    RoutineWidgetVariantBitmap.create(context, "cards", garden, stargazer, rabbit, display,
                         display.optString("currentRoutineStatus", ""),
                         display.optString("currentRoutineTitle", ""), hint, nextLabel,
                         nextTitle, display.optString("nextRoutineTime", "")))
@@ -253,7 +268,8 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
         views.setViewVisibility(viewId, if (text.isBlank()) View.GONE else View.VISIBLE)
     }
 
-    private fun bindTimingHint(views: RemoteViews, text: String, stargazer: Boolean) {
+    private fun bindTimingHint(views: RemoteViews, viewId: Int, text: String,
+        stargazer: Boolean) {
         val styled = SpannableString(text)
         val suffix = if (text.endsWith(" 남음")) text.length - 3 else text.length
         if (suffix < text.length) {
@@ -266,8 +282,8 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
             styled.setSpan(RelativeSizeSpan(1.12f), duration.range.first,
                 duration.range.last + 1, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
-        views.setTextViewText(R.id.widget_timing_hint, styled)
-        views.setViewVisibility(R.id.widget_timing_hint, if (text.isBlank()) View.GONE else View.VISIBLE)
+        views.setTextViewText(viewId, styled)
+        views.setViewVisibility(viewId, if (text.isBlank()) View.GONE else View.VISIBLE)
     }
 
     private fun ringSizePx(context: Context): Int {
@@ -275,22 +291,40 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
         return max((63 * density).toInt(), 63)
     }
 
-    private fun bindPackArtwork(views: RemoteViews, garden: Boolean, stargazer: Boolean) {
+    private fun bindPackArtwork(views: RemoteViews, garden: Boolean,
+        stargazer: Boolean, rabbit: Boolean) {
         views.setInt(R.id.widget_root, "setBackgroundResource",
             if (stargazer) R.drawable.widget_medium_bg_stargazer
+            else if (rabbit) R.drawable.widget_medium_bg_rabbit
             else if (garden) R.drawable.widget_medium_bg_poodle else R.drawable.widget_medium_bg_cat)
         views.setInt(R.id.widget_status_badge, "setBackgroundResource",
             if (stargazer) R.drawable.widget_badge_bg_stargazer
+            else if (rabbit) R.drawable.widget_badge_bg_rabbit
             else if (garden) R.drawable.widget_badge_bg_poodle else R.drawable.widget_badge_bg)
         views.setImageViewResource(R.id.widget_mascot,
-            if (stargazer) R.drawable.widget_stargazer
-            else if (garden) R.drawable.widget_poodle else R.drawable.widget_cat)
-        views.setViewVisibility(R.id.widget_decor, if (garden || stargazer) View.GONE else View.VISIBLE)
+            if (garden) R.drawable.widget_poodle else R.drawable.widget_cat)
+        views.setImageViewResource(R.id.widget_featured_mascot_art,
+            if (rabbit) R.drawable.widget_rabbit else R.drawable.widget_stargazer)
+        views.setViewVisibility(R.id.widget_mascot,
+            if (stargazer || rabbit) View.GONE else View.VISIBLE)
+        views.setViewVisibility(R.id.widget_stargazer_mascot,
+            if (stargazer || rabbit) View.VISIBLE else View.GONE)
+        views.setViewVisibility(R.id.widget_regular_column,
+            if (stargazer) View.GONE else View.VISIBLE)
+        views.setViewVisibility(R.id.widget_stargazer_column,
+            if (stargazer) View.VISIBLE else View.GONE)
+        views.setViewVisibility(R.id.widget_stargazer_scene,
+            if (stargazer) View.VISIBLE else View.GONE)
+        views.setViewVisibility(R.id.widget_decor,
+            if (garden || stargazer || rabbit) View.GONE else View.VISIBLE)
         views.setViewVisibility(R.id.widget_leaf, if (garden) View.VISIBLE else View.GONE)
         views.setViewVisibility(R.id.widget_daisy, if (garden) View.VISIBLE else View.GONE)
-        val title = Color.parseColor(if (stargazer) "#FFF9EA" else "#191344")
-        val muted = Color.parseColor(if (stargazer) "#D6E6ED" else "#6B6492")
-        val accent = Color.parseColor(if (stargazer) "#F4C430" else "#643AF6")
+        val title = Color.parseColor(if (stargazer) "#FFF9EA"
+            else if (rabbit) "#493330" else "#191344")
+        val muted = Color.parseColor(if (stargazer) "#D6E6ED"
+            else if (rabbit) "#80645C" else "#6B6492")
+        val accent = Color.parseColor(if (stargazer) "#F4C430"
+            else if (rabbit) "#C5514A" else "#643AF6")
         views.setTextColor(R.id.widget_current_title, title)
         views.setTextColor(R.id.widget_timing_hint, accent)
         views.setTextColor(R.id.widget_next_label, muted)
@@ -298,6 +332,11 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
         views.setTextColor(R.id.widget_next_time, muted)
         views.setTextColor(R.id.widget_status_badge,
             Color.parseColor(if (stargazer) "#123041" else "#FFFFFF"))
+        views.setInt(R.id.widget_now_label, "setBackgroundResource",
+            if (stargazer) R.drawable.widget_now_bg_stargazer
+            else R.color.widget_label_surface)
+        views.setTextColor(R.id.widget_now_label,
+            Color.parseColor(if (stargazer) "#123041" else "#6A6489"))
     }
 
     private fun showPlaceholder(
@@ -320,7 +359,8 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
         for (id in appWidgetIds) {
             appWidgetManager.updateAppWidget(id,
                 renderWidget(context, placeholder, display, System.currentTimeMillis(),
-                    bmp, garden = false, stargazer = false, expired = true))
+                    bmp, garden = false, stargazer = false, rabbit = false,
+                    expired = true))
         }
     }
 

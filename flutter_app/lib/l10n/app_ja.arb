@@ -330,6 +330,8 @@
   "packStarlightCatTagline": "最初から一緒のキャラクターとクリーム色の背景",
   "packPoodleGardenName": "プードルガーデンパック",
   "packPoodleGardenTagline": "ぽかぽかの庭でプードルと1日を過ごそう",
+  "packPostmanRabbitName": "郵便配達うさぎパック",
+  "packPostmanRabbitTagline": "小さな手紙と始めるあたたかな朝",
   "updateAvailableTitle": "新しいバージョンがあります",
   "updateAvailableBody": "アップデートすると最新のLOOPETを使えます。",
   "updateCurrentVersion": "現在のバージョン · v{version}",

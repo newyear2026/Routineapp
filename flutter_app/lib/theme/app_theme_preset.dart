@@ -201,12 +201,49 @@ class AppThemePreset {
     ),
   );
 
+  static const postmanRabbit = AppThemePreset(
+    id: 'rabbit_postman',
+    previewColors: [
+      Color(0xFFFFE7D0),
+      Color(0xFFFFB5A3),
+      Color(0xFF9BCDB2),
+      Color(0xFFFFF8E9),
+    ],
+    pageGradient: LinearGradient(
+      colors: [Color(0xFFFFF8EC), Color(0xFFFFEDE4)],
+    ),
+    shellGradient: LinearGradient(
+      colors: [Color(0xFFFFFCF4), Color(0xFFFFE9DD)],
+    ),
+    primaryButtonGradient: LinearGradient(
+      colors: [Color(0xFFE97068), Color(0xFFFF9B82)],
+    ),
+    softAccentGradient: LinearGradient(
+      colors: [Color(0xFFFFD9CD), Color(0xFFFFE7D0)],
+    ),
+    highlightGradient: LinearGradient(
+      colors: [Color(0xFFFFD79A), Color(0xFFFFB5A3)],
+    ),
+    textPrimary: Color(0xFF493330),
+    textMuted: Color(0xFF80645C),
+    accentPink: Color(0xFFE97068),
+    accentLavender: Color(0xFFC6E3CA),
+    pageBackground: Color(0xFFFFF8EC),
+    primaryColor: Color(0xFFDB665E),
+    surfaceColor: Color(0xFFFFFEF8),
+    selectedSurface: Color(0xFFFFE7D0),
+    focusCardGradient: LinearGradient(
+      colors: [Color(0xFFFFD7C7), Color(0xFFFFF3CF)],
+    ),
+  );
+
   static const all = [
     softDay,
     peachSunset,
     mintLavender,
     poodleGarden,
-    stargazer
+    stargazer,
+    postmanRabbit
   ];
 
   static AppThemePreset byId(String? id) {

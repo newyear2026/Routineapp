@@ -114,6 +114,7 @@ class RoutineAppController extends ChangeNotifier {
   AppThemePreset get currentThemePreset => switch (currentPack.id) {
         'poodle_garden' => AppThemePreset.poodleGarden,
         'cat_stargazer' => AppThemePreset.stargazer,
+        'rabbit_postman' => AppThemePreset.postmanRabbit,
         _ => AppThemePreset.byId(themeId),
       };
 

@@ -59,6 +59,8 @@ class OrbitRingPainter extends CustomPainter {
     this.hourLabelRadiusFactor,
     this.trackColor = AppColors.orbitHalo,
     this.pointerColor = AppColors.orbitPrimary,
+    this.hourLabelColor = AppColors.textStrong,
+    this.tickColor = AppColors.textMuted,
     this.devicePixelRatio = 1,
   });
 
@@ -90,6 +92,8 @@ class OrbitRingPainter extends CustomPainter {
   final double? hourLabelRadiusFactor;
   final Color trackColor;
   final Color pointerColor;
+  final Color hourLabelColor;
+  final Color tickColor;
 
   /// 시각 라벨의 격자 숫자를 기기 픽셀에 맞추는 데 쓴다.
   final double devicePixelRatio;
@@ -191,7 +195,7 @@ class OrbitRingPainter extends CustomPainter {
         ),
         Paint()
           ..isAntiAlias = false
-          ..color = AppColors.textMuted.withValues(alpha: isMajor ? 0.65 : 0.45)
+          ..color = tickColor.withValues(alpha: isMajor ? 0.65 : 0.45)
           ..strokeWidth = isMajor ? 2.4 * scale : 1.3 * scale
           ..strokeCap = StrokeCap.butt,
       );
@@ -225,7 +229,7 @@ class OrbitRingPainter extends CustomPainter {
         snapped(position.dy - height / 2),
       ),
       cell: cell,
-      color: AppColors.textStrong.withValues(alpha: 0.82),
+      color: hourLabelColor.withValues(alpha: 0.82),
     );
   }
 
@@ -270,6 +274,8 @@ class OrbitRingPainter extends CustomPainter {
         oldDelegate.hourLabelRadiusFactor != hourLabelRadiusFactor ||
         oldDelegate.trackColor != trackColor ||
         oldDelegate.pointerColor != pointerColor ||
+        oldDelegate.hourLabelColor != hourLabelColor ||
+        oldDelegate.tickColor != tickColor ||
         oldDelegate.devicePixelRatio != devicePixelRatio ||
         !listEquals(oldDelegate.segments, segments);
   }

@@ -22,6 +22,7 @@ class HomeTimetableScene extends StatelessWidget {
     final garden = CharacterPackScope.currentOf(context).id == 'poodle_garden';
     final stargazer =
         CharacterPackScope.currentOf(context).id == 'cat_stargazer';
+    final rabbit = CharacterPackScope.currentOf(context).id == 'rabbit_postman';
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = math.min(constraints.maxWidth, 374.0);
@@ -37,7 +38,7 @@ class HomeTimetableScene extends StatelessWidget {
             width: width,
             height: width * 0.66,
             child: Stack(clipBehavior: Clip.none, children: [
-              if (!garden && !stargazer)
+              if (!garden && !stargazer && !rabbit)
                 Positioned.fill(
                   child: IgnorePointer(
                     child: Image.asset(
@@ -57,7 +58,7 @@ class HomeTimetableScene extends StatelessWidget {
                   child: timetableBuilder(ringSize),
                 ),
               ),
-              if (!stargazer)
+              if (!stargazer && !rabbit)
                 Positioned(
                   key: Key(garden
                       ? 'home-timetable-watering-can'
@@ -87,6 +88,32 @@ class HomeTimetableScene extends StatelessWidget {
                   bottom: 0,
                   child: const PixelDecoration(
                       asset: 'stargazer-celestial-globe', size: 46),
+                ),
+              ],
+              if (rabbit) ...[
+                Positioned(
+                  left: width * 0.01,
+                  bottom: 0,
+                  child: PixelDecoration(
+                    asset: 'rabbit-letter',
+                    size: decoSize,
+                  ),
+                ),
+                Positioned(
+                  right: width * 0.01,
+                  top: width * 0.03,
+                  child: const PixelDecoration(
+                    asset: 'rabbit-carrot-stamp',
+                    size: 42,
+                  ),
+                ),
+                Positioned(
+                  right: width * 0.01,
+                  bottom: 0,
+                  child: const PixelDecoration(
+                    asset: 'rabbit-satchel',
+                    size: 44,
+                  ),
                 ),
               ],
               if (garden) ...[
