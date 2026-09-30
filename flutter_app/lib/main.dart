@@ -33,6 +33,7 @@ import 'screens/widget_medium_preview_screen.dart';
 import 'screens/onboarding_preview_screen.dart';
 import 'screens/character_pack_store_screen.dart';
 import 'screens/character_pack_detail_screen.dart';
+import 'screens/our_apps_screen.dart';
 import 'screens/release_notes_screen.dart';
 import 'screens/routines_screen.dart';
 import 'theme/app_theme.dart';
@@ -225,6 +226,10 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/release-notes',
       builder: (context, state) => const ReleaseNotesScreen(),
+    ),
+    GoRoute(
+      path: '/our-apps',
+      builder: (context, state) => const OurAppsScreen(),
     ),
     GoRoute(
       path: '/routine-add',

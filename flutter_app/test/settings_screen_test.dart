@@ -82,6 +82,12 @@ void main() {
           ),
         ),
         GoRoute(
+          path: '/our-apps',
+          builder: (_, __) => const Scaffold(
+            body: Text('추천 앱 화면', key: Key('our-apps-screen')),
+          ),
+        ),
+        GoRoute(
           path: OnboardingPreviewNav.splashPath,
           builder: (_, __) => const Scaffold(
             body: Center(
@@ -305,6 +311,20 @@ void main() {
         scrollable: find.byType(Scrollable).first);
     await tester.pumpAndSettle();
     expect(find.text('리뷰 남기기'), findsNothing);
+    expect(find.text('추천 앱'), findsNothing);
+  });
+
+  testWidgets('추천 앱은 누르면 앱 목록으로 간다', (tester) async {
+    final controller = await pumpSettings(tester);
+    addTearDown(controller.dispose);
+
+    await tester.scrollUntilVisible(find.text('추천 앱'), 200,
+        scrollable: find.byType(Scrollable).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('추천 앱'));
+    await tester.pumpAndSettle();
+
+    expect(find.byKey(const Key('our-apps-screen')), findsOneWidget);
   });
 
   testWidgets('개인정보처리방침은 누르면 문서를 연다', (tester) async {

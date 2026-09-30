@@ -26,12 +26,20 @@ Future<bool> openPlayStoreReview() async {
     return false;
   }
   if (packageName.isEmpty) return false;
+  return openPlayListingOf(packageName);
+}
 
-  // Play 앱에서 열려야 바로 별점을 누를 수 있다. 웹 주소는 `market:` 에 답할
-  // Play 앱이 없는 기기용 후퇴다.
+/// Google Play에서 [packageName]의 페이지를 연다. 아무것도 열지 못하면 false.
+///
+/// [referrer]는 Play 설치 리퍼러로 넘어가, 설치가 LOOPET에서 왔다는 것을 그 앱의
+/// Play Console이 알 수 있게 한다.
+Future<bool> openPlayListingOf(String packageName, {String? referrer}) async {
+  final query = {'id': packageName, if (referrer != null) 'referrer': referrer};
+  // Play 앱에서 열려야 바로 별점을 누르거나 설치할 수 있다. 웹 주소는
+  // `market:` 에 답할 Play 앱이 없는 기기용 후퇴다.
   final targets = [
-    Uri.parse('market://details?id=$packageName'),
-    Uri.https('play.google.com', '/store/apps/details', {'id': packageName}),
+    Uri(scheme: 'market', host: 'details', queryParameters: query),
+    Uri.https('play.google.com', '/store/apps/details', query),
   ];
   for (final target in targets) {
     try {

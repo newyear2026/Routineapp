@@ -235,6 +235,16 @@ class _SettingsScreenContent extends StatelessWidget {
                       l10n.settingsReviewOpenFailed,
                     ),
                   ),
+                // 앱마다 행을 두지 않고 문 하나로 모은다. 어느 앱도 다른 앱보다
+                // 위에 걸리지 않고, 새 앱은 행이 아니라 카드로 늘어난다. 안의
+                // 버튼이 모두 Play를 여니 리뷰 행과 같은 조건으로 건다.
+                if (showStoreReview)
+                  SettingsNavigationTile(
+                    icon: Icons.apps_rounded,
+                    label: l10n.settingsOurApps,
+                    description: l10n.settingsOurAppsDesc,
+                    onTap: () => context.push('/our-apps'),
+                  ),
                 // 물어볼 스토어가 없는 빌드에서는 행 자체를 빼야 한다. 두면
                 // 무엇을 눌러도 «최신 버전이에요»라고 답한다.
                 if (updates != null && updates.canCheck)

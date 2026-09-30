@@ -80,6 +80,7 @@ flutter:
   # cacheWidth 384/256으로 디코딩하므로 3x 기기까지 이 크기면 충분하다.
   # 1254px 원본은 design/decorations-src 와 characters/cat_starlight/v1 에 있다.
   assets:
+    - assets/apps/randomfocus.png
     - assets/routine_icons/book.png
     - assets/routine_icons/coffee.png
     - assets/routine_icons/dumbbell.png
