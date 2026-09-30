@@ -51,6 +51,15 @@ abstract final class CharacterPackCatalog {
     availability: CharacterPackAvailability.included,
   );
 
+  /// 탐험가 다람쥐. 결제 경로가 정해지기 전까지 바로 쓸 수 있다.
+  static const explorerSquirrel = CharacterPack(
+    id: 'squirrel_explorer',
+    characterId: 'squirrel_explorer',
+    paletteIds: ['squirrel_explorer'],
+    decoIds: ['squirrel-acorn', 'squirrel-map', 'squirrel-backpack'],
+    availability: CharacterPackAvailability.included,
+  );
+
   /// 아무것도 고르지 않았거나, 고른 팩을 쓸 수 없을 때 돌아가는 팩.
   static const defaultPack = starlightCat;
 
@@ -58,7 +67,8 @@ abstract final class CharacterPackCatalog {
     starlightCat,
     poodleGarden,
     stargazerCat,
-    postmanRabbit
+    postmanRabbit,
+    explorerSquirrel
   ];
 
   static CharacterPack? byId(

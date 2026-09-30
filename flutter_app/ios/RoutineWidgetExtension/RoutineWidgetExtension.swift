@@ -152,29 +152,90 @@ private struct Provider: TimelineProvider {
     }
 }
 
+/// 팩마다 다른 위젯 모양. 위젯 코드는 팩 ID를 비교하지 않고 이 값만 읽는다 —
+/// **팩 ID로 가르는 곳은 `forPack` 하나다.** 팩을 더하면 여기에 한 갈래를
+/// 더하고, 빠뜨리면 `pack_spec_test.dart`가 잡는다. 앱 안 미리보기의 기준값은
+/// `lib/theme/pack_skin_catalog.dart`에 있다.
+private struct WidgetPackSkin {
+    enum Decor { case stars, garden, forest, none }
+
+    struct RingColors {
+        var dial = WidgetTokens.dialSurface
+        var track = WidgetTokens.ringTrack
+        var accent = WidgetTokens.accent
+        var ink = WidgetTokens.textPrimary
+    }
+
+    var background: [Color]
+    var mascot: String
+    var decor: Decor
+    var accent = WidgetTokens.accent
+    var text = WidgetTokens.textPrimary
+    var muted = WidgetTokens.textMuted
+    var border = WidgetTokens.border
+    var badgeText = Color.white
+    var ring = RingColors()
+
+    static func forPack(_ packId: String?) -> WidgetPackSkin {
+        switch packId {
+        case "poodle_garden":
+            return WidgetPackSkin(
+                background: [Color(hex: 0xF7F0FF), Color(hex: 0xD4F7E8)],
+                mascot: "widget_poodle", decor: .garden,
+                accent: Color(hex: 0x078F96))
+        case "cat_stargazer":
+            return WidgetPackSkin(
+                background: [Color(hex: 0x0B3D4A), Color(hex: 0x12365B)],
+                mascot: "widget_stargazer", decor: .none,
+                accent: Color(hex: 0xF4C430),
+                text: Color(hex: 0xFFF9EA),
+                muted: Color(hex: 0xD6E6ED),
+                border: Color(hex: 0x668995),
+                badgeText: Color(hex: 0x123041))
+        case "rabbit_postman":
+            return WidgetPackSkin(
+                background: [Color(hex: 0xFFE7CE), Color(hex: 0xFFC4B8)],
+                mascot: "widget_rabbit", decor: .garden,
+                accent: Color(hex: 0xDB665E),
+                text: Color(hex: 0x493330),
+                muted: Color(hex: 0x80645C),
+                border: Color(hex: 0xC6887A),
+                ring: RingColors(
+                    dial: Color(hex: 0xFFE3D0),
+                    track: Color(hex: 0xC5E4CA),
+                    accent: Color(hex: 0xDB665E),
+                    ink: Color(hex: 0x493330)))
+        case "squirrel_explorer":
+            return WidgetPackSkin(
+                background: [Color(hex: 0xF5E9D4), Color(hex: 0xD8E8C9)],
+                mascot: "widget_squirrel", decor: .forest,
+                accent: Color(hex: 0x718B51),
+                text: Color(hex: 0x3E3229),
+                muted: Color(hex: 0x746C5A),
+                border: Color(hex: 0x9DAE83),
+                ring: RingColors(
+                    dial: Color(hex: 0xF6EBD6),
+                    track: Color(hex: 0xCDDEC1),
+                    accent: Color(hex: 0x718B51),
+                    ink: Color(hex: 0x3E3229)))
+        default: // "cat_starlight", 그리고 모르는 팩 ID
+            return WidgetPackSkin(
+                background: [Color(hex: 0xFFF4DC), Color(hex: 0xE6D8FF)],
+                mascot: "widget_cat", decor: .stars)
+        }
+    }
+}
+
 private struct RoutineMediumWidgetEntryView: View {
     var entry: RoutineEntry
 
-    private var garden: Bool { entry.payload?.characterPackId == "poodle_garden" }
-    private var stargazer: Bool { entry.payload?.characterPackId == "cat_stargazer" }
-    private var rabbit: Bool { entry.payload?.characterPackId == "rabbit_postman" }
-    private var packAccent: Color {
-        stargazer ? Color(hex: 0xF4C430) : (rabbit ? Color(hex: 0xDB665E) :
-            (garden ? Color(hex: 0x078F96) : WidgetTokens.accent))
-    }
-    private var packText: Color { stargazer ? Color(hex: 0xFFF9EA) :
-        (rabbit ? Color(hex: 0x493330) : WidgetTokens.textPrimary) }
-    private var packMuted: Color { stargazer ? Color(hex: 0xD6E6ED) :
-        (rabbit ? Color(hex: 0x80645C) : WidgetTokens.textMuted) }
-    private var packBorder: Color { stargazer ? Color(hex: 0x668995) :
-        (rabbit ? Color(hex: 0xC6887A) : WidgetTokens.border) }
+    private var skin: WidgetPackSkin { WidgetPackSkin.forPack(entry.payload?.characterPackId) }
+    private var packAccent: Color { skin.accent }
+    private var packText: Color { skin.text }
+    private var packMuted: Color { skin.muted }
+    private var packBorder: Color { skin.border }
     private var packBackground: LinearGradient {
-        LinearGradient(colors: stargazer
-            ? [Color(hex: 0x0B3D4A), Color(hex: 0x12365B)]
-            : (rabbit ? [Color(hex: 0xFFE7CE), Color(hex: 0xFFC4B8)]
-            : (garden
-                ? [Color(hex: 0xF7F0FF), Color(hex: 0xD4F7E8)]
-                : [Color(hex: 0xFFF4DC), Color(hex: 0xE6D8FF)])),
+        LinearGradient(colors: skin.background,
             startPoint: .topLeading, endPoint: .bottomTrailing)
     }
 
@@ -196,7 +257,7 @@ private struct RoutineMediumWidgetEntryView: View {
     private var content: some View {
         ZStack {
             packBackground
-            if garden || rabbit {
+            if skin.decor == .garden {
                 PackArtwork.image("widget_leaf")
                     .resizable().interpolation(.none).frame(width: 20, height: 20)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .topTrailing)
@@ -204,15 +265,17 @@ private struct RoutineMediumWidgetEntryView: View {
                 PackArtwork.image("widget_daisy")
                     .resizable().interpolation(.none).frame(width: 33, height: 33)
                     .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-            } else if !stargazer {
+            } else if skin.decor == .stars {
                 PackArtwork.image("widget_stars")
                     .resizable().interpolation(.none).scaledToFill()
                     .opacity(0.45).clipped()
+            } else if skin.decor == .forest {
+                PackArtwork.image("widget_forest")
+                    .resizable().interpolation(.none).scaledToFill()
+                    .opacity(0.35).clipped()
             }
             HStack(alignment: .center, spacing: 5) {
-                PackArtwork.image(stargazer ? "widget_stargazer" :
-                    (rabbit ? "widget_rabbit" :
-                    (garden ? "widget_poodle" : "widget_cat")))
+                PackArtwork.image(skin.mascot)
                     .resizable().interpolation(.none).scaledToFit()
                     .frame(width: 56, height: 70, alignment: .bottom)
                     .frame(maxHeight: .infinity, alignment: .bottom)
@@ -220,7 +283,7 @@ private struct RoutineMediumWidgetEntryView: View {
                 Rectangle().fill(packBorder).frame(width: 1)
                 RoutineRingView(state: expired ? nil : entry.state,
                                 date: entry.date,
-                                rabbit: rabbit,
+                                colors: skin.ring,
                                 centerLabel: entry.state?.centerTimeLabel ?? entry.payload?.centerTimeLabel ?? "")
                     .frame(width: 106, height: 106)
             }
@@ -241,7 +304,7 @@ private struct RoutineMediumWidgetEntryView: View {
             if !status.isEmpty {
                 Text(status)
                     .font(.system(size: 12, weight: .bold))
-                    .foregroundColor(stargazer ? Color(hex: 0x123041) : .white)
+                    .foregroundColor(skin.badgeText)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 3)
                     .background(packAccent)
@@ -405,13 +468,13 @@ private struct PixelWidgetShape: Shape {
 private struct RoutineRingView: View {
     let state: WidgetStateDto?
     let date: Date
-    let rabbit: Bool
+    let colors: WidgetPackSkin.RingColors
     let centerLabel: String
 
-    private var dialColor: Color { rabbit ? Color(hex: 0xFFE3D0) : WidgetTokens.dialSurface }
-    private var trackColor: Color { rabbit ? Color(hex: 0xC5E4CA) : WidgetTokens.ringTrack }
-    private var accentColor: Color { rabbit ? Color(hex: 0xDB665E) : WidgetTokens.accent }
-    private var inkColor: Color { rabbit ? Color(hex: 0x493330) : WidgetTokens.textPrimary }
+    private var dialColor: Color { colors.dial }
+    private var trackColor: Color { colors.track }
+    private var accentColor: Color { colors.accent }
+    private var inkColor: Color { colors.ink }
 
     private static let referenceSize: CGFloat = 150
     private static let radiusFactor: CGFloat = 0.395

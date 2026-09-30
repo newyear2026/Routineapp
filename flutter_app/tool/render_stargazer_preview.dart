@@ -134,7 +134,7 @@ void main() {
                         width: 330,
                         child: HomeMediumWidget(
                           viewModel: _viewModel,
-                          characterPackId: 'cat_stargazer',
+                          pack: CharacterPackCatalog.stargazerCat,
                         ),
                       ),
                     ],

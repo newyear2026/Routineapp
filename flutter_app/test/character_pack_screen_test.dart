@@ -1,5 +1,3 @@
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
@@ -26,19 +24,8 @@ Future<void> scrollToBottom(WidgetTester tester, Finder target) async {
 }
 
 void main() {
-  final withArtwork =
-      CharacterPackCatalog.all.where((pack) => pack.hasArtwork).toList();
-
   group('카탈로그', () {
-    test('그림을 가진 팩은 모든 포즈의 그림 영역이 재어져 있다', () {
-      for (final pack in withArtwork) {
-        final artwork = CharacterArtwork.byCharacter[pack.characterId];
-        expect(artwork, isNotNull,
-            reason: '${pack.id}의 CharacterArtwork 값이 없다');
-        expect(artwork!.bounds.keys.toSet(), CatPose.values.toSet());
-      }
-    });
-
+    // 포즈 그림·그림 영역·pubspec 등록·데코는 pack_spec_test가 모든 팩에 대해 본다.
     test('포즈 계약이 화면이 요구하는 포즈 집합과 일치한다', () {
       expect(
         CharacterPack.poseNames.toSet(),
@@ -50,26 +37,6 @@ void main() {
       const pack = CharacterPackCatalog.defaultPack;
       expect(pack.hasArtwork, isTrue);
       expect(const BundledOnlyOwnership().owns(pack), isTrue);
-    });
-
-    test('별빛 고양이와 푸들 정원 팩의 데코 아이템이 겹치지 않는다', () {
-      final catDecos = CharacterPackCatalog.starlightCat.decoIds.toSet();
-      final gardenDecos = CharacterPackCatalog.poodleGarden.decoIds.toSet();
-      expect(catDecos, contains('plant'));
-      expect(gardenDecos, contains('garden-watering-can'));
-      expect(catDecos.intersection(gardenDecos), isEmpty);
-    });
-
-    test('그림을 가진 팩의 모든 포즈가 pubspec에 실려 있다', () {
-      final pubspec = File('pubspec.yaml').readAsStringSync();
-      for (final pack in withArtwork) {
-        for (final pose in CharacterPack.poseNames) {
-          final asset = pack.assetFor(pose)!;
-          expect(File(asset).existsSync(), isTrue, reason: '$asset 파일이 없다');
-          expect(pubspec, contains('- $asset\n'),
-              reason: '$asset 가 pubspec assets에 없다');
-        }
-      }
     });
   });
 

@@ -110,9 +110,10 @@ void main() {
       }
     });
 
-    test('Kotlin 링 비트맵 토큰', () {
+    // 원판 기본색은 팩 등록표(RingColors)의 기본값에 있다.
+    test('Kotlin 원판 기본색', () {
       final kotlin = File(
-        'android/app/src/main/kotlin/com/dayround/app/RoutineWidgetRingBitmap.kt',
+        'android/app/src/main/kotlin/com/dayround/app/RoutineWidgetSkin.kt',
       ).readAsStringSync();
       for (final color in <Color>[
         WidgetTheme.surface,

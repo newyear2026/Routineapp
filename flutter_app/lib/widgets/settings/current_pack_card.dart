@@ -9,6 +9,8 @@ import '../ds/ds.dart';
 import '../store/character_pack_preview.dart';
 import '../store/character_pack_scope.dart';
 import '../store/character_pack_text.dart';
+import '../../theme/pack_skin.dart';
+import '../../theme/pack_skin_catalog.dart';
 
 /// 지금 쓰는 팩을 보여 주고 팩 목록으로 보낸다.
 ///
@@ -21,7 +23,7 @@ class CurrentPackCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final pack = CharacterPackScope.currentOf(context);
-    final garden = pack.id == 'poodle_garden';
+    final garden = PackSkinCatalog.of(pack).decorStyle == PackDecorStyle.garden;
     return Semantics(
       button: true,
       label: '${l10n.characterPackTitle}, ${pack.name(l10n)}',

@@ -9,6 +9,7 @@ import '../../theme/app_pixel_style.dart';
 import '../../widgets/ds/routine_mark.dart';
 import '../../widgets/ds/pixel_decoration.dart';
 import '../../widgets/store/character_pack_scope.dart';
+import '../../theme/pack_skin.dart';
 
 /// 편집 중인 루틴의 아이콘·이름·시간을 보여준다.
 class RoutineFormPreview extends StatelessWidget {
@@ -18,7 +19,8 @@ class RoutineFormPreview extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final garden = CharacterPackScope.currentOf(context).id == 'poodle_garden';
+    final garden =
+        CharacterPackScope.skinOf(context).decorStyle == PackDecorStyle.garden;
     final l10n = AppLocalizations.of(context);
     final title = candidate.title.trim().isEmpty
         ? l10n.routineAddTitleNew

@@ -77,7 +77,7 @@ class _CircularTimetableView extends StatelessWidget {
       dialSize: size,
       activeSegmentId: activeSegmentId,
     );
-    final garden = CharacterPackScope.currentOf(context).id == 'poodle_garden';
+    final palette = CharacterPackScope.skinOf(context).appDial;
     final primary = Theme.of(context).colorScheme.primary;
     final surface = Theme.of(context).colorScheme.surface;
 
@@ -90,8 +90,7 @@ class _CircularTimetableView extends StatelessWidget {
           CustomPaint(
             size: Size.square(size),
             painter: PixelOrbitPlate(
-              dialColor:
-                  garden ? const Color(0xFFEEF9F2) : AppColors.dialSurface,
+              dialColor: palette.dial ?? AppColors.dialSurface,
               surfaceColor: surface,
             ),
           ),
@@ -112,8 +111,7 @@ class _CircularTimetableView extends StatelessWidget {
               radiusFactor: 0.39,
               activeSegmentId: activeSegmentId,
               nowMinutes: nowMinutesFromMidnight,
-              trackColor:
-                  garden ? const Color(0xFFC9F1E5) : AppColors.orbitHalo,
+              trackColor: palette.track ?? AppColors.orbitHalo,
               pointerColor: primary,
             ),
           ),

@@ -111,12 +111,14 @@ class RoutineAppController extends ChangeNotifier {
   List<Routine> get routines => List<Routine>.unmodifiable(_routines);
   AppSettings get appSettings => _appSettings;
   String get themeId => _appSettings.themeId ?? AppThemePreset.softDay.id;
-  AppThemePreset get currentThemePreset => switch (currentPack.id) {
-        'poodle_garden' => AppThemePreset.poodleGarden,
-        'cat_stargazer' => AppThemePreset.stargazer,
-        'rabbit_postman' => AppThemePreset.postmanRabbit,
-        _ => AppThemePreset.byId(themeId),
-      };
+
+  /// 색 변형이 하나뿐인 팩은 그 색으로 고정하고, 여럿이면 사용자가 고른
+  /// 색을 쓴다. 팩의 `paletteIds`가 곧 [AppThemePreset] ID다.
+  AppThemePreset get currentThemePreset {
+    final palettes = currentPack.paletteIds;
+    return AppThemePreset.byId(
+        palettes.length == 1 ? palettes.single : themeId);
+  }
 
   bool get shouldShowLaunchGift => _launchGiftEligible && !_launchGiftSeen;
 

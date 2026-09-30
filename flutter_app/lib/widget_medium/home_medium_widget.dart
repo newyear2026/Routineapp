@@ -4,6 +4,10 @@ import '../l10n/app_localizations.dart';
 import '../theme/app_pixel_style.dart';
 import '../widgets/ds/pixel_icon.dart';
 import '../widgets/ds/pixel_decoration.dart';
+import '../data/store/character_pack_catalog.dart';
+import '../domain/store/character_pack.dart';
+import '../theme/pack_skin.dart';
+import '../theme/pack_skin_catalog.dart';
 import 'home_medium_widget_view_model.dart';
 import 'mini_circular_timetable.dart';
 import 'widget_theme.dart';
@@ -15,38 +19,28 @@ class HomeMediumWidget extends StatelessWidget {
     super.key,
     required this.viewModel,
     this.ringSize = 124,
-    this.characterPackId = 'cat_starlight',
+    this.pack = CharacterPackCatalog.defaultPack,
   });
 
   final HomeMediumWidgetViewModel viewModel;
   final double ringSize;
-  final String characterPackId;
+  final CharacterPack pack;
 
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
+    final skin = PackSkinCatalog.of(pack).widget;
     return LayoutBuilder(builder: (context, constraints) {
       final narrow = constraints.maxWidth < 300;
-      final garden = characterPackId == 'poodle_garden';
-      final stargazer = characterPackId == 'cat_stargazer';
-      final rabbit = characterPackId == 'rabbit_postman';
-      final accent = stargazer
-          ? const Color(0xFFF4C430)
-          : rabbit
-              ? const Color(0xFFE97068)
-              : garden
-                  ? const Color(0xFF078F96)
-                  : WidgetTheme.accent;
-      final textPrimary =
-          stargazer ? const Color(0xFFFFF9EA) : WidgetTheme.textPrimary;
-      final textMuted =
-          stargazer ? const Color(0xFFD6E6ED) : WidgetTheme.textMuted;
-      final border = stargazer ? const Color(0xFF668995) : WidgetTheme.border;
-      final dialSize = narrow
-          ? 84.0
-          : ringSize.clamp(0.0, rabbit || stargazer ? 96.0 : 112.0);
+      final border = skin.border ?? WidgetTheme.border;
+      final featured = skin.featuredMascot;
+      final dialSize =
+          narrow ? 84.0 : ringSize.clamp(0.0, featured ? 96.0 : 112.0);
       final mascotSize =
-          rabbit || stargazer ? (narrow ? 54.0 : 68.0) : (narrow ? 40.0 : 50.0);
+          featured ? (narrow ? 54.0 : 68.0) : (narrow ? 40.0 : 50.0);
+      final mascotArt =
+          featured ? (narrow ? 80.0 : 100.0) : (narrow ? 55.0 : 70.0);
+      final halo = skin.mascotHalo;
       return SizedBox(
         height: narrow ? 140 : 155,
         child: Container(
@@ -55,13 +49,7 @@ class HomeMediumWidget extends StatelessWidget {
             gradient: LinearGradient(
               begin: Alignment.topLeft,
               end: Alignment.bottomRight,
-              colors: stargazer
-                  ? const [Color(0xFF0B3D4A), Color(0xFF12365B)]
-                  : rabbit
-                      ? const [Color(0xFFFFD1C2), Color(0xFFFFEFC9)]
-                      : garden
-                          ? const [Color(0xFFF7F0FF), Color(0xFFD4F7E8)]
-                          : const [Color(0xFFFFF4DC), Color(0xFFE6D8FF)],
+              colors: skin.background,
             ),
             shape: AppPixelStyle.shape(width: 1.5),
             shadows: const [
@@ -73,73 +61,33 @@ class HomeMediumWidget extends StatelessWidget {
           ),
           child: Stack(children: [
             Positioned.fill(
-              child: IgnorePointer(
-                child: garden
-                    ? const _GardenDecor()
-                    : stargazer
-                        ? const _StargazerDecor()
-                        : rabbit
-                            ? Align(
-                                alignment: Alignment.topRight,
-                                child: Opacity(
-                                  opacity: 0.7,
-                                  child: Image.asset(
-                                    'assets/decorations/rabbit-carrot-stamp.png',
-                                    width: 27,
-                                    height: 27,
-                                    filterQuality: FilterQuality.none,
-                                  ),
-                                ),
-                              )
-                            : Opacity(
-                                opacity: 0.45,
-                                child: Image.asset(
-                                    'assets/decorations/home-sky.png',
-                                    fit: BoxFit.fill,
-                                    filterQuality: FilterQuality.none),
-                              ),
-              ),
+              child: IgnorePointer(child: _WidgetDecorLayer(skin: skin)),
             ),
             Row(children: [
               SizedBox(
                 width: mascotSize,
                 child: OverflowBox(
                   alignment: Alignment.bottomLeft,
-                  maxWidth: rabbit || stargazer
-                      ? (narrow ? 80 : 100)
-                      : (narrow ? 55 : 70),
-                  maxHeight: rabbit || stargazer
-                      ? (narrow ? 80 : 100)
-                      : (narrow ? 55 : 70),
+                  maxWidth: mascotArt,
+                  maxHeight: mascotArt,
                   child: Transform.translate(
-                    offset: Offset(
-                        rabbit || stargazer ? -14 : (narrow ? -8 : -10), 0),
+                    offset: Offset(featured ? -14 : (narrow ? -8 : -10), 0),
                     child: Stack(
                       alignment: Alignment.center,
                       children: [
-                        if (stargazer)
+                        if (halo != null)
                           Container(
                             width: narrow ? 52 : 65,
                             height: narrow ? 52 : 65,
-                            decoration: const BoxDecoration(
-                              color: Color(0xFFFFE7A6),
+                            decoration: BoxDecoration(
+                              color: halo,
                               shape: BoxShape.circle,
                             ),
                           ),
                         Image.asset(
-                          stargazer
-                              ? 'assets/characters/cat_stargazer/v1/approved/idle.png'
-                              : rabbit
-                                  ? 'assets/characters/rabbit_postman/v1/approved/idle.png'
-                                  : garden
-                                      ? 'assets/characters/poodle_garden/v1/approved/idle.png'
-                                      : 'assets/characters/cat_starlight/v1/approved/idle.png',
-                          width: rabbit || stargazer
-                              ? (narrow ? 80 : 100)
-                              : (narrow ? 55 : 70),
-                          height: rabbit || stargazer
-                              ? (narrow ? 80 : 100)
-                              : (narrow ? 55 : 70),
+                          pack.assetFor('idle')!,
+                          width: mascotArt,
+                          height: mascotArt,
                           filterQuality: FilterQuality.none,
                         ),
                       ],
@@ -153,13 +101,11 @@ class HomeMediumWidget extends StatelessWidget {
                   vm: viewModel,
                   nextLabel: l10n.commonNext,
                   narrow: narrow,
-                  accent: accent,
-                  textPrimary: textPrimary,
-                  textMuted: textMuted,
+                  accent: skin.accent,
+                  textPrimary: skin.textPrimary ?? WidgetTheme.textPrimary,
+                  textMuted: skin.textMuted ?? WidgetTheme.textMuted,
                   border: border,
-                  onAccent: stargazer
-                      ? const Color(0xFF123041)
-                      : WidgetTheme.onAccent,
+                  onAccent: skin.onAccent ?? WidgetTheme.onAccent,
                 ),
               ),
               SizedBox(width: narrow ? 4 : 7),
@@ -172,8 +118,7 @@ class HomeMediumWidget extends StatelessWidget {
                 pointerAngleRad: viewModel.pointerAngleRad,
                 centerLabel: viewModel.centerTimeLabel,
                 size: dialSize,
-                rabbitPalette: rabbit,
-                stargazerPalette: stargazer,
+                palette: skin.dial,
               ),
             ]),
           ]),
@@ -181,6 +126,44 @@ class HomeMediumWidget extends StatelessWidget {
       );
     });
   }
+}
+
+/// 위젯 바탕 장식 — [PackWidgetSkin.decor]가 고른다.
+class _WidgetDecorLayer extends StatelessWidget {
+  const _WidgetDecorLayer({required this.skin});
+
+  final PackWidgetSkin skin;
+
+  @override
+  Widget build(BuildContext context) => switch (skin.decor) {
+        WidgetDecor.sky => Opacity(
+            opacity: 0.45,
+            child: Image.asset('assets/decorations/home-sky.png',
+                fit: BoxFit.fill, filterQuality: FilterQuality.none),
+          ),
+        WidgetDecor.garden => const _GardenDecor(),
+        WidgetDecor.stars => const _StargazerDecor(),
+        WidgetDecor.stamp => Align(
+            alignment: Alignment.topRight,
+            child: Opacity(
+              opacity: 0.7,
+              child: Image.asset(
+                'assets/decorations/${skin.decorAsset}.png',
+                width: 27,
+                height: 27,
+                filterQuality: FilterQuality.none,
+              ),
+            ),
+          ),
+        WidgetDecor.forest => Opacity(
+            opacity: 0.30,
+            child: Image.asset(
+              'assets/pack_backgrounds/squirrel-forest.png',
+              fit: BoxFit.fill,
+              filterQuality: FilterQuality.none,
+            ),
+          ),
+      };
 }
 
 class _RoutineColumn extends StatelessWidget {

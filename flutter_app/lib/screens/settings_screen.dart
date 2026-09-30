@@ -26,6 +26,7 @@ import '../widgets/settings/exact_alarm_tile.dart';
 import '../widgets/settings/language_settings_tile.dart';
 import '../widgets/settings/settings_list_items.dart';
 import '../widgets/settings/settings_section.dart';
+import '../theme/pack_skin.dart';
 
 /// 설정 화면은 섹션 배치와 화면 전환만 담당한다.
 /// 알림 설정의 로드·저장·권한 요청은 [SettingsController]에 둔다.
@@ -374,7 +375,8 @@ class _SettingsSkyHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final garden = CharacterPackScope.currentOf(context).id == 'poodle_garden';
+    final garden =
+        CharacterPackScope.skinOf(context).decorStyle == PackDecorStyle.garden;
     return Stack(
       clipBehavior: Clip.none,
       children: [

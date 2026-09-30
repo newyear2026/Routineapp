@@ -7,6 +7,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:routine_timer/data/store/character_pack_catalog.dart';
 import 'package:routine_timer/theme/app_theme.dart';
 import 'package:routine_timer/widget_medium/home_medium_widget.dart';
 import 'package:routine_timer/widget_medium/home_medium_widget_view_model.dart';
@@ -106,7 +107,7 @@ void main() {
                       width: 330,
                       child: HomeMediumWidget(
                         viewModel: vm,
-                        characterPackId: 'poodle_garden',
+                        pack: CharacterPackCatalog.poodleGarden,
                       ),
                     ),
                   ),

@@ -13,6 +13,8 @@ import '../widgets/ds/pixel_decoration.dart';
 import '../widgets/store/character_pack_preview.dart';
 import '../widgets/store/character_pack_scope.dart';
 import '../widgets/store/character_pack_text.dart';
+import '../theme/pack_skin.dart';
+import '../theme/pack_skin_catalog.dart';
 
 /// 팩 하나를 보여 주고, 가진 팩이면 쓰게 하고, 아니면 파는 화면.
 ///
@@ -94,7 +96,8 @@ class CharacterPackDetailScreen extends StatelessWidget {
                 child: Stack(
                   alignment: Alignment.bottomCenter,
                   children: [
-                    if (pack.id == CharacterPackCatalog.poodleGarden.id) ...[
+                    if (PackSkinCatalog.of(pack).decorStyle ==
+                        PackDecorStyle.garden) ...[
                       const Positioned(
                         left: 0,
                         top: 2,

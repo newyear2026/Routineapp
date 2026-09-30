@@ -16,6 +16,7 @@ import '../theme/app_text_styles.dart';
 import '../widgets/ds/ds.dart';
 import '../widgets/ds/pixel_decoration.dart';
 import '../widgets/store/character_pack_scope.dart';
+import '../theme/pack_skin.dart';
 
 /// 현재 루틴을 먼저 보여주고, 오늘 요약과 나머지 상태를 이어서 보여준다.
 class TodayProgressScreen extends StatelessWidget {
@@ -103,7 +104,8 @@ class _ProgressHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final garden = CharacterPackScope.currentOf(context).id == 'poodle_garden';
+    final garden =
+        CharacterPackScope.skinOf(context).decorStyle == PackDecorStyle.garden;
     return LayoutBuilder(
       builder: (context, constraints) {
         final compact = constraints.maxWidth < 300 ||

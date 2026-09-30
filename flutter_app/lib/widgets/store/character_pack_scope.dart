@@ -3,6 +3,8 @@ import 'package:flutter/widgets.dart';
 import '../../data/store/character_pack_catalog.dart';
 import '../../domain/store/character_pack.dart';
 import '../../domain/store/pack_ad_unlock.dart';
+import '../../theme/pack_skin.dart';
+import '../../theme/pack_skin_catalog.dart';
 
 /// 지금 쓰는 팩과 팩을 바꾸는 길을 화면 트리에 내려 준다.
 ///
@@ -42,6 +44,10 @@ class CharacterPackScope extends InheritedWidget {
 
   static CharacterPack currentOf(BuildContext context) =>
       _maybeOf(context)?.current ?? CharacterPackCatalog.defaultPack;
+
+  /// 지금 쓰는 팩의 겉모습. 화면은 팩 ID 대신 이 값으로 갈린다.
+  static PackSkin skinOf(BuildContext context) =>
+      PackSkinCatalog.of(currentOf(context));
 
   static CharacterPackOwnership ownershipOf(BuildContext context) =>
       _maybeOf(context)?.ownership ?? const BundledOnlyOwnership();

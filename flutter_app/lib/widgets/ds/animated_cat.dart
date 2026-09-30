@@ -66,6 +66,17 @@ class CharacterArtwork {
         CatPose.guide: Rect.fromLTRB(83, 22, 332, 350),
       },
     ),
+    'squirrel_explorer': CharacterArtwork(
+      canvas: 384,
+      bounds: {
+        CatPose.idle: Rect.fromLTRB(36, 46, 332, 368),
+        CatPose.activity: Rect.fromLTRB(23, 48, 334, 370),
+        CatPose.focus: Rect.fromLTRB(35, 74, 348, 372),
+        CatPose.complete: Rect.fromLTRB(36, 32, 377, 340),
+        CatPose.rest: Rect.fromLTRB(34, 56, 357, 337),
+        CatPose.guide: Rect.fromLTRB(11, 28, 356, 340),
+      },
+    ),
   };
 }
 

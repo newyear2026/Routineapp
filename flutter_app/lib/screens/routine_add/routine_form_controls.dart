@@ -12,6 +12,7 @@ import '../../theme/app_pixel_style.dart';
 import '../../theme/app_theme_preset.dart';
 import '../../widgets/ds/pixel_decoration.dart';
 import '../../widgets/store/character_pack_scope.dart';
+import '../../theme/pack_skin.dart';
 
 /// 루틴 폼의 상단 바.
 ///
@@ -30,7 +31,8 @@ class RoutineFormHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final garden = CharacterPackScope.currentOf(context).id == 'poodle_garden';
+    final garden =
+        CharacterPackScope.skinOf(context).decorStyle == PackDecorStyle.garden;
     return SizedBox(
       height: 62,
       child: Stack(

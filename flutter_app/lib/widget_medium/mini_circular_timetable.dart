@@ -9,6 +9,7 @@ import '../widgets/home/pixel_orbit_plate.dart';
 import '../widgets/orbit_ring_painter.dart';
 import 'medium_ring_segment.dart';
 import 'widget_theme.dart';
+import '../theme/pack_skin.dart';
 
 /// Medium 위젯의 24시간 원형 시간표.
 ///
@@ -26,8 +27,7 @@ class MiniCircularTimetable extends StatelessWidget {
     this.pointerAngleRad,
     required this.centerLabel,
     this.size = 120,
-    this.rabbitPalette = false,
-    this.stargazerPalette = false,
+    this.palette = const DialPalette(),
   });
 
   final List<MediumRingSegment> segments;
@@ -38,8 +38,8 @@ class MiniCircularTimetable extends StatelessWidget {
   final double? pointerAngleRad;
   final String centerLabel;
   final double size;
-  final bool rabbitPalette;
-  final bool stargazerPalette;
+  /// 팩마다 다른 원판 색. 비운 값은 기본 위젯 색이다.
+  final DialPalette palette;
 
   static double pointerAngleFromTime(TimeOfDay t) {
     final m = t.hour * 60 + t.minute;
@@ -72,14 +72,8 @@ class MiniCircularTimetable extends StatelessWidget {
             size: Size.square(size),
             painter: PixelOrbitPlate(
               step: size / 54,
-              dialColor: rabbitPalette
-                  ? const Color(0xFFFFE3D0)
-                  : stargazerPalette
-                      ? const Color(0xFF0A3446)
-                      : AppColors.dialSurface,
-              surfaceColor: rabbitPalette
-                  ? const Color(0xFFFFFCF3)
-                  : AppColors.orbitSurface,
+              dialColor: palette.dial ?? AppColors.dialSurface,
+              surfaceColor: palette.surface ?? AppColors.orbitSurface,
             ),
           ),
           CustomPaint(
@@ -105,22 +99,10 @@ class MiniCircularTimetable extends StatelessWidget {
               // 기본 상한(0.448)은 홈 글자 크기에서 정한 값이라, 여기서는
               // 라벨이 계단 원판(0.48) 테두리를 넘어 잘린다.
               hourLabelRadiusFactor: 0.425,
-              trackColor: rabbitPalette
-                  ? const Color(0xFFC5E4CA)
-                  : stargazerPalette
-                      ? const Color(0xFF1D6A7C)
-                      : AppColors.orbitHalo,
-              pointerColor: rabbitPalette
-                  ? const Color(0xFFDB665E)
-                  : stargazerPalette
-                      ? const Color(0xFFF4C430)
-                      : AppColors.orbitPrimary,
-              hourLabelColor: stargazerPalette
-                  ? const Color(0xFFE0F2F0)
-                  : AppColors.textStrong,
-              tickColor: stargazerPalette
-                  ? const Color(0xFFBCE4E8)
-                  : AppColors.textMuted,
+              trackColor: palette.track ?? AppColors.orbitHalo,
+              pointerColor: palette.pointer ?? AppColors.orbitPrimary,
+              hourLabelColor: palette.hourLabel ?? AppColors.textStrong,
+              tickColor: palette.tick ?? AppColors.textMuted,
             ),
           ),
           Column(
@@ -136,11 +118,7 @@ class MiniCircularTimetable extends StatelessWidget {
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
                 decoration: BoxDecoration(
-                  color: rabbitPalette
-                      ? const Color(0xFFFFE9D8)
-                      : stargazerPalette
-                          ? const Color(0xFFFFE295)
-                          : AppColors.orbitSurfaceSoft,
+                  color: palette.centerLabel ?? AppColors.orbitSurfaceSoft,
                   border: Border.all(color: AppColors.orbitBorder),
                 ),
                 child: Text(

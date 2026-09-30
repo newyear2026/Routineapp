@@ -237,13 +237,50 @@ class AppThemePreset {
     ),
   );
 
+  static const explorerSquirrel = AppThemePreset(
+    id: 'squirrel_explorer',
+    previewColors: [
+      Color(0xFFF6EFE0),
+      Color(0xFFD8E5C9),
+      Color(0xFF8DA16B),
+      Color(0xFFB77D50),
+    ],
+    pageGradient: LinearGradient(
+      colors: [Color(0xFFFCF7EB), Color(0xFFEAF1DD)],
+    ),
+    shellGradient: LinearGradient(
+      colors: [Color(0xFFFFFBF1), Color(0xFFE6EDD9)],
+    ),
+    primaryButtonGradient: LinearGradient(
+      colors: [Color(0xFF6F8B4F), Color(0xFF91A96B)],
+    ),
+    softAccentGradient: LinearGradient(
+      colors: [Color(0xFFDDE8C7), Color(0xFFF5E5CA)],
+    ),
+    highlightGradient: LinearGradient(
+      colors: [Color(0xFFF6DBA8), Color(0xFFEBC58C)],
+    ),
+    textPrimary: Color(0xFF3E3229),
+    textMuted: Color(0xFF746C5A),
+    accentPink: Color(0xFFC18A5A),
+    accentLavender: Color(0xFFD7E3C0),
+    pageBackground: Color(0xFFFCF7EB),
+    primaryColor: Color(0xFF6F8B4F),
+    surfaceColor: Color(0xFFFFFDF5),
+    selectedSurface: Color(0xFFE2ECCA),
+    focusCardGradient: LinearGradient(
+      colors: [Color(0xFFF5E8CB), Color(0xFFDDEBCB)],
+    ),
+  );
+
   static const all = [
     softDay,
     peachSunset,
     mintLavender,
     poodleGarden,
     stargazer,
-    postmanRabbit
+    postmanRabbit,
+    explorerSquirrel
   ];
 
   static AppThemePreset byId(String? id) {

@@ -2,6 +2,7 @@ import 'dart:io';
 import 'dart:typed_data';
 
 import 'package:flutter_test/flutter_test.dart';
+import 'package:routine_timer/data/store/character_pack_catalog.dart';
 
 /// 번들 그림은 화면에서 쓰는 크기로만 싣는다.
 ///
@@ -12,11 +13,12 @@ import 'package:flutter_test/flutter_test.dart';
 void main() {
   const maxEdge = 384;
   const maxBytes = 130 * 1024;
-  const bundledDirs = [
+  // 팩 폴더는 카탈로그에서 얻는다. 손으로 적어 두면 새 팩이 예산 검사를
+  // 조용히 빠져나간다 — rabbit_postman이 실제로 그렇게 빠져 있었다.
+  final bundledDirs = [
     'assets/decorations',
-    'assets/characters/cat_starlight/v1/approved',
-    'assets/characters/poodle_garden/v1/approved',
-    'assets/characters/cat_stargazer/v1/approved',
+    for (final pack in CharacterPackCatalog.all.where((p) => p.hasArtwork))
+      'assets/characters/${pack.characterId}/${pack.assetVersion}/approved',
     'assets/routine_icons',
   ];
 

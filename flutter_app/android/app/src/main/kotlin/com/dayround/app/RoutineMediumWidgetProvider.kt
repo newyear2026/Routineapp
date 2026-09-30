@@ -88,16 +88,14 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
             put("pointerAngleRad", minuteOfDay / 1440.0 * 2 * PI - PI / 2)
             put("centerTimeLabel", display.optString("centerTimeLabel", json.optString("centerTimeLabel", "")))
         }
-        val garden = json.optString("characterPackId") == "poodle_garden"
-        val stargazer = json.optString("characterPackId") == "cat_stargazer"
-        val rabbit = json.optString("characterPackId") == "rabbit_postman"
+        val skin = RoutineWidgetSkin.forPack(json.optString("characterPackId"))
         val ringPx = ringSizePx(context)
         val ring = RoutineWidgetRingBitmap.create(ringJson, ringPx,
-            drawCenter = false, stargazer = stargazer, rabbit = rabbit)
+            drawCenter = false, colors = skin.ring)
 
         for (id in appWidgetIds) {
             val views = renderWidget(context, json, display, nowMs, ring,
-                garden, stargazer, rabbit, expired)
+                skin, expired)
             appWidgetManager.updateAppWidget(id, views)
         }
         scheduleNextUpdate(context, appWidgetIds, json, nowMs)
@@ -109,9 +107,7 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
         display: JSONObject,
         nowMs: Long,
         ring: Bitmap,
-        garden: Boolean,
-        stargazer: Boolean,
-        rabbit: Boolean,
+        skin: RoutineWidgetSkin,
         expired: Boolean,
     ): RemoteViews {
         val nextTitle = display.optString("nextRoutineTitle", "")
@@ -126,19 +122,19 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
         val views = RemoteViews(context.packageName, layout)
         when (widgetStyle) {
             WidgetStyle.RING -> {
-                bindPackArtwork(views, garden, stargazer, rabbit)
+                bindPackArtwork(views, skin.medium)
                 bindText(views, R.id.widget_status_badge, display.optString("currentRoutineStatus", ""))
                 bindText(views, R.id.widget_current_title, display.optString("currentRoutineTitle", ""))
-                bindTimingHint(views, R.id.widget_timing_hint, hint, false)
+                bindTimingHint(views, R.id.widget_timing_hint, hint, REGULAR_HINT_SUFFIX)
                 bindText(views, R.id.widget_next_label, nextLabel)
                 bindText(views, R.id.widget_next_title, nextTitle)
                 bindText(views, R.id.widget_next_time, display.optString("nextRoutineTime", ""))
-                if (stargazer) {
+                if (skin.medium.nightSky) {
                     bindText(views, R.id.widget_stargazer_status,
                         display.optString("currentRoutineStatus", ""))
                     bindText(views, R.id.widget_stargazer_title,
                         display.optString("currentRoutineTitle", ""))
-                    bindTimingHint(views, R.id.widget_stargazer_hint, hint, true)
+                    bindTimingHint(views, R.id.widget_stargazer_hint, hint, skin.medium.muted)
                     bindText(views, R.id.widget_stargazer_next_label, nextLabel)
                     bindText(views, R.id.widget_stargazer_next_title, nextTitle)
                     bindText(views, R.id.widget_stargazer_next_time,
@@ -151,14 +147,14 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
             }
             WidgetStyle.TIMELINE -> {
                 views.setImageViewBitmap(R.id.widget_variant_art,
-                    RoutineWidgetVariantBitmap.create(context, "timeline", garden, stargazer, rabbit, display,
+                    RoutineWidgetVariantBitmap.create(context, "timeline", skin.variant, display,
                         display.optString("currentRoutineStatus", ""),
                         display.optString("currentRoutineTitle", ""), hint, nextLabel,
                         nextTitle, display.optString("nextRoutineTime", "")))
             }
             WidgetStyle.CARDS -> {
                 views.setImageViewBitmap(R.id.widget_variant_art,
-                    RoutineWidgetVariantBitmap.create(context, "cards", garden, stargazer, rabbit, display,
+                    RoutineWidgetVariantBitmap.create(context, "cards", skin.variant, display,
                         display.optString("currentRoutineStatus", ""),
                         display.optString("currentRoutineTitle", ""), hint, nextLabel,
                         nextTitle, display.optString("nextRoutineTime", "")))
@@ -269,12 +265,11 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
     }
 
     private fun bindTimingHint(views: RemoteViews, viewId: Int, text: String,
-        stargazer: Boolean) {
+        suffixColor: Int) {
         val styled = SpannableString(text)
         val suffix = if (text.endsWith(" 남음")) text.length - 3 else text.length
         if (suffix < text.length) {
-            styled.setSpan(ForegroundColorSpan(Color.parseColor(
-                if (stargazer) "#D6E6ED" else "#6A6489")),
+            styled.setSpan(ForegroundColorSpan(suffixColor),
                 suffix, text.length, Spannable.SPAN_EXCLUSIVE_EXCLUSIVE)
         }
         val duration = Regex("\\d+(?:시간\\s*\\d+)?분|\\d+시간").find(text)
@@ -291,52 +286,36 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
         return max((63 * density).toInt(), 63)
     }
 
-    private fun bindPackArtwork(views: RemoteViews, garden: Boolean,
-        stargazer: Boolean, rabbit: Boolean) {
-        views.setInt(R.id.widget_root, "setBackgroundResource",
-            if (stargazer) R.drawable.widget_medium_bg_stargazer
-            else if (rabbit) R.drawable.widget_medium_bg_rabbit
-            else if (garden) R.drawable.widget_medium_bg_poodle else R.drawable.widget_medium_bg_cat)
-        views.setInt(R.id.widget_status_badge, "setBackgroundResource",
-            if (stargazer) R.drawable.widget_badge_bg_stargazer
-            else if (rabbit) R.drawable.widget_badge_bg_rabbit
-            else if (garden) R.drawable.widget_badge_bg_poodle else R.drawable.widget_badge_bg)
-        views.setImageViewResource(R.id.widget_mascot,
-            if (garden) R.drawable.widget_poodle else R.drawable.widget_cat)
-        views.setImageViewResource(R.id.widget_featured_mascot_art,
-            if (rabbit) R.drawable.widget_rabbit else R.drawable.widget_stargazer)
-        views.setViewVisibility(R.id.widget_mascot,
-            if (stargazer || rabbit) View.GONE else View.VISIBLE)
-        views.setViewVisibility(R.id.widget_stargazer_mascot,
-            if (stargazer || rabbit) View.VISIBLE else View.GONE)
-        views.setViewVisibility(R.id.widget_regular_column,
-            if (stargazer) View.GONE else View.VISIBLE)
-        views.setViewVisibility(R.id.widget_stargazer_column,
-            if (stargazer) View.VISIBLE else View.GONE)
-        views.setViewVisibility(R.id.widget_stargazer_scene,
-            if (stargazer) View.VISIBLE else View.GONE)
+    private fun bindPackArtwork(views: RemoteViews, skin: RoutineWidgetSkin.MediumSkin) {
+        fun shown(visible: Boolean) = if (visible) View.VISIBLE else View.GONE
+        views.setInt(R.id.widget_root, "setBackgroundResource", skin.background)
+        views.setInt(R.id.widget_status_badge, "setBackgroundResource", skin.badgeBackground)
+        views.setImageViewResource(
+            if (skin.featuredMascot) R.id.widget_featured_mascot_art else R.id.widget_mascot,
+            skin.mascot)
+        views.setViewVisibility(R.id.widget_mascot, shown(!skin.featuredMascot))
+        views.setViewVisibility(R.id.widget_stargazer_mascot, shown(skin.featuredMascot))
+        views.setViewVisibility(R.id.widget_regular_column, shown(!skin.nightSky))
+        views.setViewVisibility(R.id.widget_stargazer_column, shown(skin.nightSky))
+        views.setViewVisibility(R.id.widget_stargazer_scene, shown(skin.nightSky))
+        views.setImageViewResource(R.id.widget_decor,
+            if (skin.decor == RoutineWidgetSkin.MediumDecor.FOREST)
+                R.drawable.widget_forest else R.drawable.widget_stars)
         views.setViewVisibility(R.id.widget_decor,
-            if (garden || stargazer || rabbit) View.GONE else View.VISIBLE)
-        views.setViewVisibility(R.id.widget_leaf, if (garden) View.VISIBLE else View.GONE)
-        views.setViewVisibility(R.id.widget_daisy, if (garden) View.VISIBLE else View.GONE)
-        val title = Color.parseColor(if (stargazer) "#FFF9EA"
-            else if (rabbit) "#493330" else "#191344")
-        val muted = Color.parseColor(if (stargazer) "#D6E6ED"
-            else if (rabbit) "#80645C" else "#6B6492")
-        val accent = Color.parseColor(if (stargazer) "#F4C430"
-            else if (rabbit) "#C5514A" else "#643AF6")
-        views.setTextColor(R.id.widget_current_title, title)
-        views.setTextColor(R.id.widget_timing_hint, accent)
-        views.setTextColor(R.id.widget_next_label, muted)
-        views.setTextColor(R.id.widget_next_title, title)
-        views.setTextColor(R.id.widget_next_time, muted)
-        views.setTextColor(R.id.widget_status_badge,
-            Color.parseColor(if (stargazer) "#123041" else "#FFFFFF"))
-        views.setInt(R.id.widget_now_label, "setBackgroundResource",
-            if (stargazer) R.drawable.widget_now_bg_stargazer
-            else R.color.widget_label_surface)
-        views.setTextColor(R.id.widget_now_label,
-            Color.parseColor(if (stargazer) "#123041" else "#6A6489"))
+            shown(skin.decor == RoutineWidgetSkin.MediumDecor.SKY ||
+                skin.decor == RoutineWidgetSkin.MediumDecor.FOREST))
+        views.setViewVisibility(R.id.widget_leaf,
+            shown(skin.decor == RoutineWidgetSkin.MediumDecor.GARDEN))
+        views.setViewVisibility(R.id.widget_daisy,
+            shown(skin.decor == RoutineWidgetSkin.MediumDecor.GARDEN))
+        views.setTextColor(R.id.widget_current_title, skin.title)
+        views.setTextColor(R.id.widget_timing_hint, skin.accent)
+        views.setTextColor(R.id.widget_next_label, skin.muted)
+        views.setTextColor(R.id.widget_next_title, skin.title)
+        views.setTextColor(R.id.widget_next_time, skin.muted)
+        views.setTextColor(R.id.widget_status_badge, skin.badgeText)
+        views.setInt(R.id.widget_now_label, "setBackgroundResource", skin.nowLabelBackground)
+        views.setTextColor(R.id.widget_now_label, skin.nowLabelText)
     }
 
     private fun showPlaceholder(
@@ -359,13 +338,15 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
         for (id in appWidgetIds) {
             appWidgetManager.updateAppWidget(id,
                 renderWidget(context, placeholder, display, System.currentTimeMillis(),
-                    bmp, garden = false, stargazer = false, rabbit = false,
-                    expired = true))
+                    bmp, RoutineWidgetSkin.default, expired = true))
         }
     }
 
     companion object {
         private const val PAYLOAD_KEY = "routine_widget_payload"
+
+        /** 기본 글자 열의 «남음» 꼬리 색. 팩과 무관하다. */
+        private val REGULAR_HINT_SUFFIX = Color.parseColor("#6A6489")
     }
 }
 

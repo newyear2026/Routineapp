@@ -332,6 +332,8 @@
   "packPoodleGardenTagline": "Passe o dia com um poodle num jardim aconchegante",
   "packPostmanRabbitName": "Pacote Coelho Carteiro",
   "packPostmanRabbitTagline": "Uma manhã acolhedora com uma cartinha",
+  "packExplorerSquirrelName": "Pacote Esquilo Explorador",
+  "packExplorerSquirrelTagline": "Encontre o caminho de hoje com um pequeno explorador",
   "updateAvailableTitle": "Há uma versão nova",
   "updateAvailableBody": "Atualize para usar o LOOPET mais recente.",
   "updateCurrentVersion": "Sua versão · v{version}",

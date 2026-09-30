@@ -3,6 +3,9 @@
 /// 시안의 «팩 구성 내용»(캐릭터 · 동작 · 테마 · 테마 컬러 · 데코)이 이 모델의
 /// 필드 구성을 그대로 정한다.
 ///
+/// 팩이 갖춰야 할 것(그림 규격·겉모습·위젯·문구)과 새 팩 체크리스트는
+/// `docs/CHARACTER_PACK_SPEC.md`에 있고, `test/pack_spec_test.dart`가 강제한다.
+///
 /// 세 축을 따로 팔지 않는 이유는 조합의 수가 팩 수의 곱으로 늘기 때문이다.
 /// 캐릭터 N개와 팔레트 M개를 따로 고르게 하면 N×M 조합을 전부 눈으로 확인해야
 /// 하고, 그중 일부는 반드시 어긋난다. 팩으로 묶으면 확인은 팩당 한 번이다.
@@ -75,10 +78,8 @@ class CharacterPack {
 
   bool get hasArtwork => characterId != null;
 
-  /// 포즈 그림의 경로. 그림이 없는 팩은 null을 답한다.
-  ///
-  /// `AnimatedCat`이 아직 같은 경로를 직접 만들고 있다. 캐릭터 축을 풀 때
-  /// 그쪽이 이 자리를 쓰게 되며, 그때까지는 테스트가 둘을 묶어 둔다.
+  /// 포즈 그림의 경로. 그림이 없는 팩은 null을 답한다. 그림을 그리는 곳
+  /// (`AnimatedCat`, 위젯 미리보기)은 모두 이 경로를 쓴다.
   String? assetFor(String poseName) {
     final id = characterId;
     if (id == null) return null;

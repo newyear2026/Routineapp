@@ -22,8 +22,8 @@ import kotlin.math.sqrt
  * 동심원 도넛이라 앱 홈 화면과 다른 물건으로 보였다.
  *
  * 치수는 모두 [REFERENCE_SIZE] 292 기준 비례값이라 어느 크기에서도 같은 비율이 된다.
- * 색은 res/values/widget_colors.xml과 같은 값이며 기준은
- * `lib/widget_medium/widget_theme.dart`이다.
+ * 색은 팩마다 [RoutineWidgetSkin.RingColors]가 정한다. 기본값은
+ * res/values/widget_colors.xml과 같고 기준은 `lib/widget_medium/widget_theme.dart`이다.
  */
 object RoutineWidgetRingBitmap {
 
@@ -35,15 +35,10 @@ object RoutineWidgetRingBitmap {
     private object Tokens {
         const val SURFACE = "#FFFFFF"
         const val TEXT_PRIMARY = "#221C42"
-        const val TEXT_MUTED = "#6A6489"
-        const val ACCENT = "#6744F4"
-        const val RING_TRACK = "#E4DCFB"
-        const val DIAL_SURFACE = "#F3EDF9"
-        const val LABEL_SURFACE = "#F0E9D9"
     }
 
     fun create(json: JSONObject, sizePx: Int, drawCenter: Boolean = true,
-        stargazer: Boolean = false, rabbit: Boolean = false): Bitmap {
+        colors: RoutineWidgetSkin.RingColors = RoutineWidgetSkin.default.ring): Bitmap {
         val bmp = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bmp)
         val cx = sizePx / 2f
@@ -58,16 +53,14 @@ object RoutineWidgetRingBitmap {
         canvas.drawPath(
             plate,
             Paint().apply {
-                color = Color.parseColor(if (stargazer) "#0A3446"
-                    else if (rabbit) "#FFE3D0" else Tokens.DIAL_SURFACE)
+                color = colors.dial
                 isAntiAlias = false
             },
         )
         canvas.drawPath(
             plate,
             Paint().apply {
-                color = Color.parseColor(if (stargazer) "#081F36"
-                    else if (rabbit) "#493330" else Tokens.TEXT_PRIMARY)
+                color = colors.dialOutline
                 style = Paint.Style.STROKE
                 strokeWidth = max(2f, 1.5f * sizePx / 104f)
                 isAntiAlias = false
@@ -75,27 +68,25 @@ object RoutineWidgetRingBitmap {
         )
         canvas.drawPath(
             pixelDisk(cx, cy, sizePx * 0.335f, step),
-            Paint().apply { color = Color.parseColor(
-                if (rabbit) "#FFFCF3" else Tokens.SURFACE); isAntiAlias = false },
+            Paint().apply { color = colors.surface; isAntiAlias = false },
         )
 
         val oval = RectF(cx - orbitRadius, cy - orbitRadius, cx + orbitRadius, cy + orbitRadius)
         canvas.drawArc(
             oval, -90f, 360f, false,
             Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                color = Color.parseColor(if (stargazer) "#1D6A7C"
-                    else if (rabbit) "#C5E4CA" else Tokens.RING_TRACK)
+                color = colors.track
                 style = Paint.Style.STROKE
                 strokeWidth = trackStroke
                 strokeCap = Paint.Cap.ROUND
             },
         )
 
-        drawHourTicks(canvas, cx, cy, orbitRadius, trackStroke, scale, stargazer)
-        drawHourLabels(canvas, cx, cy, sizePx.toFloat(), stargazer)
+        drawHourTicks(canvas, cx, cy, orbitRadius, trackStroke, scale, colors)
+        drawHourLabels(canvas, cx, cy, sizePx.toFloat(), colors)
         drawSegments(canvas, json, oval, segmentStroke)
-        drawNowPointer(canvas, json, cx, cy, orbitRadius, scale, stargazer, rabbit)
-        if (drawCenter) drawCenterTime(canvas, json, cx, cy, scale, stargazer)
+        drawNowPointer(canvas, json, cx, cy, orbitRadius, scale, colors)
+        if (drawCenter) drawCenterTime(canvas, json, cx, cy, scale, colors)
 
         return bmp
     }
@@ -129,7 +120,7 @@ object RoutineWidgetRingBitmap {
         orbitRadius: Float,
         trackStroke: Float,
         scale: Float,
-        stargazer: Boolean,
+        colors: RoutineWidgetSkin.RingColors,
     ) {
         for (hour in 0 until 24 step 4) {
             val angle = minutesToRad(hour * 60.0)
@@ -137,9 +128,8 @@ object RoutineWidgetRingBitmap {
             val tickLength = (if (isMajor) 9f else 6f) * scale
             val base = orbitRadius - trackStroke / 2f - 7f * scale
             val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                color = Color.parseColor(if (stargazer) "#BCE4E8" else Tokens.TEXT_MUTED)
-                alpha = if (stargazer) (if (isMajor) 180 else 110)
-                    else (if (isMajor) 87 else 46)
+                color = colors.tick
+                alpha = if (isMajor) colors.tickAlphaMajor else colors.tickAlphaMinor
                 strokeWidth = (if (isMajor) 2.4f else 1.3f) * scale
                 strokeCap = Paint.Cap.ROUND
             }
@@ -154,10 +144,10 @@ object RoutineWidgetRingBitmap {
     }
 
     private fun drawHourLabels(canvas: Canvas, cx: Float, cy: Float, size: Float,
-        stargazer: Boolean) {
+        colors: RoutineWidgetSkin.RingColors) {
         val offset = size * 0.445f
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor(if (stargazer) "#E0F2F0" else Tokens.TEXT_PRIMARY)
+            color = colors.hourLabel
             textSize = size * 0.085f
             typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
             textAlign = Paint.Align.CENTER
@@ -209,8 +199,7 @@ object RoutineWidgetRingBitmap {
         cy: Float,
         orbitRadius: Float,
         scale: Float,
-        stargazer: Boolean,
-        rabbit: Boolean,
+        colors: RoutineWidgetSkin.RingColors,
     ) {
         val ptr = json.optDouble("pointerAngleRad", -PI / 2)
         val px = (cx + cos(ptr) * (orbitRadius + 4f * scale)).toFloat()
@@ -219,8 +208,7 @@ object RoutineWidgetRingBitmap {
         canvas.drawLine(
             cx, cy, px, py,
             Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                color = Color.parseColor(if (stargazer) "#F4C430"
-                    else if (rabbit) "#DB665E" else Tokens.ACCENT)
+                color = colors.pointer
                 alpha = 128
                 strokeWidth = 1.5f * scale
             },
@@ -231,8 +219,7 @@ object RoutineWidgetRingBitmap {
             Paint().apply { color = Color.parseColor(Tokens.SURFACE); isAntiAlias = false })
         canvas.drawRect(px - inner / 2, py - inner / 2, px + inner / 2, py + inner / 2,
             Paint().apply {
-                color = Color.parseColor(if (stargazer) "#F4C430"
-                    else if (rabbit) "#DB665E" else Tokens.ACCENT)
+                color = colors.pointer
                 isAntiAlias = false
             })
     }
@@ -243,7 +230,7 @@ object RoutineWidgetRingBitmap {
         cx: Float,
         cy: Float,
         scale: Float,
-        stargazer: Boolean,
+        colors: RoutineWidgetSkin.RingColors,
     ) {
         val hour = json.optInt("currentTimeHour")
         val minute = json.optInt("currentTimeMinute")
@@ -257,7 +244,7 @@ object RoutineWidgetRingBitmap {
 
         val label = json.optString("centerTimeLabel", "지금")
         val labelPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-            color = Color.parseColor(if (stargazer) "#476275" else Tokens.TEXT_MUTED)
+            color = colors.centerLabelInk
             textSize = 12f * scale
             typeface = Typeface.create(Typeface.DEFAULT, Typeface.BOLD)
             textAlign = Paint.Align.CENTER
@@ -266,10 +253,10 @@ object RoutineWidgetRingBitmap {
         val box = RectF(cx - labelWidth / 2, cy + 8f * scale,
             cx + labelWidth / 2, cy + 26f * scale)
         canvas.drawRect(box, Paint().apply {
-            color = Color.parseColor(if (stargazer) "#FFE295" else Tokens.LABEL_SURFACE)
+            color = colors.centerLabelSurface
         })
         canvas.drawRect(box, Paint().apply {
-            color = Color.parseColor(if (stargazer) "#476275" else Tokens.TEXT_MUTED)
+            color = colors.centerLabelInk
             style = Paint.Style.STROKE
             strokeWidth = 0.7f * scale
         })

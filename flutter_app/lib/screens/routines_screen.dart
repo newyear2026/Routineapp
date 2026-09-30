@@ -21,6 +21,7 @@ import '../widgets/ds/pixel_decoration.dart';
 import '../widgets/store/character_pack_scope.dart';
 import '../theme/app_theme_preset.dart';
 import '../theme/app_pixel_style.dart';
+import '../theme/pack_skin.dart';
 
 /// 오늘(타임라인) · 목록 · 달력. 탭을 열면 오늘 흐름부터 보여 준다.
 enum _RoutineView { today, list, calendar }
@@ -218,7 +219,8 @@ class _RoutinesHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final garden = CharacterPackScope.currentOf(context).id == 'poodle_garden';
+    final garden =
+        CharacterPackScope.skinOf(context).decorStyle == PackDecorStyle.garden;
     final l10n = AppLocalizations.of(context);
     final header = CatMenuHeader(
       caption: AppDateFormats.monthDayWeekday(context, today),
@@ -350,7 +352,8 @@ class _ViewSwitcher extends StatelessWidget {
       constraints: const BoxConstraints(minHeight: 52),
       padding: const EdgeInsets.all(2),
       decoration: ShapeDecoration(
-        color: CharacterPackScope.currentOf(context).id == 'poodle_garden'
+        color: CharacterPackScope.skinOf(context).decorStyle ==
+                PackDecorStyle.garden
             ? context.appTheme.preset.selectedSurface
             : AppColors.orbitSurfaceSoft,
         shape: AppPixelStyle.shape(),

@@ -111,6 +111,10 @@ flutter:
     - assets/decorations/rabbit-letter.png
     - assets/decorations/rabbit-satchel.png
     - assets/decorations/rabbit-carrot-stamp.png
+    - assets/decorations/squirrel-acorn.png
+    - assets/decorations/squirrel-map.png
+    - assets/decorations/squirrel-backpack.png
+    - assets/pack_backgrounds/squirrel-forest.png
     - assets/characters/cat_starlight/v1/approved/idle.png
     - assets/characters/cat_starlight/v1/approved/activity.png
     - assets/characters/cat_starlight/v1/approved/focus.png
@@ -135,6 +139,12 @@ flutter:
     - assets/characters/rabbit_postman/v1/approved/complete.png
     - assets/characters/rabbit_postman/v1/approved/rest.png
     - assets/characters/rabbit_postman/v1/approved/guide.png
+    - assets/characters/squirrel_explorer/v1/approved/idle.png
+    - assets/characters/squirrel_explorer/v1/approved/activity.png
+    - assets/characters/squirrel_explorer/v1/approved/focus.png
+    - assets/characters/squirrel_explorer/v1/approved/complete.png
+    - assets/characters/squirrel_explorer/v1/approved/rest.png
+    - assets/characters/squirrel_explorer/v1/approved/guide.png
 
   # ARB 기반 다국어 코드 생성 (lib/l10n/*.arb -> AppLocalizations)
   generate: true
