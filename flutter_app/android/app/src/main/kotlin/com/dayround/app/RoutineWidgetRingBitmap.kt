@@ -37,8 +37,13 @@ object RoutineWidgetRingBitmap {
         const val TEXT_PRIMARY = "#221C42"
     }
 
+    /**
+     * [labelsInside]는 4×2 위젯용이다. 링이 커서 시간 숫자를 링 안쪽에 두고,
+     * 숫자와 겹치는 00·12시 틱은 그리지 않는다.
+     */
     fun create(json: JSONObject, sizePx: Int, drawCenter: Boolean = true,
-        colors: RoutineWidgetSkin.RingColors = RoutineWidgetSkin.default.ring): Bitmap {
+        colors: RoutineWidgetSkin.RingColors = RoutineWidgetSkin.default.ring,
+        labelsInside: Boolean = false): Bitmap {
         val bmp = Bitmap.createBitmap(sizePx, sizePx, Bitmap.Config.ARGB_8888)
         val canvas = Canvas(bmp)
         val cx = sizePx / 2f
@@ -82,10 +87,13 @@ object RoutineWidgetRingBitmap {
             },
         )
 
-        drawHourTicks(canvas, cx, cy, orbitRadius, trackStroke, scale, colors)
-        drawHourLabels(canvas, cx, cy, sizePx.toFloat(), colors)
+        drawHourTicks(canvas, cx, cy, orbitRadius, trackStroke, scale, colors, labelsInside)
         drawSegments(canvas, json, oval, segmentStroke)
-        drawNowPointer(canvas, json, cx, cy, orbitRadius, scale, colors)
+        // 구간 호보다 나중에 그린다. 먼저 그리면 18시·00시 숫자가 호에 가린다.
+        drawHourLabels(canvas, cx, cy, sizePx.toFloat(), colors, labelsInside)
+        drawNowPointer(canvas, json, cx, cy, orbitRadius, scale, colors,
+            // 큰 링은 가운데에 남은 시간 글자가 있어 바늘을 링 가까이에서만 그린다.
+            innerFraction = if (labelsInside) 0.62f else 0f)
         if (drawCenter) drawCenterTime(canvas, json, cx, cy, scale, colors)
 
         return bmp
@@ -121,10 +129,12 @@ object RoutineWidgetRingBitmap {
         trackStroke: Float,
         scale: Float,
         colors: RoutineWidgetSkin.RingColors,
+        labelsInside: Boolean,
     ) {
         for (hour in 0 until 24 step 4) {
-            val angle = minutesToRad(hour * 60.0)
             val isMajor = hour % 12 == 0
+            if (labelsInside && isMajor) continue
+            val angle = minutesToRad(hour * 60.0)
             val tickLength = (if (isMajor) 9f else 6f) * scale
             val base = orbitRadius - trackStroke / 2f - 7f * scale
             val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
@@ -144,18 +154,24 @@ object RoutineWidgetRingBitmap {
     }
 
     private fun drawHourLabels(canvas: Canvas, cx: Float, cy: Float, size: Float,
-        colors: RoutineWidgetSkin.RingColors) {
-        val offset = size * 0.445f
+        colors: RoutineWidgetSkin.RingColors, labelsInside: Boolean) {
+        val offset = size * if (labelsInside) 0.255f else 0.43f
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
             color = colors.hourLabel
-            textSize = size * 0.085f
+            textSize = size * if (labelsInside) 0.062f else 0.085f
             typeface = Typeface.create(Typeface.MONOSPACE, Typeface.BOLD)
             textAlign = Paint.Align.CENTER
         }
-        canvas.drawText("00", cx, cy - offset + paint.textSize * 0.35f, paint)
-        canvas.drawText("06", cx + offset, cy + paint.textSize * 0.35f, paint)
-        canvas.drawText("12", cx, cy + offset + paint.textSize * 0.35f, paint)
-        canvas.drawText("18", cx - offset, cy + paint.textSize * 0.35f, paint)
+        // 테두리 위의 숫자는 판 색 바탕을 깔아 테두리 선이 글자를 가로지르지 않게 한다.
+        val backing = if (labelsInside) null else Paint().apply { color = colors.dial }
+        val halfW = paint.measureText("00") / 2f + size * 0.01f
+        val halfH = paint.textSize * 0.5f
+        for ((label, x, y) in listOf(
+            Triple("00", cx, cy - offset), Triple("06", cx + offset, cy),
+            Triple("12", cx, cy + offset), Triple("18", cx - offset, cy))) {
+            if (backing != null) canvas.drawRect(x - halfW, y - halfH, x + halfW, y + halfH, backing)
+            canvas.drawText(label, x, y + paint.textSize * 0.35f, paint)
+        }
     }
 
     private fun drawSegments(
@@ -200,13 +216,16 @@ object RoutineWidgetRingBitmap {
         orbitRadius: Float,
         scale: Float,
         colors: RoutineWidgetSkin.RingColors,
+        innerFraction: Float,
     ) {
         val ptr = json.optDouble("pointerAngleRad", -PI / 2)
         val px = (cx + cos(ptr) * (orbitRadius + 4f * scale)).toFloat()
         val py = (cy + sin(ptr) * (orbitRadius + 4f * scale)).toFloat()
 
         canvas.drawLine(
-            cx, cy, px, py,
+            (cx + cos(ptr) * orbitRadius * innerFraction).toFloat(),
+            (cy + sin(ptr) * orbitRadius * innerFraction).toFloat(),
+            px, py,
             Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = colors.pointer
                 alpha = 128

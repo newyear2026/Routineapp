@@ -17,6 +17,11 @@ Flutter는 `home_widget`으로 JSON을 저장하고 iOS WidgetKit·Android App W
 | `nextRoutineTitle`, `nextRoutineTime` | 표시 루틴 다음 일정, 없으면 번역된 `widgetNone` |
 | `timingTargetEpochMs`, `timingMode` | 시작·종료까지 남은 시간 재계산용 |
 | `ringSegments`, `activeSegmentId` | 해당 날짜의 24시간 링 |
+| `currentRoutineTimeRange` | 표시 루틴의 시간대(예: `18:00–19:00`), 4×2 링이 쓴다 |
+| `upcomingRoutines[]` | 표시 루틴 뒤 오늘 남은 루틴 최대 3개(`title`, `time`, `colorArgb`), 4×2 링의 «이어서» 목록 |
+
+루트에는 같은 두 필드와 4×2 링 가운데 문구 `ringUntilStartLabel`·`ringUntilEndLabel`,
+목록 머리말 `upNextLabel`도 있다. 모두 옵셔널이라 스키마 번호는 v3 그대로다.
 
 앱은 현재 시점부터 7일 동안의 자정·루틴 시작·종료 경계를 미리 계산한다.
 현재 시점과 이후 경계마다 `HomeSnapshotBuilder`와 `HomeMediumWidgetSelector`를
@@ -26,20 +31,22 @@ Flutter는 `home_widget`으로 JSON을 저장하고 iOS WidgetKit·Android App W
 바꾸면 `characterPackId`에 따라 별빛 고양이(크림·라벤더) 또는 푸들 정원
 (라벤더·민트)의 캐릭터 그림, 장식, 배경, 상태 배지가 함께 바뀐다.
 
-Android 런처에는 4×2 위젯 세 가지가 별도 항목으로 나타난다. 기존 원형 시간표,
-24시간 가로 시간선, 현재·다음 루틴 카드형이다. 모두 같은 JSON 페이로드를
+Android 런처에는 위젯 세 가지가 별도 항목으로 나타난다. 원형 시간표(Circle, 기본 4×2),
+24시간 가로 시간선(Timeline, 4×1), 현재·다음 루틴 카드형(Cards, 4×1)이다. 모두 같은 JSON 페이로드를
 읽고 캐릭터 팩에 맞춰 배경·캐릭터·배지 색을 바꾼다. Flutter가 데이터를
 저장하면 세 제공자를 모두 갱신하며, 각 제공자는 앱이 닫혀 있을 때도
 자신의 알람으로 다음 루틴 경계와 5분 경계에서 다시 그린다.
 
-가로 시간선과 현재·다음 카드형은 4×2 슬롯의 약 3:2 실제 표시 비율에 맞춘
-768×512 픽셀 아트 배경에 루틴 데이터와 캐릭터를 합성한다. 시각은 각 위젯의
+가로 시간선과 현재·다음 카드형은 768×240 비트맵에 픽셀 아트 배경·루틴 데이터·캐릭터를
+합성한다. 시각은 각 위젯의
 `TextClock`이 분 단위로 표시한다. 런처 선택 화면의 미리보기는 실제 Pixel
 홈 화면 렌더링을 사용한다.
 
-세 위젯의 기본 최소 크기는 250×100dp다. Pixel 런처에서는 4×2로 표시된다.
-이미 홈 화면에 놓인 4×3 위젯은 런처가 배치를 유지하므로 사용자가 크기 조절
-손잡이로 한 줄 줄이거나 새로 추가해야 한다.
+원형 시간표는 세로로 늘이고 줄일 수 있다. 위젯 높이(`OPTION_APPWIDGET_MAX_HEIGHT`)가
+120dp 이상이면 `widget_routine_ring_large`(큰 링, 링 위의 캐릭터, 가운데 남은 시간,
+«이어서» 목록)를, 그보다 낮으면 한 줄짜리 `widget_routine_medium`을 그린다. 크기를
+바꾸면 `onAppWidgetOptionsChanged`에서 바로 다시 고른다. 이미 한 줄로 놓인 위젯은
+런처가 배치를 유지하므로, 사용자가 크기 조절 손잡이로 늘리거나 새로 추가해야 4×2가 된다.
 
 ## 앱이 꺼졌을 때
 

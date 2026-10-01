@@ -51,6 +51,34 @@ void main() {
         'poodle_garden');
   });
 
+  test('4×2 링에 표시 루틴의 시간대와 이어지는 루틴 3개를 넘긴다', () {
+    final payload = SystemHomeWidgetTimeline.build(
+      now: DateTime(2026, 4, 1, 8),
+      l10n: testL10n,
+      routines: [
+        routine('아침', 9 * 60, 10 * 60),
+        routine('공부', 11 * 60, 12 * 60),
+        routine('점심', 12 * 60, 13 * 60),
+        routine('운동', 18 * 60, 19 * 60),
+        routine('독서', 21 * 60, 22 * 60),
+      ],
+      logsToday: const [],
+    );
+
+    // 표시 루틴(아침)은 목록에서 빠지고, 뒤따르는 루틴은 3개까지만 간다.
+    expect(payload.currentRoutineTimeRange, contains('09:00'));
+    expect(payload.upcomingRoutines.map((r) => r.title), ['공부', '점심', '운동']);
+    expect(payload.upcomingRoutines.first.time, '11:00');
+    expect(payload.ringUntilStartLabel, testL10n.widgetRingUntilStart);
+    expect(payload.upNextLabel, testL10n.widgetUpNext);
+
+    final at18 = payload.timelineStates.singleWhere((s) =>
+        s.effectiveAtEpochMs ==
+        DateTime(2026, 4, 1, 18).millisecondsSinceEpoch);
+    expect(at18.upcomingRoutines.map((r) => r.title), ['독서']);
+    expect(at18.toJson()['upcomingRoutines'], hasLength(1));
+  });
+
   test('다음 루틴이 없을 때와 iOS 공통 문구는 선택한 언어로 저장한다', () {
     final l10n = lookupAppLocalizations(const Locale('en'));
     final payload = SystemHomeWidgetTimeline.build(

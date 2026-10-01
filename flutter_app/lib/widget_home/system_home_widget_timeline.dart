@@ -79,6 +79,9 @@ abstract final class SystemHomeWidgetTimeline {
             : snapshot.isDisplayUpcoming
                 ? 'start'
                 : 'end',
+        currentRoutineTimeRange: vm.currentRoutineTimeRange,
+        upcomingRoutines:
+            SystemUpcomingRoutinePayload.listFrom(snapshot.upcomingRoutines),
       );
     }).toList();
 

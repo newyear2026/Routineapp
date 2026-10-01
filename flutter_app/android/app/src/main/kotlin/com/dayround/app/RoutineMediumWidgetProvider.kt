@@ -10,18 +10,21 @@ import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.os.Build
+import android.os.Bundle
 import android.text.Spannable
 import android.text.SpannableString
 import android.text.style.ForegroundColorSpan
 import android.text.style.RelativeSizeSpan
 import android.view.View
 import android.widget.RemoteViews
+import es.antonborri.home_widget.HomeWidgetPlugin
 import es.antonborri.home_widget.HomeWidgetProvider
 import org.json.JSONArray
 import org.json.JSONObject
 import java.util.Calendar
 import kotlin.math.PI
 import kotlin.math.max
+import kotlin.math.min
 
 /**
  * Medium 시스템 위젯 — [HomeWidgetPlugin]이 저장한 JSON을 읽어 갱신한다.
@@ -89,13 +92,19 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
             put("centerTimeLabel", display.optString("centerTimeLabel", json.optString("centerTimeLabel", "")))
         }
         val skin = RoutineWidgetSkin.forPack(json.optString("characterPackId"))
-        val ringPx = ringSizePx(context)
-        val ring = RoutineWidgetRingBitmap.create(ringJson, ringPx,
-            drawCenter = false, colors = skin.ring)
+        val ring by lazy {
+            RoutineWidgetRingBitmap.create(ringJson, ringSizePx(context),
+                drawCenter = false, colors = skin.ring)
+        }
+        val largeRing by lazy {
+            RoutineWidgetRingBitmap.create(ringJson, largeRingSizePx(context),
+                drawCenter = false, colors = skin.ring, labelsInside = true)
+        }
 
         for (id in appWidgetIds) {
-            val views = renderWidget(context, json, display, nowMs, ring,
-                skin, expired)
+            val views = if (isLarge(appWidgetManager, id))
+                renderLarge(context, json, display, nowMs, largeRing, skin, expired)
+            else renderWidget(context, json, display, nowMs, ring, skin, expired)
             appWidgetManager.updateAppWidget(id, views)
         }
         scheduleNextUpdate(context, appWidgetIds, json, nowMs)
@@ -161,6 +170,131 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
             }
         }
         return views
+    }
+
+    /**
+     * 링 위젯을 두 줄 이상으로 늘렸을 때의 모양 — 큰 링, 링 위의 캐릭터,
+     * 가운데 남은 시간, 왼쪽의 지금 루틴과 «이어서» 목록.
+     */
+    private fun renderLarge(
+        context: Context,
+        payload: JSONObject,
+        display: JSONObject,
+        nowMs: Long,
+        ring: Bitmap,
+        skin: RoutineWidgetSkin,
+        expired: Boolean,
+    ): RemoteViews {
+        val m = skin.medium
+        val views = RemoteViews(context.packageName, R.layout.widget_routine_ring_large)
+        views.setInt(R.id.widget_large_bg, "setBackgroundResource", m.background)
+        val decor = if (m.nightSky) R.drawable.widget_stars else decorArt(m.decor)
+        if (decor != null) views.setImageViewResource(R.id.widget_large_decor, decor)
+        views.setViewVisibility(R.id.widget_large_decor, if (decor == null) View.GONE else View.VISIBLE)
+        views.setImageViewResource(R.id.widget_large_pet, m.mascot)
+        views.setImageViewBitmap(R.id.widget_large_ring, ring)
+
+        bindText(views, R.id.widget_large_status, display.optString("currentRoutineStatus", ""))
+        views.setInt(R.id.widget_large_status, "setBackgroundResource", m.badgeBackground)
+        views.setTextColor(R.id.widget_large_status, m.badgeText)
+        bindText(views, R.id.widget_large_range,
+            if (expired) "" else display.optString("currentRoutineTimeRange", ""))
+        views.setTextColor(R.id.widget_large_range, m.muted)
+        bindText(views, R.id.widget_large_title, display.optString("currentRoutineTitle", ""))
+        views.setTextColor(R.id.widget_large_title, m.title)
+
+        val target = display.optLong("timingTargetEpochMs", 0)
+        val mode = display.optString("timingMode")
+        val counting = !expired && target > nowMs && mode.isNotBlank()
+        val remainingMin = if (counting) ((target - nowMs + 59999) / 60000).toInt() else 0
+        bindText(views, R.id.widget_large_count,
+            if (counting) "%d:%02d".format(remainingMin / 60, remainingMin % 60) else "")
+        bindText(views, R.id.widget_large_count_label, if (!counting) "" else
+            payload.optString(if (mode == "start") "ringUntilStartLabel" else "ringUntilEndLabel"))
+        views.setTextColor(R.id.widget_large_count, skin.ring.hourLabel)
+        views.setTextColor(R.id.widget_large_count_label, skin.ring.tick)
+
+        val progress = if (counting && mode == "end") activeProgress(display, remainingMin) else null
+        if (progress != null) {
+            views.setImageViewBitmap(R.id.widget_large_progress,
+                progressBar(progress, skin.ring.track, m.accent, skin.ring.dialOutline))
+        }
+        views.setViewVisibility(R.id.widget_large_progress,
+            if (progress == null) View.GONE else View.VISIBLE)
+
+        val upcoming = when {
+            expired -> null
+            display.has("upcomingRoutines") -> display.optJSONArray("upcomingRoutines")
+            else -> payload.optJSONArray("upcomingRoutines")
+        }
+        val count = min(upcoming?.length() ?: 0, UP_NEXT_ROWS.size)
+        val hasList = count > 0
+        views.setViewVisibility(R.id.widget_large_divider, if (hasList) View.VISIBLE else View.GONE)
+        views.setInt(R.id.widget_large_divider, "setBackgroundColor",
+            (m.muted and 0x00FFFFFF) or (0x55 shl 24))
+        bindText(views, R.id.widget_large_up_label,
+            if (hasList) payload.optString("upNextLabel") else "")
+        views.setTextColor(R.id.widget_large_up_label, m.muted)
+        UP_NEXT_ROWS.forEachIndexed { i, row ->
+            val item = if (i < count) upcoming?.optJSONObject(i) else null
+            views.setViewVisibility(row.row, if (item == null) View.GONE else View.VISIBLE)
+            if (item == null) return@forEachIndexed
+            var color = item.optInt("colorArgb")
+            if (Color.alpha(color) == 0) color = color or (0xFF shl 24)
+            views.setTextColor(row.dot, color)
+            views.setTextViewText(row.title, item.optString("title"))
+            views.setTextColor(row.title, m.title)
+            views.setTextViewText(row.time, item.optString("time"))
+            views.setTextColor(row.time, m.muted)
+        }
+        return views
+    }
+
+    /** 진행 중인 루틴이 얼마나 지났는지(0~1). 구간을 못 찾으면 막대를 숨긴다. */
+    private fun activeProgress(display: JSONObject, remainingMin: Int): Float? {
+        val activeId = display.optString("activeSegmentId")
+        val segments = display.optJSONArray("ringSegments") ?: return null
+        for (i in 0 until segments.length()) {
+            val seg = segments.optJSONObject(i) ?: continue
+            if (seg.optString("id") != activeId) continue
+            val sweep = seg.optInt("sweepMinutes")
+            if (sweep <= 0) return null
+            return (1f - remainingMin.toFloat() / sweep).coerceIn(0f, 1f)
+        }
+        return null
+    }
+
+    private fun progressBar(progress: Float, track: Int, fill: Int, outline: Int): Bitmap {
+        val w = 240
+        val h = 16
+        val bmp = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+        val canvas = android.graphics.Canvas(bmp)
+        val paint = android.graphics.Paint().apply { isAntiAlias = false }
+        paint.color = outline
+        canvas.drawRect(0f, 0f, w.toFloat(), h.toFloat(), paint)
+        paint.color = track
+        canvas.drawRect(3f, 3f, w - 3f, h - 3f, paint)
+        paint.color = fill
+        canvas.drawRect(3f, 3f, 3f + (w - 6f) * progress, h - 3f, paint)
+        return bmp
+    }
+
+    private fun isLarge(manager: AppWidgetManager, id: Int): Boolean =
+        widgetStyle == WidgetStyle.RING &&
+            manager.getAppWidgetOptions(id)
+                .getInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT) >= LARGE_MIN_HEIGHT_DP
+
+    /** 한 줄 ↔ 두 줄로 크기를 바꾸면 모양을 다시 고른다. */
+    override fun onAppWidgetOptionsChanged(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+        newOptions: Bundle,
+    ) {
+        super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions)
+        // 다음 갱신 알람이 이 위젯만 기억하지 않도록 같은 종류의 위젯을 모두 넘긴다.
+        val ids = appWidgetManager.getAppWidgetIds(ComponentName(context, javaClass))
+        onUpdate(context, appWidgetManager, ids, HomeWidgetPlugin.getData(context))
     }
 
     private fun stateAt(payload: JSONObject, nowMs: Long): JSONObject? {
@@ -286,6 +420,20 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
         return max((63 * density).toInt(), 63)
     }
 
+    /** 4×2 링. 위젯 갱신 한 번에 실리는 비트맵이 너무 커지지 않도록 상한을 둔다. */
+    private fun largeRingSizePx(context: Context): Int {
+        val density = context.resources.displayMetrics.density
+        return min(max((124 * density).toInt(), 124), LARGE_RING_MAX_PX)
+    }
+
+    private fun decorArt(decor: RoutineWidgetSkin.MediumDecor): Int? = when (decor) {
+        RoutineWidgetSkin.MediumDecor.SKY -> R.drawable.widget_stars
+        RoutineWidgetSkin.MediumDecor.FOREST -> R.drawable.widget_forest
+        RoutineWidgetSkin.MediumDecor.MOONCLOUD -> R.drawable.widget_sheep_sky
+        RoutineWidgetSkin.MediumDecor.DAWN -> R.drawable.widget_rabbit_dawn
+        RoutineWidgetSkin.MediumDecor.GARDEN, RoutineWidgetSkin.MediumDecor.NONE -> null
+    }
+
     private fun bindPackArtwork(views: RemoteViews, skin: RoutineWidgetSkin.MediumSkin) {
         fun shown(visible: Boolean) = if (visible) View.VISIBLE else View.GONE
         views.setInt(R.id.widget_root, "setBackgroundResource", skin.background)
@@ -298,18 +446,9 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
         views.setViewVisibility(R.id.widget_regular_column, shown(!skin.nightSky))
         views.setViewVisibility(R.id.widget_stargazer_column, shown(skin.nightSky))
         views.setViewVisibility(R.id.widget_stargazer_scene, shown(skin.nightSky))
-        views.setImageViewResource(R.id.widget_decor,
-            when (skin.decor) {
-                RoutineWidgetSkin.MediumDecor.FOREST -> R.drawable.widget_forest
-                RoutineWidgetSkin.MediumDecor.MOONCLOUD -> R.drawable.widget_sheep_sky
-                RoutineWidgetSkin.MediumDecor.DAWN -> R.drawable.widget_rabbit_dawn
-                else -> R.drawable.widget_stars
-            })
-        views.setViewVisibility(R.id.widget_decor,
-            shown(skin.decor == RoutineWidgetSkin.MediumDecor.SKY ||
-                skin.decor == RoutineWidgetSkin.MediumDecor.FOREST ||
-                skin.decor == RoutineWidgetSkin.MediumDecor.MOONCLOUD ||
-                skin.decor == RoutineWidgetSkin.MediumDecor.DAWN))
+        val decor = decorArt(skin.decor)
+        if (decor != null) views.setImageViewResource(R.id.widget_decor, decor)
+        views.setViewVisibility(R.id.widget_decor, shown(decor != null))
         views.setViewVisibility(R.id.widget_leaf,
             shown(skin.decor == RoutineWidgetSkin.MediumDecor.GARDEN))
         views.setViewVisibility(R.id.widget_daisy,
@@ -336,20 +475,45 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
             put("centerTimeLabel", "지금")
             put("ringSegments", JSONArray())
         }
-        val bmp = RoutineWidgetRingBitmap.create(placeholder, ringSizePx(context), drawCenter = false)
+        val bmp by lazy {
+            RoutineWidgetRingBitmap.create(placeholder, ringSizePx(context), drawCenter = false)
+        }
+        val largeBmp by lazy {
+            RoutineWidgetRingBitmap.create(placeholder, largeRingSizePx(context),
+                drawCenter = false, labelsInside = true)
+        }
         val display = JSONObject().apply {
             put("currentRoutineTitle", context.getString(R.string.widget_sync_prompt))
             put("ringSegments", JSONArray())
         }
+        val nowMs = System.currentTimeMillis()
         for (id in appWidgetIds) {
             appWidgetManager.updateAppWidget(id,
-                renderWidget(context, placeholder, display, System.currentTimeMillis(),
+                if (isLarge(appWidgetManager, id))
+                    renderLarge(context, placeholder, display, nowMs, largeBmp,
+                        RoutineWidgetSkin.default, expired = true)
+                else renderWidget(context, placeholder, display, nowMs,
                     bmp, RoutineWidgetSkin.default, expired = true))
         }
     }
 
+    private class UpNextRow(val row: Int, val dot: Int, val title: Int, val time: Int)
+
     companion object {
         private const val PAYLOAD_KEY = "routine_widget_payload"
+
+        /** 이 높이(dp) 이상이면 두 줄 모양을 쓴다. 한 줄은 어느 런처에서도 100dp를 넘지 않는다. */
+        private const val LARGE_MIN_HEIGHT_DP = 120
+        private const val LARGE_RING_MAX_PX = 380
+
+        private val UP_NEXT_ROWS = listOf(
+            UpNextRow(R.id.widget_large_up1, R.id.widget_large_up1_dot,
+                R.id.widget_large_up1_title, R.id.widget_large_up1_time),
+            UpNextRow(R.id.widget_large_up2, R.id.widget_large_up2_dot,
+                R.id.widget_large_up2_title, R.id.widget_large_up2_time),
+            UpNextRow(R.id.widget_large_up3, R.id.widget_large_up3_dot,
+                R.id.widget_large_up3_title, R.id.widget_large_up3_time),
+        )
 
         /** 기본 글자 열의 «남음» 꼬리 색. 팩과 무관하다. */
         private val REGULAR_HINT_SUFFIX = Color.parseColor("#6A6489")

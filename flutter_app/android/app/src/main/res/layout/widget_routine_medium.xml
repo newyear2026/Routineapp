@@ -196,7 +196,8 @@
                 android:textColor="#F4C430"
                 android:textSize="11sp"
                 android:textStyle="bold" />
-            <View
+            <!-- 위젯(RemoteViews)은 맨 View를 허용하지 않는다. 구분선도 FrameLayout으로 그린다. -->
+            <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="1dp"
                 android:layout_marginTop="2dp"
