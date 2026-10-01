@@ -143,6 +143,7 @@ abstract final class PackSkinCatalog {
     tagline: _rabbitTagline,
     decorStyle: PackDecorStyle.sky,
     homeScene: HomeSceneSpec(
+      backdrop: 'assets/pack_backgrounds/rabbit-dawn.png',
       props: [
         SceneProp.deco(
           'rabbit-letter',
@@ -166,8 +167,7 @@ abstract final class PackSkinCatalog {
     widget: PackWidgetSkin(
       background: [Color(0xFFFFD1C2), Color(0xFFFFEFC9)],
       accent: Color(0xFFE97068),
-      decor: WidgetDecor.stamp,
-      decorAsset: 'rabbit-carrot-stamp',
+      decor: WidgetDecor.dawn,
       featuredMascot: true,
       dial: DialPalette(
         dial: Color(0xFFFFE3D0),
@@ -229,6 +229,59 @@ abstract final class PackSkinCatalog {
     ),
   );
 
+  static const _mooncloudSheep = PackSkin(
+    name: _sheepName,
+    tagline: _sheepTagline,
+    decorStyle: PackDecorStyle.sky,
+    homeScene: HomeSceneSpec(
+      backdrop: 'assets/pack_backgrounds/sheep-sky.png',
+      props: [
+        SceneProp.deco(
+          'sheep-cloud',
+          left: SceneInset(0.01),
+          bottom: SceneInset.px(0),
+        ),
+        SceneProp.deco(
+          'sheep-moon',
+          right: SceneInset(0.02),
+          top: SceneInset(0.03),
+          size: 43,
+        ),
+        SceneProp.deco(
+          'sheep-book',
+          right: SceneInset(0.01),
+          bottom: SceneInset.px(0),
+          size: 44,
+        ),
+      ],
+    ),
+    appDial: DialPalette(
+      dial: Color(0xFFE7ECFF),
+      surface: Color(0xFFFFFCFF),
+      track: Color(0xFFCFC8F2),
+      pointer: Color(0xFF6577C8),
+    ),
+    widget: PackWidgetSkin(
+      background: [Color(0xFFDCE9FF), Color(0xFFE9DDFF)],
+      accent: Color(0xFF6577C8),
+      decor: WidgetDecor.mooncloud,
+      textPrimary: Color(0xFF242548),
+      textMuted: Color(0xFF626A92),
+      border: Color(0xFF8D99C5),
+      featuredMascot: true,
+      mascotHalo: Color(0xFFFFF0C2),
+      dial: DialPalette(
+        dial: Color(0xFFE7ECFF),
+        surface: Color(0xFFFFFCFF),
+        track: Color(0xFFCFC8F2),
+        pointer: Color(0xFF6577C8),
+        hourLabel: Color(0xFF242548),
+        tick: Color(0xFF626A92),
+        centerLabel: Color(0xFFFFF0C2),
+      ),
+    ),
+  );
+
   /// 팩 ID → 겉모습. 순서는 뜻이 없다.
   static const byPackId = <String, PackSkin>{
     'cat_starlight': _starlightCat,
@@ -236,6 +289,7 @@ abstract final class PackSkinCatalog {
     'cat_stargazer': _stargazerCat,
     'rabbit_postman': _postmanRabbit,
     'squirrel_explorer': _explorerSquirrel,
+    'sheep_mooncloud': _mooncloudSheep,
   };
 
   /// [pack]의 겉모습. 등록되지 않은 팩은 기본 팩의 겉모습으로 그린다 —
@@ -254,3 +308,5 @@ String _rabbitName(AppLocalizations l10n) => l10n.packPostmanRabbitName;
 String _rabbitTagline(AppLocalizations l10n) => l10n.packPostmanRabbitTagline;
 String _squirrelName(AppLocalizations l10n) => l10n.packExplorerSquirrelName;
 String _squirrelTagline(AppLocalizations l10n) => l10n.packExplorerSquirrelTagline;
+String _sheepName(AppLocalizations l10n) => l10n.packMooncloudSheepName;
+String _sheepTagline(AppLocalizations l10n) => l10n.packMooncloudSheepTagline;

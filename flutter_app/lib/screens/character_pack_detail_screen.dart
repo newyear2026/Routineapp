@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
+import '../app_optional_provider.dart';
+import '../application/store/pack_purchases.dart';
+
 import '../data/store/character_pack_catalog.dart';
 import '../domain/store/character_pack.dart';
 import '../domain/store/pack_ad_unlock.dart';
@@ -278,6 +281,29 @@ class _PackAction extends StatefulWidget {
 class _PackActionState extends State<_PackAction> {
   bool _saving = false;
 
+  /// 이 화면에서 결제 창을 열었다. 결제는 앱 밖에서 끝나고 돌아오므로, 팩이
+  /// 소유로 바뀌는 순간을 기다렸다 입힌다.
+  bool _awaitingPurchase = false;
+
+  @override
+  void didUpdateWidget(covariant _PackAction oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // 산 팩은 광고로 연 팩처럼 바로 입힌다. 다시 «쓰기»를 누르게 하면 돈을 낸
+    // 뒤에 한 번 더 확인받는 셈이다. 다른 경로(복원)로 소유가 된 팩은 두지
+    // 않는다 — 사용자가 고른 적이 없다.
+    if (_awaitingPurchase && !oldWidget.owned && widget.owned) {
+      _awaitingPurchase = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _select();
+      });
+    }
+  }
+
+  Future<void> _buy(PackPurchases purchases, String productId) async {
+    _awaitingPurchase = true;
+    await purchases.buy(productId);
+  }
+
   Future<void> _select() async {
     final onSelect = widget.onSelect;
     if (onSelect == null || _saving) return;
@@ -396,6 +422,11 @@ class _PackActionState extends State<_PackAction> {
         ],
       );
     }
+    final productId = widget.pack.productId;
+    if (widget.pack.availability == CharacterPackAvailability.forSale &&
+        productId != null) {
+      return _buyAction(l10n, productId);
+    }
     final pending =
         widget.pack.availability == CharacterPackAvailability.comingSoon;
     return Column(
@@ -413,6 +444,41 @@ class _PackActionState extends State<_PackAction> {
           textAlign: TextAlign.center,
           style: AppTextStyles.caption,
         ),
+      ],
+    );
+  }
+
+  /// 판매 팩. 가격은 스토어가 알려 준 현지 가격이다 — 앱이 들고 있으면
+  /// 지역과 환율에 따라 반드시 어긋난다.
+  Widget _buyAction(AppLocalizations l10n, String productId) {
+    final purchases = context.maybeWatch<PackPurchases>();
+    final readiness = purchases?.readiness ?? StoreReadiness.unavailable;
+    final price = purchases?.priceFor(productId);
+    final pending = purchases?.isPending(productId) ?? false;
+    final buying = purchases?.isBuying(productId) ?? false;
+    final canBuy = purchases != null &&
+        readiness == StoreReadiness.ready &&
+        price != null &&
+        !buying;
+    // 스토어가 답하기 전(checking)에는 평소 안내를 둔다. 곧 가격이 뜬다.
+    final hint = pending
+        ? l10n.characterPackBuyPending
+        : readiness == StoreReadiness.unavailable ||
+                (readiness == StoreReadiness.ready && price == null)
+            ? l10n.characterPackBuyUnavailable
+            : l10n.characterPackBuyHint;
+    return Column(
+      children: [
+        AppButton(
+          label: price == null
+              ? l10n.characterPackOwnAction
+              : l10n.characterPackBuyAction(price),
+          icon: Icons.shopping_bag_outlined,
+          isLoading: buying && !pending,
+          onPressed: canBuy ? () => _buy(purchases, productId) : null,
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Text(hint, textAlign: TextAlign.center, style: AppTextStyles.caption),
       ],
     );
   }

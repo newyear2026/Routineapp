@@ -42,22 +42,34 @@ abstract final class CharacterPackCatalog {
     availability: CharacterPackAvailability.launchGift,
   );
 
-  /// 우편배달부 토끼. 결제 경로가 아직 없어 기본 제공으로 둔다.
+  /// 우편배달부 토끼. 단품으로 팔고, 번들에도 들어간다.
   static const postmanRabbit = CharacterPack(
     id: 'rabbit_postman',
     characterId: 'rabbit_postman',
     paletteIds: ['rabbit_postman'],
     decoIds: ['rabbit-letter', 'rabbit-satchel', 'rabbit-carrot-stamp'],
-    availability: CharacterPackAvailability.included,
+    availability: CharacterPackAvailability.forSale,
+    productId: 'loopet.pack.rabbit_postman',
   );
 
-  /// 탐험가 다람쥐. 결제 경로가 정해지기 전까지 바로 쓸 수 있다.
+  /// 탐험가 다람쥐. 단품으로 팔고, 번들에도 들어간다.
   static const explorerSquirrel = CharacterPack(
     id: 'squirrel_explorer',
     characterId: 'squirrel_explorer',
     paletteIds: ['squirrel_explorer'],
     decoIds: ['squirrel-acorn', 'squirrel-map', 'squirrel-backpack'],
-    availability: CharacterPackAvailability.included,
+    availability: CharacterPackAvailability.forSale,
+    productId: 'loopet.pack.squirrel_explorer',
+  );
+
+  /// 달구름 양. 단품으로 팔고, 번들에도 들어간다.
+  static const mooncloudSheep = CharacterPack(
+    id: 'sheep_mooncloud',
+    characterId: 'sheep_mooncloud',
+    paletteIds: ['sheep_mooncloud'],
+    decoIds: ['sheep-cloud', 'sheep-moon', 'sheep-book'],
+    availability: CharacterPackAvailability.forSale,
+    productId: 'loopet.pack.sheep_mooncloud',
   );
 
   /// 아무것도 고르지 않았거나, 고른 팩을 쓸 수 없을 때 돌아가는 팩.
@@ -68,7 +80,8 @@ abstract final class CharacterPackCatalog {
     poodleGarden,
     stargazerCat,
     postmanRabbit,
-    explorerSquirrel
+    explorerSquirrel,
+    mooncloudSheep,
   ];
 
   static CharacterPack? byId(

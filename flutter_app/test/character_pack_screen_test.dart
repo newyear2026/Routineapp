@@ -53,6 +53,19 @@ void main() {
       expect(find.text(testL10n.themeInUse), findsOneWidget);
     });
 
+    testWidgets('받지 못한 출시 선물은 «출시 선물»을 한 번만 적는다', (tester) async {
+      tester.view.physicalSize = const Size(430, 2400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      await tester.pumpWidget(
+        localizedApp(home: const CharacterPackStoreScreen()),
+      );
+      await tester.pump();
+
+      expect(find.text(testL10n.launchGiftBadge), findsOneWidget);
+      expect(find.textContaining('${testL10n.launchGiftBadge} ·'), findsNothing);
+    });
+
     testWidgets('팩을 누르면 판매 화면으로 간다', (tester) async {
       final router = GoRouter(
         initialLocation: '/character-packs',
@@ -263,7 +276,16 @@ void main() {
       await tester.pump();
 
       expect(find.text(testL10n.themeInUse), findsOneWidget);
-      expect(find.text(testL10n.characterPackOwned), findsOneWidget);
+      // 산 팩이 여럿이라 딱지 수가 아니라 카드마다 본다.
+      expect(
+          find.descendant(
+            of: find.ancestor(
+              of: find.text(testL10n.packPoodleGardenName),
+              matching: find.byType(InkWell),
+            ),
+            matching: find.text(testL10n.characterPackOwned),
+          ),
+          findsOneWidget);
     });
 
     testWidgets('가진 팩을 쓰지 않고 있으면 쓰기 버튼을 누를 수 있다', (tester) async {
@@ -375,7 +397,15 @@ void main() {
         ownership: const _OwnsEverything(),
       ));
       await tester.pump();
-      expect(find.text(testL10n.characterPackOwned), findsOneWidget);
+      expect(
+          find.descendant(
+            of: find.ancestor(
+              of: find.text(testL10n.packPoodleGardenName),
+              matching: find.byType(InkWell),
+            ),
+            matching: find.text(testL10n.characterPackOwned),
+          ),
+          findsOneWidget);
       expect(find.text(testL10n.characterPackAdUnlockBadge), findsNothing);
     });
 

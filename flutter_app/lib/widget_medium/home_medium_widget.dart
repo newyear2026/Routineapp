@@ -163,6 +163,22 @@ class _WidgetDecorLayer extends StatelessWidget {
               filterQuality: FilterQuality.none,
             ),
           ),
+        WidgetDecor.dawn => Opacity(
+            opacity: 0.35,
+            child: Image.asset(
+              'assets/pack_backgrounds/rabbit-dawn.png',
+              fit: BoxFit.fill,
+              filterQuality: FilterQuality.none,
+            ),
+          ),
+        WidgetDecor.mooncloud => Opacity(
+            opacity: 0.28,
+            child: Image.asset(
+              'assets/pack_backgrounds/sheep-sky.png',
+              fit: BoxFit.fill,
+              filterQuality: FilterQuality.none,
+            ),
+          ),
       };
 }
 

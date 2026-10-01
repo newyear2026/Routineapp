@@ -52,6 +52,10 @@ dependencies:
   # Play에서 설치한 빌드에서만 창이 뜬다. 디버그 실행·사이드로드에서는 조용히
   # 아무것도 하지 않는다.
   in_app_review: ^2.0.12
+  # 캐릭터 팩·번들 판매. 비소모성 상품만 쓰므로 계정 없이 Play 계정으로
+  # 복원된다. android 애드온은 환불을 읽는 queryPastPurchases 때문에 필요하다.
+  in_app_purchase: ^3.3.0
+  in_app_purchase_android: ^0.5.0
 
 dev_dependencies:
   flutter_test:
@@ -114,7 +118,12 @@ flutter:
     - assets/decorations/squirrel-acorn.png
     - assets/decorations/squirrel-map.png
     - assets/decorations/squirrel-backpack.png
+    - assets/decorations/sheep-cloud.png
+    - assets/decorations/sheep-moon.png
+    - assets/decorations/sheep-book.png
     - assets/pack_backgrounds/squirrel-forest.png
+    - assets/pack_backgrounds/rabbit-dawn.png
+    - assets/pack_backgrounds/sheep-sky.png
     - assets/characters/cat_starlight/v1/approved/idle.png
     - assets/characters/cat_starlight/v1/approved/activity.png
     - assets/characters/cat_starlight/v1/approved/focus.png
@@ -145,6 +154,12 @@ flutter:
     - assets/characters/squirrel_explorer/v1/approved/complete.png
     - assets/characters/squirrel_explorer/v1/approved/rest.png
     - assets/characters/squirrel_explorer/v1/approved/guide.png
+    - assets/characters/sheep_mooncloud/v1/approved/idle.png
+    - assets/characters/sheep_mooncloud/v1/approved/activity.png
+    - assets/characters/sheep_mooncloud/v1/approved/focus.png
+    - assets/characters/sheep_mooncloud/v1/approved/complete.png
+    - assets/characters/sheep_mooncloud/v1/approved/rest.png
+    - assets/characters/sheep_mooncloud/v1/approved/guide.png
 
   # ARB 기반 다국어 코드 생성 (lib/l10n/*.arb -> AppLocalizations)
   generate: true

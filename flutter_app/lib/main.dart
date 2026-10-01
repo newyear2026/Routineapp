@@ -14,9 +14,12 @@ import 'app_scaffold_messenger.dart';
 import 'application/release/release_announcements.dart';
 import 'application/routine_app_controller.dart';
 import 'application/services/ad_bootstrap.dart';
+import 'application/services/ad_policy_service.dart';
 import 'application/services/play_update_port.dart';
 import 'application/update/app_updates_controller.dart';
 import 'application/review/review_prompt.dart';
+import 'application/store/pack_purchases.dart';
+import 'data/local/entitlement_storage.dart';
 import 'data/local/first_launch_storage.dart';
 import 'domain/update/app_update_port.dart';
 import 'domain/settings/app_language.dart';
@@ -39,6 +42,7 @@ import 'screens/routines_screen.dart';
 import 'theme/app_theme.dart';
 import 'widget_home/home_widget_sync_service.dart';
 import 'widgets/store/character_pack_scope.dart';
+import 'widgets/store/purchase_text.dart';
 import 'domain/onboarding/onboarding_preview_nav.dart';
 
 Future<void> main() async {
@@ -80,6 +84,24 @@ AppUpdatePort _updatePort() =>
         ? const PlayUpdatePort()
         : const UnavailableUpdatePort();
 
+/// 팩을 살 상대.
+///
+/// Play뿐이다. LOOPET은 Android에만 출시하고, 다른 플랫폼에서 플러그인을
+/// 부르면 채널이 없어 예외가 난다. 그곳에서는 팩 화면이 «이 기기에서는 살 수
+/// 없어요»라고 말한다.
+PackPurchases _createPurchases() {
+  final android = !kIsWeb && defaultTargetPlatform == TargetPlatform.android;
+  final purchases = PackPurchases(
+    backend:
+        android ? PluginPurchaseBackend() : const UnavailablePurchaseBackend(),
+    store: const LocalEntitlementStore(),
+    restoreOnStart: android,
+  );
+  AdPolicyService.instance.isAdFree = () => purchases.adFree;
+  unawaited(purchases.start());
+  return purchases;
+}
+
 class RoutineTimerApp extends StatelessWidget {
   const RoutineTimerApp({super.key});
 
@@ -87,7 +109,13 @@ class RoutineTimerApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiProvider(
       providers: [
-        ChangeNotifierProvider(create: (_) => RoutineAppController()..load()),
+        // 컨트롤러보다 먼저 둔다. 컨트롤러가 산 팩을 소유 판정에 넣는다.
+        ChangeNotifierProvider(create: (_) => _createPurchases()),
+        ChangeNotifierProvider(
+          create: (context) => RoutineAppController(
+            purchases: context.read<PackPurchases>(),
+          )..load(),
+        ),
         // 확인은 화면이 시작한다 — 홈이 뜰 때 [AppUpdates.refresh]를 부른다.
         // 여기서 걸면 스플래시·온보딩을 지나는 동안 이미 물어보게 되고,
         // 방금 설치한 사람에게 «새 버전이 있어요»는 말이 되지 않는다.
@@ -98,7 +126,9 @@ class RoutineTimerApp extends StatelessWidget {
         // 리뷰 요청은 홈의 완료 버튼이 부른다 — 규칙은 [ReviewPrompt]에.
         Provider(create: (_) => ReviewPrompt()),
       ],
-      child: const _ExactAlarmPermissionWatcher(child: _AppRoot()),
+      child: const _ExactAlarmPermissionWatcher(
+        child: _PurchaseFailureReporter(child: _AppRoot()),
+      ),
     );
   }
 }
@@ -134,6 +164,55 @@ class _ExactAlarmPermissionWatcherState
   void didChangeAppLifecycleState(AppLifecycleState state) {
     if (state != AppLifecycleState.resumed || !mounted) return;
     context.read<RoutineAppController>().resyncIfExactAlarmPermissionChanged();
+    // 앱 밖(Play 스토어)에서 쓴 프로모션 코드 등을 잡는다.
+    unawaited(context.read<PackPurchases>().refreshOnResume());
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
+}
+
+/// 구매 스트림이 스스로 올린 실패를 어느 화면에 있든 알린다.
+///
+/// 결제 창은 앱 밖에 떠 있다가 돌아온다. 그 사이 사용자가 팩 화면을 떠났을 수
+/// 있어, 실패를 연 화면이 아니라 앱 전체의 스낵바로 말한다.
+class _PurchaseFailureReporter extends StatefulWidget {
+  const _PurchaseFailureReporter({required this.child});
+
+  final Widget child;
+
+  @override
+  State<_PurchaseFailureReporter> createState() =>
+      _PurchaseFailureReporterState();
+}
+
+class _PurchaseFailureReporterState extends State<_PurchaseFailureReporter> {
+  PackPurchases? _purchases;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final purchases = context.read<PackPurchases>();
+    if (identical(purchases, _purchases)) return;
+    _purchases?.removeListener(_report);
+    _purchases = purchases..addListener(_report);
+  }
+
+  @override
+  void dispose() {
+    _purchases?.removeListener(_report);
+    super.dispose();
+  }
+
+  void _report() {
+    final failure = _purchases?.takeFailure();
+    final messenger = appScaffoldMessengerKey.currentState;
+    if (failure == null || messenger == null) return;
+    final l10n = AppLocalizations.of(messenger.context);
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(
+          SnackBar(content: Text(purchaseFailureMessage(l10n, failure))));
   }
 
   @override

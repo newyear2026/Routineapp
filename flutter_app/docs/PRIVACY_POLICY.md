@@ -1,6 +1,6 @@
 # 개인정보처리방침 / Privacy Policy
 
-**최종 수정일: 2026년 9월 8일**
+**최종 수정일: 2026년 9월 30일**
 
 > Play Console의 "개인정보처리방침" 항목에는 **공개 URL**이 필요하다.
 > 이 문서를 GitHub Pages, Notion 공개 페이지 등에 올린 뒤 그 주소를 입력한다.
@@ -74,11 +74,21 @@ LOOPET(이하 "앱")은 **개발자가 사용자의 개인정보를 수집하지
 
 앱은 분석 도구나 크래시 리포팅 SDK를 사용하지 않습니다.
 
-### 6. 아동의 개인정보
+### 6. 인앱 결제
+
+일부 캐릭터 팩과, 광고 제거가 포함된 번들을 앱에서 살 수 있습니다. **결제는 Google Play가
+처리하며**, 앱은 카드 번호·계좌 정보·청구지 주소를 받지 않습니다.
+
+산 것을 제공하고 복원하기 위해 앱은 Google Play로부터 결제 결과(상품 ID, 구매 상태, 구매
+식별자)를 받고, 어떤 팩을 가졌는지만 **기기 안에** 기록합니다. 구매는 Google 계정에 묶여 있어,
+같은 계정으로 앱을 다시 설치하면 복원됩니다. 결제 정보의 처리는 Google의 개인정보처리방침을
+따릅니다.
+
+### 7. 아동의 개인정보
 
 앱은 만 13세 미만 아동을 대상으로 하지 않으며, 개발자는 아동의 개인정보를 수집하지 않습니다.
 
-### 7. 문의
+### 8. 문의
 
 개인정보처리방침에 관한 문의: **jacoboh7307@gmail.com**
 
@@ -144,12 +154,24 @@ fraud. That processing is governed by Google's privacy policy:
 
 The App uses no analytics or crash reporting SDK.
 
-### 6. Children's Privacy
+### 6. In-App Purchases
+
+Some character packs, and a bundle that also removes ads, can be bought in the App.
+**Google Play handles the payment**; the App never receives your card number, bank
+details, or billing address.
+
+To deliver and restore what you bought, the App receives the purchase result from
+Google Play (product ID, purchase state, purchase identifier) and records which packs
+you own **on your device only**. Purchases are tied to your Google account, so
+reinstalling with the same account restores them. Google's handling of payment
+information is governed by Google's privacy policy.
+
+### 7. Children's Privacy
 
 The App is not directed at children under 13, and the developer collects no personal
 information from children.
 
-### 7. Contact
+### 8. Contact
 
 Questions about this policy: **jacoboh7307@gmail.com**
 
@@ -216,11 +238,23 @@ de privacidad de Google: <https://policies.google.com/privacy>
 
 La Aplicación no utiliza herramientas de análisis ni SDK de informes de fallos.
 
-### 6. Privacidad de los menores
+### 6. Compras dentro de la Aplicación
+
+Algunos packs de personajes, y un paquete que además quita los anuncios, se pueden comprar
+en la Aplicación. **Google Play procesa el pago**; la Aplicación nunca recibe tu número de
+tarjeta, datos bancarios ni dirección de facturación.
+
+Para entregar y restaurar lo que compraste, la Aplicación recibe de Google Play el resultado
+de la compra (ID del producto, estado e identificador de la compra) y registra qué packs
+tienes **solo en tu dispositivo**. Las compras están ligadas a tu cuenta de Google, así que
+al reinstalar con la misma cuenta se restauran. El tratamiento de los datos de pago se rige
+por la política de privacidad de Google.
+
+### 7. Privacidad de los menores
 
 La Aplicación no está dirigida a menores de 13 años y el desarrollador no recopila
 información personal de menores.
 
-### 7. Contacto
+### 8. Contacto
 
 Preguntas sobre esta política: **jacoboh7307@gmail.com**

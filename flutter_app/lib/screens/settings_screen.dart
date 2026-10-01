@@ -10,6 +10,7 @@ import '../application/services/ad_bootstrap.dart';
 import '../application/services/privacy_policy_link.dart';
 import '../application/services/store_review_launcher.dart';
 import '../application/services/support_contact.dart';
+import '../application/store/pack_purchases.dart';
 import '../application/update/app_updates_controller.dart';
 import '../application/settings/settings_controller.dart';
 import '../domain/onboarding/onboarding_preview_nav.dart';
@@ -26,6 +27,7 @@ import '../widgets/settings/exact_alarm_tile.dart';
 import '../widgets/settings/language_settings_tile.dart';
 import '../widgets/settings/settings_list_items.dart';
 import '../widgets/settings/settings_section.dart';
+import '../widgets/store/purchase_text.dart';
 import '../theme/pack_skin.dart';
 
 /// 설정 화면은 섹션 배치와 화면 전환만 담당한다.
@@ -109,6 +111,7 @@ class _SettingsScreenContent extends StatelessWidget {
     // 그때 행은 **없는** 것이고, 눌러도 답하지 않는 죽은 행이 있는 것이 아니다.
     final updates = context.maybeWatch<AppUpdates>();
     final announcements = context.maybeWatch<ReleaseAnnouncements>();
+    final purchases = context.maybeWatch<PackPurchases>();
 
     return Scaffold(
       bottomNavigationBar: OrbitBottomNavigation(
@@ -236,6 +239,16 @@ class _SettingsScreenContent extends StatelessWidget {
                       l10n.settingsReviewOpenFailed,
                     ),
                   ),
+                // 스토어에 닿을 수 있는 곳에서만. 없는 곳에서 누르면 늘
+                // «연결할 수 없어요»만 답하는 행이 된다.
+                if (purchases != null &&
+                    purchases.readiness != StoreReadiness.unavailable)
+                  SettingsNavigationTile(
+                    icon: Icons.restore_rounded,
+                    label: l10n.settingsRestorePurchases,
+                    description: l10n.settingsRestorePurchasesDesc,
+                    onTap: () => _restorePurchases(context, purchases),
+                  ),
                 // 앱마다 행을 두지 않고 문 하나로 모은다. 어느 앱도 다른 앱보다
                 // 위에 걸리지 않고, 새 앱은 행이 아니라 카드로 늘어난다. 안의
                 // 버튼이 모두 Play를 여니 리뷰 행과 같은 조건으로 건다.
@@ -331,6 +344,24 @@ class _SettingsScreenContent extends StatelessWidget {
     ScaffoldMessenger.of(context)
       ..hideCurrentSnackBar()
       ..showSnackBar(SnackBar(content: Text(failureMessage)));
+  }
+
+  /// 복원은 부른 이 행이 결과를 말한다. 빈 결과도 말한다 — 누른 버튼이 아무
+  /// 답도 없으면 고장 난 것으로 읽힌다.
+  Future<void> _restorePurchases(
+    BuildContext context,
+    PackPurchases purchases,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context);
+    final failure = await purchases.restore();
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(
+        content: Text(failure == null
+            ? l10n.purchaseRestored
+            : purchaseFailureMessage(l10n, failure)),
+      ));
   }
 
   Future<void> _confirmReplayOnboarding(BuildContext context) async {

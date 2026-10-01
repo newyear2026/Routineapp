@@ -299,11 +299,17 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
         views.setViewVisibility(R.id.widget_stargazer_column, shown(skin.nightSky))
         views.setViewVisibility(R.id.widget_stargazer_scene, shown(skin.nightSky))
         views.setImageViewResource(R.id.widget_decor,
-            if (skin.decor == RoutineWidgetSkin.MediumDecor.FOREST)
-                R.drawable.widget_forest else R.drawable.widget_stars)
+            when (skin.decor) {
+                RoutineWidgetSkin.MediumDecor.FOREST -> R.drawable.widget_forest
+                RoutineWidgetSkin.MediumDecor.MOONCLOUD -> R.drawable.widget_sheep_sky
+                RoutineWidgetSkin.MediumDecor.DAWN -> R.drawable.widget_rabbit_dawn
+                else -> R.drawable.widget_stars
+            })
         views.setViewVisibility(R.id.widget_decor,
             shown(skin.decor == RoutineWidgetSkin.MediumDecor.SKY ||
-                skin.decor == RoutineWidgetSkin.MediumDecor.FOREST))
+                skin.decor == RoutineWidgetSkin.MediumDecor.FOREST ||
+                skin.decor == RoutineWidgetSkin.MediumDecor.MOONCLOUD ||
+                skin.decor == RoutineWidgetSkin.MediumDecor.DAWN))
         views.setViewVisibility(R.id.widget_leaf,
             shown(skin.decor == RoutineWidgetSkin.MediumDecor.GARDEN))
         views.setViewVisibility(R.id.widget_daisy,

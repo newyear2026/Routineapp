@@ -217,4 +217,10 @@ enum WidgetDecor {
 
   /// 숲 풍경을 흐리게 깐다.
   forest,
+
+  /// 우편배달부 토끼의 아침 마을 풍경.
+  dawn,
+
+  /// 달구름 양의 흐린 파스텔 하늘.
+  mooncloud,
 }

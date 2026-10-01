@@ -4,6 +4,7 @@ import 'dart:typed_data';
 import 'package:flutter/widgets.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:routine_timer/data/store/character_pack_catalog.dart';
+import 'package:routine_timer/data/store/store_product_catalog.dart';
 import 'package:routine_timer/domain/store/character_pack.dart';
 import 'package:routine_timer/l10n/app_localizations.dart';
 import 'package:routine_timer/theme/app_theme_preset.dart';
@@ -123,6 +124,29 @@ void main() {
               reason: '$asset 가 pubspec assets에 없다');
         }
       }
+    });
+  });
+
+  group('판매', () {
+    test('판매 팩만 상품 ID를 갖고, 이름은 loopet.pack.<팩 ID>다', () {
+      for (final pack in packs) {
+        if (pack.availability == CharacterPackAvailability.forSale) {
+          expect(pack.productId, 'loopet.pack.${pack.id}', reason: pack.id);
+        } else {
+          expect(pack.productId, isNull,
+              reason: '${pack.id}는 팔지 않는데 상품 ID가 있다');
+        }
+      }
+    });
+
+    test('번들은 판매 팩과 광고로 여는 팩을 빠짐없이, 그 밖의 팩은 넣지 않는다', () {
+      final bundle = StoreProductCatalog.grants[StoreProductCatalog.bundle]!;
+      for (final pack in packs) {
+        final sold = pack.availability == CharacterPackAvailability.forSale ||
+            pack.availability == CharacterPackAvailability.rewardedUnlock;
+        expect(bundle.contains(pack.id), sold, reason: pack.id);
+      }
+      expect(bundle, contains(StoreProductCatalog.adFree));
     });
   });
 

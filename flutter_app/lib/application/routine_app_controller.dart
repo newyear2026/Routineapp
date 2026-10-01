@@ -21,6 +21,7 @@ import '../domain/settings/app_language.dart';
 import '../domain/store/character_pack.dart';
 import '../domain/store/launch_gift.dart';
 import '../domain/store/pack_ad_unlock.dart';
+import '../domain/store/purchase_ownership.dart';
 import '../l10n/app_localizations.dart';
 import '../domain/services/routine_day_service.dart';
 import '../domain/services/routine_log_action_service.dart';
@@ -36,6 +37,7 @@ import 'services/exact_alarm_service.dart';
 import 'services/rewarded_ad_service.dart';
 import 'services/routine_notification_service.dart';
 import 'services/routine_data_service.dart';
+import 'store/pack_purchases.dart';
 import '../widget_home/home_widget_sync_service.dart';
 
 /// 앱 MVP 상태 — Repository는 [RoutineDataService], Home은 [homeSnapshotFor] / 슬롯·진행 요약 getter
@@ -47,6 +49,7 @@ class RoutineAppController extends ChangeNotifier {
     SettingsRepository? settingsRepository,
     CharacterPackOwnership packOwnership = const BundledOnlyOwnership(),
     PackAdUnlockStore packAdUnlockStore = const LocalPackAdUnlockStore(),
+    PackPurchases? purchases,
     bool? rewardedPackUnlocks,
     Future<RewardedAdOutcome> Function(AdSlot slot)? showRewardedAd,
     @visibleForTesting
@@ -60,6 +63,7 @@ class RoutineAppController extends ChangeNotifier {
         _settings = settingsRepository ?? LocalSettingsRepository.instance,
         _basePackOwnership = packOwnership,
         _packAdUnlockStore = packAdUnlockStore,
+        _purchases = purchases,
         _rewardedPackUnlocks =
             rewardedPackUnlocks ?? (!kIsWeb && AdConfig.isPlatformSupported),
         _showRewardedAd = showRewardedAd ?? RewardedAdService.instance.show,
@@ -67,7 +71,9 @@ class RoutineAppController extends ChangeNotifier {
         _nowProvider = nowProvider ?? DateTime.now,
         _launchGiftDeadline =
             launchGiftDeadline ?? LaunchGiftCampaign.lastEligibleAt,
-        _clockAutoRefreshEnabled = clockAutoRefreshEnabled;
+        _clockAutoRefreshEnabled = clockAutoRefreshEnabled {
+    _purchases?.addListener(_onPurchasesChanged);
+  }
 
   final RoutineDataService _data;
   final RoutineDayService _dayService;
@@ -75,6 +81,13 @@ class RoutineAppController extends ChangeNotifier {
   final SettingsRepository _settings;
   final CharacterPackOwnership _basePackOwnership;
   final PackAdUnlockStore _packAdUnlockStore;
+
+  /// 산 팩의 장부. null이면 산 것이 없다 — 테스트와 미리보기.
+  final PackPurchases? _purchases;
+
+  /// 소유 판정을 마지막으로 만들 때 본 권리 집합. [PackPurchases]는 바뀔 때만
+  /// 새 집합을 내주므로, 같은 객체면 다시 만들 이유가 없다.
+  Set<String>? _entitlementsSeen;
   final bool _rewardedPackUnlocks;
   final Future<RewardedAdOutcome> Function(AdSlot slot) _showRewardedAd;
 
@@ -129,9 +142,7 @@ class RoutineAppController extends ChangeNotifier {
     notifyListeners();
   }
 
-  /// 팩 소유 판정 — 구매 판정에 광고 해금을 얹은 것.
-  ///
-  /// 결제가 붙으면 구매 저장소가 생성자의 `packOwnership` 자리에 들어온다.
+  /// 팩 소유 판정 — 기본 제공에 구매·출시 선물·광고 해금을 차례로 얹은 것.
   CharacterPackOwnership get packOwnership => _packOwnership;
 
   /// [pack]을 광고로 여는 중이면 끝까지 본 광고 수, 아니면 null.
@@ -140,15 +151,30 @@ class RoutineAppController extends ChangeNotifier {
   int? packAdViews(CharacterPack pack) =>
       _packOwnership.canWatchAd(pack) ? _packOwnership.adViews(pack) : null;
 
-  RewardedUnlockOwnership _buildPackOwnership(Map<String, int> adViews) =>
-      RewardedUnlockOwnership(
-        base: LaunchGiftOwnership(
+  RewardedUnlockOwnership _buildPackOwnership(Map<String, int> adViews) {
+    final entitlements = _entitlementsSeen = _purchases?.entitlements;
+    return RewardedUnlockOwnership(
+      base: LaunchGiftOwnership(
+        base: PurchasedOwnership(
           base: _basePackOwnership,
-          eligible: _launchGiftEligible,
+          entitlements: entitlements ?? const {},
         ),
-        adViews: adViews,
-        rewardedAdsAvailable: _rewardedPackUnlocks,
-      );
+        eligible: _launchGiftEligible,
+      ),
+      adViews: adViews,
+      rewardedAdsAvailable: _rewardedPackUnlocks,
+    );
+  }
+
+  /// 구매·복원·환불 회수로 권리가 바뀌면 소유 판정을 다시 만든다.
+  ///
+  /// 가격이 도착하거나 결제 창이 열리는 것도 알림으로 오지만, 그때는 권리가
+  /// 그대로라 팩 화면 전체를 다시 그릴 이유가 없다.
+  void _onPurchasesChanged() {
+    if (identical(_purchases?.entitlements, _entitlementsSeen)) return;
+    _packOwnership = _buildPackOwnership(_packAdViews);
+    notifyListeners();
+  }
 
   void _setPackAdViews(Map<String, int> adViews) {
     _packAdViews = Map.unmodifiable(adViews);
@@ -715,6 +741,7 @@ class RoutineAppController extends ChangeNotifier {
 
   @override
   void dispose() {
+    _purchases?.removeListener(_onPurchasesChanged);
     _clockTimer?.cancel();
     super.dispose();
   }

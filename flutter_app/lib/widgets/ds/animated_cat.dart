@@ -77,6 +77,17 @@ class CharacterArtwork {
         CatPose.guide: Rect.fromLTRB(11, 28, 356, 340),
       },
     ),
+    'sheep_mooncloud': CharacterArtwork(
+      canvas: 384,
+      bounds: {
+        CatPose.idle: Rect.fromLTRB(55, 57, 347, 359),
+        CatPose.activity: Rect.fromLTRB(40, 70, 356, 360),
+        CatPose.focus: Rect.fromLTRB(28, 63, 324, 362),
+        CatPose.complete: Rect.fromLTRB(47, 12, 360, 338),
+        CatPose.rest: Rect.fromLTRB(25, 72, 366, 337),
+        CatPose.guide: Rect.fromLTRB(40, 19, 332, 340),
+      },
+    ),
   };
 }
 

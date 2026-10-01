@@ -157,7 +157,7 @@ private struct Provider: TimelineProvider {
 /// 더하고, 빠뜨리면 `pack_spec_test.dart`가 잡는다. 앱 안 미리보기의 기준값은
 /// `lib/theme/pack_skin_catalog.dart`에 있다.
 private struct WidgetPackSkin {
-    enum Decor { case stars, garden, forest, none }
+    enum Decor { case stars, garden, forest, mooncloud, dawn, none }
 
     struct RingColors {
         var dial = WidgetTokens.dialSurface
@@ -195,7 +195,7 @@ private struct WidgetPackSkin {
         case "rabbit_postman":
             return WidgetPackSkin(
                 background: [Color(hex: 0xFFE7CE), Color(hex: 0xFFC4B8)],
-                mascot: "widget_rabbit", decor: .garden,
+                mascot: "widget_rabbit", decor: .dawn,
                 accent: Color(hex: 0xDB665E),
                 text: Color(hex: 0x493330),
                 muted: Color(hex: 0x80645C),
@@ -218,6 +218,19 @@ private struct WidgetPackSkin {
                     track: Color(hex: 0xCDDEC1),
                     accent: Color(hex: 0x718B51),
                     ink: Color(hex: 0x3E3229)))
+        case "sheep_mooncloud":
+            return WidgetPackSkin(
+                background: [Color(hex: 0xDCE9FF), Color(hex: 0xE9DDFF)],
+                mascot: "widget_sheep", decor: .mooncloud,
+                accent: Color(hex: 0x6577C8),
+                text: Color(hex: 0x242548),
+                muted: Color(hex: 0x626A92),
+                border: Color(hex: 0x8D99C5),
+                ring: RingColors(
+                    dial: Color(hex: 0xE7ECFF),
+                    track: Color(hex: 0xCFC8F2),
+                    accent: Color(hex: 0x6577C8),
+                    ink: Color(hex: 0x242548)))
         default: // "cat_starlight", 그리고 모르는 팩 ID
             return WidgetPackSkin(
                 background: [Color(hex: 0xFFF4DC), Color(hex: 0xE6D8FF)],
@@ -271,6 +284,14 @@ private struct RoutineMediumWidgetEntryView: View {
                     .opacity(0.45).clipped()
             } else if skin.decor == .forest {
                 PackArtwork.image("widget_forest")
+                    .resizable().interpolation(.none).scaledToFill()
+                    .opacity(0.35).clipped()
+            } else if skin.decor == .mooncloud {
+                PackArtwork.image("widget_sheep_sky")
+                    .resizable().interpolation(.none).scaledToFill()
+                    .opacity(0.28).clipped()
+            } else if skin.decor == .dawn {
+                PackArtwork.image("widget_rabbit_dawn")
                     .resizable().interpolation(.none).scaledToFill()
                     .opacity(0.35).clipped()
             }

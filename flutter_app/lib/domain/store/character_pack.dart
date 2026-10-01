@@ -100,7 +100,14 @@ abstract interface class CharacterPackOwnership {
 class BundledOnlyOwnership implements CharacterPackOwnership {
   const BundledOnlyOwnership();
 
+  /// 결제 없이 모든 팩을 가진 것으로 볼 것인가. 기본값 false.
+  ///
+  /// 새 팩을 기기에서 확인하는 빌드에서만 켠다:
+  ///   --dart-define=UNLOCK_ALL_PACKS=true
+  static const bool unlockAll =
+      bool.fromEnvironment('UNLOCK_ALL_PACKS', defaultValue: false);
+
   @override
   bool owns(CharacterPack pack) =>
-      pack.availability == CharacterPackAvailability.included;
+      unlockAll || pack.availability == CharacterPackAvailability.included;
 }

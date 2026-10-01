@@ -18,6 +18,14 @@ class AdPolicyService {
 
   final DateTime Function() _clock;
 
+  /// 광고 제거를 샀는가. 앱이 뜰 때 구매 장부를 꽂는다.
+  ///
+  /// 화면마다 구매 상태를 들고 오게 하면 광고 자리가 늘 때마다 빠뜨릴 곳이
+  /// 생긴다. 판정 창구 한 곳에서 읽는다.
+  bool Function() isAdFree = _never;
+
+  static bool _never() => false;
+
   bool _startedFromNotification = false;
   int _nativeImpressions = 0;
   final Set<AdSlot> _shownSlots = <AdSlot>{};
@@ -47,7 +55,7 @@ class AdPolicyService {
         rewardedShownToday: await AdLocalStorage.rewardedShownToday(now),
         upcomingCount: upcomingCount,
         todayRoutineCount: todayRoutineCount,
-        isPro: isPro,
+        isPro: isPro || isAdFree(),
         platformSupported: AdConfig.isPlatformSupported,
       ),
     );

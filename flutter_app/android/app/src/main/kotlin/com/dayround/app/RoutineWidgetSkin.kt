@@ -50,7 +50,7 @@ data class RoutineWidgetSkin(
         val nowLabelText: Int = Color.parseColor("#6A6489"),
     )
 
-    enum class MediumDecor { SKY, GARDEN, FOREST, NONE }
+    enum class MediumDecor { SKY, GARDEN, FOREST, MOONCLOUD, DAWN, NONE }
 
     /** 타임라인·카드 위젯([RoutineWidgetVariantBitmap]). */
     data class VariantSkin(
@@ -68,7 +68,7 @@ data class RoutineWidgetSkin(
      * 변형 위젯의 그리기 방식. 기본 장면 위에 값만 바꿔 얹는 팩은 [STANDARD]를
      * 쓰고, 장면을 통째로 새로 그리는 팩은 자기 이름의 방식을 더한다.
      */
-    enum class VariantStyle { STANDARD, STARGAZER, RABBIT, SQUIRREL }
+    enum class VariantStyle { STANDARD, STARGAZER, RABBIT, SQUIRREL, SHEEP }
 
     data class StandardScene(
         val background: Int,
@@ -176,7 +176,7 @@ data class RoutineWidgetSkin(
                 badgeBackground = R.drawable.widget_badge_bg_rabbit,
                 mascot = R.drawable.widget_rabbit,
                 featuredMascot = true,
-                decor = MediumDecor.NONE,
+                decor = MediumDecor.DAWN,
                 title = Color.parseColor("#493330"),
                 muted = Color.parseColor("#80645C"),
                 accent = Color.parseColor("#C5514A"),
@@ -221,6 +221,37 @@ data class RoutineWidgetSkin(
             ),
         )
 
+        private val mooncloudSheep = RoutineWidgetSkin(
+            ring = RingColors(
+                dial = Color.parseColor("#E7ECFF"),
+                dialOutline = Color.parseColor("#242548"),
+                surface = Color.parseColor("#FFFCFF"),
+                track = Color.parseColor("#CFC8F2"),
+                pointer = Color.parseColor("#6577C8"),
+                hourLabel = Color.parseColor("#242548"),
+                tick = Color.parseColor("#626A92"),
+                centerLabelInk = Color.parseColor("#242548"),
+                centerLabelSurface = Color.parseColor("#FFF0C2"),
+            ),
+            medium = MediumSkin(
+                background = R.drawable.widget_medium_bg_sheep,
+                badgeBackground = R.drawable.widget_badge_bg_sheep,
+                mascot = R.drawable.widget_sheep,
+                featuredMascot = true,
+                decor = MediumDecor.MOONCLOUD,
+                title = Color.parseColor("#242548"),
+                muted = Color.parseColor("#626A92"),
+                accent = Color.parseColor("#6577C8"),
+            ),
+            variant = VariantSkin(
+                style = VariantStyle.SHEEP,
+                pet = R.drawable.widget_variant_sheep,
+                timelinePet = RectF(464f, 20f, 633f, 188f),
+                cardsPet = RectF(49f, 49f, 207f, 205f),
+                badgeFill = Color.parseColor("#6577C8"),
+            ),
+        )
+
         /** 기본 팩. 모르는 팩 ID(옛 앱이 남긴 값 등)도 이것으로 그린다. */
         val default: RoutineWidgetSkin get() = starlightCat
 
@@ -230,6 +261,7 @@ data class RoutineWidgetSkin(
             "cat_stargazer" -> stargazerCat
             "rabbit_postman" -> postmanRabbit
             "squirrel_explorer" -> explorerSquirrel
+            "sheep_mooncloud" -> mooncloudSheep
             else -> starlightCat
         }
     }

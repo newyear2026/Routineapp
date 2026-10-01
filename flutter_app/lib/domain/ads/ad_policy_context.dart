@@ -43,7 +43,7 @@ class AdPolicyContext {
   /// 오늘 루틴 총 개수 — Slot C 조건.
   final int todayRoutineCount;
 
-  /// Phase 3에서 결제 상태가 들어온다. 그전까지는 항상 false다.
+  /// 광고 제거를 샀는가(`StoreProductCatalog.adFree`). 밀어 넣는 광고만 끈다.
   final bool isPro;
 
   /// 이 플랫폼에서 광고를 켤 수 있는가. iOS AdMob 앱 등록 전에는 false다.

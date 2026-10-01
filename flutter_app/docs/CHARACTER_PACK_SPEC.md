@@ -55,6 +55,19 @@
   쓰지 않는다.
 - 정원 잎(`garden-leaf`)처럼 장식 계열이 제공하는 그림은 `decoIds`에 넣지 않는다.
 
+## 판매 방식
+
+| `availability` | 여는 방법 |
+| --- | --- |
+| `included` | 기본 제공 |
+| `forSale` | Play 인앱 상품. `productId`는 `loopet.pack.<id>`이고 번들에도 자동으로 들어간다 |
+| `rewardedUnlock` | 보상형 광고 2회. 번들에도 들어간다 |
+| `launchGift` | 출시 기간에 시작한 사용자. 팔지 않는다 |
+| `comingSoon` | 그림이 아직 없다 |
+
+판매 팩은 Play Console에 상품을 등록해야 가격이 뜬다. 등록할 목록과 가격은
+`docs/STORE_PRODUCTS.md`에 있다.
+
 ## 색 변형
 
 - 팩의 `paletteIds`는 `AppThemePreset.all`에 있는 프리셋 ID다. 없는 ID는
@@ -71,7 +84,7 @@
 | `appDial` | 앱 홈 원판 색. 비운 값은 기본색 |
 | `widget` | 홈 화면 위젯 미리보기: 배경 그라디언트, 배지색, 글자색, 장식, 캐릭터 크기, 작은 원판 색 |
 
-숲처럼 위젯 전체에 까는 팩 전용 풍경은 `assets/pack_backgrounds/`에
+숲이나 구름처럼 위젯 전체에 까는 팩 전용 풍경은 `assets/pack_backgrounds/`에
 두고, Android `drawable-nodpi/`와 iOS `Artwork/`에도 같은 그림을 둔다.
 루틴 글자 아래에서는 투명도를 낮춰 읽기 쉽게 한다.
 
@@ -113,7 +126,8 @@
    `pubspec.yaml`에 등록한다. 그림 영역을 재서 `CharacterArtwork.byCharacter`에 적는다.
 3. 데코를 `assets/decorations/`에 넣고 `pubspec.yaml`에 등록한다.
 4. 색 변형을 `AppThemePreset`에 더하고 `all`에 넣는다.
-5. `CharacterPackCatalog`에 팩을 정의하고 `all`에 넣는다.
+5. `CharacterPackCatalog`에 팩을 정의하고 `all`에 넣는다. 팔 팩이면 `forSale`과
+   `productId`를 주고, Play Console에 상품을 등록한다(`docs/STORE_PRODUCTS.md`).
 6. 이름·소개 문구를 5개 언어 arb에 넣는다.
 7. `PackSkinCatalog.byPackId`에 겉모습을 적는다.
 8. Android: 리소스 4종과 `RoutineWidgetSkin.forPack`.

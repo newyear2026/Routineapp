@@ -14,11 +14,13 @@ import 'package:routine_timer/domain/store/character_pack.dart';
 import 'package:routine_timer/domain/settings/notification_preferences.dart';
 import 'package:routine_timer/application/services/support_contact.dart';
 import 'package:routine_timer/screens/settings_screen.dart';
+import 'package:routine_timer/application/store/pack_purchases.dart';
 import 'package:routine_timer/widgets/ds/animated_cat.dart';
 import 'package:routine_timer/widgets/settings/current_pack_card.dart';
 import 'package:routine_timer/widgets/store/character_pack_scope.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'support/fake_purchase_backend.dart';
 import 'support/test_doubles.dart';
 import 'support/localization.dart';
 
@@ -47,6 +49,7 @@ void main() {
     ValueListenable<bool>? adPrivacyOptionsRequired,
     Future<bool> Function()? openAdPrivacyOptions,
     Future<bool> Function()? openSupportContact,
+    PackPurchases? purchases,
   }) async {
     final controller = RoutineAppController(
       dataService: RoutineDataService(
@@ -101,12 +104,13 @@ void main() {
       ],
     );
     addTearDown(router.dispose);
-    await tester.pumpWidget(
-      ChangeNotifierProvider.value(
-        value: controller,
-        child: localizedApp(routerConfig: router),
-      ),
+    final app = ChangeNotifierProvider.value(
+      value: controller,
+      child: localizedApp(routerConfig: router),
     );
+    await tester.pumpWidget(purchases == null
+        ? app
+        : ChangeNotifierProvider.value(value: purchases, child: app));
     await tester.pumpAndSettle();
     return controller;
   }
@@ -325,6 +329,69 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byKey(const Key('our-apps-screen')), findsOneWidget);
+  });
+
+  group('구매 복원', () {
+    Future<PackPurchases> purchasesWith(FakePurchaseBackend backend) async {
+      final purchases = PackPurchases(
+        backend: backend,
+        store: MemoryEntitlementStore(),
+        restoreOnStart: false,
+        restoreGrace: const Duration(milliseconds: 20),
+      );
+      addTearDown(purchases.dispose);
+      addTearDown(backend.close);
+      await purchases.start();
+      return purchases;
+    }
+
+    Future<void> tapRestore(WidgetTester tester) async {
+      await tester.scrollUntilVisible(find.text('구매 복원'), 200,
+          scrollable: find.byType(Scrollable).first);
+      await tester.pumpAndSettle();
+      await tester.tap(find.text('구매 복원'));
+      // 복원 유예(20ms)는 테스트 시계로 흐른다.
+      for (var i = 0; i < 3; i++) {
+        await tester.pump(const Duration(milliseconds: 20));
+      }
+    }
+
+    testWidgets('산 것이 돌아오면 그렇다고 말한다', (tester) async {
+      late PackPurchases purchases;
+      final backend = FakePurchaseBackend()
+        ..ownedProductIds = ['loopet.pack.rabbit_postman'];
+      purchases = await purchasesWith(backend);
+      final controller = await pumpSettings(tester, purchases: purchases);
+      addTearDown(controller.dispose);
+
+      await tapRestore(tester);
+      expect(find.text('구매 항목을 복원했어요.'), findsOneWidget);
+      expect(purchases.entitlements, {'rabbit_postman'});
+    });
+
+    testWidgets('돌려줄 것이 없어도 답한다', (tester) async {
+      late PackPurchases purchases;
+      final backend = FakePurchaseBackend();
+      purchases = await purchasesWith(backend);
+      final controller = await pumpSettings(tester, purchases: purchases);
+      addTearDown(controller.dispose);
+
+      await tapRestore(tester);
+      expect(find.text('복원할 구매 항목이 없어요.'), findsOneWidget);
+    });
+
+    testWidgets('스토어가 없는 기기에서는 행을 두지 않는다', (tester) async {
+      late PackPurchases purchases;
+      final backend = FakePurchaseBackend()..available = false;
+      purchases = await purchasesWith(backend);
+      final controller = await pumpSettings(tester, purchases: purchases);
+      addTearDown(controller.dispose);
+
+      await tester.scrollUntilVisible(find.text('앱 버전'), 200,
+          scrollable: find.byType(Scrollable).first);
+      await tester.pumpAndSettle();
+      expect(find.text('구매 복원'), findsNothing);
+    });
   });
 
   testWidgets('개인정보처리방침은 누르면 문서를 연다', (tester) async {

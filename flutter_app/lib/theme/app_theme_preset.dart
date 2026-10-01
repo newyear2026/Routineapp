@@ -273,6 +273,42 @@ class AppThemePreset {
     ),
   );
 
+  static const mooncloudSheep = AppThemePreset(
+    id: 'sheep_mooncloud',
+    previewColors: [
+      Color(0xFFDCE9FF),
+      Color(0xFFD7D0FA),
+      Color(0xFF7786CF),
+      Color(0xFFFFE5A8),
+    ],
+    pageGradient: LinearGradient(
+      colors: [Color(0xFFF8FAFF), Color(0xFFF3F0FF)],
+    ),
+    shellGradient: LinearGradient(
+      colors: [Color(0xFFFDFAFF), Color(0xFFE8EDFF)],
+    ),
+    primaryButtonGradient: LinearGradient(
+      colors: [Color(0xFF6577C8), Color(0xFF8B85DC)],
+    ),
+    softAccentGradient: LinearGradient(
+      colors: [Color(0xFFDDE7FF), Color(0xFFEDE4FF)],
+    ),
+    highlightGradient: LinearGradient(
+      colors: [Color(0xFFFFF3D5), Color(0xFFFFE5A8)],
+    ),
+    textPrimary: Color(0xFF242548),
+    textMuted: Color(0xFF626A92),
+    accentPink: Color(0xFFFFD3DC),
+    accentLavender: Color(0xFFCFC8F2),
+    pageBackground: Color(0xFFF8FAFF),
+    primaryColor: Color(0xFF6577C8),
+    surfaceColor: Color(0xFFFFFCFF),
+    selectedSurface: Color(0xFFE7ECFF),
+    focusCardGradient: LinearGradient(
+      colors: [Color(0xFFDDE9FF), Color(0xFFEEE3FF)],
+    ),
+  );
+
   static const all = [
     softDay,
     peachSunset,
@@ -280,7 +316,8 @@ class AppThemePreset {
     poodleGarden,
     stargazer,
     postmanRabbit,
-    explorerSquirrel
+    explorerSquirrel,
+    mooncloudSheep,
   ];
 
   static AppThemePreset byId(String? id) {

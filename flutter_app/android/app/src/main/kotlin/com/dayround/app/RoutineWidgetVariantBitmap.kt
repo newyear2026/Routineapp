@@ -47,6 +47,9 @@ object RoutineWidgetVariantBitmap {
             RoutineWidgetSkin.VariantStyle.SQUIRREL ->
                 drawSquirrel(canvas, context, style, skin, state, status, title, hint,
                     nextLabel, nextTitle, nextTime, clock)
+            RoutineWidgetSkin.VariantStyle.SHEEP ->
+                drawSheep(canvas, context, style, skin, state, status, title, hint,
+                    nextLabel, nextTitle, nextTime, clock)
             RoutineWidgetSkin.VariantStyle.STANDARD -> {
                 val scene = requireNotNull(skin.scene) { "STANDARD 위젯에는 scene이 있어야 한다" }
                 drawBackground(canvas, context, scene)
@@ -60,6 +63,50 @@ object RoutineWidgetVariantBitmap {
             }
         }
         return result
+    }
+
+    private fun drawSheep(
+        canvas: Canvas, context: Context, style: String,
+        skin: RoutineWidgetSkin.VariantSkin, state: JSONObject,
+        status: String, title: String, hint: String, nextLabel: String,
+        nextTitle: String, nextTime: String, clock: Calendar,
+    ) {
+        val ink = Color.rgb(36, 37, 72)
+        val blue = Color.rgb(101, 119, 200)
+        val muted = Color.rgb(98, 106, 146)
+        drawResource(canvas, context, R.drawable.widget_sheep_sky,
+            RectF(0f, 0f, WIDTH.toFloat(), HEIGHT.toFloat()))
+        if (style == "timeline") {
+            canvas.drawRect(30f, 21f, 451f, 198f,
+                Paint().apply { color = Color.argb(235, 255, 252, 255) })
+            drawBadge(canvas, status, 48f, 31f, skin)
+            drawFitted(canvas, title, 48f, 122f, 390f, 60f, 30f, ink)
+            drawFitted(canvas, hint, 48f, 177f, 390f, 40f, 23f, blue)
+            drawResource(canvas, context, skin.pet, skin.timelinePet)
+            if (nextTitle.isNotBlank()) {
+                canvas.drawRect(460f, 181f, 729f, 205f,
+                    Paint().apply { color = Color.argb(232, 255, 252, 255) })
+                val next = listOf(nextLabel, nextTitle, nextTime)
+                    .filter { it.isNotBlank() }.joinToString(" ")
+                drawFitted(canvas, next, 473f, 199f, 245f, 19f, 14f, ink)
+            }
+            drawRuler(canvas, state, clock, muted, blue)
+        } else {
+            canvas.drawRect(30f, 51f, 550f, 211f,
+                Paint().apply { color = Color.argb(238, 255, 252, 255) })
+            canvas.drawRect(558f, 51f, 738f, 211f,
+                Paint().apply { color = Color.argb(238, 244, 241, 255) })
+            drawResource(canvas, context, skin.pet, skin.cardsPet)
+            drawBadge(canvas, status, 214f, 65f, skin)
+            drawFitted(canvas, title, 212f, 140f, 325f, 50f, 27f, ink)
+            drawFitted(canvas, hint, 212f, 191f, 325f, 37f, 20f, blue)
+            drawFitted(canvas, nextLabel, 648f, 102f, 160f, 25f, 17f, muted,
+                Paint.Align.CENTER)
+            drawFitted(canvas, nextTitle, 648f, 153f, 160f, 39f, 20f, ink,
+                Paint.Align.CENTER)
+            drawFitted(canvas, nextTime, 648f, 200f, 160f, 32f, 19f, blue,
+                Paint.Align.CENTER, Typeface.MONOSPACE)
+        }
     }
 
     private fun drawSquirrel(
@@ -115,20 +162,21 @@ object RoutineWidgetVariantBitmap {
         val ink = Color.rgb(73, 51, 48)
         val coral = Color.rgb(197, 81, 74)
         val muted = Color.rgb(128, 100, 92)
-        canvas.drawColor(Color.rgb(255, 232, 208))
-        canvas.drawRect(0f, 190f, 768f, 240f,
-            Paint().apply { color = Color.rgb(180, 221, 185) })
-        canvas.drawCircle(640f, 91f, 45f,
-            Paint().apply { color = Color.rgb(255, 247, 219) })
+        drawResource(canvas, context, R.drawable.widget_rabbit_dawn,
+            RectF(0f, 0f, WIDTH.toFloat(), HEIGHT.toFloat()))
         if (style == "timeline") {
+            canvas.drawRect(30f, 21f, 451f, 198f,
+                Paint().apply { color = Color.argb(226, 255, 251, 239) })
             drawBadge(canvas, status, 48f, 31f, skin)
             drawFitted(canvas, title, 48f, 122f, 407f, 60f, 30f, ink)
             drawFitted(canvas, hint, 48f, 177f, 410f, 40f, 23f, coral)
             drawResource(canvas, context, skin.pet, skin.timelinePet)
             if (nextTitle.isNotBlank()) {
+                canvas.drawRect(460f, 181f, 729f, 205f,
+                    Paint().apply { color = Color.argb(225, 255, 251, 239) })
                 val next = listOf(nextLabel, nextTitle, nextTime)
                     .filter { it.isNotBlank() }.joinToString(" ")
-                drawFitted(canvas, next, 482f, 216f, 240f, 20f, 14f, ink)
+                drawFitted(canvas, next, 473f, 199f, 245f, 19f, 14f, ink)
             }
             // 지역 muted(갈색)가 아니라 기본 눈금자 색이다.
             drawRuler(canvas, state, clock, this.muted, purple)
