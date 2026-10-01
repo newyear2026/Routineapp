@@ -122,6 +122,8 @@ flutter:
     - assets/decorations/sheep-moon.png
     - assets/decorations/sheep-book.png
     - assets/pack_backgrounds/squirrel-forest.png
+    - assets/pack_backgrounds/squirrel-home-header.png
+    - assets/pack_backgrounds/squirrel-home-card.png
     - assets/pack_backgrounds/rabbit-dawn.png
     - assets/pack_backgrounds/sheep-sky.png
     - assets/characters/cat_starlight/v1/approved/idle.png

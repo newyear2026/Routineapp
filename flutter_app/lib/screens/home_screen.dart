@@ -24,6 +24,7 @@ import '../widgets/home/circular_timetable_area.dart';
 import '../widgets/home/home_focus_card.dart';
 import '../widgets/home/home_timetable_scene.dart';
 import '../widgets/release/release_announcement.dart';
+import '../widgets/store/character_pack_scope.dart';
 import '../widgets/store/launch_gift_dialog.dart';
 import '../data/store/character_pack_catalog.dart';
 import '../widgets/update/update_banner.dart';
@@ -296,6 +297,8 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
         }
         _scheduleLaunchGift();
         final home = app.homeSnapshotFor(l10n);
+        final squirrelPack = CharacterPackScope.currentOf(context).id ==
+            CharacterPackCatalog.explorerSquirrel.id;
         // 다음 일정은 upcomingRoutines 하나만 소비한다.
         // nextAfterDisplay를 함께 넣으면 첫 항목이 중복된다.
         final upcoming = home.upcomingRoutines;
@@ -309,6 +312,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
             onSettings: () => context.go('/settings'),
           ),
           body: AppScreenShell(
+            background: squirrelPack ? const _SquirrelHomeBackdrop() : null,
             child: SingleChildScrollView(
               // 탭 목적지 4개는 같은 상단 여백을 쓴다. 홈만 다르면
               // 탭을 옮길 때 제목이 그대로 튄다.
@@ -455,6 +459,38 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
           ),
         );
       },
+    );
+  }
+}
+
+/// 다람쥐 팩의 숲은 제목 뒤에서 시작해 첫 카드 위에서 옅어진다.
+class _SquirrelHomeBackdrop extends StatelessWidget {
+  const _SquirrelHomeBackdrop();
+
+  @override
+  Widget build(BuildContext context) {
+    return Align(
+      alignment: Alignment.topCenter,
+      child: SizedBox(
+        width: double.infinity,
+        height: 250,
+        child: ShaderMask(
+          blendMode: BlendMode.dstIn,
+          shaderCallback: (bounds) => const LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [Colors.white, Colors.white, Colors.transparent],
+            stops: [0, 0.53, 1],
+          ).createShader(bounds),
+          child: Image.asset(
+            'assets/pack_backgrounds/squirrel-home-header.png',
+            fit: BoxFit.cover,
+            alignment: Alignment.topCenter,
+            filterQuality: FilterQuality.none,
+            excludeFromSemantics: true,
+          ),
+        ),
+      ),
     );
   }
 }

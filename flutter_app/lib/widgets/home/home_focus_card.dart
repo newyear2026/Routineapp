@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../application/home/home_focus_state.dart';
 import '../../application/home/home_snapshot.dart';
+import '../../data/store/character_pack_catalog.dart';
 import '../../domain/models/routine.dart';
 import '../../domain/utils/time_minutes.dart';
 import '../../l10n/app_localizations.dart';
@@ -13,6 +14,7 @@ import '../ds/animated_cat.dart';
 import '../ds/app_status_badge.dart';
 import '../ds/routine_mark.dart';
 import '../ds/segmented_progress.dart';
+import '../store/character_pack_scope.dart';
 
 /// 홈 첫 카드 — 홈 화면 위젯 카드를 앱 안으로 옮긴 것.
 ///
@@ -33,6 +35,8 @@ class HomeFocusCard extends StatelessWidget {
     final content = _contentFor(l10n, primary);
     final state = home.focusState;
     final shape = AppPixelStyle.shape(width: 2);
+    final squirrelPack = CharacterPackScope.currentOf(context).id ==
+        CharacterPackCatalog.explorerSquirrel.id;
 
     return Material(
       type: MaterialType.transparency,
@@ -41,6 +45,15 @@ class HomeFocusCard extends StatelessWidget {
           gradient: state == HomeFocusState.skipped
               ? AppColors.focusCardMutedGradient
               : context.appTheme.preset.focusCardGradient,
+          image: squirrelPack && state != HomeFocusState.skipped
+              ? const DecorationImage(
+                  image: AssetImage(
+                    'assets/pack_backgrounds/squirrel-home-card.png',
+                  ),
+                  fit: BoxFit.cover,
+                  filterQuality: FilterQuality.none,
+                )
+              : null,
           shape: shape,
           shadows: const [
             BoxShadow(
@@ -103,12 +116,14 @@ class HomeFocusCard extends StatelessWidget {
                           color: content.progressColor,
                           height: 10,
                           segmentCount: 12,
-                          semanticLabel: '${(content.progress! * 100).round()}%',
+                          semanticLabel:
+                              '${(content.progress! * 100).round()}%',
                         ),
                       ],
                       if (content.next != null) ...[
                         const SizedBox(height: 10),
-                        _NextRow(label: content.nextLabel, routine: content.next!),
+                        _NextRow(
+                            label: content.nextLabel, routine: content.next!),
                       ],
                     ],
                   ),
@@ -267,7 +282,8 @@ class _FocusContent {
 }
 
 class _Title extends StatelessWidget {
-  const _Title({required this.routine, required this.text, required this.muted});
+  const _Title(
+      {required this.routine, required this.text, required this.muted});
 
   final Routine? routine;
   final String text;
@@ -280,7 +296,8 @@ class _Title extends StatelessWidget {
       color: muted ? AppColors.textMuted : null,
     );
     if (routine == null) {
-      return Text(text, maxLines: 2, overflow: TextOverflow.ellipsis, style: style);
+      return Text(text,
+          maxLines: 2, overflow: TextOverflow.ellipsis, style: style);
     }
     return Row(
       children: [
