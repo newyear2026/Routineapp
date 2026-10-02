@@ -13,6 +13,7 @@ class CatMenuHeader extends StatelessWidget {
     this.catKey,
     this.decorationAsset,
     this.decorationKey,
+    this.lightText = false,
   });
   final String? caption;
   final String title;
@@ -21,6 +22,7 @@ class CatMenuHeader extends StatelessWidget {
   final Key? catKey;
   final String? decorationAsset;
   final Key? decorationKey;
+  final bool lightText;
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(builder: (context, box) {
@@ -29,12 +31,27 @@ class CatMenuHeader extends StatelessWidget {
         final text =
             Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
           if (caption != null) ...[
-            Text(caption!, style: AppTextStyles.caption),
+            Text(
+              caption!,
+              style: AppTextStyles.caption.copyWith(
+                color: lightText ? const Color(0xFFE6ECFF) : null,
+              ),
+            ),
             const SizedBox(height: 2),
           ],
-          Text(title, style: AppTextStyles.titleScreen),
+          Text(
+            title,
+            style: AppTextStyles.titleScreen.copyWith(
+              color: lightText ? Colors.white : null,
+            ),
+          ),
           const SizedBox(height: 3),
-          Text(subtitle, style: AppTextStyles.caption),
+          Text(
+            subtitle,
+            style: AppTextStyles.caption.copyWith(
+              color: lightText ? const Color(0xFFE6ECFF) : null,
+            ),
+          ),
         ]);
         final cat = SizedBox(
             key: catKey,

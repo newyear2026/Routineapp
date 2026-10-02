@@ -57,4 +57,44 @@ void main() {
     await tester.pump(const Duration(seconds: 5));
     expect(tester.takeException(), isNull);
   });
+
+  testWidgets('home activity motion hops, but reduced motion stays still',
+      (tester) async {
+    Future<void> show({required bool reduced}) async {
+      await tester.pumpWidget(MaterialApp(
+        home: MediaQuery(
+          data: MediaQueryData(disableAnimations: reduced),
+          child: const Center(
+            child: SizedBox(
+              width: 88,
+              height: 96,
+              child: AnimatedCat(
+                pose: CatPose.activity,
+                homeMotion: true,
+              ),
+            ),
+          ),
+        ),
+      ));
+    }
+
+    double verticalOffset() => tester
+        .widgetList<Transform>(find.descendant(
+          of: find.byType(AnimatedCat),
+          matching: find.byType(Transform),
+        ))
+        .map((transform) => transform.transform.getTranslation().y)
+        .first;
+
+    await show(reduced: false);
+    expect(verticalOffset(), 0);
+    await tester.pump(const Duration(milliseconds: 350));
+    expect(verticalOffset(), lessThan(0));
+    await tester.pump(const Duration(milliseconds: 500));
+    expect(verticalOffset(), 0);
+
+    await show(reduced: true);
+    await tester.pump(const Duration(milliseconds: 350));
+    expect(verticalOffset(), 0);
+  });
 }

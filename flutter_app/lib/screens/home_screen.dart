@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -23,8 +24,8 @@ import '../widgets/ds/ds.dart';
 import '../widgets/home/circular_timetable_area.dart';
 import '../widgets/home/home_focus_card.dart';
 import '../widgets/home/home_timetable_scene.dart';
+import '../widgets/home/pack_time_scene.dart';
 import '../widgets/release/release_announcement.dart';
-import '../widgets/store/character_pack_scope.dart';
 import '../widgets/store/launch_gift_dialog.dart';
 import '../data/store/character_pack_catalog.dart';
 import '../widgets/update/update_banner.dart';
@@ -43,7 +44,8 @@ class HomeScreen extends StatefulWidget {
   State<HomeScreen> createState() => _HomeScreenState();
 }
 
-class _HomeScreenState extends State<HomeScreen> with RouteAware {
+class _HomeScreenState extends State<HomeScreen>
+    with RouteAware, WidgetsBindingObserver {
   AppUpdates? _updates;
   ReleaseAnnouncements? _announcements;
   ReviewPrompt? _reviewPrompt;
@@ -54,6 +56,18 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
   /// 돌고 있는 빌드를 읽는 일이 끝났는지. 업데이트 다이얼로그가 «현재 버전»
   /// 행을 그리기 전에 이것을 기다린다.
   Future<void>? _announcementsReady;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    // 화면이 꺼져 있는 동안 시간대 경계를 지났다면 돌아오자마자 장면을 바꾼다.
+    if (state == AppLifecycleState.resumed && mounted) setState(() {});
+  }
 
   @override
   void didChangeDependencies() {
@@ -87,6 +101,7 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     appRouteObserver.unsubscribe(this);
     _updates?.removeListener(_onUpdatesChanged);
     _announcements?.removeListener(_onAnnouncementsChanged);
@@ -297,13 +312,14 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
         }
         _scheduleLaunchGift();
         final home = app.homeSnapshotFor(l10n);
-        final squirrelPack = CharacterPackScope.currentOf(context).id ==
-            CharacterPackCatalog.explorerSquirrel.id;
+        final timeScene = PackTimeScene.of(context, home.clockTime.hour);
+        final lightHeaderText = timeScene?.hasLightHeaderText ?? false;
         // 다음 일정은 upcomingRoutines 하나만 소비한다.
         // nextAfterDisplay를 함께 넣으면 첫 항목이 중복된다.
         final upcoming = home.upcomingRoutines;
 
-        return Scaffold(
+        final scaffold = Scaffold(
+          backgroundColor: timeScene?.bodyColor,
           bottomNavigationBar: OrbitBottomNavigation(
             currentIndex: 0,
             onHome: () {},
@@ -312,185 +328,179 @@ class _HomeScreenState extends State<HomeScreen> with RouteAware {
             onSettings: () => context.go('/settings'),
           ),
           body: AppScreenShell(
-            background: squirrelPack ? const _SquirrelHomeBackdrop() : null,
-            child: SingleChildScrollView(
-              // 탭 목적지 4개는 같은 상단 여백을 쓴다. 홈만 다르면
-              // 탭을 옮길 때 제목이 그대로 튄다.
-              padding: const EdgeInsets.fromLTRB(24, 48, 24, 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  // 날짜·제목 위다. 아래에 두면 «오늘의 리듬»과 포커스 카드
-                  // 사이를 갈라놓는다.
-                  if (_updates?.showBanner ?? false) ...[
-                    UpdateBanner(
-                      onUpdate: _openStoreFromBanner,
-                      onDismiss: () => _updates?.hideBanner(),
+            backgroundColor: timeScene?.bodyColor,
+            background: timeScene?.backdrop(),
+            // 짧은 하루에도 헤더가 화면 가운데로 내려오지 않도록 뷰포트를 채운다.
+            child: SizedBox.expand(
+              child: SingleChildScrollView(
+                // 탭 목적지 4개는 같은 상단 여백을 쓴다. 홈만 다르면
+                // 탭을 옮길 때 제목이 그대로 튄다.
+                padding: const EdgeInsets.fromLTRB(24, 48, 24, 24),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    // 날짜·제목 위다. 아래에 두면 «오늘의 리듬»과 포커스 카드
+                    // 사이를 갈라놓는다.
+                    if (_updates?.showBanner ?? false) ...[
+                      UpdateBanner(
+                        onUpdate: _openStoreFromBanner,
+                        onDismiss: () => _updates?.hideBanner(),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                home.dateWithWeekdayLabel,
+                                style: AppTextStyles.caption.copyWith(
+                                  color: lightHeaderText
+                                      ? const Color(0xFFE6ECFF)
+                                      : null,
+                                ),
+                              ),
+                              const SizedBox(height: 2),
+                              Text(
+                                l10n.homeTitle,
+                                style: AppTextStyles.titleScreen.copyWith(
+                                  color: lightHeaderText ? Colors.white : null,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        IconButton(
+                          tooltip: l10n.commonSettings,
+                          onPressed: () => context.go('/settings'),
+                          icon: const AppIcon(Icons.settings_outlined),
+                          color: lightHeaderText
+                              ? const Color(0xFFF1F3FF)
+                              : AppColors.textMuted,
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 16),
-                  ],
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(home.dateWithWeekdayLabel,
-                                style: AppTextStyles.caption),
-                            const SizedBox(height: 2),
-                            Text(l10n.homeTitle,
-                                style: AppTextStyles.titleScreen),
-                          ],
+                    const SizedBox(height: 20),
+                    HomeFocusCard(
+                      home: home,
+                      onTap: home.displayRoutine == null
+                          ? () => context.push('/routine-add')
+                          : () => context.push(
+                                '/routine-add?id=${home.displayRoutine!.id}',
+                              ),
+                    ),
+                    const SizedBox(height: 12),
+                    if (home.segments.isEmpty)
+                      const _EmptyOrbit()
+                    else
+                      HomeTimetableScene(
+                        timetableBuilder: (size) => CircularTimetableArea(
+                            routines: home.segments,
+                            currentTime: home.clockTime,
+                            activeRoutine: home.activeRoutineForRing,
+                            showNowLabel: false,
+                            size: size),
+                      ),
+                    // 누를 수 있을 때만 버튼을 둔다. 예정·완료·건너뜀에서 흐린
+                    // 버튼을 남기면 아직 시작도 안 한 루틴에 «완료»가 떠 있게 된다.
+                    if (home.focusState.showsSlotActions) ...[
+                      const SizedBox(height: 12),
+                      _SlotActionBar(
+                        enabled: home.canActOnCurrentSlot,
+                        completeLabel: home.completeButtonLabel,
+                        showSnooze: home.focusState == HomeFocusState.active,
+                        onComplete: () => _runSlotAction(
+                          app.completeCurrent,
+                          l10n.homeMarkedDone,
+                          afterApplied: _askForReviewAfterComplete,
+                        ),
+                        onSnooze: () => _runSlotAction(
+                          app.snoozeCurrent,
+                          l10n.homeMarkedSnoozed,
+                        ),
+                        onSkip: () => _runSlotAction(
+                          app.skipCurrent,
+                          l10n.homeMarkedSkipped,
                         ),
                       ),
-                      IconButton(
-                        tooltip: l10n.commonSettings,
-                        onPressed: () => context.go('/settings'),
-                        icon: const AppIcon(Icons.settings_outlined),
-                        color: AppColors.textMuted,
+                    ],
+                    // 오늘 루틴이 하나도 없으면 여기가 유일한 다음 행동이다.
+                    // 홈에는 FAB이 없으므로 화면 안에 경로를 둔다.
+                    if (home.isEmptyDay) ...[
+                      const SizedBox(height: 18),
+                      AppButton(
+                        key: const Key('home-add-routine-button'),
+                        label: l10n.homeAddRoutine,
+                        icon: Icons.add_rounded,
+                        onPressed: () => context.push('/routine-add'),
                       ),
                     ],
-                  ),
-                  const SizedBox(height: 20),
-                  HomeFocusCard(
-                    home: home,
-                    onTap: home.displayRoutine == null
-                        ? () => context.push('/routine-add')
-                        : () => context.push(
-                              '/routine-add?id=${home.displayRoutine!.id}',
-                            ),
-                  ),
-                  const SizedBox(height: 12),
-                  if (home.segments.isEmpty)
-                    const _EmptyOrbit()
-                  else
-                    HomeTimetableScene(
-                      timetableBuilder: (size) => CircularTimetableArea(
-                          routines: home.segments,
-                          currentTime: home.clockTime,
-                          activeRoutine: home.activeRoutineForRing,
-                          showNowLabel: false,
-                          size: size),
-                    ),
-                  // 누를 수 있을 때만 버튼을 둔다. 예정·완료·건너뜀에서 흐린
-                  // 버튼을 남기면 아직 시작도 안 한 루틴에 «완료»가 떠 있게 된다.
-                  if (home.focusState.showsSlotActions) ...[
-                    const SizedBox(height: 12),
-                    _SlotActionBar(
-                      enabled: home.canActOnCurrentSlot,
-                      completeLabel: home.completeButtonLabel,
-                      showSnooze: home.focusState == HomeFocusState.active,
-                      onComplete: () => _runSlotAction(
-                        app.completeCurrent,
-                        l10n.homeMarkedDone,
-                        afterApplied: _askForReviewAfterComplete,
-                      ),
-                      onSnooze: () => _runSlotAction(
-                        app.snoozeCurrent,
-                        l10n.homeMarkedSnoozed,
-                      ),
-                      onSkip: () => _runSlotAction(
-                        app.skipCurrent,
-                        l10n.homeMarkedSkipped,
-                      ),
-                    ),
-                  ],
-                  // 오늘 루틴이 하나도 없으면 여기가 유일한 다음 행동이다.
-                  // 홈에는 FAB이 없으므로 화면 안에 경로를 둔다.
-                  if (home.isEmptyDay) ...[
-                    const SizedBox(height: 18),
-                    AppButton(
-                      key: const Key('home-add-routine-button'),
-                      label: l10n.homeAddRoutine,
-                      icon: Icons.add_rounded,
-                      onPressed: () => context.push('/routine-add'),
-                    ),
-                  ],
-                  // 구분선은 1.22:1로 배경에 묻힌다. 여백으로 나눈다.
-                  const SizedBox(height: 32),
-                  Text(
-                    l10n.homeUpcomingSection,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.titleSection,
-                  ),
-                  const SizedBox(height: 10),
-                  if (upcoming.isEmpty)
-                    // 빈 하루의 '무엇을 할지'는 위 액션 영역이 버튼과 함께 말한다.
-                    // 여기서 또 안내하면 한 화면에서 같은 말을 세 번 하게 된다.
+                    // 구분선은 1.22:1로 배경에 묻힌다. 여백으로 나눈다.
+                    const SizedBox(height: 32),
                     Text(
-                      l10n.homeNoRoutinesLeft,
-                      style: AppTextStyles.caption,
-                    )
-                  else
-                    ...upcoming.take(_maxUpcomingTiles).map(
-                          (routine) => Padding(
-                            padding: const EdgeInsets.only(bottom: 10),
-                            child: AppRoutineRow(
-                              color: routine.color,
-                              icon: routine.iconId,
-                              title: routine.title,
-                              subtitle: _timeRange(routine),
-                              onTap: () => context.push(
-                                '/routine-add?id=${routine.id}',
+                      l10n.homeUpcomingSection,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: AppTextStyles.titleSection,
+                    ),
+                    const SizedBox(height: 10),
+                    if (upcoming.isEmpty)
+                      // 빈 하루의 '무엇을 할지'는 위 액션 영역이 버튼과 함께 말한다.
+                      // 여기서 또 안내하면 한 화면에서 같은 말을 세 번 하게 된다.
+                      Text(
+                        l10n.homeNoRoutinesLeft,
+                        style: AppTextStyles.caption,
+                      )
+                    else
+                      ...upcoming.take(_maxUpcomingTiles).map(
+                            (routine) => Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: AppRoutineRow(
+                                color: routine.color,
+                                icon: routine.iconId,
+                                title: routine.title,
+                                subtitle: _timeRange(routine),
+                                onTap: () => context.push(
+                                  '/routine-add?id=${routine.id}',
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                  if (upcoming.length > _maxUpcomingTiles)
-                    _MoreUpcomingLink(
-                      remaining: upcoming.length - _maxUpcomingTiles,
-                      onTap: () => context.go('/routines'),
+                    if (upcoming.length > _maxUpcomingTiles)
+                      _MoreUpcomingLink(
+                        remaining: upcoming.length - _maxUpcomingTiles,
+                        onTap: () => context.go('/routines'),
+                      ),
+                    // Slot A — 섹션의 맨 끝이다. «더 보기» 링크보다 뒤에 두어
+                    // 목록과 그 목록의 링크를 광고가 갈라놓지 않게 한다.
+                    // 띄울 수 없으면 높이 0이라 레이아웃은 그대로다.
+                    HomeUpcomingAdCard(
+                      // «더 보기» 링크가 나타났다 사라지면 이 위젯의 형제
+                      // 순번이 바뀐다. 키가 없으면 그때 State가 새로 만들어져
+                      // 같은 세션에 광고를 다시 불러오게 된다.
+                      key: const ValueKey('home-upcoming-ad'),
+                      upcomingCount: upcoming.length,
                     ),
-                  // Slot A — 섹션의 맨 끝이다. «더 보기» 링크보다 뒤에 두어
-                  // 목록과 그 목록의 링크를 광고가 갈라놓지 않게 한다.
-                  // 띄울 수 없으면 높이 0이라 레이아웃은 그대로다.
-                  HomeUpcomingAdCard(
-                    // «더 보기» 링크가 나타났다 사라지면 이 위젯의 형제
-                    // 순번이 바뀐다. 키가 없으면 그때 State가 새로 만들어져
-                    // 같은 세션에 광고를 다시 불러오게 된다.
-                    key: const ValueKey('home-upcoming-ad'),
-                    upcomingCount: upcoming.length,
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
         );
-      },
-    );
-  }
-}
-
-/// 다람쥐 팩의 숲은 제목 뒤에서 시작해 첫 카드 위에서 옅어진다.
-class _SquirrelHomeBackdrop extends StatelessWidget {
-  const _SquirrelHomeBackdrop();
-
-  @override
-  Widget build(BuildContext context) {
-    return Align(
-      alignment: Alignment.topCenter,
-      child: SizedBox(
-        width: double.infinity,
-        height: 250,
-        child: ShaderMask(
-          blendMode: BlendMode.dstIn,
-          shaderCallback: (bounds) => const LinearGradient(
-            begin: Alignment.topCenter,
-            end: Alignment.bottomCenter,
-            colors: [Colors.white, Colors.white, Colors.transparent],
-            stops: [0, 0.53, 1],
-          ).createShader(bounds),
-          child: Image.asset(
-            'assets/pack_backgrounds/squirrel-home-header.png',
-            fit: BoxFit.cover,
-            alignment: Alignment.topCenter,
-            filterQuality: FilterQuality.none,
-            excludeFromSemantics: true,
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness:
+                lightHeaderText ? Brightness.light : Brightness.dark,
+            statusBarBrightness:
+                lightHeaderText ? Brightness.dark : Brightness.light,
           ),
-        ),
-      ),
+          child: scaffold,
+        );
+      },
     );
   }
 }

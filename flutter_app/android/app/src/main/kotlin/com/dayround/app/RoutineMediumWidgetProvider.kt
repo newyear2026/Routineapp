@@ -431,6 +431,8 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
         RoutineWidgetSkin.MediumDecor.FOREST -> R.drawable.widget_forest
         RoutineWidgetSkin.MediumDecor.MOONCLOUD -> R.drawable.widget_sheep_sky
         RoutineWidgetSkin.MediumDecor.DAWN -> R.drawable.widget_rabbit_dawn
+        RoutineWidgetSkin.MediumDecor.TEASHOP -> R.drawable.widget_redpanda_teashop
+        RoutineWidgetSkin.MediumDecor.SEASIDE -> R.drawable.widget_otter_seaside
         RoutineWidgetSkin.MediumDecor.GARDEN, RoutineWidgetSkin.MediumDecor.NONE -> null
     }
 

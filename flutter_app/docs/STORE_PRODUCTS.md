@@ -13,6 +13,8 @@ LOOPET이 Google Play에서 파는 상품과 Play Console에서 할 일. 코드�
 | `loopet.pack.rabbit_postman` | 우편배달부 토끼 팩 | MX$39 | US$1.99 등급 |
 | `loopet.pack.squirrel_explorer` | 탐험가 다람쥐 팩 | MX$39 | US$1.99 등급 |
 | `loopet.pack.sheep_mooncloud` | 달구름 양 팩 | MX$39 | US$1.99 등급 |
+| `loopet.pack.redpanda_teashop` | 랫서팬더 찻집 팩 | MX$39 | US$1.99 등급 |
+| `loopet.pack.otter_seaside` | 햇살 해달 팩 | MX$39 | US$1.99 등급 |
 | `loopet.supporter.bundle` | 판매 팩 전부 + 광고로 여는 팩(푸들 정원) + 광고 제거 | MX$89 | US$4.99 등급 |
 
 - 가격은 결제 프로필 통화로 기본 가격을 한 번 정하고, 멕시코만 MX$39·MX$89로 덮어쓴다.
@@ -41,8 +43,8 @@ LOOPET이 Google Play에서 파는 상품과 Play Console에서 할 일. 코드�
 
 ## 출시 전 확인
 
-1. Play Console > 수익 창출 > 인앱 상품에 위 세 ID를 만들고 가격을 정한 뒤 **활성화**한다.
-2. 라이선스 테스터 계정을 등록하고, 비공개 테스트 트랙 빌드로 세 상품을 각각 사 본다.
+1. Play Console > 수익 창출 > 인앱 상품에 위 상품 ID를 만들고 가격을 정한 뒤 **활성화**한다.
+2. 라이선스 테스터 계정을 등록하고, 비공개 테스트 트랙 빌드로 각 상품을 사 본다.
    테스트 카드의 «항상 승인», «항상 거절», «지연 결제»를 모두 써 본다.
 3. 앱을 지웠다가 같은 계정으로 다시 설치해 복원을 확인한다.
 4. Play Console에서 테스트 구매를 환불하고 앱을 다시 켜 회수를 확인한다.

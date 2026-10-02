@@ -14,6 +14,22 @@ abstract final class PackSkinCatalog {
     name: _starlightName,
     tagline: _starlightTagline,
     decorStyle: PackDecorStyle.sky,
+    timedScene: PackTimedScene(
+      style: PackSceneStyle.starlight,
+      nightBodyColor: Color(0xFFF6F2FA),
+      headers: [
+        'assets/pack_backgrounds/starlight-header-morning.png',
+        'assets/pack_backgrounds/starlight-header-day.png',
+        'assets/pack_backgrounds/starlight-header-sunset.png',
+        'assets/pack_backgrounds/starlight-header-night.png',
+      ],
+      cards: [
+        'assets/pack_backgrounds/starlight-card-morning.png',
+        'assets/pack_backgrounds/starlight-card-day.png',
+        'assets/pack_backgrounds/starlight-card-sunset.png',
+        'assets/pack_backgrounds/starlight-card-night.png',
+      ],
+    ),
     homeScene: HomeSceneSpec(
       backdrop: 'assets/decorations/home-sky.png',
       props: [
@@ -36,6 +52,21 @@ abstract final class PackSkinCatalog {
     name: _poodleName,
     tagline: _poodleTagline,
     decorStyle: PackDecorStyle.garden,
+    timedScene: PackTimedScene(
+      style: PackSceneStyle.poodle,
+      headers: [
+        'assets/pack_backgrounds/poodle-header-morning.png',
+        'assets/pack_backgrounds/poodle-header-day.png',
+        'assets/pack_backgrounds/poodle-header-sunset.png',
+        'assets/pack_backgrounds/poodle-header-night.png',
+      ],
+      cards: [
+        'assets/pack_backgrounds/poodle-card-morning.png',
+        'assets/pack_backgrounds/poodle-card-day.png',
+        'assets/pack_backgrounds/poodle-card-sunset.png',
+        'assets/pack_backgrounds/poodle-card-night.png',
+      ],
+    ),
     homeScene: HomeSceneSpec(
       // 물뿌리개는 화분보다 가로로 넓어 같은 크기면 원판에 닿는다.
       leadSizeFactor: 0.19,
@@ -96,6 +127,11 @@ abstract final class PackSkinCatalog {
     name: _stargazerName,
     tagline: _stargazerTagline,
     decorStyle: PackDecorStyle.sky,
+    timedScene: PackTimedScene.graded(
+      style: PackSceneStyle.stargazer,
+      header: 'assets/pack_backgrounds/stargazer-scene-header.png',
+      card: 'assets/pack_backgrounds/stargazer-scene-card.png',
+    ),
     homeScene: HomeSceneSpec(
       props: [
         SceneProp.deco(
@@ -142,8 +178,12 @@ abstract final class PackSkinCatalog {
     name: _rabbitName,
     tagline: _rabbitTagline,
     decorStyle: PackDecorStyle.sky,
+    timedScene: PackTimedScene.graded(
+      style: PackSceneStyle.postal,
+      header: 'assets/pack_backgrounds/rabbit-scene-header.png',
+      card: 'assets/pack_backgrounds/rabbit-scene-card.png',
+    ),
     homeScene: HomeSceneSpec(
-      backdrop: 'assets/pack_backgrounds/rabbit-dawn.png',
       props: [
         SceneProp.deco(
           'rabbit-letter',
@@ -183,6 +223,22 @@ abstract final class PackSkinCatalog {
     name: _squirrelName,
     tagline: _squirrelTagline,
     decorStyle: PackDecorStyle.garden,
+    timedScene: PackTimedScene(
+      style: PackSceneStyle.squirrel,
+      nightBodyColor: Color(0xFFF6F2FA),
+      headers: [
+        'assets/pack_backgrounds/squirrel-home-header-morning.png',
+        'assets/pack_backgrounds/squirrel-home-header.png',
+        'assets/pack_backgrounds/squirrel-home-header-evening.png',
+        'assets/pack_backgrounds/squirrel-home-header-night.png',
+      ],
+      cards: [
+        'assets/pack_backgrounds/squirrel-home-card.png',
+        'assets/pack_backgrounds/squirrel-home-card.png',
+        'assets/pack_backgrounds/squirrel-home-card-evening.png',
+        'assets/pack_backgrounds/squirrel-home-card-night.png',
+      ],
+    ),
     homeScene: HomeSceneSpec(
       props: [
         SceneProp.deco(
@@ -233,8 +289,12 @@ abstract final class PackSkinCatalog {
     name: _sheepName,
     tagline: _sheepTagline,
     decorStyle: PackDecorStyle.sky,
+    timedScene: PackTimedScene.graded(
+      style: PackSceneStyle.cloud,
+      header: 'assets/pack_backgrounds/sheep-scene-header.png',
+      card: 'assets/pack_backgrounds/sheep-scene-card.png',
+    ),
     homeScene: HomeSceneSpec(
-      backdrop: 'assets/pack_backgrounds/sheep-sky.png',
       props: [
         SceneProp.deco(
           'sheep-cloud',
@@ -282,6 +342,109 @@ abstract final class PackSkinCatalog {
     ),
   );
 
+  static const _redPandaTeashop = PackSkin(
+    name: _redPandaName,
+    tagline: _redPandaTagline,
+    decorStyle: PackDecorStyle.sky,
+    timedScene: PackTimedScene.graded(
+      style: PackSceneStyle.teashop,
+      header: 'assets/pack_backgrounds/redpanda-scene-header.png',
+      card: 'assets/pack_backgrounds/redpanda-scene-card.png',
+    ),
+    homeScene: HomeSceneSpec(
+      props: [
+        SceneProp.deco(
+          'redpanda-teapot',
+          left: SceneInset(0.01),
+          bottom: SceneInset.px(0),
+        ),
+        SceneProp.deco(
+          'redpanda-window',
+          right: SceneInset(0.01),
+          top: SceneInset(0.03),
+          size: 43,
+        ),
+        SceneProp.deco(
+          'redpanda-teacup',
+          right: SceneInset(0.01),
+          bottom: SceneInset.px(0),
+          size: 44,
+        ),
+      ],
+    ),
+    appDial: DialPalette(
+      dial: Color(0xFFF8EAD7),
+      surface: Color(0xFFFFFDF6),
+      track: Color(0xFFC7DED4),
+      pointer: Color(0xFF376D68),
+    ),
+    widget: PackWidgetSkin(
+      background: [Color(0xFFF9EBD7), Color(0xFFD9ECE8)],
+      accent: Color(0xFF376D68),
+      decor: WidgetDecor.teashop,
+      textPrimary: Color(0xFF3D302D),
+      textMuted: Color(0xFF776B65),
+      border: Color(0xFF8EABA1),
+      featuredMascot: true,
+      mascotHalo: Color(0xFFFFF0CF),
+      dial: DialPalette(
+        dial: Color(0xFFF8EAD7),
+        surface: Color(0xFFFFFDF6),
+        track: Color(0xFFC7DED4),
+        pointer: Color(0xFF376D68),
+        hourLabel: Color(0xFF3D302D),
+        tick: Color(0xFF776B65),
+        centerLabel: Color(0xFFFFE6B9),
+      ),
+    ),
+  );
+
+  static const _otterSeaside = PackSkin(
+    name: _otterName,
+    tagline: _otterTagline,
+    decorStyle: PackDecorStyle.sky,
+    timedScene: PackTimedScene.graded(
+      style: PackSceneStyle.seaside,
+      header: 'assets/pack_backgrounds/otter-scene-header.png',
+      card: 'assets/pack_backgrounds/otter-scene-card.png',
+    ),
+    homeScene: HomeSceneSpec(
+      props: [
+        SceneProp.deco('otter-shell',
+            left: SceneInset(0.01), bottom: SceneInset.px(0)),
+        SceneProp.deco('otter-seaglass',
+            right: SceneInset(0.01), top: SceneInset(0.03), size: 43),
+        SceneProp.deco('otter-wave',
+            right: SceneInset(0.01), bottom: SceneInset.px(0), size: 44),
+      ],
+    ),
+    appDial: DialPalette(
+      dial: Color(0xFFFFF1D7),
+      surface: Color(0xFFFFFDF5),
+      track: Color(0xFFD7F5F2),
+      pointer: Color(0xFF157F8E),
+    ),
+    widget: PackWidgetSkin(
+      background: [Color(0xFFFFF1D7), Color(0xFFD7F5F2)],
+      accent: Color(0xFF157F8E),
+      decor: WidgetDecor.seaside,
+      textPrimary: Color(0xFF29444A),
+      textMuted: Color(0xFF59777A),
+      border: Color(0xFF77B9BE),
+      featuredMascot: true,
+      mascotHalo: Color(0xFFFFF0D8),
+      dial: DialPalette(
+        dial: Color(0xFFFFF1D7),
+        surface: Color(0xFFFFFDF5),
+        track: Color(0xFFD7F5F2),
+        pointer: Color(0xFF157F8E),
+        hourLabel: Color(0xFF29444A),
+        tick: Color(0xFF59777A),
+        centerLabel: Color(0xFFFFE7C3),
+      ),
+    ),
+  );
+
   /// 팩 ID → 겉모습. 순서는 뜻이 없다.
   static const byPackId = <String, PackSkin>{
     'cat_starlight': _starlightCat,
@@ -290,6 +453,8 @@ abstract final class PackSkinCatalog {
     'rabbit_postman': _postmanRabbit,
     'squirrel_explorer': _explorerSquirrel,
     'sheep_mooncloud': _mooncloudSheep,
+    'redpanda_teashop': _redPandaTeashop,
+    'otter_seaside': _otterSeaside,
   };
 
   /// [pack]의 겉모습. 등록되지 않은 팩은 기본 팩의 겉모습으로 그린다 —
@@ -307,6 +472,12 @@ String _stargazerTagline(AppLocalizations l10n) => l10n.packStargazerTagline;
 String _rabbitName(AppLocalizations l10n) => l10n.packPostmanRabbitName;
 String _rabbitTagline(AppLocalizations l10n) => l10n.packPostmanRabbitTagline;
 String _squirrelName(AppLocalizations l10n) => l10n.packExplorerSquirrelName;
-String _squirrelTagline(AppLocalizations l10n) => l10n.packExplorerSquirrelTagline;
+String _squirrelTagline(AppLocalizations l10n) =>
+    l10n.packExplorerSquirrelTagline;
 String _sheepName(AppLocalizations l10n) => l10n.packMooncloudSheepName;
 String _sheepTagline(AppLocalizations l10n) => l10n.packMooncloudSheepTagline;
+String _redPandaName(AppLocalizations l10n) => l10n.packRedPandaTeashopName;
+String _redPandaTagline(AppLocalizations l10n) =>
+    l10n.packRedPandaTeashopTagline;
+String _otterName(AppLocalizations l10n) => l10n.packOtterSeasideName;
+String _otterTagline(AppLocalizations l10n) => l10n.packOtterSeasideTagline;

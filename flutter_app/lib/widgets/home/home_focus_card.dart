@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 
 import '../../application/home/home_focus_state.dart';
 import '../../application/home/home_snapshot.dart';
-import '../../data/store/character_pack_catalog.dart';
 import '../../domain/models/routine.dart';
 import '../../domain/utils/time_minutes.dart';
 import '../../l10n/app_localizations.dart';
@@ -14,7 +13,7 @@ import '../ds/animated_cat.dart';
 import '../ds/app_status_badge.dart';
 import '../ds/routine_mark.dart';
 import '../ds/segmented_progress.dart';
-import '../store/character_pack_scope.dart';
+import 'pack_time_scene.dart';
 
 /// 홈 첫 카드 — 홈 화면 위젯 카드를 앱 안으로 옮긴 것.
 ///
@@ -35,8 +34,8 @@ class HomeFocusCard extends StatelessWidget {
     final content = _contentFor(l10n, primary);
     final state = home.focusState;
     final shape = AppPixelStyle.shape(width: 2);
-    final squirrelPack = CharacterPackScope.currentOf(context).id ==
-        CharacterPackCatalog.explorerSquirrel.id;
+    final timeScene = PackTimeScene.of(context, home.clockTime.hour);
+    final cardAtmosphere = timeScene?.cardAtmosphere();
 
     return Material(
       type: MaterialType.transparency,
@@ -45,15 +44,20 @@ class HomeFocusCard extends StatelessWidget {
           gradient: state == HomeFocusState.skipped
               ? AppColors.focusCardMutedGradient
               : context.appTheme.preset.focusCardGradient,
-          image: squirrelPack && state != HomeFocusState.skipped
-              ? const DecorationImage(
-                  image: AssetImage(
-                    'assets/pack_backgrounds/squirrel-home-card.png',
-                  ),
-                  fit: BoxFit.cover,
-                  filterQuality: FilterQuality.none,
-                )
-              : null,
+          image: state == HomeFocusState.skipped
+              ? null
+              : timeScene != null
+                  ? DecorationImage(
+                      image: ResizeImage(
+                        AssetImage(timeScene.cardAsset),
+                        width: 1100,
+                      ),
+                      colorFilter: timeScene.cardLighting,
+                      fit: BoxFit.cover,
+                      alignment: Alignment.topCenter,
+                      filterQuality: FilterQuality.none,
+                    )
+                  : null,
           shape: shape,
           shadows: const [
             BoxShadow(
@@ -67,9 +71,48 @@ class HomeFocusCard extends StatelessWidget {
           customBorder: shape,
           onTap: onTap,
           child: ConstrainedBox(
-            constraints: const BoxConstraints(minHeight: 124),
+            // 상태에 따라 진행 칸·다음 일정이 빠져도 풍경 카드의 크기는 유지한다.
+            constraints: const BoxConstraints(minHeight: 164),
             child: Stack(
               children: [
+                if ((timeScene?.usesTextVeil ?? false) &&
+                    state != HomeFocusState.skipped)
+                  Positioned.fill(
+                    child: ClipPath(
+                      clipper: ShapeBorderClipper(shape: shape),
+                      child: DecoratedBox(
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            begin: Alignment.centerLeft,
+                            end: Alignment.centerRight,
+                            // Keep the cream RGB at zero alpha: transparent
+                            // black introduces a gray band while interpolating.
+                            colors: timeScene!.spec.graded
+                                ? const [
+                                    Color(0xB3FFF9EF),
+                                    Color(0x55FFF9EF),
+                                    Color(0x00FFF9EF)
+                                  ]
+                                : const [
+                                    Color(0xB3FFF9EF),
+                                    Color(0x66FFF9EF),
+                                    Colors.transparent
+                                  ],
+                            stops: timeScene.spec.graded
+                                ? const [0, 0.42, 1]
+                                : const [0, 0.55, 1],
+                          ),
+                        ),
+                      ),
+                    ),
+                  ),
+                if (cardAtmosphere != null && state != HomeFocusState.skipped)
+                  Positioned.fill(
+                    child: ClipPath(
+                      clipper: ShapeBorderClipper(shape: shape),
+                      child: cardAtmosphere,
+                    ),
+                  ),
                 Padding(
                   padding: const EdgeInsets.fromLTRB(
                     16,
@@ -134,7 +177,10 @@ class HomeFocusCard extends StatelessWidget {
                   bottom: 4,
                   width: _catWidth,
                   height: 96,
-                  child: AnimatedCat(pose: homeCatPose(home)),
+                  child: AnimatedCat(
+                    pose: homeCatPose(home),
+                    homeMotion: true,
+                  ),
                 ),
               ],
             ),

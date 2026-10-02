@@ -187,6 +187,26 @@ void main() {
       }
     });
 
+    test('시간대 장면은 상단·카드 그림 4장씩 등록한다', () {
+      for (final pack in packs) {
+        final scene = PackSkinCatalog.byPackId[pack.id]!.timedScene;
+        if (scene == null) continue;
+        expect(scene.headers, hasLength(PackScenePhase.values.length),
+            reason: '${pack.id} 상단');
+        expect(scene.cards, hasLength(PackScenePhase.values.length),
+            reason: '${pack.id} 카드');
+        for (final phase in PackScenePhase.values) {
+          final header = scene.headers[phase.index];
+          final card = scene.cards[phase.index];
+          expect(header, isNot(card), reason: '${pack.id} ${phase.name} 구도');
+          for (final asset in [header, card]) {
+            expect(File(asset).existsSync(), isTrue, reason: asset);
+            expect(pubspec, contains('- $asset\n'), reason: asset);
+          }
+        }
+      }
+    });
+
     test('잎이 아닌 소품은 자리가 가로·세로 한쪽씩 정해져 있다', () {
       for (final pack in packs) {
         final props = PackSkinCatalog.byPackId[pack.id]!.homeScene.props;

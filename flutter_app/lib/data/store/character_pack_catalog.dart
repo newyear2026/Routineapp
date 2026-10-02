@@ -72,6 +72,26 @@ abstract final class CharacterPackCatalog {
     productId: 'loopet.pack.sheep_mooncloud',
   );
 
+  /// 비 오는 날의 찻집 랫서팬더. 단품과 번들로 제공한다.
+  static const redPandaTeashop = CharacterPack(
+    id: 'redpanda_teashop',
+    characterId: 'redpanda_teashop',
+    paletteIds: ['redpanda_teashop'],
+    decoIds: ['redpanda-teapot', 'redpanda-window', 'redpanda-teacup'],
+    availability: CharacterPackAvailability.forSale,
+    productId: 'loopet.pack.redpanda_teashop',
+  );
+
+  /// 조개를 안고 물결 위에서 쉬는 햇살 해달 팩.
+  static const otterSeaside = CharacterPack(
+    id: 'otter_seaside',
+    characterId: 'otter_seaside',
+    paletteIds: ['otter_seaside'],
+    decoIds: ['otter-shell', 'otter-wave', 'otter-seaglass'],
+    availability: CharacterPackAvailability.forSale,
+    productId: 'loopet.pack.otter_seaside',
+  );
+
   /// 아무것도 고르지 않았거나, 고른 팩을 쓸 수 없을 때 돌아가는 팩.
   static const defaultPack = starlightCat;
 
@@ -82,6 +102,8 @@ abstract final class CharacterPackCatalog {
     postmanRabbit,
     explorerSquirrel,
     mooncloudSheep,
+    redPandaTeashop,
+    otterSeaside,
   ];
 
   static CharacterPack? byId(

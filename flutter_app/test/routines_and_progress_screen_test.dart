@@ -15,6 +15,7 @@ import 'package:routine_timer/screens/today_progress_screen.dart';
 import 'package:routine_timer/widgets/ds/animated_cat.dart';
 import 'package:routine_timer/widgets/ds/orbit_bottom_navigation.dart';
 import 'package:routine_timer/widgets/ds/segmented_progress.dart';
+import 'package:routine_timer/widgets/home/starlight_time_of_day.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/test_doubles.dart';
@@ -184,7 +185,8 @@ void main() {
       expect(find.text('매일'), findsOneWidget);
       expect(find.text('평일'), findsOneWidget);
       expect(find.byKey(const Key('routines-menu-cat')), findsOneWidget);
-      expect(find.byKey(const Key('routines-sky-decoration')), findsOneWidget);
+      expect(find.byType(StarlightSkyBackdrop), findsOneWidget);
+      expect(find.byKey(const Key('routines-sky-decoration')), findsNothing);
       expect(
         tester
             .widget<AnimatedCat>(find.descendant(
@@ -463,7 +465,8 @@ void main() {
 
       expect(find.text('오늘도 수고했어요!'), findsOneWidget);
       expect(find.byKey(const Key('progress-menu-cat')), findsOneWidget);
-      expect(find.byKey(const Key('progress-sky-decoration')), findsOneWidget);
+      expect(find.byType(StarlightSkyBackdrop), findsOneWidget);
+      expect(find.byKey(const Key('progress-sky-decoration')), findsNothing);
       expect(
         tester
             .widget<AnimatedCat>(find.descendant(

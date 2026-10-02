@@ -179,6 +179,22 @@ class _WidgetDecorLayer extends StatelessWidget {
               filterQuality: FilterQuality.none,
             ),
           ),
+        WidgetDecor.teashop => Opacity(
+            opacity: 0.28,
+            child: Image.asset(
+              'assets/pack_backgrounds/redpanda-teashop.png',
+              fit: BoxFit.fill,
+              filterQuality: FilterQuality.none,
+            ),
+          ),
+        WidgetDecor.seaside => Opacity(
+            opacity: 0.30,
+            child: Image.asset(
+              'assets/pack_backgrounds/otter-seaside.png',
+              fit: BoxFit.fill,
+              filterQuality: FilterQuality.none,
+            ),
+          ),
       };
 }
 

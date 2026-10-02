@@ -88,6 +88,28 @@ class CharacterArtwork {
         CatPose.guide: Rect.fromLTRB(40, 19, 332, 340),
       },
     ),
+    'redpanda_teashop': CharacterArtwork(
+      canvas: 384,
+      bounds: {
+        CatPose.idle: Rect.fromLTRB(62, 68, 302, 324),
+        CatPose.activity: Rect.fromLTRB(62, 77, 324, 328),
+        CatPose.focus: Rect.fromLTRB(49, 72, 325, 341),
+        CatPose.complete: Rect.fromLTRB(44, 56, 351, 339),
+        CatPose.rest: Rect.fromLTRB(51, 113, 337, 294),
+        CatPose.guide: Rect.fromLTRB(54, 69, 306, 329),
+      },
+    ),
+    'otter_seaside': CharacterArtwork(
+      canvas: 384,
+      bounds: {
+        CatPose.idle: Rect.fromLTRB(71, 32, 339, 355),
+        CatPose.activity: Rect.fromLTRB(39, 66, 363, 330),
+        CatPose.focus: Rect.fromLTRB(71, 51, 340, 348),
+        CatPose.complete: Rect.fromLTRB(49, 39, 338, 349),
+        CatPose.rest: Rect.fromLTRB(42, 106, 342, 320),
+        CatPose.guide: Rect.fromLTRB(51, 35, 346, 359),
+      },
+    ),
   };
 }
 
@@ -101,15 +123,67 @@ const _frames = <CatPose, List<double>>{
   CatPose.guide: [0, .5, -.3, .5, 0],
 };
 
+/// 홈 첫 카드에서는 포즈의 의미가 보이도록 몇 픽셀만 움직인다.
+/// 첫 프레임과 마지막 프레임을 같게 두어 긴 쉼 사이에 튀지 않게 한다.
+typedef _HomeMotionFrame = ({double dx, double dy, double sx, double sy});
+
+const _homeFrames = <CatPose, List<_HomeMotionFrame>>{
+  CatPose.idle: [
+    (dx: 0, dy: 0, sx: 1, sy: 1),
+    (dx: 0, dy: -1, sx: .99, sy: 1.02),
+    (dx: 0, dy: -1, sx: .99, sy: 1.02),
+    (dx: 0, dy: 0, sx: 1, sy: 1),
+  ],
+  CatPose.activity: [
+    (dx: 0, dy: 0, sx: 1, sy: 1),
+    (dx: 0, dy: 0, sx: 1.02, sy: .98),
+    (dx: 0, dy: -3, sx: .99, sy: 1.01),
+    (dx: 0, dy: -4, sx: 1, sy: 1),
+    (dx: 0, dy: -2, sx: .99, sy: 1.01),
+    (dx: 0, dy: 0, sx: 1.02, sy: .98),
+    (dx: 0, dy: 0, sx: 1, sy: 1),
+  ],
+  CatPose.focus: [
+    (dx: 0, dy: 0, sx: 1, sy: 1),
+    (dx: 0, dy: 1, sx: 1, sy: .99),
+    (dx: 0, dy: 1, sx: 1, sy: .99),
+    (dx: 0, dy: 0, sx: 1, sy: 1),
+  ],
+  CatPose.complete: [
+    (dx: 0, dy: 0, sx: 1, sy: 1),
+    (dx: 0, dy: 0, sx: 1.02, sy: .98),
+    (dx: 0, dy: -3, sx: .99, sy: 1.02),
+    (dx: 0, dy: -5, sx: 1, sy: 1),
+    (dx: 0, dy: -2, sx: .99, sy: 1.01),
+    (dx: 0, dy: 0, sx: 1.02, sy: .98),
+    (dx: 0, dy: 0, sx: 1, sy: 1),
+  ],
+  CatPose.rest: [
+    (dx: 0, dy: 0, sx: 1, sy: 1),
+    (dx: 0, dy: -1, sx: .99, sy: 1.025),
+    (dx: 0, dy: -1, sx: .99, sy: 1.025),
+    (dx: 0, dy: 0, sx: 1, sy: 1),
+  ],
+  CatPose.guide: [
+    (dx: 0, dy: 0, sx: 1, sy: 1),
+    (dx: 2, dy: 0, sx: 1, sy: 1),
+    (dx: 0, dy: 0, sx: 1, sy: 1),
+    (dx: 2, dy: 0, sx: 1, sy: 1),
+    (dx: 0, dy: 0, sx: 1, sy: 1),
+  ],
+};
+
 class AnimatedCat extends StatefulWidget {
   const AnimatedCat({
     super.key,
     required this.pose,
     this.animate = true,
+    this.homeMotion = false,
     this.pack,
   });
   final CatPose pose;
   final bool animate;
+  final bool homeMotion;
 
   /// 그릴 팩. null이면 [CharacterPackScope]의 지금 쓰는 팩을 그린다 —
   /// 팩 목록처럼 특정 팩을 보여 줘야 하는 자리만 넘긴다.
@@ -172,7 +246,9 @@ class _AnimatedCatState extends State<AnimatedCat>
   @override
   void didUpdateWidget(AnimatedCat oldWidget) {
     super.didUpdateWidget(oldWidget);
-    if (oldWidget.pose != widget.pose || oldWidget.animate != widget.animate) {
+    if (oldWidget.pose != widget.pose ||
+        oldWidget.animate != widget.animate ||
+        oldWidget.homeMotion != widget.homeMotion) {
       _schedule();
     }
   }
@@ -207,13 +283,27 @@ class _AnimatedCatState extends State<AnimatedCat>
               child: AnimatedBuilder(
             animation: _motion,
             builder: (context, child) {
+              if (widget.homeMotion) {
+                final frames = _homeFrames[widget.pose]!;
+                final index = (_motion.value * (frames.length - 1)).floor();
+                final frame = frames[index];
+                return Transform.translate(
+                  offset: Offset(frame.dx, frame.dy),
+                  child: Transform.scale(
+                    alignment: Alignment.bottomCenter,
+                    scaleX: frame.sx,
+                    scaleY: frame.sy,
+                    child: child,
+                  ),
+                );
+              }
               final frames = _frames[widget.pose]!;
               final index = (_motion.value * (frames.length - 1)).floor();
               final amount = frames[index];
-              return Transform(
+              return Transform.scale(
                 alignment: Alignment.bottomCenter,
-                transform: Matrix4.diagonal3Values(
-                    1 - amount * .008, 1 + amount * .025, 1),
+                scaleX: 1 - amount * .008,
+                scaleY: 1 + amount * .025,
                 child: child,
               );
             },

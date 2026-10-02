@@ -157,7 +157,7 @@ private struct Provider: TimelineProvider {
 /// 더하고, 빠뜨리면 `pack_spec_test.dart`가 잡는다. 앱 안 미리보기의 기준값은
 /// `lib/theme/pack_skin_catalog.dart`에 있다.
 private struct WidgetPackSkin {
-    enum Decor { case stars, garden, forest, mooncloud, dawn, none }
+    enum Decor { case stars, garden, forest, mooncloud, dawn, teashop, seaside, none }
 
     struct RingColors {
         var dial = WidgetTokens.dialSurface
@@ -231,6 +231,32 @@ private struct WidgetPackSkin {
                     track: Color(hex: 0xCFC8F2),
                     accent: Color(hex: 0x6577C8),
                     ink: Color(hex: 0x242548)))
+        case "redpanda_teashop":
+            return WidgetPackSkin(
+                background: [Color(hex: 0xF9EBD7), Color(hex: 0xD9ECE8)],
+                mascot: "widget_redpanda", decor: .teashop,
+                accent: Color(hex: 0x376D68),
+                text: Color(hex: 0x3D302D),
+                muted: Color(hex: 0x776B65),
+                border: Color(hex: 0x8EABA1),
+                ring: RingColors(
+                    dial: Color(hex: 0xF8EAD7),
+                    track: Color(hex: 0xC7DED4),
+                    accent: Color(hex: 0x376D68),
+                    ink: Color(hex: 0x3D302D)))
+        case "otter_seaside":
+            return WidgetPackSkin(
+                background: [Color(hex: 0xFFF1D7), Color(hex: 0xD7F5F2)],
+                mascot: "widget_otter", decor: .seaside,
+                accent: Color(hex: 0x157F8E),
+                text: Color(hex: 0x29444A),
+                muted: Color(hex: 0x59777A),
+                border: Color(hex: 0x77B9BE),
+                ring: RingColors(
+                    dial: Color(hex: 0xFFF1D7),
+                    track: Color(hex: 0xD7F5F2),
+                    accent: Color(hex: 0x157F8E),
+                    ink: Color(hex: 0x29444A)))
         default: // "cat_starlight", 그리고 모르는 팩 ID
             return WidgetPackSkin(
                 background: [Color(hex: 0xFFF4DC), Color(hex: 0xE6D8FF)],
@@ -294,6 +320,14 @@ private struct RoutineMediumWidgetEntryView: View {
                 PackArtwork.image("widget_rabbit_dawn")
                     .resizable().interpolation(.none).scaledToFill()
                     .opacity(0.35).clipped()
+            } else if skin.decor == .teashop {
+                PackArtwork.image("widget_redpanda_teashop")
+                    .resizable().interpolation(.none).scaledToFill()
+                    .opacity(0.28).clipped()
+            } else if skin.decor == .seaside {
+                PackArtwork.image("widget_otter_seaside")
+                    .resizable().interpolation(.none).scaledToFill()
+                    .opacity(0.30).clipped()
             }
             HStack(alignment: .center, spacing: 5) {
                 PackArtwork.image(skin.mascot)

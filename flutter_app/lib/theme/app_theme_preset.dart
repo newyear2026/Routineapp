@@ -309,6 +309,78 @@ class AppThemePreset {
     ),
   );
 
+  static const redPandaTeashop = AppThemePreset(
+    id: 'redpanda_teashop',
+    previewColors: [
+      Color(0xFFF9EBD7),
+      Color(0xFFD9ECE8),
+      Color(0xFF467C75),
+      Color(0xFFD98558),
+    ],
+    pageGradient: LinearGradient(
+      colors: [Color(0xFFFFFAF1), Color(0xFFEAF4F0)],
+    ),
+    shellGradient: LinearGradient(
+      colors: [Color(0xFFFFFDF6), Color(0xFFE3F1EB)],
+    ),
+    primaryButtonGradient: LinearGradient(
+      colors: [Color(0xFF376D68), Color(0xFF5B9389)],
+    ),
+    softAccentGradient: LinearGradient(
+      colors: [Color(0xFFDCEDE6), Color(0xFFF8E9D5)],
+    ),
+    highlightGradient: LinearGradient(
+      colors: [Color(0xFFFBE7C1), Color(0xFFF4CFA3)],
+    ),
+    textPrimary: Color(0xFF3D302D),
+    textMuted: Color(0xFF776B65),
+    accentPink: Color(0xFFD98558),
+    accentLavender: Color(0xFFB9D9D0),
+    pageBackground: Color(0xFFFFFAF1),
+    primaryColor: Color(0xFF376D68),
+    surfaceColor: Color(0xFFFFFDF6),
+    selectedSurface: Color(0xFFDCEDE6),
+    focusCardGradient: LinearGradient(
+      colors: [Color(0xFFF9EBD7), Color(0xFFD9ECE8)],
+    ),
+  );
+
+  static const otterSeaside = AppThemePreset(
+    id: 'otter_seaside',
+    previewColors: [
+      Color(0xFFFFF1D7),
+      Color(0xFFD7F5F2),
+      Color(0xFF3A98A5),
+      Color(0xFFFFC6B5),
+    ],
+    pageGradient: LinearGradient(
+      colors: [Color(0xFFFFFCF1), Color(0xFFE5F7F4)],
+    ),
+    shellGradient: LinearGradient(
+      colors: [Color(0xFFFFFDF5), Color(0xFFDDF4F2)],
+    ),
+    primaryButtonGradient: LinearGradient(
+      colors: [Color(0xFF157F8E), Color(0xFF41A6AB)],
+    ),
+    softAccentGradient: LinearGradient(
+      colors: [Color(0xFFD6F3EF), Color(0xFFFFF0D8)],
+    ),
+    highlightGradient: LinearGradient(
+      colors: [Color(0xFFFFE7C3), Color(0xFFFFCFC0)],
+    ),
+    textPrimary: Color(0xFF29444A),
+    textMuted: Color(0xFF59777A),
+    accentPink: Color(0xFFF4AFA8),
+    accentLavender: Color(0xFFB8E2DF),
+    pageBackground: Color(0xFFFFFCF1),
+    primaryColor: Color(0xFF157F8E),
+    surfaceColor: Color(0xFFFFFDF5),
+    selectedSurface: Color(0xFFD7F5F2),
+    focusCardGradient: LinearGradient(
+      colors: [Color(0xFFFFF1D7), Color(0xFFD7F5F2)],
+    ),
+  );
+
   static const all = [
     softDay,
     peachSunset,
@@ -318,6 +390,8 @@ class AppThemePreset {
     postmanRabbit,
     explorerSquirrel,
     mooncloudSheep,
+    redPandaTeashop,
+    otterSeaside,
   ];
 
   static AppThemePreset byId(String? id) {

@@ -17,6 +17,7 @@ import 'package:routine_timer/screens/settings_screen.dart';
 import 'package:routine_timer/application/store/pack_purchases.dart';
 import 'package:routine_timer/widgets/ds/animated_cat.dart';
 import 'package:routine_timer/widgets/settings/current_pack_card.dart';
+import 'package:routine_timer/widgets/home/starlight_time_of_day.dart';
 import 'package:routine_timer/widgets/store/character_pack_scope.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
@@ -177,7 +178,8 @@ void main() {
     expect(find.text('캐릭터 팩'), findsOneWidget);
     expect(find.text('별빛 고양이'), findsOneWidget);
     expect(find.text('사용 중'), findsOneWidget);
-    expect(find.byKey(const Key('settings-sky-decoration')), findsOneWidget);
+    expect(find.byType(StarlightSkyBackdrop), findsOneWidget);
+    expect(find.byKey(const Key('settings-sky-decoration')), findsNothing);
     expect(
         find.byKey(const Key('settings-pack-sky-decoration')), findsOneWidget);
     expect(find.byKey(const Key('settings-pack-sky-decoration-right')),

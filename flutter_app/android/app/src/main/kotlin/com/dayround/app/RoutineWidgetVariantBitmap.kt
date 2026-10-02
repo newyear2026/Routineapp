@@ -50,6 +50,12 @@ object RoutineWidgetVariantBitmap {
             RoutineWidgetSkin.VariantStyle.SHEEP ->
                 drawSheep(canvas, context, style, skin, state, status, title, hint,
                     nextLabel, nextTitle, nextTime, clock)
+            RoutineWidgetSkin.VariantStyle.TEASHOP ->
+                drawTeashop(canvas, context, style, skin, state, status, title, hint,
+                    nextLabel, nextTitle, nextTime, clock)
+            RoutineWidgetSkin.VariantStyle.SEASIDE ->
+                drawSeaside(canvas, context, style, skin, state, status, title, hint,
+                    nextLabel, nextTitle, nextTime, clock)
             RoutineWidgetSkin.VariantStyle.STANDARD -> {
                 val scene = requireNotNull(skin.scene) { "STANDARD 위젯에는 scene이 있어야 한다" }
                 drawBackground(canvas, context, scene)
@@ -63,6 +69,94 @@ object RoutineWidgetVariantBitmap {
             }
         }
         return result
+    }
+
+    private fun drawTeashop(
+        canvas: Canvas, context: Context, style: String,
+        skin: RoutineWidgetSkin.VariantSkin, state: JSONObject,
+        status: String, title: String, hint: String, nextLabel: String,
+        nextTitle: String, nextTime: String, clock: Calendar,
+    ) {
+        val ink = Color.rgb(61, 48, 45)
+        val teal = Color.rgb(55, 109, 104)
+        val muted = Color.rgb(119, 107, 101)
+        drawResource(canvas, context, R.drawable.widget_redpanda_teashop,
+            RectF(0f, 0f, WIDTH.toFloat(), HEIGHT.toFloat()))
+        if (style == "timeline") {
+            canvas.drawRect(30f, 21f, 451f, 198f,
+                Paint().apply { color = Color.argb(238, 255, 253, 246) })
+            drawBadge(canvas, status, 48f, 31f, skin)
+            drawFitted(canvas, title, 48f, 122f, 390f, 60f, 30f, ink)
+            drawFitted(canvas, hint, 48f, 177f, 390f, 40f, 23f, teal)
+            drawResource(canvas, context, skin.pet, skin.timelinePet)
+            if (nextTitle.isNotBlank()) {
+                canvas.drawRect(460f, 181f, 729f, 205f,
+                    Paint().apply { color = Color.argb(232, 255, 253, 246) })
+                val next = listOf(nextLabel, nextTitle, nextTime)
+                    .filter { it.isNotBlank() }.joinToString(" ")
+                drawFitted(canvas, next, 473f, 199f, 245f, 19f, 14f, ink)
+            }
+            drawRuler(canvas, state, clock, muted, teal)
+        } else {
+            canvas.drawRect(30f, 51f, 550f, 211f,
+                Paint().apply { color = Color.argb(242, 255, 253, 246) })
+            canvas.drawRect(558f, 51f, 738f, 211f,
+                Paint().apply { color = Color.argb(242, 232, 245, 240) })
+            drawResource(canvas, context, skin.pet, skin.cardsPet)
+            drawBadge(canvas, status, 214f, 65f, skin)
+            drawFitted(canvas, title, 212f, 140f, 325f, 50f, 27f, ink)
+            drawFitted(canvas, hint, 212f, 191f, 325f, 37f, 20f, teal)
+            drawFitted(canvas, nextLabel, 648f, 102f, 160f, 25f, 17f, muted,
+                Paint.Align.CENTER)
+            drawFitted(canvas, nextTitle, 648f, 153f, 160f, 39f, 20f, ink,
+                Paint.Align.CENTER)
+            drawFitted(canvas, nextTime, 648f, 200f, 160f, 32f, 19f, teal,
+                Paint.Align.CENTER, Typeface.MONOSPACE)
+        }
+    }
+
+    private fun drawSeaside(
+        canvas: Canvas, context: Context, style: String,
+        skin: RoutineWidgetSkin.VariantSkin, state: JSONObject,
+        status: String, title: String, hint: String, nextLabel: String,
+        nextTitle: String, nextTime: String, clock: Calendar,
+    ) {
+        val ink = Color.rgb(41, 68, 74)
+        val teal = Color.rgb(21, 127, 142)
+        val muted = Color.rgb(89, 119, 122)
+        drawResource(canvas, context, R.drawable.widget_otter_seaside,
+            RectF(0f, 0f, WIDTH.toFloat(), HEIGHT.toFloat()))
+        if (style == "timeline") {
+            canvas.drawRect(30f, 21f, 451f, 198f,
+                Paint().apply { color = Color.argb(238, 255, 253, 245) })
+            drawBadge(canvas, status, 48f, 31f, skin)
+            drawFitted(canvas, title, 48f, 122f, 390f, 60f, 30f, ink)
+            drawFitted(canvas, hint, 48f, 177f, 390f, 40f, 23f, teal)
+            drawResource(canvas, context, skin.pet, skin.timelinePet)
+            if (nextTitle.isNotBlank()) {
+                canvas.drawRect(460f, 181f, 729f, 205f,
+                    Paint().apply { color = Color.argb(232, 255, 253, 245) })
+                val next = listOf(nextLabel, nextTitle, nextTime)
+                    .filter { it.isNotBlank() }.joinToString(" ")
+                drawFitted(canvas, next, 473f, 199f, 245f, 19f, 14f, ink)
+            }
+            drawRuler(canvas, state, clock, muted, teal)
+        } else {
+            canvas.drawRect(30f, 51f, 550f, 211f,
+                Paint().apply { color = Color.argb(242, 255, 253, 245) })
+            canvas.drawRect(558f, 51f, 738f, 211f,
+                Paint().apply { color = Color.argb(242, 225, 248, 245) })
+            drawResource(canvas, context, skin.pet, skin.cardsPet)
+            drawBadge(canvas, status, 214f, 65f, skin)
+            drawFitted(canvas, title, 212f, 140f, 325f, 50f, 27f, ink)
+            drawFitted(canvas, hint, 212f, 191f, 325f, 37f, 20f, teal)
+            drawFitted(canvas, nextLabel, 648f, 102f, 160f, 25f, 17f, muted,
+                Paint.Align.CENTER)
+            drawFitted(canvas, nextTitle, 648f, 153f, 160f, 39f, 20f, ink,
+                Paint.Align.CENTER)
+            drawFitted(canvas, nextTime, 648f, 200f, 160f, 32f, 19f, teal,
+                Paint.Align.CENTER, Typeface.MONOSPACE)
+        }
     }
 
     private fun drawSheep(

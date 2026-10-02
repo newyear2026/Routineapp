@@ -7,12 +7,14 @@ class AppScreenShell extends StatelessWidget {
     super.key,
     required this.child,
     this.background,
+    this.backgroundColor,
     this.padding = EdgeInsets.zero,
     this.maxWidth = AppLayout.maxContentWidth,
   });
 
   final Widget child;
   final Widget? background;
+  final Color? backgroundColor;
   final EdgeInsetsGeometry padding;
   final double maxWidth;
 
@@ -20,7 +22,7 @@ class AppScreenShell extends StatelessWidget {
   Widget build(BuildContext context) {
     return SizedBox.expand(
       child: ColoredBox(
-        color: Theme.of(context).scaffoldBackgroundColor,
+        color: backgroundColor ?? Theme.of(context).scaffoldBackgroundColor,
         child: Stack(
           children: [
             if (background != null)

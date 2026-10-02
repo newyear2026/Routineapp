@@ -53,6 +53,11 @@ const _logicalW = 390.0;
 const _logicalH = 844.0;
 const _capturePixelRatio = 3.0;
 const _now = '15:14';
+const _outputRoot = String.fromEnvironment(
+  'STORE_SCREENSHOT_OUTPUT_ROOT',
+  defaultValue: 'assets/store/screenshots/marketing',
+);
+const _onlyLocale = String.fromEnvironment('STORE_SCREENSHOT_LOCALE');
 final _shotDate = DateTime(2026, 9, 8, 15, 14);
 
 const _play = _CanvasSpec(
@@ -104,6 +109,7 @@ void main() {
       Locale('en'),
       Locale('es'),
     ]) {
+      if (_onlyLocale.isNotEmpty && locale.languageCode != _onlyLocale) continue;
       final l10n = lookupAppLocalizations(locale);
       final app = await _controllerFor(l10n);
       addTearDown(app.dispose);
@@ -601,7 +607,7 @@ Future<String> _compose(
   });
 
   final file = File(
-    'assets/store/screenshots/marketing/${spec.folder}/${locale.languageCode}/${slide.file}.png',
+    '$_outputRoot/${spec.folder}/${locale.languageCode}/${slide.file}.png',
   );
   file.parent.createSync(recursive: true);
   file.writeAsBytesSync(bytes!);
@@ -703,8 +709,9 @@ Future<void> _writeStrip(
     return data!.buffer.asUint8List();
   });
   final file = File(
-    'assets/store/screenshots/marketing/preview_${locale.languageCode}.png',
+    '$_outputRoot/preview_${locale.languageCode}.png',
   );
+  file.parent.createSync(recursive: true);
   file.writeAsBytesSync(bytes!);
   for (final image in images) {
     image.dispose();
@@ -1102,9 +1109,16 @@ class _GlanceScreen extends StatelessWidget {
                   ),
                 ),
                 const SizedBox(height: 22),
-                HomeMediumWidget(
-                  viewModel: HomeMediumWidgetViewModel.dummy(l10n),
-                  ringSize: 96,
+                DefaultTextStyle(
+                  style: TextStyle(
+                    fontFamily: bodyFamily,
+                    fontSize: 14,
+                    color: const Color(0xFF25203A),
+                  ),
+                  child: HomeMediumWidget(
+                    viewModel: HomeMediumWidgetViewModel.dummy(l10n),
+                    ringSize: 96,
+                  ),
                 ),
                 const Spacer(),
                 Center(
@@ -1213,10 +1227,10 @@ Future<void> _loadFonts() async {
   const extraBold = '/tmp/dayround-AppleSDGothicNeo-ExtraBold.ttf';
   const medium = '/tmp/dayround-AppleSDGothicNeo-Medium.ttf';
   if (!File(extraBold).existsSync() || !File(medium).existsSync()) {
-    final result = await Process.run('python3', [
+    final result = Process.runSync('python3', [
       '-c',
       'from fontTools.ttLib.ttCollection import TTCollection\n'
-          'c = TTCollection("/System/Library/Fonts/AppleSDGothicNeo.ttc")\n'
+          'c = TTCollection("/System/Library/Fonts/AppleSDGothicNeo.ttc", lazy=True)\n'
           'c.fonts[14].save("$extraBold")\n'
           'c.fonts[2].save("$medium")\n',
     ]);

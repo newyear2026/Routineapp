@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -17,6 +18,7 @@ import '../widgets/ds/ds.dart';
 import '../widgets/ds/pixel_decoration.dart';
 import '../widgets/store/character_pack_scope.dart';
 import '../theme/pack_skin.dart';
+import '../widgets/home/pack_time_scene.dart';
 
 /// 현재 루틴을 먼저 보여주고, 오늘 요약과 나머지 상태를 이어서 보여준다.
 class TodayProgressScreen extends StatelessWidget {
@@ -50,8 +52,11 @@ class TodayProgressScreen extends StatelessWidget {
         final activeGroup = groups.firstWhere(
           (group) => group.kind == _ProgressKind.active,
         );
+        final timeScene = PackTimeScene.of(context, now.hour);
+        final lightHeaderText = timeScene?.hasLightHeaderText ?? false;
 
-        return Scaffold(
+        final scaffold = Scaffold(
+          backgroundColor: timeScene?.bodyColor,
           bottomNavigationBar: OrbitBottomNavigation(
             currentIndex: 1,
             onHome: () => context.go('/home'),
@@ -60,6 +65,8 @@ class TodayProgressScreen extends StatelessWidget {
             onSettings: () => context.go('/settings'),
           ),
           body: AppScreenShell(
+            backgroundColor: timeScene?.bodyColor,
+            background: timeScene?.backdrop(subtle: true),
             child: SingleChildScrollView(
               padding: const EdgeInsets.fromLTRB(24, 48, 24, 24),
               child: Column(
@@ -68,6 +75,8 @@ class TodayProgressScreen extends StatelessWidget {
                   _ProgressHeader(
                     title: l10n.progressTitle,
                     subtitle: l10n.progressSubtitle,
+                    lightHeaderText: lightHeaderText,
+                    timedBackdrop: timeScene != null,
                   ),
                   const SizedBox(height: 20),
                   if (activeGroup.items.isNotEmpty)
@@ -91,16 +100,33 @@ class TodayProgressScreen extends StatelessWidget {
             ),
           ),
         );
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness:
+                lightHeaderText ? Brightness.light : Brightness.dark,
+            statusBarBrightness:
+                lightHeaderText ? Brightness.dark : Brightness.light,
+          ),
+          child: scaffold,
+        );
       },
     );
   }
 }
 
 class _ProgressHeader extends StatelessWidget {
-  const _ProgressHeader({required this.title, required this.subtitle});
+  const _ProgressHeader({
+    required this.title,
+    required this.subtitle,
+    required this.lightHeaderText,
+    required this.timedBackdrop,
+  });
 
   final String title;
   final String subtitle;
+  final bool lightHeaderText;
+  final bool timedBackdrop;
 
   @override
   Widget build(BuildContext context) {
@@ -115,7 +141,7 @@ class _ProgressHeader extends StatelessWidget {
           key: const Key('progress-header'),
           child: Stack(
             children: [
-              if (!garden)
+              if (!garden && !timedBackdrop)
                 Positioned(
                   key: const Key('progress-sky-decoration'),
                   right: -8,
@@ -165,10 +191,18 @@ class _ProgressHeader extends StatelessWidget {
                             title,
                             style: AppTextStyles.titleScreen.copyWith(
                               fontSize: compact ? 22 : 28,
+                              color: lightHeaderText ? Colors.white : null,
                             ),
                           ),
                           const SizedBox(height: 4),
-                          Text(subtitle, style: AppTextStyles.caption),
+                          Text(
+                            subtitle,
+                            style: AppTextStyles.caption.copyWith(
+                              color: lightHeaderText
+                                  ? const Color(0xFFE6ECFF)
+                                  : null,
+                            ),
+                          ),
                         ],
                       ),
                     ),

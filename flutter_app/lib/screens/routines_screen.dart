@@ -1,5 +1,6 @@
 import '../widgets/ds/app_pixel_hint.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -22,6 +23,7 @@ import '../widgets/store/character_pack_scope.dart';
 import '../theme/app_theme_preset.dart';
 import '../theme/app_pixel_style.dart';
 import '../theme/pack_skin.dart';
+import '../widgets/home/pack_time_scene.dart';
 
 /// 오늘(타임라인) · 목록 · 달력. 탭을 열면 오늘 흐름부터 보여 준다.
 enum _RoutineView { today, list, calendar }
@@ -61,7 +63,10 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
         if (app.hasBlockingLoadError) {
           return const Scaffold(body: RoutineLoadFailureView());
         }
-        return Scaffold(
+        final timeScene = PackTimeScene.of(context, app.now.hour);
+        final lightHeaderText = timeScene?.hasLightHeaderText ?? false;
+        final scaffold = Scaffold(
+          backgroundColor: timeScene?.bodyColor,
           bottomNavigationBar: OrbitBottomNavigation(
             currentIndex: 2,
             onHome: () => context.go('/home'),
@@ -96,6 +101,8 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                 )
               : null,
           body: AppScreenShell(
+            backgroundColor: timeScene?.bodyColor,
+            background: timeScene?.backdrop(subtle: true),
             child: app.isLoaded
                 ? _RoutineContent(
                     view: _view,
@@ -124,6 +131,16 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                     child: CircularProgressIndicator(),
                   ),
           ),
+        );
+        return AnnotatedRegion<SystemUiOverlayStyle>(
+          value: SystemUiOverlayStyle(
+            statusBarColor: Colors.transparent,
+            statusBarIconBrightness:
+                lightHeaderText ? Brightness.light : Brightness.dark,
+            statusBarBrightness:
+                lightHeaderText ? Brightness.dark : Brightness.light,
+          ),
+          child: scaffold,
         );
       },
     );
@@ -221,6 +238,9 @@ class _RoutinesHeader extends StatelessWidget {
   Widget build(BuildContext context) {
     final garden =
         CharacterPackScope.skinOf(context).decorStyle == PackDecorStyle.garden;
+    final hour = context.read<RoutineAppController>().now.hour;
+    final timeScene = PackTimeScene.of(context, hour);
+    final lightHeaderText = timeScene?.hasLightHeaderText ?? false;
     final l10n = AppLocalizations.of(context);
     final header = CatMenuHeader(
       caption: AppDateFormats.monthDayWeekday(context, today),
@@ -228,8 +248,13 @@ class _RoutinesHeader extends StatelessWidget {
       subtitle: l10n.routinesSubtitle,
       pose: CatPose.focus,
       catKey: const Key('routines-menu-cat'),
-      decorationAsset: garden ? null : 'assets/decorations/routines-sky.png',
-      decorationKey: garden ? null : const Key('routines-sky-decoration'),
+      decorationAsset: garden || timeScene != null
+          ? null
+          : 'assets/decorations/routines-sky.png',
+      decorationKey: garden || timeScene != null
+          ? null
+          : const Key('routines-sky-decoration'),
+      lightText: lightHeaderText,
     );
     if (!garden) return header;
     return LayoutBuilder(builder: (context, constraints) {

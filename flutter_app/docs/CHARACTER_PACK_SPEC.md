@@ -83,6 +83,61 @@
 | `homeScene` | 홈 원판 둘레의 장면: 배경 그림(`backdrop`)과 소품(`props`) |
 | `appDial` | 앱 홈 원판 색. 비운 값은 기본색 |
 | `widget` | 홈 화면 위젯 미리보기: 배경 그라디언트, 배지색, 글자색, 장식, 캐릭터 크기, 작은 원판 색 |
+| `timedScene` | 선택 사항. 네 시간대 상단·홈 카드 그림과 움직임 계열 |
+
+### 시간대 장면 (`timedScene`)
+
+현재 8개 팩 모두 `PackTimedScene`을 쓴다. `PackSkinCatalog`가 장면과
+움직임 계열을 정의하며 화면마다 팩 ID를 분기하지 않는다.
+
+- 기존 다람쥐·별빛 고양이·푸들: `headers` 4장과 `cards` 4장으로 개별 시간대 자산을 지정한다.
+- 유성 관측 고양이·토끼·양·랫서팬더·해달: `PackTimedScene.graded`에
+  서로 다른 상단 `header`와 카드 `card` 원화 두 장을 지정한다.
+  `ScenicPackBackdrop`/`sceneLighting`이 아침·낮·노을·밤의 조명을 적용한다.
+  해·달은 상단에서만 픽셀로 그리고, 실내 찻집에는 그리지 않는다.
+  캐릭터와 글자에는 색 보정을 적용하지 않는다.
+  밤의 상단과 카드는 서로 다른 조명 강도를 쓴다. 카드는 달빛 아래 풍경처럼
+  밝게 남겨 글자 뒤를 과도한 흰색 레이어로 가리지 않는다.
+  밝은 레이어의 투명 끝 색은 `Color(0x00FFF9EF)`처럼 RGB를 유지한다.
+  `Colors.transparent`(투명 검정)로 보간하면 회색 띠가 생길 수 있다.
+
+순서는 **아침 05–11, 낮 11–17, 노을 17–20, 밤 20–05**이며 기기 시각으로
+고른다. 상단과 카드에는 같은 시간대의 **서로 다른 구도**를 쓴다. 상단을
+카드에 그대로 복사하면 이음새와 장면의 깊이가 어색해진다.
+
+- 상단은 화면 양쪽 끝까지 채우고 아래쪽은 본문 배경으로 서서히 흐린다.
+- 카드 왼쪽 글자 영역은 밝게 유지한다. 밤의 상단 글자는 밝은 색으로 바꾼다.
+- 본문 바탕은 기본 팩 테마 색을 유지한다. 밤에 본문까지 바꿔야 할 때만
+  `nightBodyColor`를 지정한다.
+- 바탕 그림은 고정한다. 작은 입자만 움직이며 홈은 6초, 진행·루틴은 12초
+  반복으로 약하게, 설정은 정지한다. 시스템의 애니메이션 축소와 앱 백그라운드를 따른다.
+- 그림은 `assets/pack_backgrounds/`에 PNG로 저장하고 `pubspec.yaml`에
+  개별 등록한다. 네 시간대 모두 유효한 상단/카드 자산을 참조하는지 테스트한다.
+- 화면은 팩 ID 대신 `PackTimeScene.of(context, hour)`를 읽는다.
+  계절별 움직임이나 파티클 스타일이 새로 필요하면 `PackSceneStyle`과
+  해당 배경 위젯을 추가한다.
+
+#### 추가 다섯 팩의 움직임
+
+| 팩 / style | 아침·낮 | 노을 | 밤 |
+| --- | --- | --- | --- |
+| 유성 관측 / stargazer | 옅은 빛 반짝임 | 금빛 반짝임 | 별빛과 짧은 유성 |
+| 우편배달부 / postal | 꽃잎, 낮에는 작은 나비 | 따뜻한 꽃잎 | 반딧불 |
+| 달구름 / cloud | 작은 구름 조각 | 분홍 구름 조각 | 별빛 |
+| 찻집 / teashop | 창가 빗방울, 카드의 김 | 따뜻한 창가와 김 | 어두운 창가와 김 |
+| 해변 / seaside | 수면 반짝임 | 금빛 수면 | 달빛 수면과 별 |
+
+이 다섯 팩은 본문 색을 모든 시간대에 고정하고 `nightBodyColor`를 지정하지 않는다.
+홈 카드는 공통 최소 높이 164dp를 유지한다. 원판 주변에는 기존 소품만 두며,
+예전 가로 배경을 원판 뒤에 늘려 그려서 장면이 한 번 더 반복되지 않게 한다.
+움직임은 오른쪽 풍경 안에서만, 홈 6초 / 진행·루틴 12초 반복이다.
+설정은 정적이며, 접근성의 애니메이션 축소·숨겨진 탭·앱 백그라운드에서 중지한다.
+시간대는 기기 현지 시각의 고정 구간으로, 실제 일출·일몰 계산은 하지 않는다.
+
+이 변경은 **앱 내부 4개 메뉴**에 적용된다. OS 홈 위젯의 정적 배경과 갱신 정책은 별도다.
+`design/remaining-pack-scenes/prompts.json`에 built-in image_gen 원화 생성 프롬프트와
+원본 경로를 기록했다. 번들에는 최적화한 원화 10장(약 2.9MB)만 싣는다.
+`tool/render_pack_time_scenes.dart`로 실제 홈 20장과 카드 상단·높이를 검증한다.
 
 숲이나 구름처럼 위젯 전체에 까는 팩 전용 풍경은 `assets/pack_backgrounds/`에
 두고, Android `drawable-nodpi/`와 iOS `Artwork/`에도 같은 그림을 둔다.
@@ -129,7 +184,8 @@
 5. `CharacterPackCatalog`에 팩을 정의하고 `all`에 넣는다. 팔 팩이면 `forSale`과
    `productId`를 주고, Play Console에 상품을 등록한다(`docs/STORE_PRODUCTS.md`).
 6. 이름·소개 문구를 5개 언어 arb에 넣는다.
-7. `PackSkinCatalog.byPackId`에 겉모습을 적는다.
+7. `PackSkinCatalog.byPackId`에 겉모습을 적는다. 시간대 장면이 있으면
+   상단·카드 그림 4장씩 또는 `PackTimedScene.graded` 원화 2장과 움직임 계열을 더한다.
 8. Android: 리소스 4종과 `RoutineWidgetSkin.forPack`.
 9. iOS: `Artwork/widget_<name>.png`와 `WidgetPackSkin.forPack`.
 10. `flutter test`를 돌린다. 빠진 조각은 `pack_spec_test.dart`가 하나씩 짚는다.

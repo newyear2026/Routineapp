@@ -11,6 +11,7 @@ import '../store/character_pack_scope.dart';
 import '../store/character_pack_text.dart';
 import '../../theme/pack_skin.dart';
 import '../../theme/pack_skin_catalog.dart';
+import '../../data/store/character_pack_catalog.dart';
 
 /// 지금 쓰는 팩을 보여 주고 팩 목록으로 보낸다.
 ///
@@ -24,6 +25,7 @@ class CurrentPackCard extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     final pack = CharacterPackScope.currentOf(context);
     final garden = PackSkinCatalog.of(pack).decorStyle == PackDecorStyle.garden;
+    final squirrelForest = pack.id == CharacterPackCatalog.explorerSquirrel.id;
     return Semantics(
       button: true,
       label: '${l10n.characterPackTitle}, ${pack.name(l10n)}',
@@ -82,7 +84,7 @@ class CurrentPackCard extends StatelessWidget {
                   ]);
             return Stack(
               children: [
-                if (!garden) ...[
+                if (!garden && !squirrelForest) ...[
                   Positioned(
                     key: const Key('settings-pack-sky-decoration'),
                     left: -8,

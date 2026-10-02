@@ -105,7 +105,13 @@ void main() {
         preferencesLoader: () async =>
             NotificationPreferences.firstLaunchDefaults,
       ),
-      nowProvider: () => DateTime(2026, 9, 8, 15, 14),
+      nowProvider: () => DateTime(
+        2026,
+        9,
+        8,
+        const int.fromEnvironment('PREVIEW_HOUR', defaultValue: 15),
+        const int.fromEnvironment('PREVIEW_MINUTE', defaultValue: 14),
+      ),
       clockAutoRefreshEnabled: false,
     );
     await app.load();

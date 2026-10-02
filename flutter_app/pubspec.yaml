@@ -121,11 +121,50 @@ flutter:
     - assets/decorations/sheep-cloud.png
     - assets/decorations/sheep-moon.png
     - assets/decorations/sheep-book.png
+    - assets/decorations/redpanda-teapot.png
+    - assets/decorations/redpanda-window.png
+    - assets/decorations/redpanda-teacup.png
+    - assets/decorations/otter-shell.png
+    - assets/decorations/otter-wave.png
+    - assets/decorations/otter-seaglass.png
     - assets/pack_backgrounds/squirrel-forest.png
     - assets/pack_backgrounds/squirrel-home-header.png
+    - assets/pack_backgrounds/squirrel-home-header-morning.png
+    - assets/pack_backgrounds/squirrel-home-header-evening.png
+    - assets/pack_backgrounds/squirrel-home-header-night.png
     - assets/pack_backgrounds/squirrel-home-card.png
+    - assets/pack_backgrounds/squirrel-home-card-evening.png
+    - assets/pack_backgrounds/squirrel-home-card-night.png
+    - assets/pack_backgrounds/starlight-header-morning.png
+    - assets/pack_backgrounds/starlight-header-day.png
+    - assets/pack_backgrounds/starlight-header-sunset.png
+    - assets/pack_backgrounds/starlight-header-night.png
+    - assets/pack_backgrounds/starlight-card-morning.png
+    - assets/pack_backgrounds/starlight-card-day.png
+    - assets/pack_backgrounds/starlight-card-sunset.png
+    - assets/pack_backgrounds/starlight-card-night.png
+    - assets/pack_backgrounds/poodle-header-morning.png
+    - assets/pack_backgrounds/poodle-header-day.png
+    - assets/pack_backgrounds/poodle-header-sunset.png
+    - assets/pack_backgrounds/poodle-header-night.png
+    - assets/pack_backgrounds/poodle-card-morning.png
+    - assets/pack_backgrounds/poodle-card-day.png
+    - assets/pack_backgrounds/poodle-card-sunset.png
+    - assets/pack_backgrounds/poodle-card-night.png
+    - assets/pack_backgrounds/stargazer-scene-header.png
+    - assets/pack_backgrounds/stargazer-scene-card.png
+    - assets/pack_backgrounds/rabbit-scene-header.png
+    - assets/pack_backgrounds/rabbit-scene-card.png
+    - assets/pack_backgrounds/sheep-scene-header.png
+    - assets/pack_backgrounds/sheep-scene-card.png
+    - assets/pack_backgrounds/redpanda-scene-header.png
+    - assets/pack_backgrounds/redpanda-scene-card.png
+    - assets/pack_backgrounds/otter-scene-header.png
+    - assets/pack_backgrounds/otter-scene-card.png
     - assets/pack_backgrounds/rabbit-dawn.png
     - assets/pack_backgrounds/sheep-sky.png
+    - assets/pack_backgrounds/redpanda-teashop.png
+    - assets/pack_backgrounds/otter-seaside.png
     - assets/characters/cat_starlight/v1/approved/idle.png
     - assets/characters/cat_starlight/v1/approved/activity.png
     - assets/characters/cat_starlight/v1/approved/focus.png
@@ -162,6 +201,18 @@ flutter:
     - assets/characters/sheep_mooncloud/v1/approved/complete.png
     - assets/characters/sheep_mooncloud/v1/approved/rest.png
     - assets/characters/sheep_mooncloud/v1/approved/guide.png
+    - assets/characters/redpanda_teashop/v1/approved/idle.png
+    - assets/characters/redpanda_teashop/v1/approved/activity.png
+    - assets/characters/redpanda_teashop/v1/approved/focus.png
+    - assets/characters/redpanda_teashop/v1/approved/complete.png
+    - assets/characters/redpanda_teashop/v1/approved/rest.png
+    - assets/characters/redpanda_teashop/v1/approved/guide.png
+    - assets/characters/otter_seaside/v1/approved/idle.png
+    - assets/characters/otter_seaside/v1/approved/activity.png
+    - assets/characters/otter_seaside/v1/approved/focus.png
+    - assets/characters/otter_seaside/v1/approved/complete.png
+    - assets/characters/otter_seaside/v1/approved/rest.png
+    - assets/characters/otter_seaside/v1/approved/guide.png
 
   # ARB 기반 다국어 코드 생성 (lib/l10n/*.arb -> AppLocalizations)
   generate: true

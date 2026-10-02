@@ -21,6 +21,7 @@ class PackSkin {
     required this.homeScene,
     required this.widget,
     this.appDial = const DialPalette(),
+    this.timedScene,
   });
 
   final String Function(AppLocalizations) name;
@@ -37,6 +38,77 @@ class PackSkin {
 
   /// 홈 화면 위젯의 앱 안 미리보기. 네이티브 위젯은 이 값을 미러링한다.
   final PackWidgetSkin widget;
+
+  /// 기기 시각에 따라 홈과 메뉴에 쓰는 상단·카드 장면.
+  final PackTimedScene? timedScene;
+}
+
+enum PackSceneStyle {
+  squirrel,
+  starlight,
+  poodle,
+  stargazer,
+  postal,
+  cloud,
+  teashop,
+  seaside
+}
+
+enum PackScenePhase {
+  morning,
+  day,
+  sunset,
+  night;
+
+  static PackScenePhase fromHour(int hour) {
+    if (hour >= 5 && hour < 11) return morning;
+    if (hour >= 11 && hour < 17) return day;
+    if (hour >= 17 && hour < 20) return sunset;
+    return night;
+  }
+}
+
+/// 네 시간대의 상단/카드 그림을 한 팩에서 정의한다.
+class PackTimedScene {
+  const PackTimedScene({
+    required this.style,
+    required List<String> headers,
+    required List<String> cards,
+    this.nightBodyColor,
+  })  : _headers = headers,
+        _cards = cards,
+        _header = null,
+        _card = null,
+        graded = false;
+
+  /// 두 개의 독립 구도에 공통 시간대 조명을 입힌다.
+  const PackTimedScene.graded({
+    required this.style,
+    required String header,
+    required String card,
+  })  : _headers = const [],
+        _cards = const [],
+        _header = header,
+        _card = card,
+        graded = true,
+        nightBodyColor = null;
+
+  final PackSceneStyle style;
+  final List<String> _headers;
+  final List<String> _cards;
+  final String? _header;
+  final String? _card;
+  final bool graded;
+  List<String> get headers => graded ? List.filled(4, _header!) : _headers;
+  List<String> get cards => graded ? List.filled(4, _card!) : _cards;
+
+  /// 밤에만 본문 색을 바꿀 팩에 지정한다. null이면 팩의 기본 페이지 색을 쓴다.
+  final Color? nightBodyColor;
+
+  String headerAt(int hour) => headers[PackScenePhase.fromHour(hour).index];
+  String cardAt(int hour) => cards[PackScenePhase.fromHour(hour).index];
+  bool lightHeaderAt(int hour) =>
+      PackScenePhase.fromHour(hour) == PackScenePhase.night;
 }
 
 /// 홈 밖 화면의 머리 장식 계열.
@@ -223,4 +295,10 @@ enum WidgetDecor {
 
   /// 달구름 양의 흐린 파스텔 하늘.
   mooncloud,
+
+  /// 비 오는 날의 찻집 풍경.
+  teashop,
+
+  /// 햇살이 비치는 잔잔한 바다 풍경.
+  seaside,
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
@@ -29,6 +30,7 @@ import '../widgets/settings/settings_list_items.dart';
 import '../widgets/settings/settings_section.dart';
 import '../widgets/store/purchase_text.dart';
 import '../theme/pack_skin.dart';
+import '../widgets/home/pack_time_scene.dart';
 
 /// 설정 화면은 섹션 배치와 화면 전환만 담당한다.
 /// 알림 설정의 로드·저장·권한 요청은 [SettingsController]에 둔다.
@@ -112,8 +114,11 @@ class _SettingsScreenContent extends StatelessWidget {
     final updates = context.maybeWatch<AppUpdates>();
     final announcements = context.maybeWatch<ReleaseAnnouncements>();
     final purchases = context.maybeWatch<PackPurchases>();
+    final timeScene = PackTimeScene.of(context, appController.now.hour);
+    final lightHeaderText = timeScene?.hasLightHeaderText ?? false;
 
-    return Scaffold(
+    final scaffold = Scaffold(
+      backgroundColor: timeScene?.bodyColor,
       bottomNavigationBar: OrbitBottomNavigation(
         currentIndex: 3,
         onHome: () => context.go('/home'),
@@ -122,6 +127,8 @@ class _SettingsScreenContent extends StatelessWidget {
         onSettings: () {},
       ),
       body: AppScreenShell(
+        backgroundColor: timeScene?.bodyColor,
+        background: timeScene?.backdrop(animate: false),
         // 탭 목적지이므로 뒤로가기를 두지 않고, 다른 탭과 같은 좌측 정렬 헤더를 쓴다.
         child: ListView(
           padding: const EdgeInsets.fromLTRB(24, 48, 24, 28),
@@ -133,6 +140,8 @@ class _SettingsScreenContent extends StatelessWidget {
               ),
               title: l10n.settingsTitle,
               subtitle: l10n.settingsSubtitle,
+              lightHeaderText: lightHeaderText,
+              timedBackdrop: timeScene != null,
             ),
             const SizedBox(height: 18),
             const CurrentPackCard(),
@@ -331,6 +340,16 @@ class _SettingsScreenContent extends StatelessWidget {
         ),
       ),
     );
+    return AnnotatedRegion<SystemUiOverlayStyle>(
+      value: SystemUiOverlayStyle(
+        statusBarColor: Colors.transparent,
+        statusBarIconBrightness:
+            lightHeaderText ? Brightness.light : Brightness.dark,
+        statusBarBrightness:
+            lightHeaderText ? Brightness.dark : Brightness.light,
+      ),
+      child: scaffold,
+    );
   }
 
   /// 바깥 화면을 연다. 열지 못하면 조용히 끝내지 않고 [failureMessage]로 알린다.
@@ -398,11 +417,15 @@ class _SettingsSkyHeader extends StatelessWidget {
     required this.caption,
     required this.title,
     required this.subtitle,
+    required this.lightHeaderText,
+    required this.timedBackdrop,
   });
 
   final String caption;
   final String title;
   final String subtitle;
+  final bool lightHeaderText;
+  final bool timedBackdrop;
 
   @override
   Widget build(BuildContext context) {
@@ -411,7 +434,7 @@ class _SettingsSkyHeader extends StatelessWidget {
     return Stack(
       clipBehavior: Clip.none,
       children: [
-        if (!garden)
+        if (!garden && !timedBackdrop)
           Positioned(
             key: const Key('settings-sky-decoration'),
             right: -6,
@@ -450,11 +473,26 @@ class _SettingsSkyHeader extends StatelessWidget {
         Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(caption, style: AppTextStyles.caption),
+            Text(
+              caption,
+              style: AppTextStyles.caption.copyWith(
+                color: lightHeaderText ? const Color(0xFFE6ECFF) : null,
+              ),
+            ),
             const SizedBox(height: 2),
-            Text(title, style: AppTextStyles.titleScreen),
+            Text(
+              title,
+              style: AppTextStyles.titleScreen.copyWith(
+                color: lightHeaderText ? Colors.white : null,
+              ),
+            ),
             const SizedBox(height: 3),
-            Text(subtitle, style: AppTextStyles.caption),
+            Text(
+              subtitle,
+              style: AppTextStyles.caption.copyWith(
+                color: lightHeaderText ? const Color(0xFFE6ECFF) : null,
+              ),
+            ),
           ],
         ),
       ],

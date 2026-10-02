@@ -50,7 +50,7 @@ data class RoutineWidgetSkin(
         val nowLabelText: Int = Color.parseColor("#6A6489"),
     )
 
-    enum class MediumDecor { SKY, GARDEN, FOREST, MOONCLOUD, DAWN, NONE }
+    enum class MediumDecor { SKY, GARDEN, FOREST, MOONCLOUD, DAWN, TEASHOP, SEASIDE, NONE }
 
     /** 타임라인·카드 위젯([RoutineWidgetVariantBitmap]). */
     data class VariantSkin(
@@ -68,7 +68,7 @@ data class RoutineWidgetSkin(
      * 변형 위젯의 그리기 방식. 기본 장면 위에 값만 바꿔 얹는 팩은 [STANDARD]를
      * 쓰고, 장면을 통째로 새로 그리는 팩은 자기 이름의 방식을 더한다.
      */
-    enum class VariantStyle { STANDARD, STARGAZER, RABBIT, SQUIRREL, SHEEP }
+    enum class VariantStyle { STANDARD, STARGAZER, RABBIT, SQUIRREL, SHEEP, TEASHOP, SEASIDE }
 
     data class StandardScene(
         val background: Int,
@@ -252,6 +252,68 @@ data class RoutineWidgetSkin(
             ),
         )
 
+        private val redPandaTeashop = RoutineWidgetSkin(
+            ring = RingColors(
+                dial = Color.parseColor("#F8EAD7"),
+                dialOutline = Color.parseColor("#3D302D"),
+                surface = Color.parseColor("#FFFDF6"),
+                track = Color.parseColor("#C7DED4"),
+                pointer = Color.parseColor("#376D68"),
+                hourLabel = Color.parseColor("#3D302D"),
+                tick = Color.parseColor("#776B65"),
+                centerLabelInk = Color.parseColor("#3D302D"),
+                centerLabelSurface = Color.parseColor("#FFE6B9"),
+            ),
+            medium = MediumSkin(
+                background = R.drawable.widget_medium_bg_redpanda,
+                badgeBackground = R.drawable.widget_badge_bg_redpanda,
+                mascot = R.drawable.widget_redpanda,
+                featuredMascot = true,
+                decor = MediumDecor.TEASHOP,
+                title = Color.parseColor("#3D302D"),
+                muted = Color.parseColor("#776B65"),
+                accent = Color.parseColor("#376D68"),
+            ),
+            variant = VariantSkin(
+                style = VariantStyle.TEASHOP,
+                pet = R.drawable.widget_variant_redpanda,
+                timelinePet = RectF(464f, 20f, 633f, 188f),
+                cardsPet = RectF(49f, 49f, 207f, 205f),
+                badgeFill = Color.parseColor("#376D68"),
+            ),
+        )
+
+        private val otterSeaside = RoutineWidgetSkin(
+            ring = RingColors(
+                dial = Color.parseColor("#FFF1D7"),
+                dialOutline = Color.parseColor("#29444A"),
+                surface = Color.parseColor("#FFFDF5"),
+                track = Color.parseColor("#D7F5F2"),
+                pointer = Color.parseColor("#157F8E"),
+                hourLabel = Color.parseColor("#29444A"),
+                tick = Color.parseColor("#59777A"),
+                centerLabelInk = Color.parseColor("#29444A"),
+                centerLabelSurface = Color.parseColor("#FFE7C3"),
+            ),
+            medium = MediumSkin(
+                background = R.drawable.widget_medium_bg_otter,
+                badgeBackground = R.drawable.widget_badge_bg_otter,
+                mascot = R.drawable.widget_otter,
+                featuredMascot = true,
+                decor = MediumDecor.SEASIDE,
+                title = Color.parseColor("#29444A"),
+                muted = Color.parseColor("#59777A"),
+                accent = Color.parseColor("#157F8E"),
+            ),
+            variant = VariantSkin(
+                style = VariantStyle.SEASIDE,
+                pet = R.drawable.widget_variant_otter,
+                timelinePet = RectF(464f, 20f, 633f, 188f),
+                cardsPet = RectF(49f, 49f, 207f, 205f),
+                badgeFill = Color.parseColor("#157F8E"),
+            ),
+        )
+
         /** 기본 팩. 모르는 팩 ID(옛 앱이 남긴 값 등)도 이것으로 그린다. */
         val default: RoutineWidgetSkin get() = starlightCat
 
@@ -262,6 +324,8 @@ data class RoutineWidgetSkin(
             "rabbit_postman" -> postmanRabbit
             "squirrel_explorer" -> explorerSquirrel
             "sheep_mooncloud" -> mooncloudSheep
+            "redpanda_teashop" -> redPandaTeashop
+            "otter_seaside" -> otterSeaside
             else -> starlightCat
         }
     }
