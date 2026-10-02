@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../application/home/home_focus_state.dart';
 import '../../application/home/home_snapshot.dart';
+import '../../data/store/character_pack_catalog.dart';
 import '../../domain/models/routine.dart';
 import '../../domain/utils/time_minutes.dart';
 import '../../l10n/app_localizations.dart';
@@ -14,6 +15,8 @@ import '../ds/app_status_badge.dart';
 import '../ds/routine_mark.dart';
 import '../ds/segmented_progress.dart';
 import 'pack_time_scene.dart';
+import 'starlight_home_motion.dart';
+import '../store/character_pack_scope.dart';
 
 /// 홈 첫 카드 — 홈 화면 위젯 카드를 앱 안으로 옮긴 것.
 ///
@@ -36,6 +39,13 @@ class HomeFocusCard extends StatelessWidget {
     final shape = AppPixelStyle.shape(width: 2);
     final timeScene = PackTimeScene.of(context, home.clockTime.hour);
     final cardAtmosphere = timeScene?.cardAtmosphere();
+    final starlightPack = CharacterPackScope.currentOf(context).id ==
+        CharacterPackCatalog.starlightCat.id;
+    final starlightMode = switch (state) {
+      HomeFocusState.active => StarlightHomeMode.active,
+      HomeFocusState.completed => StarlightHomeMode.complete,
+      _ => StarlightHomeMode.idle,
+    };
 
     return Material(
       type: MaterialType.transparency,
@@ -177,10 +187,12 @@ class HomeFocusCard extends StatelessWidget {
                   bottom: 4,
                   width: _catWidth,
                   height: 96,
-                  child: AnimatedCat(
-                    pose: homeCatPose(home),
-                    homeMotion: true,
-                  ),
+                  child: starlightPack
+                      ? StarlightHomeMotion(mode: starlightMode)
+                      : AnimatedCat(
+                          pose: homeCatPose(home),
+                          homeMotion: true,
+                        ),
                 ),
               ],
             ),

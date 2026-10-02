@@ -167,6 +167,7 @@ flutter:
     - assets/pack_backgrounds/otter-seaside.png
     - assets/characters/cat_starlight/v1/approved/idle.png
     - assets/characters/cat_starlight/v1/approved/activity.png
+    - assets/characters/cat_starlight/v1/prototype/walk_step.png
     - assets/characters/cat_starlight/v1/approved/focus.png
     - assets/characters/cat_starlight/v1/approved/complete.png
     - assets/characters/cat_starlight/v1/approved/rest.png

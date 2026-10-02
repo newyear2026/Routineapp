@@ -16,6 +16,7 @@ import 'package:routine_timer/screens/home_screen.dart';
 import 'package:routine_timer/widgets/ds/animated_cat.dart';
 import 'package:routine_timer/widgets/ds/orbit_bottom_navigation.dart';
 import 'package:routine_timer/widgets/ds/routine_mark.dart';
+import 'package:routine_timer/widgets/home/starlight_home_motion.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/test_doubles.dart';
@@ -112,6 +113,10 @@ void main() {
 
     expect(find.text('예정'), findsWidgets);
     expect(find.text('진행 중'), findsNothing);
+    expect(
+      tester.widget<StarlightHomeMotion>(find.byType(StarlightHomeMotion)).mode,
+      StarlightHomeMode.idle,
+    );
   });
 
   testWidgets('진행 중인 루틴이 있으면 진행 중을 보여준다', (tester) async {
@@ -122,6 +127,10 @@ void main() {
     addTearDown(controller.dispose);
 
     expect(find.text('진행 중'), findsOneWidget);
+    expect(
+      tester.widget<StarlightHomeMotion>(find.byType(StarlightHomeMotion)).mode,
+      StarlightHomeMode.active,
+    );
     expect(find.text('NOW'), findsNothing);
     expect(find.text('NEXT'), findsNothing);
     // 원형 시간표 중앙이 같은 이름을 반복하지 않는다.
@@ -196,8 +205,8 @@ void main() {
         tester.getRect(find.byKey(const Key('home-complete-button')));
 
     expect(find.byKey(const Key('home-timetable-cat')), findsNothing);
-    expect(card.contains(cat.topLeft) && card.contains(cat.bottomRight),
-        isTrue);
+    expect(
+        card.contains(cat.topLeft) && card.contains(cat.bottomRight), isTrue);
     expect(cat.overlaps(line), isFalse);
     expect(card.bottom, lessThanOrEqualTo(scene.top));
     expect(plant.left, greaterThan(scene.left));
@@ -228,13 +237,11 @@ void main() {
         tester.getRect(find.byKey(const Key('home-complete-button')));
 
     expect(
-      tester
-          .widget<AnimatedCat>(find.descendant(
-            of: find.byKey(const Key('home-focus-cat')),
-            matching: find.byType(AnimatedCat),
-          ))
-          .pose,
-      CatPose.activity,
+      tester.widget<StarlightHomeMotion>(find.descendant(
+        of: find.byKey(const Key('home-focus-cat')),
+        matching: find.byType(StarlightHomeMotion),
+      )).mode,
+      StarlightHomeMode.active,
     );
     expect(card.contains(cat.center), isTrue);
     expect(cat.overlaps(line), isFalse);
@@ -258,6 +265,10 @@ void main() {
     expect(controller.todayLogs.single.routineId, 'lunch');
     expect(controller.todayLogs.single.status, RoutineLogStatus.completed);
     expect(controller.progressSummary.completed, 1);
+    expect(
+      tester.widget<StarlightHomeMotion>(find.byType(StarlightHomeMotion)).mode,
+      StarlightHomeMode.complete,
+    );
     expect(
       tester
           .widget<AnimatedCat>(find.descendant(
@@ -380,8 +391,7 @@ void main() {
     expect(find.byKey(const Key('home-skip-button')), findsOneWidget);
   });
 
-  testWidgets('예정이면 버튼 없이 시작까지 남은 시간을 이름 아래 한 줄로 보여준다',
-      (tester) async {
+  testWidgets('예정이면 버튼 없이 시작까지 남은 시간을 이름 아래 한 줄로 보여준다', (tester) async {
     // 테스트 글꼴은 글자마다 폭이 글자 크기와 같아 실제보다 넓다.
     // 360dp 실제 글꼴 확인은 기기에서 한다 (DEVICE_VALIDATION.md).
     tester.view
