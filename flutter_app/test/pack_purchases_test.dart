@@ -47,28 +47,28 @@ void main() {
   Future<void> settle() => Future<void>.delayed(Duration.zero);
 
   group('상품 표', () {
-    test('판매 팩마다 단품이 있고, 번들은 판매 팩·광고 팩·광고 제거를 준다', () {
+    test('판매 팩마다 단품이 있고, 번들은 지정한 5종과 광고 제거만 준다', () {
       final grants = StoreProductCatalog.grants;
       expect(grants[_rabbit], {'rabbit_postman'});
       expect(grants[_squirrel], {'squirrel_explorer'});
       expect(grants[_sheep], {'sheep_mooncloud'});
-      // 정확한 구성은 pack_spec_test가 모든 팩에 대해 본다. 팩이 늘어도 여기는
-      // 고치지 않도록 포함만 확인한다.
-      expect(
-          grants[_bundle],
-          containsAll([
-            'rabbit_postman',
-            'squirrel_explorer',
-            'sheep_mooncloud',
-            'poodle_garden',
-            StoreProductCatalog.adFree,
-          ]));
+      expect(grants[_bundle], {
+        'rabbit_postman',
+        'squirrel_explorer',
+        'sheep_mooncloud',
+        'redpanda_teashop',
+        'otter_seaside',
+        StoreProductCatalog.adFree,
+      });
     });
 
-    test('출시 선물과 기본 제공 팩은 어떤 상품으로도 팔지 않는다', () {
+    test('출시 선물·기본 제공·광고 팩은 어떤 상품으로도 팔지 않는다', () {
       final sold = StoreProductCatalog.grants.values.expand((ids) => ids);
       expect(sold, isNot(contains(CharacterPackCatalog.stargazerCat.id)));
       expect(sold, isNot(contains(CharacterPackCatalog.starlightCat.id)));
+      expect(sold, isNot(contains(CharacterPackCatalog.penguinSnowWalk.id)));
+      expect(StoreProductCatalog.productIds,
+          isNot(contains('loopet.pack.penguin_snow_walk')));
     });
   });
 
@@ -114,7 +114,7 @@ void main() {
     expect(p.isBuying(_rabbit), isFalse);
   });
 
-  test('번들을 사면 모든 팩과 광고 제거를 받는다', () async {
+  test('번들을 사면 5종과 광고 제거를 저장하고 푸들은 지급하지 않는다', () async {
     final p = purchases(restoreOnStart: false);
     await p.start();
     await p.buy(_bundle);
@@ -122,10 +122,34 @@ void main() {
     await settle();
 
     expect(p.adFree, isTrue);
-    expect(p.entitlements,
-        containsAll(['rabbit_postman', 'squirrel_explorer', 'poodle_garden']));
+    expect(p.entitlements, {
+      'rabbit_postman',
+      'squirrel_explorer',
+      'sheep_mooncloud',
+      'redpanda_teashop',
+      'otter_seaside',
+      StoreProductCatalog.adFree,
+    });
+    expect(store.saved, p.entitlements);
     expect(p.ownsProduct(_bundle), isTrue);
     expect(p.ownsProduct(_rabbit), isTrue, reason: '번들이 단품을 덮는다');
+  });
+
+  test('새 설치에서 번들을 복원해도 같은 5종과 광고 제거만 받는다', () async {
+    backend.ownedProductIds = [_bundle];
+    final p = purchases();
+    await p.start();
+    await settle();
+    expect(p.entitlements, {
+      'rabbit_postman',
+      'squirrel_explorer',
+      'sheep_mooncloud',
+      'redpanda_teashop',
+      'otter_seaside',
+      StoreProductCatalog.adFree,
+    });
+    expect(p.ownsProduct(_bundle), isTrue);
+    expect(store.saved, p.entitlements);
   });
 
   test('이미 다 가진 상품은 결제 창을 열지 않는다', () async {

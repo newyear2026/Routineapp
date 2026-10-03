@@ -1,7 +1,7 @@
 name: routine_timer
 description: 귀여운 감성 루틴 관리 앱
 publish_to: 'none'
-version: 1.0.2+6
+version: 1.0.3+7
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
@@ -84,6 +84,7 @@ flutter:
   # cacheWidth 384/256으로 디코딩하므로 3x 기기까지 이 크기면 충분하다.
   # 1254px 원본은 design/decorations-src 와 characters/cat_starlight/v1 에 있다.
   assets:
+    - assets/store/bundles/five_pack_forest_picnic.png
     - assets/apps/randomfocus.png
     - assets/routine_icons/book.png
     - assets/routine_icons/coffee.png
@@ -127,6 +128,9 @@ flutter:
     - assets/decorations/otter-shell.png
     - assets/decorations/otter-wave.png
     - assets/decorations/otter-seaglass.png
+    - assets/decorations/penguin-snowflake.png
+    - assets/decorations/penguin-mitten.png
+    - assets/decorations/penguin-thermos.png
     - assets/pack_backgrounds/squirrel-forest.png
     - assets/pack_backgrounds/squirrel-home-header.png
     - assets/pack_backgrounds/squirrel-home-header-morning.png
@@ -165,6 +169,9 @@ flutter:
     - assets/pack_backgrounds/sheep-sky.png
     - assets/pack_backgrounds/redpanda-teashop.png
     - assets/pack_backgrounds/otter-seaside.png
+    - assets/pack_backgrounds/penguin-scene-header.png
+    - assets/pack_backgrounds/penguin-scene-card.png
+    - assets/pack_backgrounds/penguin-snowpath.png
     - assets/characters/cat_starlight/v1/approved/idle.png
     - assets/characters/cat_starlight/v1/approved/activity.png
     - assets/characters/cat_starlight/v1/prototype/walk_step.png
@@ -214,6 +221,12 @@ flutter:
     - assets/characters/otter_seaside/v1/approved/complete.png
     - assets/characters/otter_seaside/v1/approved/rest.png
     - assets/characters/otter_seaside/v1/approved/guide.png
+    - assets/characters/penguin_snow_walk/v1/approved/idle.png
+    - assets/characters/penguin_snow_walk/v1/approved/activity.png
+    - assets/characters/penguin_snow_walk/v1/approved/focus.png
+    - assets/characters/penguin_snow_walk/v1/approved/complete.png
+    - assets/characters/penguin_snow_walk/v1/approved/rest.png
+    - assets/characters/penguin_snow_walk/v1/approved/guide.png
 
   # ARB 기반 다국어 코드 생성 (lib/l10n/*.arb -> AppLocalizations)
   generate: true

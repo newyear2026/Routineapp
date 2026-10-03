@@ -356,6 +356,10 @@ class _MemoryLogRepository implements RoutineLogRepository {
 
 class _NoopNotificationGateway implements LocalNotificationGateway {
   @override
+  Future<void> show({required int id, required String title,
+    required String body, required NotificationDetails details}) async {}
+
+  @override
   Future<void> cancel(int id) async {}
 
   @override

@@ -166,6 +166,8 @@ class _ExactAlarmPermissionWatcherState
     context.read<RoutineAppController>().resyncIfExactAlarmPermissionChanged();
     // 앱 밖(Play 스토어)에서 쓴 프로모션 코드 등을 잡는다.
     unawaited(context.read<PackPurchases>().refreshOnResume());
+    // 어느 화면에 있든 앱 복귀 시 확인한다. 간격 제한은 컨트롤러가 맡는다.
+    unawaited(context.read<AppUpdates>().refreshOnResume());
   }
 
   @override

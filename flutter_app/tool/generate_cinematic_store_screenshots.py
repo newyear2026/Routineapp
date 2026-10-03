@@ -87,12 +87,12 @@ def background(card: Card, index: int) -> Image.Image:
     return canvas
 
 
-def screenshot(name: str) -> Image.Image:
-    source = Image.open(SOURCE / f"{name}.png").convert("RGBA")
+def screenshot(name: str, source_dir: Path = SOURCE) -> Image.Image:
+    source = Image.open(source_dir / f"{name}.png").convert("RGBA")
     return source.crop((189, 264, 892, 1792))
 
 
-def device(name: str, width: int, angle: float) -> Image.Image:
+def device(name: str, width: int, angle: float, source_dir: Path = SOURCE) -> Image.Image:
     inside_w = width - 34
     inside_h = round(inside_w * 1528 / 703)
     body_h = inside_h + 34
@@ -103,7 +103,7 @@ def device(name: str, width: int, angle: float) -> Image.Image:
     draw.rounded_rectangle(outline, radius=93, fill="#050507", outline="#68636D", width=5)
     draw.rounded_rectangle((inset + 8, inset + 8, inset + width - 8, inset + body_h - 8),
                            radius=86, outline="#222027", width=7)
-    screen = screenshot(name).resize((inside_w, inside_h), Image.Resampling.LANCZOS)
+    screen = screenshot(name, source_dir).resize((inside_w, inside_h), Image.Resampling.LANCZOS)
     mask = Image.new("L", (inside_w, inside_h))
     ImageDraw.Draw(mask).rounded_rectangle((0, 0, inside_w - 1, inside_h - 1), radius=72, fill=255)
     stage.paste(screen, (inset + 17, inset + 17), mask)

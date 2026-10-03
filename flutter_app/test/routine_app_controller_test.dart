@@ -456,6 +456,10 @@ RoutineNotificationService _testNotificationService() {
 
 class _FakeLocalNotificationGateway implements LocalNotificationGateway {
   @override
+  Future<void> show({required int id, required String title,
+    required String body, required NotificationDetails details}) async {}
+
+  @override
   Future<void> initialize() async {}
 
   @override
@@ -491,6 +495,10 @@ class _FakeLocalNotificationGateway implements LocalNotificationGateway {
 }
 
 class _ThrowingNotificationGateway implements LocalNotificationGateway {
+  @override
+  Future<void> show({required int id, required String title,
+    required String body, required NotificationDetails details}) async {}
+
   @override
   Future<void> initialize() async {}
 

@@ -381,6 +381,42 @@ class AppThemePreset {
     ),
   );
 
+  static const penguinSnowWalk = AppThemePreset(
+    id: 'penguin_snow_walk',
+    previewColors: [
+      Color(0xFFEAF3FF),
+      Color(0xFFE4E0FA),
+      Color(0xFF6879C7),
+      Color(0xFFFFABB5),
+    ],
+    pageGradient: LinearGradient(
+      colors: [Color(0xFFF8FAFF), Color(0xFFEAF0FF)],
+    ),
+    shellGradient: LinearGradient(
+      colors: [Color(0xFFFFFFFF), Color(0xFFEDEBFA)],
+    ),
+    primaryButtonGradient: LinearGradient(
+      colors: [Color(0xFF6577C7), Color(0xFF8D8BD7)],
+    ),
+    softAccentGradient: LinearGradient(
+      colors: [Color(0xFFDAE8FF), Color(0xFFE9DFFF)],
+    ),
+    highlightGradient: LinearGradient(
+      colors: [Color(0xFFFFE9E3), Color(0xFFE2D9FF)],
+    ),
+    textPrimary: Color(0xFF2D344F),
+    textMuted: Color(0xFF697497),
+    accentPink: Color(0xFFFFABB5),
+    accentLavender: Color(0xFFDCCFFF),
+    pageBackground: Color(0xFFF8FAFF),
+    primaryColor: Color(0xFF6577C7),
+    surfaceColor: Color(0xFFFFFFFF),
+    selectedSurface: Color(0xFFDFE9FF),
+    focusCardGradient: LinearGradient(
+      colors: [Color(0xFFEAF3FF), Color(0xFFE4E0FA)],
+    ),
+  );
+
   static const all = [
     softDay,
     peachSunset,
@@ -392,6 +428,7 @@ class AppThemePreset {
     mooncloudSheep,
     redPandaTeashop,
     otterSeaside,
+    penguinSnowWalk,
   ];
 
   static AppThemePreset byId(String? id) {

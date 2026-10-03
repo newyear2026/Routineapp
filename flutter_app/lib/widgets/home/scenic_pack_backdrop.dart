@@ -341,6 +341,13 @@ class _ScenicParticles extends CustomPainter {
           if (i == 0 && phase == PackScenePhase.night) {
             _star(canvas, x, y, paint);
           }
+        case PackSceneStyle.snowwalk:
+          // Small drifting snow crystals stay in the scenery's right half.
+          paint.color = (phase == PackScenePhase.night
+                  ? const Color(0xFFDDE6FF)
+                  : const Color(0xFFFFFFFF))
+              .withValues(alpha: pulse * (subtle ? 0.42 : 0.76));
+          _star(canvas, x + drift, y + cycle * 16, paint);
         case PackSceneStyle.squirrel:
         case PackSceneStyle.starlight:
         case PackSceneStyle.poodle:

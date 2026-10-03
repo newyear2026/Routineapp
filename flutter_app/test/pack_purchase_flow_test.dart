@@ -232,6 +232,40 @@ void main() {
   });
 
   group('팩 목록', () {
+    testWidgets('구매 완료한 팩은 내 캐릭터에 추가되고 목록에서 바로 적용한다', (tester) async {
+      late PackPurchases purchases;
+      late RoutineAppController controller;
+      await tester.runAsync(() async {
+        purchases = await startPurchases();
+        controller = await loadController(purchases);
+      });
+      await tester.pumpWidget(
+          app(controller, purchases, const CharacterPackStoreScreen()));
+      await tester.pump();
+      expect(find.byKey(const Key('owned-pack-rabbit_postman')), findsNothing);
+      await tester.tap(find.byKey(const Key('pack-tab-store')));
+      await tester.runAsync(() async {
+        backend.emit([detailsFor(_rabbit, PurchaseStatus.purchased)]);
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      });
+      await tester.pumpAndSettle();
+      expect(
+          find.descendant(
+              of: find.byKey(const Key('sale-pack-rabbit_postman')),
+              matching: find.text(testL10n.characterPackOwned)),
+          findsOneWidget);
+      await tester.tap(find.byKey(const Key('pack-tab-collection')));
+      await tester.pumpAndSettle();
+      final apply = find.byKey(const Key('apply-pack-rabbit_postman'));
+      await tester.scrollUntilVisible(apply, 250);
+      await tester.runAsync(() async {
+        await tester.tap(apply);
+      });
+      await tester.pumpAndSettle();
+      expect(controller.currentPack.id, 'rabbit_postman');
+      expect(find.byKey(const Key('apply-pack-rabbit_postman')), findsNothing);
+    });
+
     testWidgets('번들 카드가 가격과 함께 있고, 판매 팩 딱지는 가격이다', (tester) async {
       tester.view.physicalSize = const Size(430, 2400);
       tester.view.devicePixelRatio = 1;
@@ -246,7 +280,9 @@ void main() {
           app(controller, purchases, const CharacterPackStoreScreen()));
       await tester.pump();
 
-      expect(find.text(testL10n.storeBundleTitle), findsOneWidget);
+      await tester.tap(find.byKey(const Key('pack-tab-store')));
+      await tester.pumpAndSettle();
+      expect(find.text(testL10n.packBundleCountTitle(5)), findsOneWidget);
       expect(find.text(r'$39.00'), findsOneWidget);
       await tester.tap(find.text(testL10n.characterPackBuyAction(r'$89.00')));
       await tester.pump();
@@ -271,7 +307,45 @@ void main() {
       await tester.pumpWidget(
           app(controller, purchases, const CharacterPackStoreScreen()));
       await tester.pump();
-      expect(find.text(testL10n.storeBundleTitle), findsNothing);
+      await tester.tap(find.byKey(const Key('pack-tab-store')));
+      await tester.pumpAndSettle();
+      expect(find.text(testL10n.packBundleCountTitle(5)), findsNothing);
+    });
+
+    testWidgets('5종 묶음 결제 뒤 내 캐릭터에 다섯 팩이 추가되고 푸들은 광고로 연다', (tester) async {
+      tester.view
+        ..physicalSize = const Size(430, 2400)
+        ..devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      late PackPurchases purchases;
+      late RoutineAppController controller;
+      await tester.runAsync(() async {
+        purchases = await startPurchases();
+        controller = await loadController(purchases);
+      });
+      await tester.pumpWidget(
+          app(controller, purchases, const CharacterPackStoreScreen()));
+      await tester.tap(find.byKey(const Key('pack-tab-store')));
+      await tester.pumpAndSettle();
+      await tester.tap(find.byKey(const Key('buy-pack-bundle')));
+      await tester.runAsync(() async {
+        backend.emit([detailsFor(_bundle, PurchaseStatus.purchased)]);
+        await Future<void>.delayed(const Duration(milliseconds: 10));
+      });
+      await tester.pumpAndSettle();
+      expect(backend.bought, [_bundle]);
+      expect(purchases.adFree, isTrue);
+      expect(find.text(testL10n.storeBundleOwned), findsOneWidget);
+      expect(controller.packOwnership.owns(CharacterPackCatalog.poodleGarden),
+          isFalse);
+      expect(find.text(testL10n.characterPackAdUnlockBadge), findsOneWidget);
+
+      await tester.tap(find.byKey(const Key('pack-tab-collection')));
+      await tester.pumpAndSettle();
+      for (final id in StoreProductCatalog.bundlePackIds) {
+        expect(find.byKey(Key('owned-pack-$id')), findsOneWidget);
+      }
+      expect(find.byKey(const Key('owned-pack-poodle_garden')), findsNothing);
     });
   });
 }

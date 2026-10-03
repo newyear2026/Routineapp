@@ -1,4 +1,5 @@
-import 'package:flutter/foundation.dart' show TargetPlatform, defaultTargetPlatform, kIsWeb;
+import 'package:flutter/foundation.dart'
+    show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
@@ -6,6 +7,8 @@ import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../../domain/models/routine.dart';
+import '../../domain/models/routine_log.dart';
+import '../../domain/models/routine_log_status.dart';
 import '../../domain/settings/notification_permission_status.dart';
 import '../../domain/settings/notification_preferences.dart';
 import '../../data/local/notification_preferences_storage.dart';
@@ -111,7 +114,7 @@ class RoutineNotificationService {
       body: l10n.notificationSnoozeBody(routine.title),
       whenLocal: whenLocal,
       details: _notificationDetails(
-        soundEnabled: prefs.soundEnabled,
+        mode: prefs.mode,
         l10n: l10n,
       ),
       payload: snoozePayloadFor(routine.id),
@@ -133,6 +136,10 @@ class RoutineNotificationService {
   /// 소리를 끈 루틴 알림 채널. 진동은 그대로 울린다.
   static const silentChannelId = 'routine_schedule_silent';
 
+  /// 기존 무음 채널은 진동이 켜져 있으므로 화면 전용 채널은 따로 둔다.
+  static const visualChannelId = 'routine_schedule_visual';
+  static const previewNotificationId = 0x7ffffffe;
+
   Future<void> _scheduleRoutine(
     Routine routine, {
     required NotificationPreferences prefs,
@@ -140,7 +147,7 @@ class RoutineNotificationService {
     required bool exact,
   }) async {
     final notificationDetails = _notificationDetails(
-      soundEnabled: prefs.soundEnabled,
+      mode: prefs.mode,
       l10n: l10n,
     );
     final sortedWeekdays = routine.repeatWeekdays.toList()..sort();
@@ -162,7 +169,7 @@ class RoutineNotificationService {
   }
 
   NotificationDetails _notificationDetails({
-    required bool soundEnabled,
+    required RoutineNotificationMode mode,
     required AppLocalizations l10n,
   }) {
     // 채널 ID는 고정이다. 언어가 바뀌어도 같은 채널을 계속 쓴다 —
@@ -173,10 +180,19 @@ class RoutineNotificationService {
     // 시점의 값으로 굳고, 같은 채널에 playSound만 바꿔 걸면 OS가 무시한다.
     // 그래서 소리용과 무음용을 다른 채널로 나눠 두고 설정에 따라 고른다.
     // 설정을 바꾸면 SettingsController가 알림을 다시 걸므로 곧바로 반영된다.
-    final androidChannelId = soundEnabled ? soundChannelId : silentChannelId;
-    final androidChannelName = soundEnabled
-        ? l10n.notificationChannelName
-        : l10n.notificationChannelNameSilent;
+    final soundEnabled = mode == RoutineNotificationMode.soundAndVibration;
+    final vibrationEnabled = mode != RoutineNotificationMode.visualOnly;
+    final androidChannelId = switch (mode) {
+      RoutineNotificationMode.soundAndVibration => soundChannelId,
+      RoutineNotificationMode.vibrationOnly => silentChannelId,
+      RoutineNotificationMode.visualOnly => visualChannelId,
+    };
+    final androidChannelName = switch (mode) {
+      RoutineNotificationMode.soundAndVibration => l10n.notificationChannelName,
+      RoutineNotificationMode.vibrationOnly =>
+        l10n.notificationChannelNameSilent,
+      RoutineNotificationMode.visualOnly => l10n.notificationChannelVisual,
+    };
     final androidChannelDescription = l10n.notificationChannelDesc;
 
     final android = AndroidNotificationDetails(
@@ -186,7 +202,7 @@ class RoutineNotificationService {
       importance: Importance.max,
       priority: Priority.high,
       playSound: soundEnabled,
-      enableVibration: true,
+      enableVibration: vibrationEnabled,
     );
     final darwin = DarwinNotificationDetails(
       presentAlert: true,
@@ -197,6 +213,59 @@ class RoutineNotificationService {
       android: android,
       iOS: darwin,
       macOS: darwin,
+    );
+  }
+
+  /// 설정 변경 시 남아 있는 재알림만 원래 시각 그대로 다시 예약한다.
+  /// 이미 울린 재알림을 로그만 보고 되살리지 않는다.
+  Future<void> refreshPendingSnoozes(
+    List<Routine> routines,
+    List<RoutineLog> logs,
+    AppLocalizations l10n, {
+    DateTime? now,
+  }) async {
+    if (kIsWeb) return;
+    await _gateway.initialize();
+    final pending = await _gateway.pendingNotificationRequests();
+    final currentTime = now ?? DateTime.now();
+    final byId = {for (final routine in routines) routine.id: routine};
+    for (final request in pending.where((p) => isSnoozePayload(p.payload))) {
+      final routineId = request.payload!.substring(snoozePayloadPrefix.length);
+      final routine = byId[routineId];
+      final matches = logs
+          .where((log) =>
+              log.routineId == routineId &&
+              log.status == RoutineLogStatus.snoozed &&
+              log.snoozedUntilMs != null &&
+              log.snoozedUntilMs! > currentTime.millisecondsSinceEpoch)
+          .toList()
+        ..sort((a, b) => b.snoozedUntilMs!.compareTo(a.snoozedUntilMs!));
+      if (routine == null || !routine.notificationEnabled || matches.isEmpty) {
+        await _gateway.cancel(request.id);
+        continue;
+      }
+      await scheduleSnooze(
+          routine,
+          DateTime.fromMillisecondsSinceEpoch(matches.first.snoozedUntilMs!),
+          l10n);
+    }
+  }
+
+  /// 실제 루틴과 동일한 채널로 즉시 게시한다. 미디어 소리/임의 진동을
+  /// 재생하지 않아 휴대폰 무음·방해금지·채널 설정을 그대로 따른다.
+  Future<void> showPreview(AppLocalizations l10n) async {
+    if (kIsWeb) throw UnsupportedError('Notifications require a mobile device');
+    final prefs = await _preferencesLoader();
+    if (!_appNotificationsAvailable(prefs)) {
+      throw StateError('Notifications are disabled');
+    }
+    await _gateway.initialize();
+    await _gateway.cancel(previewNotificationId);
+    await _gateway.show(
+      id: previewNotificationId,
+      title: l10n.notificationPreviewTitle,
+      body: l10n.notificationPreviewBody,
+      details: _notificationDetails(mode: prefs.mode, l10n: l10n),
     );
   }
 
@@ -231,6 +300,13 @@ class RoutineNotificationService {
 }
 
 abstract class LocalNotificationGateway {
+  Future<void> show({
+    required int id,
+    required String title,
+    required String body,
+    required NotificationDetails details,
+  });
+
   Future<void> initialize();
 
   Future<void> scheduleWeekly({
@@ -350,6 +426,20 @@ class FlutterLocalNotificationGateway implements LocalNotificationGateway {
   }
 
   @override
+  Future<void> show({
+    required int id,
+    required String title,
+    required String body,
+    required NotificationDetails details,
+  }) =>
+      _plugin.show(
+          id: id,
+          title: title,
+          body: body,
+          notificationDetails: details,
+          payload: 'routine_preview');
+
+  @override
   Future<void> cancel(int id) => _plugin.cancel(id: id);
 
   @override
@@ -393,7 +483,8 @@ class FlutterLocalNotificationGateway implements LocalNotificationGateway {
       time.minute,
     );
 
-    while (scheduledDate.weekday != weekday || scheduledDate.isBefore(tz.TZDateTime.now(tz.local))) {
+    while (scheduledDate.weekday != weekday ||
+        scheduledDate.isBefore(tz.TZDateTime.now(tz.local))) {
       scheduledDate = scheduledDate.add(const Duration(days: 1));
     }
     return scheduledDate;

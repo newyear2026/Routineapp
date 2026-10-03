@@ -285,6 +285,10 @@ void main() {
 }
 
 class _FakeLocalNotificationGateway implements LocalNotificationGateway {
+  @override
+  Future<void> show({required int id, required String title,
+    required String body, required NotificationDetails details}) async {}
+
   _FakeLocalNotificationGateway({
     List<PendingNotificationRequest>? pending,
   }) : _pending = List<PendingNotificationRequest>.from(pending ?? const []);

@@ -1,17 +1,29 @@
 import 'notification_permission_status.dart';
 
+enum RoutineNotificationMode { soundAndVibration, vibrationOnly, visualOnly }
+
 /// 앱 수준 알림 설정 — [NotificationPreferencesStorage]와 1:1.
 class NotificationPreferences {
   const NotificationPreferences({
     required this.notificationsEnabled,
     required this.permissionStatus,
     required this.soundEnabled,
+    this.vibrationEnabled = true,
+    this.completionHapticEnabled = true,
   });
 
   /// 앱에서 푸시(로컬 알림) 사용 여부 — OS 권한과 별도로 사용자 의사.
   final bool notificationsEnabled;
   final NotificationPermissionStatus permissionStatus;
   final bool soundEnabled;
+  final bool vibrationEnabled;
+  final bool completionHapticEnabled;
+
+  RoutineNotificationMode get mode => soundEnabled
+      ? RoutineNotificationMode.soundAndVibration
+      : vibrationEnabled
+          ? RoutineNotificationMode.vibrationOnly
+          : RoutineNotificationMode.visualOnly;
 
   static const firstLaunchDefaults = NotificationPreferences(
     notificationsEnabled: false,
@@ -23,11 +35,16 @@ class NotificationPreferences {
     bool? notificationsEnabled,
     NotificationPermissionStatus? permissionStatus,
     bool? soundEnabled,
+    bool? vibrationEnabled,
+    bool? completionHapticEnabled,
   }) {
     return NotificationPreferences(
       notificationsEnabled: notificationsEnabled ?? this.notificationsEnabled,
       permissionStatus: permissionStatus ?? this.permissionStatus,
       soundEnabled: soundEnabled ?? this.soundEnabled,
+      vibrationEnabled: vibrationEnabled ?? this.vibrationEnabled,
+      completionHapticEnabled:
+          completionHapticEnabled ?? this.completionHapticEnabled,
     );
   }
 }

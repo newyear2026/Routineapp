@@ -18,9 +18,7 @@ abstract final class CharacterPackCatalog {
 
   /// 푸들 정원 팩. 보상형 광고를 두 번 끝까지 보면 영구히 쓴다.
   ///
-  /// 결제가 붙기 전의 첫 잠긴 팩이다. 몇 %가 팩 하나를 위해 광고를 보는지가
-  /// 평생 이용권 가격의 근거가 된다(`BUSINESS_MODEL.md`). 결제가 붙으면
-  /// 사서 여는 길이 옆에 선다. 광고를 켤 수 없는 플랫폼(지금은 iOS)에서는
+  /// 5종 구매 묶음에는 포함하지 않는다. 광고를 켤 수 없는 플랫폼(지금은 iOS)에서는
   /// 무료로 풀린다 — `RewardedUnlockOwnership`.
   static const poodleGarden = CharacterPack(
     id: 'poodle_garden',
@@ -92,6 +90,15 @@ abstract final class CharacterPackCatalog {
     productId: 'loopet.pack.otter_seaside',
   );
 
+  /// 목도리를 두르고 눈길을 걷는 펭귄 팩. 보상형 광고 2회로 영구 해금한다.
+  static const penguinSnowWalk = CharacterPack(
+    id: 'penguin_snow_walk',
+    characterId: 'penguin_snow_walk',
+    paletteIds: ['penguin_snow_walk'],
+    decoIds: ['penguin-snowflake', 'penguin-mitten', 'penguin-thermos'],
+    availability: CharacterPackAvailability.rewardedUnlock,
+  );
+
   /// 아무것도 고르지 않았거나, 고른 팩을 쓸 수 없을 때 돌아가는 팩.
   static const defaultPack = starlightCat;
 
@@ -104,6 +111,7 @@ abstract final class CharacterPackCatalog {
     mooncloudSheep,
     redPandaTeashop,
     otterSeaside,
+    penguinSnowWalk,
   ];
 
   static CharacterPack? byId(

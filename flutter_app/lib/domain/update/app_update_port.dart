@@ -30,27 +30,27 @@ class PendingUpdate {
       'PendingUpdate(versionCode: $versionCode, stalenessDays: $stalenessDays)';
 }
 
+/// 조회 실패는 정상적으로 확인한 «업데이트 없음»과 구분한다.
+class UpdateCheckResult {
+  const UpdateCheckResult.success([this.pending]) : succeeded = true;
+  const UpdateCheckResult.failed()
+      : succeeded = false,
+        pending = null;
+
+  final bool succeeded;
+  final PendingUpdate? pending;
+}
+
 /// 앱이 스토어에 바라는 것 — 플러그인은 이 뒤에 둔다.
-///
-/// 이 뒤에 있는 것은 전부 Android·Play 전용이고, 쓸 수 있는 때보다 쓸 수 없는
-/// 때가 훨씬 많다. `InAppUpdate.checkForUpdate`는 Play가 설치하지 않은 빌드
-/// 전부에서 예외를 던진다 — 모든 디버그 실행, 모든 사이드로드, 테스트 전체가
-/// 거기 해당한다.
 abstract interface class AppUpdatePort {
   /// 이 포트가 스토어에 물을 수 있는가.
   ///
   /// 설정에 «업데이트 확인» 행을 그릴지 정하는 데만 쓴다. 물어볼 스토어가 없는
-  /// 빌드에서 그 행은 무엇을 눌러도 «최신 버전이에요»라고 답하는 죽은
-  /// 컨트롤이 된다. [check]가 실패를 «없음»으로 접는 것과는 다른 이야기다 —
-  /// 그쪽은 물어본 결과이고, 이쪽은 물어볼 상대가 있는지다.
+  /// 빌드에서는 행을 숨긴다.
   bool get canCheck;
 
-  /// 스토어에서 기다리는 업데이트, 없으면 null.
-  ///
-  /// 물어보지도 못한 경우에도 null이다. 둘을 한 경우로 합친 것은 일부러다.
-  /// Play에 닿지 못하는 앱은 어느 쪽이든 사용자에게 내놓을 것이 없고, 실패를
-  /// 드러내면 Play 서비스가 없는 기기가 «실행할 때마다 불평하는 앱»이 된다.
-  Future<PendingUpdate?> check();
+  /// 성공한 결과의 pending이 null일 때만 최신 버전으로 판단한다.
+  Future<UpdateCheckResult> check();
 
   /// 사용자를 스토어 페이지로 넘긴다. 아무것도 열지 못하면 false.
   Future<bool> openStore();
@@ -64,7 +64,7 @@ final class UnavailableUpdatePort implements AppUpdatePort {
   bool get canCheck => false;
 
   @override
-  Future<PendingUpdate?> check() async => null;
+  Future<UpdateCheckResult> check() async => const UpdateCheckResult.failed();
 
   @override
   Future<bool> openStore() async => false;

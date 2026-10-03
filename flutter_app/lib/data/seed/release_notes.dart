@@ -40,6 +40,15 @@ class ReleaseNote {
 /// 적이 없다 — 닿지 않은 버전의 «바뀐 점»은 지어낸 이력이다.
 final releaseNotes = <ReleaseNote>[
   ReleaseNote(
+    version: '1.0.3',
+    releasedOn: DateTime(2026, 10, 1),
+    lines: [
+      (l10n) => l10n.releaseNote103Packs,
+      (l10n) => l10n.releaseNote103TimeScenes,
+      (l10n) => l10n.releaseNote103RingWidget,
+    ],
+  ),
+  ReleaseNote(
     version: '1.0.2',
     releasedOn: DateTime(2026, 9, 28),
     lines: [

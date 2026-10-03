@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:routine_timer/application/services/app_version_service.dart';
@@ -16,6 +18,8 @@ class _FakePort implements AppUpdatePort {
 
   PendingUpdate? available;
   bool storeOpens;
+  bool fails = false;
+  Future<UpdateCheckResult> Function()? checkLoader;
   int checks = 0;
   int opens = 0;
 
@@ -23,9 +27,12 @@ class _FakePort implements AppUpdatePort {
   bool get canCheck => true;
 
   @override
-  Future<PendingUpdate?> check() async {
+  Future<UpdateCheckResult> check() async {
     checks++;
-    return available;
+    if (checkLoader != null) return checkLoader!();
+    return fails
+        ? const UpdateCheckResult.failed()
+        : UpdateCheckResult.success(available);
   }
 
   @override
@@ -60,18 +67,19 @@ void main() {
     required _FakePort port,
     required _MemoryStore store,
     DateTime? now,
+    DateTime Function()? clock,
     String installedBuild = '2',
   }) =>
       AppUpdates(
         port: port,
         recordLoader: store.load,
         recordSaver: store.save,
-        now: () => now ?? monday,
+        now: clock ?? () => now ?? monday,
         versionLoader: _installed(installedBuild),
       );
 
   group('스토어에 묻는 때', () {
-    test('하루에 한 번, 날이 바뀌기 전에는 다시 묻지 않는다', () async {
+    test('정상 확인 직후에는 다시 묻지 않는다', () async {
       final port = _FakePort(available: v7);
       final store = _MemoryStore();
       final updates = build(port: port, store: store);
@@ -83,7 +91,7 @@ void main() {
       expect(port.checks, 1);
     });
 
-    test('하루 예산은 실행을 넘어 기억된다', () async {
+    test('확인 간격은 실행을 넘어 기억된다', () async {
       final port = _FakePort(available: v7);
       final store = _MemoryStore();
 
@@ -94,8 +102,19 @@ void main() {
       await build(port: port, store: store).refresh();
       expect(port.checks, 1);
 
-      // 날이 바뀌면 다시 묻는다.
-      await build(port: port, store: store, now: tuesday).refresh();
+      await build(
+        port: port,
+        store: store,
+        now: monday.add(const Duration(minutes: 59, seconds: 59)),
+      ).refresh();
+      expect(port.checks, 1);
+
+      // 같은 날에도 한 시간이 지나면 다시 묻는다.
+      await build(
+        port: port,
+        store: store,
+        now: monday.add(const Duration(hours: 1)),
+      ).refresh();
       expect(port.checks, 2);
     });
 
@@ -120,6 +139,8 @@ void main() {
       final first = build(port: port, store: store);
       await first.refresh();
       expect(first.shouldPrompt, isTrue);
+      await first.markPromptShown();
+      first.markPromptClosed();
 
       final second = build(port: port, store: store);
       await second.refresh();
@@ -133,7 +154,7 @@ void main() {
 
       await build(port: port, store: store, installedBuild: '2').refresh();
 
-      // 설치가 끝나 이제 3번 빌드가 돌고 있다. 같은 날, 예산은 이미 썼다.
+      // 설치가 끝나 이제 3번 빌드가 돌고 있다. 확인 간격은 아직 지나지 않았다.
       final after = build(port: port, store: store, installedBuild: '3');
       await after.refresh();
 
@@ -141,7 +162,7 @@ void main() {
       expect(after.showBanner, isFalse);
     });
 
-    test('강제 확인은 예산을 무시한다', () async {
+    test('수동 확인은 확인 간격을 무시한다', () async {
       final port = _FakePort(available: v7);
       final store = _MemoryStore();
       final updates = build(port: port, store: store);
@@ -180,6 +201,190 @@ void main() {
     });
   });
 
+  group('실패와 재시도', () {
+    test('확인 전, 실패, 최신 상태를 구분한다', () async {
+      final port = _FakePort()..fails = true;
+      final updates = build(port: port, store: _MemoryStore());
+      expect(updates.status, UpdateCheckStatus.notChecked);
+      await updates.refresh();
+      expect(updates.status, UpdateCheckStatus.failed);
+      port.fails = false;
+      await updates.refresh(force: true);
+      expect(updates.status, UpdateCheckStatus.upToDate);
+    });
+
+    test('실패 후 5분 경계에서만 다음 복귀가 재시도한다', () async {
+      var now = monday;
+      final port = _FakePort()..fails = true;
+      final store = _MemoryStore();
+      final updates = build(port: port, store: store, clock: () => now);
+      await updates.refresh();
+      expect(store.record.checkedAt, isNull);
+      expect(store.record.failedAt, monday);
+
+      now = monday.add(const Duration(minutes: 4, seconds: 59));
+      await updates.refreshOnResume();
+      expect(port.checks, 1);
+      now = monday.add(const Duration(minutes: 5));
+      await updates.refreshOnResume();
+      expect(port.checks, 2);
+      expect(store.record.failedAt, now);
+      now = monday.add(const Duration(minutes: 9));
+      await updates.refreshOnResume();
+      expect(port.checks, 2);
+    });
+
+    test('실패 대기 시간도 앱 재시작 후 유지한다', () async {
+      final port = _FakePort()..fails = true;
+      final store = _MemoryStore();
+      await build(port: port, store: store).refresh();
+      final restarted = build(
+        port: port,
+        store: store,
+        now: monday.add(const Duration(minutes: 2)),
+      );
+      await restarted.refresh();
+      expect(port.checks, 1);
+      expect(restarted.status, UpdateCheckStatus.failed);
+      await build(
+        port: port,
+        store: store,
+        now: monday.add(const Duration(minutes: 5)),
+      ).refresh();
+      expect(port.checks, 2);
+    });
+
+    test('수동 확인은 실패 후에도 즉시 재시도한다', () async {
+      final port = _FakePort()..fails = true;
+      final updates = build(port: port, store: _MemoryStore());
+      await updates.refresh();
+      port.fails = false;
+      port.available = v7;
+      await updates.refresh(force: true);
+      expect(port.checks, 2);
+      expect(updates.pending, v7);
+      expect(updates.status, UpdateCheckStatus.available);
+    });
+
+    test('실패는 성공 시각과 기존 배너를 지우지 않는다', () async {
+      var now = monday;
+      final port = _FakePort(available: v7);
+      final store = _MemoryStore();
+      final updates = build(port: port, store: store, clock: () => now);
+      await updates.refresh();
+      await updates.dismiss();
+      port.fails = true;
+      now = monday.add(const Duration(hours: 1));
+      await updates.refreshOnResume();
+      expect(updates.pending, v7);
+      expect(updates.showBanner, isTrue);
+      expect(store.record.checkedAt, monday);
+      expect(store.record.pendingVersionCode, 7);
+
+      final restarted = build(port: port, store: store, now: now);
+      await restarted.refresh();
+      expect(restarted.status, UpdateCheckStatus.failed);
+      expect(restarted.showBanner, isTrue);
+      expect(port.checks, 2);
+
+      port.fails = false;
+      port.available = null;
+      now = now.add(const Duration(minutes: 5));
+      await updates.refreshOnResume();
+      expect(updates.pending, isNull);
+      expect(updates.status, UpdateCheckStatus.upToDate);
+      expect(store.record.failedAt, isNull);
+      expect(store.record.checkedAt, now);
+      now = now.add(const Duration(minutes: 5));
+      await updates.refreshOnResume();
+      expect(port.checks, 3, reason: '성공 후에는 다시 1시간 간격이어야 한다');
+    });
+
+    test('포트가 예외를 던져도 실패로 기록하고 다음에 복구한다', () async {
+      final port = _FakePort()
+        ..checkLoader = () async => throw StateError('offline');
+      final updates = build(port: port, store: _MemoryStore());
+      await updates.refresh();
+      expect(updates.status, UpdateCheckStatus.failed);
+      expect(updates.isChecking, isFalse);
+      port.checkLoader = null;
+      await updates.refresh(force: true);
+      expect(updates.status, UpdateCheckStatus.upToDate);
+    });
+
+    test('기기 시계를 되돌려도 확인이 계속 차단되지 않는다', () async {
+      var now = monday;
+      final port = _FakePort();
+      final updates =
+          build(port: port, store: _MemoryStore(), clock: () => now);
+      await updates.refresh();
+      now = now.subtract(const Duration(hours: 2));
+      await updates.refreshOnResume();
+      expect(port.checks, 2);
+    });
+
+    test('온보딩 중 앱 복귀는 첫 확인을 시작하지 않는다', () async {
+      final port = _FakePort();
+      final updates = build(port: port, store: _MemoryStore());
+      await updates.refreshOnResume();
+      expect(port.checks, 0);
+      await updates.refresh();
+      await updates.refreshOnResume();
+      expect(port.checks, 1);
+    });
+
+    testWidgets('시간 경과만으로는 조회하지 않고 복귀 요청이 있어야 한다', (tester) async {
+      var now = monday;
+      final port = _FakePort()..fails = true;
+      final updates =
+          build(port: port, store: _MemoryStore(), clock: () => now);
+      await updates.refresh();
+      now = now.add(const Duration(minutes: 30));
+      await tester.pump(const Duration(minutes: 30));
+      expect(port.checks, 1);
+      await updates.refreshOnResume();
+      expect(port.checks, 2);
+      updates.dispose();
+    });
+
+    test('기록 로딩과 조회 중의 동시 요청은 한 번으로 합친다', () async {
+      final loading = Completer<AppUpdateRecord>();
+      final checking = Completer<UpdateCheckResult>();
+      final port = _FakePort()..checkLoader = () => checking.future;
+      final updates = AppUpdates(
+        port: port,
+        recordLoader: () => loading.future,
+        recordSaver: (_) async {},
+        versionLoader: _installed('2'),
+        now: () => monday,
+      );
+      final first = updates.refresh();
+      final second = updates.refreshOnResume();
+      expect(identical(first, second), isTrue);
+      loading.complete(AppUpdateStorage.empty);
+      await Future<void>.delayed(Duration.zero);
+      expect(port.checks, 1);
+      final third = updates.refresh(force: true);
+      expect(identical(first, third), isTrue);
+      checking.complete(const UpdateCheckResult.success(v7));
+      expect(await first, v7);
+      expect(await second, v7);
+      expect(await third, v7);
+      expect(port.checks, 1);
+    });
+
+    test('조회 중 컨트롤러를 닫아도 완료 알림을 보내지 않는다', () async {
+      final checking = Completer<UpdateCheckResult>();
+      final port = _FakePort()..checkLoader = () => checking.future;
+      final updates = build(port: port, store: _MemoryStore());
+      final refresh = updates.refresh();
+      await Future<void>.delayed(Duration.zero);
+      updates.dispose();
+      checking.complete(const UpdateCheckResult.success());
+      await refresh;
+    });
+  });
+
   group('얼마나 고집스러운가', () {
     test('다이얼로그가 먼저이고, 배너가 이어받는다', () async {
       final updates =
@@ -189,7 +394,7 @@ void main() {
       expect(updates.shouldPrompt, isTrue);
       expect(updates.showBanner, isFalse);
 
-      updates.markPromptShown();
+      await updates.markPromptShown();
       updates.markPromptClosed();
 
       expect(updates.shouldPrompt, isFalse);
@@ -201,7 +406,7 @@ void main() {
           build(port: _FakePort(available: v7), store: _MemoryStore());
       await updates.refresh();
 
-      updates.markPromptShown();
+      await updates.markPromptShown();
       // 스크림이 아직 올라와 있다. 같은 소식이 두 벌 보이면 안 된다.
       expect(updates.showBanner, isFalse);
 
@@ -215,7 +420,7 @@ void main() {
 
       final first = build(port: port, store: store);
       await first.refresh();
-      first.markPromptShown();
+      await first.markPromptShown();
       first.markPromptClosed();
       first.hideBanner();
       expect(first.showBanner, isFalse);
@@ -267,6 +472,44 @@ void main() {
       await updates.refresh(force: true);
       expect(updates.shouldPrompt, isTrue);
     });
+  });
+
+  test('아직 보여 주지 않은 팝업은 재시작 후에도 기회를 잃지 않는다', () async {
+    final port = _FakePort(available: v7);
+    final store = _MemoryStore();
+    await build(port: port, store: store).refresh();
+    final restarted = build(port: port, store: store);
+    await restarted.refresh();
+    expect(restarted.shouldPrompt, isTrue);
+  });
+
+  test('한 번 보여 준 팝업은 다음 날에도 같은 버전에 반복하지 않는다', () async {
+    final port = _FakePort(available: v7);
+    final store = _MemoryStore();
+    final first = build(port: port, store: store);
+    await first.refresh();
+    await first.markPromptShown();
+    first.markPromptClosed();
+    final next = build(port: port, store: store, now: tuesday);
+    await next.refresh();
+    expect(next.shouldPrompt, isFalse);
+    expect(next.showBanner, isTrue);
+    port.available = v8;
+    final later = build(
+        port: port, store: store, now: tuesday.add(const Duration(hours: 1)));
+    await later.refresh();
+    expect(later.shouldPrompt, isTrue);
+  });
+
+  test('실패한 수동 확인은 미룬 팝업을 되살리지 않는다', () async {
+    final port = _FakePort(available: v7);
+    final updates = build(port: port, store: _MemoryStore());
+    await updates.refresh();
+    await updates.dismiss();
+    port.fails = true;
+    await updates.refresh(force: true);
+    expect(updates.shouldPrompt, isFalse);
+    expect(updates.showBanner, isTrue);
   });
 
   group('다이얼로그', () {
@@ -360,6 +603,55 @@ void main() {
   });
 
   group('기기 장부', () {
+    test('구버전의 날짜 제한은 버리고 기존 안내와 미루기는 유지한다', () async {
+      SharedPreferences.setMockInitialValues({
+        'device.update.checked_day': '2026-09-21',
+        'device.update.pending_version_code': 7,
+        'device.update.dismissed_version_code': 7,
+      });
+      final port = _FakePort()..fails = true;
+      final updates = AppUpdates(
+          port: port, now: () => monday, versionLoader: _installed('2'));
+      await updates.refresh();
+      expect(port.checks, 1);
+      expect(updates.pending, v7);
+      expect(updates.shouldPrompt, isFalse);
+      expect(updates.showBanner, isTrue);
+      final record = await AppUpdateStorage.load();
+      expect(record.checkedAt, isNull);
+      expect(record.failedAt, monday.toUtc());
+      expect(record.promptedVersionCode, 7);
+      expect(record.dismissedVersionCode, 7);
+      expect(
+          (await SharedPreferences.getInstance())
+              .containsKey('device.update.checked_day'),
+          isFalse);
+    });
+
+    test('실패 시각과 팝업 표시 기록이 실제 저장소에서도 유지된다', () async {
+      SharedPreferences.setMockInitialValues({});
+      var now = monday;
+      final port = _FakePort(available: v7);
+      final first = AppUpdates(
+          port: port, now: () => now, versionLoader: _installed('2'));
+      await first.refresh();
+      await first.markPromptShown();
+      first.markPromptClosed();
+      now = now.add(const Duration(hours: 1));
+      port.fails = true;
+      await first.refresh();
+      final record = await AppUpdateStorage.load();
+      expect(record.checkedAt, monday.toUtc());
+      expect(record.failedAt, now.toUtc());
+      expect(record.promptedVersionCode, 7);
+      final second = AppUpdates(
+          port: port, now: () => now, versionLoader: _installed('2'));
+      await second.refresh();
+      expect(port.checks, 2);
+      expect(second.showBanner, isTrue);
+      expect(second.status, UpdateCheckStatus.failed);
+    });
+
     test('실제 저장소를 거쳐도 같은 값이 돌아온다', () async {
       SharedPreferences.setMockInitialValues({});
 
@@ -381,7 +673,7 @@ void main() {
       );
       await second.refresh();
 
-      expect(port.checks, 1, reason: '예산이 저장되지 않았다');
+      expect(port.checks, 1, reason: '확인 시각이 저장되지 않았다');
       expect(second.pending, v7, reason: '안내가 저장되지 않았다');
       expect(second.shouldPrompt, isFalse, reason: '«나중에»가 저장되지 않았다');
     });

@@ -1,7 +1,6 @@
 import '../../data/local/notification_preferences_storage.dart';
 import '../../data/local/onboarding_local_storage.dart';
 import '../../domain/settings/notification_permission_status.dart';
-import '../../domain/settings/notification_preferences.dart';
 import 'notification_permission_service.dart';
 
 /// 온보딩 알림 단계 — «허용» / «나중에» 처리.
@@ -27,10 +26,9 @@ class NotificationOnboardingActions {
         existing.permissionStatus != NotificationPermissionStatus.notRequested;
     if (!alreadyChosen) {
       await NotificationPreferencesStorage.save(
-        const NotificationPreferences(
+        existing.copyWith(
           notificationsEnabled: false,
           permissionStatus: NotificationPermissionStatus.notRequested,
-          soundEnabled: false,
         ),
       );
     }
@@ -39,21 +37,20 @@ class NotificationOnboardingActions {
 
   /// «알림 허용하기» — 시스템 권한 요청 후 상태 반영.
   Future<void> completeWithSystemPermissionRequest() async {
+    final existing = await NotificationPreferencesStorage.load();
     final granted = await _permission.requestPostNotificationsPermission();
     if (granted) {
       await NotificationPreferencesStorage.save(
-        const NotificationPreferences(
+        existing.copyWith(
           notificationsEnabled: true,
           permissionStatus: NotificationPermissionStatus.granted,
-          soundEnabled: true,
         ),
       );
     } else {
       await NotificationPreferencesStorage.save(
-        const NotificationPreferences(
+        existing.copyWith(
           notificationsEnabled: false,
           permissionStatus: NotificationPermissionStatus.denied,
-          soundEnabled: false,
         ),
       );
     }

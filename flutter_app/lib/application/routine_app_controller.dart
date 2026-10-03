@@ -2,7 +2,7 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show MissingPluginException;
+import 'package:flutter/services.dart' show HapticFeedback, MissingPluginException;
 
 import '../data/local/local_settings_repository.dart';
 import '../data/local/first_launch_storage.dart';
@@ -46,6 +46,7 @@ class RoutineAppController extends ChangeNotifier {
     RoutineDataService? dataService,
     RoutineDayService? dayService,
     RoutineNotificationService? notificationService,
+    Future<void> Function()? completionHaptic,
     SettingsRepository? settingsRepository,
     CharacterPackOwnership packOwnership = const BundledOnlyOwnership(),
     PackAdUnlockStore packAdUnlockStore = const LocalPackAdUnlockStore(),
@@ -60,6 +61,7 @@ class RoutineAppController extends ChangeNotifier {
   })  : _data = dataService ?? RoutineDataService(),
         _dayService = dayService ?? const RoutineDayService(),
         _notifications = notificationService ?? RoutineNotificationService(),
+        _completionHaptic = completionHaptic ?? HapticFeedback.lightImpact,
         _settings = settingsRepository ?? LocalSettingsRepository.instance,
         _basePackOwnership = packOwnership,
         _packAdUnlockStore = packAdUnlockStore,
@@ -78,6 +80,7 @@ class RoutineAppController extends ChangeNotifier {
   final RoutineDataService _data;
   final RoutineDayService _dayService;
   final RoutineNotificationService _notifications;
+  final Future<void> Function() _completionHaptic;
   final SettingsRepository _settings;
   final CharacterPackOwnership _basePackOwnership;
   final PackAdUnlockStore _packAdUnlockStore;
@@ -605,6 +608,15 @@ class RoutineAppController extends ChangeNotifier {
     // 오해하면 안 된다. 저장한 결과로 메모리 상태를 바로 갱신한다.
     _upsertTodayLogInMemory(outcome.log);
     notifyListeners();
+    if (outcome.log.status == RoutineLogStatus.completed) {
+      try {
+        final preferences = await _settings.loadNotificationPreferences();
+        if (preferences.completionHapticEnabled) await _completionHaptic();
+      } catch (e) {
+        // 촉각 피드백 실패가 저장된 완료 기록을 실패로 바꾸면 안 된다.
+        debugPrint('completion haptic failed: $e');
+      }
+    }
     await _pushHomeWidget();
     await _syncSnoozeAlarm(c, outcome.log);
     return RoutineActionUndo(

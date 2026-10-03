@@ -139,14 +139,36 @@ void main() {
       }
     });
 
-    test('번들은 판매 팩과 광고로 여는 팩을 빠짐없이, 그 밖의 팩은 넣지 않는다', () {
+    test('번들은 지정한 5종과 광고 제거만 포함한다', () {
       final bundle = StoreProductCatalog.grants[StoreProductCatalog.bundle]!;
-      for (final pack in packs) {
-        final sold = pack.availability == CharacterPackAvailability.forSale ||
-            pack.availability == CharacterPackAvailability.rewardedUnlock;
-        expect(bundle.contains(pack.id), sold, reason: pack.id);
+      expect(bundle, {
+        'rabbit_postman',
+        'squirrel_explorer',
+        'sheep_mooncloud',
+        'redpanda_teashop',
+        'otter_seaside',
+        StoreProductCatalog.adFree,
+      });
+      for (final id in StoreProductCatalog.bundlePackIds) {
+        expect(CharacterPackCatalog.byId(id)?.availability,
+            CharacterPackAvailability.forSale,
+            reason: id);
       }
-      expect(bundle, contains(StoreProductCatalog.adFree));
+    });
+
+    test('새 판매 팩이 추가되어도 기존 5종 묶음에는 자동 포함하지 않는다', () {
+      const newPack = CharacterPack(
+        id: 'future_friend',
+        characterId: 'future_friend',
+        paletteIds: [],
+        decoIds: [],
+        availability: CharacterPackAvailability.forSale,
+        productId: 'loopet.pack.future_friend',
+      );
+      final grants = StoreProductCatalog.grantsFor([...packs, newPack]);
+      expect(grants[newPack.productId], {'future_friend'});
+      expect(grants[StoreProductCatalog.bundle],
+          StoreProductCatalog.grants[StoreProductCatalog.bundle]);
     });
   });
 

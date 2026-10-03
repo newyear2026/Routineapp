@@ -91,6 +91,10 @@ class MemoryLogRepository implements RoutineLogRepository {
 
 class NoopNotificationGateway implements LocalNotificationGateway {
   @override
+  Future<void> show({required int id, required String title,
+    required String body, required NotificationDetails details}) async {}
+
+  @override
   Future<void> cancel(int id) async {}
 
   @override
@@ -152,6 +156,10 @@ Routine dailyRoutine({
 /// 실제로 릴리즈 빌드에서 `pendingNotificationRequests()`가
 /// `PlatformException(Missing type parameter.)`를 던졌다.
 class ThrowingNotificationGateway implements LocalNotificationGateway {
+  @override
+  Future<void> show({required int id, required String title,
+    required String body, required NotificationDetails details}) async {}
+
   @override
   Future<void> cancel(int id) async {}
 
@@ -221,6 +229,10 @@ class ScheduledOnceNotification {
 }
 
 class RecordingNotificationGateway implements LocalNotificationGateway {
+  @override
+  Future<void> show({required int id, required String title,
+    required String body, required NotificationDetails details}) async {}
+
   final List<ScheduledNotification> scheduled = [];
   final List<ScheduledOnceNotification> scheduledOnce = [];
   final List<int> cancelledIds = [];

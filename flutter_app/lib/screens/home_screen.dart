@@ -52,6 +52,7 @@ class _HomeScreenState extends State<HomeScreen>
   bool _updatePromptScheduled = false;
   bool _announcementScheduled = false;
   bool _launchGiftScheduled = false;
+  bool _homePromptVisible = false;
 
   /// 돌고 있는 빌드를 읽는 일이 끝났는지. 업데이트 다이얼로그가 «현재 버전»
   /// 행을 그리기 전에 이것을 기다린다.
@@ -66,7 +67,10 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void didChangeAppLifecycleState(AppLifecycleState state) {
     // 화면이 꺼져 있는 동안 시간대 경계를 지났다면 돌아오자마자 장면을 바꾼다.
-    if (state == AppLifecycleState.resumed && mounted) setState(() {});
+    if (state == AppLifecycleState.resumed && mounted) {
+      setState(() {});
+      _scheduleHomePrompts();
+    }
   }
 
   @override
@@ -77,7 +81,7 @@ class _HomeScreenState extends State<HomeScreen>
 
     // 확인을 여기서 시작하는 이유는 홈이 앱의 유일한 착륙 지점이기 때문이다.
     // 앱 최상단에서 걸면 스플래시·온보딩을 지나는 동안 이미 물어보게 된다.
-    // 두 번 불러도 값은 들지 않는다 — 컨트롤러가 같은 날 두 번째 확인을 버리고,
+    // 두 번 불러도 값은 들지 않는다 — 컨트롤러가 확인 간격과 중복 요청을 관리하고,
     // [ReleaseAnnouncements.start]는 첫 번만 일한다.
     // 프로바이더가 없으면 null이다 — 이 화면만 띄운 테스트·미리보기다. 그때는
     // 배너도 다이얼로그도 없고, 그것이 Play 서비스가 없는 기기가 받는 앱과
@@ -111,53 +115,66 @@ class _HomeScreenState extends State<HomeScreen>
   void _onUpdatesChanged() {
     if (!mounted) return;
     setState(() {});
-    _scheduleUpdatePrompt();
-    _scheduleLaunchGift();
+    _scheduleHomePrompts();
   }
 
   void _onAnnouncementsChanged() {
     if (!mounted) return;
     setState(() {});
-    _scheduleAnnouncement();
+    _scheduleHomePrompts();
+  }
+
+  bool get _canShowHomePrompt {
+    final lifecycle = WidgetsBinding.instance.lifecycleState;
+    return mounted &&
+        !_homePromptVisible &&
+        (lifecycle == null || lifecycle == AppLifecycleState.resumed) &&
+        ModalRoute.of(context)?.isCurrent == true;
+  }
+
+  void _scheduleHomePrompts() {
     _scheduleLaunchGift();
+    _scheduleAnnouncement();
+    _scheduleUpdatePrompt();
   }
 
   void _scheduleLaunchGift() {
-    if (_launchGiftScheduled || !mounted) return;
+    if (_launchGiftScheduled || !_canShowHomePrompt) return;
     final app = context.read<RoutineAppController>();
     if (!app.shouldShowLaunchGift) return;
     _launchGiftScheduled = true;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _launchGiftScheduled = false;
-      if (!mounted ||
-          !app.shouldShowLaunchGift ||
-          ModalRoute.of(context)?.isCurrent != true) {
-        return;
-      }
+      if (!_canShowHomePrompt || !app.shouldShowLaunchGift) return;
+      _homePromptVisible = true;
       try {
-        await app.markLaunchGiftSeen();
-      } catch (e) {
-        debugPrint('launch gift acknowledgement failed: $e');
-        return;
+        try {
+          await app.markLaunchGiftSeen();
+        } catch (e) {
+          debugPrint('launch gift acknowledgement failed: $e');
+          return;
+        }
+        if (!mounted) return;
+        final useNow = await showLaunchGiftDialog(context);
+        if (!mounted) return;
+        if (useNow) {
+          await app.selectCharacterPack(CharacterPackCatalog.stargazerCat);
+        }
+      } finally {
+        _homePromptVisible = false;
+        if (mounted) {
+          _scheduleAnnouncement();
+          _scheduleUpdatePrompt();
+        }
       }
-      if (!mounted) return;
-      final useNow = await showLaunchGiftDialog(context);
-      if (!mounted) return;
-      if (useNow) {
-        await app.selectCharacterPack(CharacterPackCatalog.stargazerCat);
-      }
-      _scheduleAnnouncement();
-      _scheduleUpdatePrompt();
     });
   }
 
-  /// 방금 설치한 업데이트가 무엇을 바꿨는지 말한다.
-  ///
-  /// 업데이트 안내보다 앞에 선다 — 이쪽은 손에 든 빌드 이야기이고, 그쪽은
-  /// 내일도 기다려 준다.
+  /// 출시 선물, 설치한 버전의 변경점, 새 버전 안내 순으로 하나씩 보여 준다.
   void _scheduleAnnouncement() {
     final announcements = _announcements;
     if (_announcementScheduled ||
+        !_canShowHomePrompt ||
         announcements == null ||
         context.read<RoutineAppController>().shouldShowLaunchGift ||
         !announcements.shouldAnnounce) {
@@ -166,22 +183,29 @@ class _HomeScreenState extends State<HomeScreen>
     _announcementScheduled = true;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
       _announcementScheduled = false;
-      if (!mounted || !announcements.shouldAnnounce) return;
-      final wantsMore = await showReleaseAnnouncement(
-        context,
-        announcements: announcements,
-      );
-      if (!wantsMore || !mounted) return;
-      context.push('/release-notes');
+      if (!_canShowHomePrompt ||
+          context.read<RoutineAppController>().shouldShowLaunchGift ||
+          !announcements.shouldAnnounce) {
+        return;
+      }
+      _homePromptVisible = true;
+      try {
+        final wantsMore = await showReleaseAnnouncement(
+          context,
+          announcements: announcements,
+        );
+        if (wantsMore && mounted) await context.push('/release-notes');
+      } finally {
+        _homePromptVisible = false;
+        if (mounted) _scheduleUpdatePrompt();
+      }
     });
   }
 
-  /// 프레임이 끝나고, 더 앞선 것이 줄 서 있지 않을 때 업데이트를 권한다.
-  ///
-  /// 릴리스 카드 뒤다. 다이얼로그를 쌓으면 먼저 뜬 쪽이 묻힌다.
   void _scheduleUpdatePrompt() {
     final updates = _updates;
     if (_updatePromptScheduled ||
+        !_canShowHomePrompt ||
         updates == null ||
         context.read<RoutineAppController>().shouldShowLaunchGift ||
         !updates.shouldPrompt ||
@@ -190,18 +214,30 @@ class _HomeScreenState extends State<HomeScreen>
     }
     _updatePromptScheduled = true;
     WidgetsBinding.instance.addPostFrameCallback((_) async {
-      _updatePromptScheduled = false;
-      // 버전 행은 잠깐 기다릴 값이 있다. Play 왕복이 패키지 정보 읽기보다 훨씬
-      // 느려 보통은 공짜지만, 이게 없으면 어느 future가 이겼는지에 따라 행이
-      // 있기도 없기도 하다. 실행마다 한 줄씩 키가 다른 다이얼로그는 읽는
-      // 사람에게 버그로 보인다.
-      await _announcementsReady;
-      if (!mounted || !updates.shouldPrompt) return;
-      await showUpdatePrompt(
-        context,
-        updates: updates,
-        currentVersion: _announcements?.version?.version,
-      );
+      try {
+        // 버전 로딩 중 앞선 안내가 생겼을 수 있으므로 기다린 뒤 다시 판단한다.
+        await _announcementsReady;
+        if (!mounted) return;
+        if (!_canShowHomePrompt ||
+            context.read<RoutineAppController>().shouldShowLaunchGift ||
+            (_announcements?.shouldAnnounce ?? false) ||
+            !updates.shouldPrompt) {
+          return;
+        }
+        _homePromptVisible = true;
+        try {
+          await showUpdatePrompt(
+            context,
+            updates: updates,
+            currentVersion: _announcements?.version?.version,
+          );
+        } finally {
+          _homePromptVisible = false;
+        }
+      } finally {
+        _updatePromptScheduled = false;
+        if (mounted) _scheduleHomePrompts();
+      }
     });
   }
 
@@ -220,7 +256,7 @@ class _HomeScreenState extends State<HomeScreen>
   @override
   void didPopNext() {
     context.read<RoutineAppController>().reloadOnReturn();
-    _scheduleLaunchGift();
+    _scheduleHomePrompts();
   }
 
   /// 완료·나중에·스킵 실행 후 되돌리기 스낵바를 띄운다.

@@ -51,7 +51,8 @@ enum PackSceneStyle {
   postal,
   cloud,
   teashop,
-  seaside
+  seaside,
+  snowwalk
 }
 
 enum PackScenePhase {
@@ -301,4 +302,7 @@ enum WidgetDecor {
 
   /// 햇살이 비치는 잔잔한 바다 풍경.
   seaside,
+
+  /// 목도리 펭귄의 눈길 풍경.
+  snowwalk,
 }

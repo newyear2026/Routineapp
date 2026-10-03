@@ -190,7 +190,8 @@ void main() {
             value: announcements,
           ),
           ChangeNotifierProvider<AppUpdates>(
-            create: (_) => AppUpdates(port: port),
+            create: (_) =>
+                AppUpdates(port: port, versionLoader: _running(version)),
           ),
         ],
         child: localizedApp(
@@ -249,6 +250,27 @@ void main() {
       expect(find.text(testL10n.settingsCheckUpdate), findsOneWidget);
     });
 
+    testWidgets('확인 전·실패·최신 상태를 구분하고 수동으로 재시도한다', (tester) async {
+      final port = _QuietPort()..result = const UpdateCheckResult.failed();
+      await pumpSettings(tester, port: port);
+      await scrollTo(tester, find.text(testL10n.settingsCheckUpdate));
+      expect(find.text(testL10n.settingsCheckUpdateNotChecked), findsOneWidget);
+      expect(find.text(testL10n.settingsCheckUpdateUpToDate), findsNothing);
+      await tester.tap(find.text(testL10n.settingsCheckUpdate));
+      await tester.pumpAndSettle();
+      expect(find.text(testL10n.settingsCheckUpdateFailed), findsOneWidget);
+      expect(find.text(testL10n.settingsCheckUpdateUpToDate), findsNothing);
+      port.result = const UpdateCheckResult.success();
+      await tester.tap(find.text(testL10n.settingsCheckUpdate));
+      await tester.pumpAndSettle();
+      expect(find.text(testL10n.settingsCheckUpdateUpToDate), findsOneWidget);
+      port.result =
+          const UpdateCheckResult.success(PendingUpdate(versionCode: 999));
+      await tester.tap(find.text(testL10n.settingsCheckUpdate));
+      await tester.pumpAndSettle();
+      expect(find.text(testL10n.settingsCheckUpdateAvailable), findsOneWidget);
+    });
+
     testWidgets('«새로운 소식» 행에서 노트를 연다', (tester) async {
       await pumpSettings(tester);
 
@@ -268,11 +290,12 @@ void main() {
 
 /// 물어볼 수는 있으나 기다리는 것이 없는 스토어.
 class _QuietPort implements AppUpdatePort {
+  UpdateCheckResult result = const UpdateCheckResult.success();
   @override
   bool get canCheck => true;
 
   @override
-  Future<PendingUpdate?> check() async => null;
+  Future<UpdateCheckResult> check() async => result;
 
   @override
   Future<bool> openStore() async => false;

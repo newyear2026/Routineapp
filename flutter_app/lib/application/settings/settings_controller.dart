@@ -1,6 +1,8 @@
 import 'package:flutter/foundation.dart';
 
 import '../../data/local/local_settings_repository.dart';
+import '../../data/local/local_routine_log_repository.dart';
+import '../../data/repositories/routine_log_repository.dart';
 import '../../data/repositories/settings_repository.dart';
 import '../../domain/models/routine.dart';
 import '../../domain/settings/notification_permission_status.dart';
@@ -19,13 +21,19 @@ class SettingsController extends ChangeNotifier {
     SettingsRepository? repository,
     NotificationPermissionService? permissionService,
     RoutineNotificationService? notificationService,
+    RoutineLogRepository? logRepository,
+    Future<bool> Function()? requestPermission,
   })  : _repository = repository ?? LocalSettingsRepository.instance,
+        _logRepository = logRepository ?? LocalRoutineLogRepository.instance,
+        _requestPermission = requestPermission,
         _permissionService =
             permissionService ?? NotificationPermissionService.instance,
         _notificationService =
             notificationService ?? RoutineNotificationService();
 
   final SettingsRepository _repository;
+  final RoutineLogRepository _logRepository;
+  final Future<bool> Function()? _requestPermission;
   final NotificationPermissionService _permissionService;
   final RoutineNotificationService _notificationService;
 
@@ -34,12 +42,27 @@ class SettingsController extends ChangeNotifier {
   bool _isLoading = true;
   bool _isUpdating = false;
   SettingsError? _error;
+  bool _disposed = false;
+
+  @override
+  void notifyListeners() {
+    if (!_disposed) super.notifyListeners();
+  }
+
+  @override
+  void dispose() {
+    _disposed = true;
+    super.dispose();
+  }
 
   NotificationPreferences get notificationPreferences =>
       _notificationPreferences;
   bool get notificationsEnabled =>
       _notificationPreferences.notificationsEnabled;
   bool get soundEnabled => _notificationPreferences.soundEnabled;
+  RoutineNotificationMode get notificationMode => _notificationPreferences.mode;
+  bool get completionHapticEnabled =>
+      _notificationPreferences.completionHapticEnabled;
   bool get isLoading => _isLoading;
   bool get isUpdating => _isUpdating;
   SettingsError? get error => _error;
@@ -71,21 +94,19 @@ class SettingsController extends ChangeNotifier {
         await _saveAndSync(
           _notificationPreferences.copyWith(
             notificationsEnabled: false,
-            soundEnabled: false,
           ),
           routines,
           l10n,
         );
       } else {
-        final granted =
-            await _permissionService.requestPostNotificationsPermission();
+        final granted = await (_requestPermission ??
+            _permissionService.requestPostNotificationsPermission)();
         await _saveAndSync(
-          NotificationPreferences(
+          _notificationPreferences.copyWith(
             notificationsEnabled: granted,
             permissionStatus: granted
                 ? NotificationPermissionStatus.granted
                 : NotificationPermissionStatus.denied,
-            soundEnabled: granted,
           ),
           routines,
           l10n,
@@ -125,6 +146,64 @@ class SettingsController extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setNotificationMode(RoutineNotificationMode mode,
+      List<Routine> routines, AppLocalizations l10n) async {
+    if (_isUpdating || _isLoading) return;
+    _isUpdating = true;
+    _error = null;
+    notifyListeners();
+    try {
+      await _saveAndSync(
+          _notificationPreferences.copyWith(
+            soundEnabled: mode == RoutineNotificationMode.soundAndVibration,
+            vibrationEnabled: mode != RoutineNotificationMode.visualOnly,
+          ),
+          routines,
+          l10n);
+    } catch (_) {
+      _error = SettingsError.saveNotifications;
+    } finally {
+      _isUpdating = false;
+      notifyListeners();
+    }
+  }
+
+  Future<void> setCompletionHapticEnabled(bool enabled) async {
+    if (_isUpdating || _isLoading) return;
+    _isUpdating = true;
+    _error = null;
+    notifyListeners();
+    try {
+      final next =
+          _notificationPreferences.copyWith(completionHapticEnabled: enabled);
+      await _repository.saveNotificationPreferences(next);
+      _notificationPreferences = next;
+    } catch (_) {
+      _error = SettingsError.saveNotifications;
+    } finally {
+      _isUpdating = false;
+      notifyListeners();
+    }
+  }
+
+  Future<bool> previewNotification(AppLocalizations l10n) async {
+    if (_isUpdating || _isLoading || !notificationsEnabled) return false;
+    _isUpdating = true;
+    notifyListeners();
+    try {
+      final granted = await (_requestPermission ??
+          _permissionService.requestPostNotificationsPermission)();
+      if (!granted) return false;
+      await _notificationService.showPreview(l10n);
+      return true;
+    } catch (_) {
+      return false;
+    } finally {
+      _isUpdating = false;
+      notifyListeners();
+    }
+  }
+
   Future<void> _saveAndSync(
     NotificationPreferences preferences,
     List<Routine> routines,
@@ -133,5 +212,9 @@ class SettingsController extends ChangeNotifier {
     await _repository.saveNotificationPreferences(preferences);
     _notificationPreferences = preferences;
     await _notificationService.syncAll(routines, l10n);
+    if (preferences.notificationsEnabled) {
+      await _notificationService.refreshPendingSnoozes(
+          routines, await _logRepository.loadAllLogs(), l10n);
+    }
   }
 }

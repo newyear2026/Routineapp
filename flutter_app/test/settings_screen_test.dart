@@ -224,14 +224,19 @@ void main() {
     expect(find.text('캐릭터 팩'), findsOneWidget);
   });
 
-  testWidgets('알림 소리는 푸시 알림이 꺼져 있으면 함께 비활성된다', (tester) async {
+  testWidgets('알림과 진동 설정은 푸시가 꺼져 있어도 열 수 있다', (tester) async {
     final controller = await pumpSettings(tester);
     addTearDown(controller.dispose);
 
     expect(find.text('푸시 알림'), findsOneWidget);
-    expect(find.text('알림 소리'), findsOneWidget);
-    // 비활성 이유를 설명 문구로 함께 보여준다.
-    expect(find.text('푸시 알림이 켜져 있을 때만 쓸 수 있어요'), findsOneWidget);
+    expect(find.text('알림과 진동'), findsOneWidget);
+    await tester.ensureVisible(find.text('알림과 진동'));
+    await tester.tap(find.text('알림과 진동'));
+    await tester.pumpAndSettle();
+    expect(find.text('소리 + 진동'), findsOneWidget);
+    await tester.scrollUntilVisible(find.text('알림을 켜면 선택한 방식으로 알려드려요.'), 160,
+        scrollable: find.byType(Scrollable).last);
+    expect(find.text('알림을 켜면 선택한 방식으로 알려드려요.'), findsOneWidget);
   });
 
   testWidgets('시작 안내 다시 보기는 확인 없이 진행하지 않는다', (tester) async {

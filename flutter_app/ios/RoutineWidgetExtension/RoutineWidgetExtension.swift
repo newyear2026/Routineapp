@@ -157,7 +157,7 @@ private struct Provider: TimelineProvider {
 /// 더하고, 빠뜨리면 `pack_spec_test.dart`가 잡는다. 앱 안 미리보기의 기준값은
 /// `lib/theme/pack_skin_catalog.dart`에 있다.
 private struct WidgetPackSkin {
-    enum Decor { case stars, garden, forest, mooncloud, dawn, teashop, seaside, none }
+    enum Decor { case stars, garden, forest, mooncloud, dawn, teashop, seaside, snowwalk, none }
 
     struct RingColors {
         var dial = WidgetTokens.dialSurface
@@ -257,6 +257,19 @@ private struct WidgetPackSkin {
                     track: Color(hex: 0xD7F5F2),
                     accent: Color(hex: 0x157F8E),
                     ink: Color(hex: 0x29444A)))
+        case "penguin_snow_walk":
+            return WidgetPackSkin(
+                background: [Color(hex: 0xEAF3FF), Color(hex: 0xE4E0FA)],
+                mascot: "widget_penguin", decor: .snowwalk,
+                accent: Color(hex: 0x6577C7),
+                text: Color(hex: 0x2D344F),
+                muted: Color(hex: 0x697497),
+                border: Color(hex: 0xA6B7D8),
+                ring: RingColors(
+                    dial: Color(hex: 0xF0F4FF),
+                    track: Color(hex: 0xD2DCFA),
+                    accent: Color(hex: 0x6577C7),
+                    ink: Color(hex: 0x2D344F)))
         default: // "cat_starlight", 그리고 모르는 팩 ID
             return WidgetPackSkin(
                 background: [Color(hex: 0xFFF4DC), Color(hex: 0xE6D8FF)],
@@ -326,6 +339,10 @@ private struct RoutineMediumWidgetEntryView: View {
                     .opacity(0.28).clipped()
             } else if skin.decor == .seaside {
                 PackArtwork.image("widget_otter_seaside")
+                    .resizable().interpolation(.none).scaledToFill()
+                    .opacity(0.30).clipped()
+            } else if skin.decor == .snowwalk {
+                PackArtwork.image("widget_penguin_snowpath")
                     .resizable().interpolation(.none).scaledToFill()
                     .opacity(0.30).clipped()
             }

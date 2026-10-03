@@ -202,6 +202,39 @@ void main() {
       expect(controller.currentPack.id, 'poodle_garden');
     });
 
+    test('펭귄 팩은 푸들과 별도로 광고 두 번을 보면 영구히 열린다', () async {
+      final settings = _MemorySettingsRepository();
+      final store = _MemoryUnlockStore();
+      final controller = await loadController(
+        settings,
+        characterPacks: CharacterPackCatalog.all,
+        rewardedPackUnlocks: true,
+        unlockStore: store,
+      );
+      const penguin = CharacterPackCatalog.penguinSnowWalk;
+
+      expect(await controller.selectCharacterPack(penguin), isFalse);
+      expect(await controller.watchAdForPackUnlock(penguin),
+          PackAdUnlockOutcome.progressed);
+      expect(controller.packAdViews(penguin), 1);
+      expect(controller.packAdViews(CharacterPackCatalog.poodleGarden), 0);
+      expect(await controller.watchAdForPackUnlock(penguin),
+          PackAdUnlockOutcome.unlocked);
+      expect(controller.currentPack.id, penguin.id);
+      expect(controller.currentThemePreset.id, penguin.id);
+      expect(store.views, {penguin.id: 2});
+
+      final reopened = await loadController(
+        settings,
+        characterPacks: CharacterPackCatalog.all,
+        rewardedPackUnlocks: true,
+        unlockStore: store,
+      );
+      expect(reopened.currentPack.id, penguin.id);
+      expect(reopened.packAdViews(penguin), isNull);
+      expect(reopened.packAdViews(CharacterPackCatalog.poodleGarden), 0);
+    });
+
     test('본 수는 앱을 다시 켜도 남고, 나눠 봐도 이어진다', () async {
       final settings = _MemorySettingsRepository();
       final store = _MemoryUnlockStore();

@@ -13,34 +13,42 @@ enum _UpdateChoice { update, later }
 
 /// 업데이트를 한 번 권하고, 답에 따라 움직인다.
 ///
-/// 뒤로 버튼으로도 닫힐 수 있고 그것은 어느 쪽 답도 아니다 — 다시는 말하지
-/// 않겠다는 약속 없이 이번 끼어들기만 끝낸다. 결정은 «나중에하기»뿐이고,
-/// 기억되는 것도 그것뿐이다.
+/// 표시한 버전을 저장하므로 뒤로 버튼으로 닫아도 자동 팝업은 반복하지 않는다.
+/// «나중에하기»는 별도로 기억하며 배너는 계속 남는다.
 Future<void> showUpdatePrompt(
   BuildContext context, {
   required AppUpdates updates,
   String? currentVersion,
 }) async {
+  if (!updates.shouldPrompt) return;
   // 다이얼로그 뒤가 아니라 앞이다. 정책이 «끼어들기를 썼다»를 이미 알고 있어야,
   // 열려 있는 동안 다시 그려지는 것들이 두 번째 사본을 요구할 수 없는 상태를
   // 본다.
-  updates.markPromptShown();
+  final offeredVersionCode = updates.pending?.versionCode;
   final messenger = ScaffoldMessenger.of(context);
   final l10n = AppLocalizations.of(context);
-
-  final choice = await showDialog<_UpdateChoice>(
-    context: context,
-    barrierColor: const Color(0x99221C42),
-    builder: (context) => _UpdatePromptDialog(currentVersion: currentVersion),
-  );
-  updates.markPromptClosed();
+  final saved = updates.markPromptShown();
+  _UpdateChoice? choice;
+  try {
+    if (!context.mounted) return;
+    final dialog = showDialog<_UpdateChoice>(
+      context: context,
+      barrierColor: const Color(0x99221C42),
+      builder: (context) => _UpdatePromptDialog(currentVersion: currentVersion),
+    );
+    await saved;
+    choice = await dialog;
+  } finally {
+    updates.markPromptClosed();
+  }
 
   if (choice == _UpdateChoice.later) {
-    await updates.dismiss();
+    await updates.dismiss(versionCode: offeredVersionCode);
     return;
   }
   if (choice != _UpdateChoice.update) return;
   if (await updates.openStore()) return;
+  if (!messenger.mounted) return;
   // 스토어도 없고, 브라우저도 없고, 목록도 없다. 그렇다고 말하는 것이 복구의
   // 전부다 — 여기서 앱이 사용자를 대신해 할 수 있는 일이 없다.
   messenger

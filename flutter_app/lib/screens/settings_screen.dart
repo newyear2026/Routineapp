@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
 import '../app_optional_provider.dart';
+import 'notification_settings_screen.dart';
 import '../application/release/release_announcements.dart';
 import '../application/routine_app_controller.dart';
 import '../application/services/ad_bootstrap.dart';
@@ -170,17 +171,19 @@ class _SettingsScreenContent extends StatelessWidget {
                   l10n,
                 ),
               ),
-              SettingsToggleTile(
+              SettingsNavigationTile(
                 icon: Icons.volume_up_rounded,
-                label: l10n.settingsSound,
-                value: settings.soundEnabled,
-                enabled: controlsEnabled && settings.notificationsEnabled,
-                description: l10n.settingsSoundDesc,
-                onChanged: (value) => settings.setSoundEnabled(
-                  value,
-                  appController.routines,
-                  l10n,
-                ),
+                label: l10n.notificationSettingsTitle,
+                description: l10n.notificationSettingsSubtitle,
+                onTap: controlsEnabled
+                    ? () => Navigator.of(context).push(
+                          MaterialPageRoute<void>(
+                              builder: (_) => NotificationSettingsScreen(
+                                    controller: settings,
+                                    routines: appController.routines,
+                                  )),
+                        )
+                    : null,
               ),
               // 권한이 바뀌면 알림을 다시 걸어야 한다. 예약된 알람은 예약 시점의
               // 정확/부정확 모드를 그대로 들고 있어서, 재예약 없이는 반영되지 않는다.
@@ -503,8 +506,12 @@ class _SettingsSkyHeader extends StatelessWidget {
 /// «업데이트 확인» 행이 지금 무엇을 말해야 하는가.
 String _updateCheckDescription(AppLocalizations l10n, AppUpdates updates) {
   if (updates.isChecking) return l10n.settingsCheckUpdateBusy;
-  if (updates.pending != null) return l10n.settingsCheckUpdateAvailable;
-  return l10n.settingsCheckUpdateUpToDate;
+  return switch (updates.status) {
+    UpdateCheckStatus.notChecked => l10n.settingsCheckUpdateNotChecked,
+    UpdateCheckStatus.upToDate => l10n.settingsCheckUpdateUpToDate,
+    UpdateCheckStatus.available => l10n.settingsCheckUpdateAvailable,
+    UpdateCheckStatus.failed => l10n.settingsCheckUpdateFailed,
+  };
 }
 
 String _errorMessage(AppLocalizations l10n, SettingsError error) {

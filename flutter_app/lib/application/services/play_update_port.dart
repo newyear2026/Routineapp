@@ -20,27 +20,32 @@ final class PlayUpdatePort implements AppUpdatePort {
   bool get canCheck => true;
 
   @override
-  Future<PendingUpdate?> check() async {
+  Future<UpdateCheckResult> check() async {
     try {
-      final info = await InAppUpdate.checkForUpdate();
+      final info = await InAppUpdate.checkForUpdate()
+          .timeout(const Duration(seconds: 15));
+      if (info.updateAvailability == UpdateAvailability.updateNotAvailable) {
+        return const UpdateCheckResult.success();
+      }
       if (info.updateAvailability != UpdateAvailability.updateAvailable) {
-        return null;
+        return const UpdateCheckResult.failed();
       }
       final versionCode = info.availableVersionCode;
       // Play는 업데이트가 없을 때 이 값이 임의라고 문서에 적어 두었고, 어느
       // 경우에도 null일 수 있다. 코드가 없으면 «나중에»를 기억할 대상이
       // 없으므로, 이름 붙일 수 없는 업데이트는 안내하지 않는다.
-      if (versionCode == null) return null;
-      return PendingUpdate(
+      if (versionCode == null || versionCode <= 0) {
+        return const UpdateCheckResult.failed();
+      }
+      return UpdateCheckResult.success(PendingUpdate(
         versionCode: versionCode,
         stalenessDays: info.clientVersionStalenessDays,
-      );
+      ));
     } on Object catch (error) {
-      // 예외적인 경우가 아니라 평상시다. Play가 설치하지 않은 빌드 전부에서
-      // — 디버그 실행, 사이드로드, Play 서비스 없는 에뮬레이터 — 그리고
-      // 네트워크가 없는 기기에서 던진다. 사용자에게는 전부 같은 뜻이다.
+      // 자동 확인 실패는 팝업을 띄우지 않는다. 컨트롤러가 기존 안내를 유지하고
+      // 다음 앱 시작·복귀에서 재시도할 수 있도록 실패 결과를 돌려준다.
       debugPrint('LOOPET: Play에 업데이트를 묻지 못했다: $error');
-      return null;
+      return const UpdateCheckResult.failed();
     }
   }
 

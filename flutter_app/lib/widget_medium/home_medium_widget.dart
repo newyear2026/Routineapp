@@ -195,6 +195,14 @@ class _WidgetDecorLayer extends StatelessWidget {
               filterQuality: FilterQuality.none,
             ),
           ),
+        WidgetDecor.snowwalk => Opacity(
+            opacity: 0.30,
+            child: Image.asset(
+              'assets/pack_backgrounds/penguin-snowpath.png',
+              fit: BoxFit.fill,
+              filterQuality: FilterQuality.none,
+            ),
+          ),
       };
 }
 

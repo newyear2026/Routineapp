@@ -34,6 +34,7 @@ import 'package:routine_timer/domain/models/routine_icon_id.dart';
 import 'package:routine_timer/domain/models/routine_log.dart';
 import 'package:routine_timer/domain/models/routine_log_status.dart';
 import 'package:routine_timer/domain/settings/notification_preferences.dart';
+import 'package:routine_timer/domain/store/character_pack.dart';
 import 'package:routine_timer/l10n/app_localizations.dart';
 import 'package:routine_timer/screens/home_screen.dart';
 import 'package:routine_timer/screens/routine_add_screen.dart';
@@ -41,10 +42,12 @@ import 'package:routine_timer/screens/routines_screen.dart';
 import 'package:routine_timer/screens/today_progress_screen.dart';
 import 'package:routine_timer/theme/app_colors.dart';
 import 'package:routine_timer/theme/app_theme.dart';
+import 'package:routine_timer/theme/app_theme_preset.dart';
 import 'package:routine_timer/theme/routine_palette.dart';
 import 'package:routine_timer/widget_medium/home_medium_widget.dart';
 import 'package:routine_timer/widget_medium/home_medium_widget_view_model.dart';
 import 'package:routine_timer/widgets/ds/animated_cat.dart';
+import 'package:routine_timer/widgets/store/character_pack_scope.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import '../test/support/test_doubles.dart';
@@ -58,6 +61,10 @@ const _outputRoot = String.fromEnvironment(
   defaultValue: 'assets/store/screenshots/marketing',
 );
 const _onlyLocale = String.fromEnvironment('STORE_SCREENSHOT_LOCALE');
+const _packId = String.fromEnvironment(
+  'STORE_SCREENSHOT_PACK_ID',
+  defaultValue: 'cat_starlight',
+);
 final _shotDate = DateTime(2026, 9, 8, 15, 14);
 
 const _play = _CanvasSpec(
@@ -86,15 +93,19 @@ void main() {
   testWidgets('appscreens 스타일 스토어 스크린샷을 뽑는다', (tester) async {
     await initializeDateFormatting();
     await _loadFonts();
+    final selectedPack = CharacterPackCatalog.byId(_packId);
+    if (selectedPack == null || !selectedPack.hasArtwork) {
+      throw StateError('Unknown screenshot character pack: $_packId');
+    }
     final brandIcon = await tester.runAsync(_loadBrandIcon);
-    final catGuide = await tester.runAsync(
+    final characterGuide = await tester.runAsync(
       () => _loadAssetPng(
-        'assets/characters/cat_starlight/v1/approved/guide.png',
+        selectedPack.assetFor('guide')!,
         targetWidth: 560,
       ),
     );
     addTearDown(brandIcon!.dispose);
-    addTearDown(catGuide!.dispose);
+    addTearDown(characterGuide!.dispose);
 
     // ignore: invalid_use_of_visible_for_testing_member
     SharedPreferences.setMockInitialValues({});
@@ -109,9 +120,10 @@ void main() {
       Locale('en'),
       Locale('es'),
     ]) {
-      if (_onlyLocale.isNotEmpty && locale.languageCode != _onlyLocale) continue;
+      if (_onlyLocale.isNotEmpty && locale.languageCode != _onlyLocale)
+        continue;
       final l10n = lookupAppLocalizations(locale);
-      final app = await _controllerFor(l10n);
+      final app = await _controllerFor(l10n, selectedPack);
       addTearDown(app.dispose);
 
       final shots = <String, ui.Image>{};
@@ -144,7 +156,8 @@ void main() {
         'add',
         const RoutineAddScreen(),
         afterPump: (tester) async {
-          await tester.tap(find.text(l10n.routineQuickReading), warnIfMissed: false);
+          await tester.tap(find.text(l10n.routineQuickReading),
+              warnIfMissed: false);
           await tester.pump();
         },
       );
@@ -153,7 +166,10 @@ void main() {
         locale: locale,
         screen: _GlanceScreen(
           l10n: l10n,
-          icon: brandIcon,
+          icon: selectedPack.id == CharacterPackCatalog.defaultPack.id
+              ? brandIcon
+              : characterGuide,
+          pack: selectedPack,
           bodyFamily:
               locale.languageCode == 'ko' ? 'ScreenshotKo' : 'ScreenshotBody',
         ),
@@ -181,7 +197,7 @@ void main() {
           accentLine: 1,
           theme: _SlideTheme.blue,
           screen: shots['widget'],
-          lightStatus: true,
+          lightStatus: selectedPack.id == CharacterPackCatalog.defaultPack.id,
         ),
         _Slide(
           file: '04_routines',
@@ -212,7 +228,7 @@ void main() {
           subtitle: copy.ctaSub,
           art: _CtaArt(
             icon: brandIcon,
-            cat: catGuide,
+            character: characterGuide,
             titleFamily: locale.languageCode == 'ko'
                 ? 'ScreenshotKoBold'
                 : 'ScreenshotTitle',
@@ -393,7 +409,10 @@ class _Copy {
       };
 }
 
-Future<RoutineAppController> _controllerFor(AppLocalizations l10n) async {
+Future<RoutineAppController> _controllerFor(
+  AppLocalizations l10n,
+  CharacterPack selectedPack,
+) async {
   final logs = MemoryLogRepository();
   const ymd = '2026-09-08';
   for (final id in ['wake', 'exercise', 'breakfast', 'study', 'lunch']) {
@@ -413,13 +432,30 @@ Future<RoutineAppController> _controllerFor(AppLocalizations l10n) async {
     notificationService: RoutineNotificationService(
       exactAlarmsAllowed: () async => false,
       gateway: NoopNotificationGateway(),
-      preferencesLoader: () async => NotificationPreferences.firstLaunchDefaults,
+      preferencesLoader: () async =>
+          NotificationPreferences.firstLaunchDefaults,
     ),
     nowProvider: () => _shotDate,
     clockAutoRefreshEnabled: false,
+    packOwnership: _ScreenshotPackOwnership(selectedPack.id),
   );
   await app.load();
+  if (!await app.selectCharacterPack(selectedPack)) {
+    throw StateError(
+        'Could not select screenshot character pack: ${selectedPack.id}');
+  }
   return app;
+}
+
+class _ScreenshotPackOwnership implements CharacterPackOwnership {
+  const _ScreenshotPackOwnership(this.selectedPackId);
+
+  final String selectedPackId;
+
+  @override
+  bool owns(CharacterPack pack) =>
+      pack.id == selectedPackId ||
+      pack.availability == CharacterPackAvailability.included;
 }
 
 List<Routine> _demoRoutines(AppLocalizations l10n) {
@@ -528,13 +564,20 @@ Future<ui.Image> _captureScreen(
   final fontFamily = locale.languageCode == 'ko' ? 'ScreenshotKo' : 'Roboto';
   Widget child = MaterialApp(
     debugShowCheckedModeBanner: false,
-    theme: buildRoutineTheme(fontFamily: fontFamily),
+    theme: buildRoutineTheme(
+      fontFamily: fontFamily,
+      preset: app?.currentThemePreset ?? AppThemePreset.softDay,
+    ),
     locale: locale,
     localizationsDelegates: AppLocalizations.localizationsDelegates,
     supportedLocales: AppLocalizations.supportedLocales,
     builder: (context, child) => MediaQuery(
       data: MediaQuery.of(context).copyWith(disableAnimations: true),
-      child: TickerMode(enabled: false, child: child!),
+      child: CharacterPackScope(
+        current: app?.currentPack ?? CharacterPackCatalog.defaultPack,
+        ownership: app?.packOwnership ?? const BundledOnlyOwnership(),
+        child: TickerMode(enabled: false, child: child!),
+      ),
     ),
     home: RepaintBoundary(key: key, child: screen),
   );
@@ -545,7 +588,7 @@ Future<ui.Image> _captureScreen(
   await tester.pumpWidget(child);
   await tester.runAsync(() async {
     final context = key.currentContext;
-    if (context != null) await _precache(context);
+    if (context != null) await _precache(context, app?.currentPack);
   });
   await tester.pump();
   if (afterPump != null) await afterPump(tester);
@@ -749,7 +792,8 @@ class _MarketingCard extends StatelessWidget {
         ),
         const CustomPaint(painter: _StarFieldPainter()),
         Padding(
-          padding: EdgeInsets.fromLTRB(spec.sidePad, spec.titleTop, spec.sidePad, 0),
+          padding:
+              EdgeInsets.fromLTRB(spec.sidePad, spec.titleTop, spec.sidePad, 0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -936,8 +980,14 @@ class _StatusIconsPainter extends CustomPainter {
       x += 5;
     }
     x += 6;
-    canvas.drawCircle(Offset(x + 5, size.height / 2), 5, paint..style = PaintingStyle.stroke..strokeWidth = 1.6);
-    canvas.drawCircle(Offset(x + 5, size.height / 2), 1.4, Paint()..color = color);
+    canvas.drawCircle(
+        Offset(x + 5, size.height / 2),
+        5,
+        paint
+          ..style = PaintingStyle.stroke
+          ..strokeWidth = 1.6);
+    canvas.drawCircle(
+        Offset(x + 5, size.height / 2), 1.4, Paint()..color = color);
     x += 18;
     canvas.drawRRect(
       RRect.fromRectAndRadius(
@@ -1006,20 +1056,21 @@ class _StarFieldPainter extends CustomPainter {
 class _CtaArt extends StatelessWidget {
   const _CtaArt({
     required this.icon,
-    required this.cat,
+    required this.character,
     required this.titleFamily,
   });
 
   final ui.Image icon;
-  final ui.Image cat;
+  final ui.Image character;
   final String titleFamily;
 
   @override
   Widget build(BuildContext context) {
     return LayoutBuilder(
       builder: (context, box) {
-        final catSize = math.min(box.maxWidth * 0.78, box.maxHeight * 0.56);
-        final iconSize = math.min(200.0, catSize * 0.46);
+        final characterSize =
+            math.min(box.maxWidth * 0.78, box.maxHeight * 0.56);
+        final iconSize = math.min(200.0, characterSize * 0.46);
         return Column(
           children: [
             const Spacer(flex: 2),
@@ -1044,9 +1095,9 @@ class _CtaArt extends StatelessWidget {
             ),
             const Spacer(),
             RawImage(
-              image: cat,
-              width: catSize,
-              height: catSize,
+              image: character,
+              width: characterSize,
+              height: characterSize,
               filterQuality: FilterQuality.none,
             ),
             SizedBox(height: box.maxHeight * 0.05),
@@ -1061,25 +1112,40 @@ class _GlanceScreen extends StatelessWidget {
   const _GlanceScreen({
     required this.l10n,
     required this.icon,
+    required this.pack,
     required this.bodyFamily,
   });
 
   final AppLocalizations l10n;
   final ui.Image icon;
+  final CharacterPack pack;
   final String bodyFamily;
 
   @override
   Widget build(BuildContext context) {
     final locale = Localizations.localeOf(context).toLanguageTag();
     final date = DateFormat.MMMMEEEEd(locale).format(_shotDate);
+    final isTeashop = pack.id == CharacterPackCatalog.redPandaTeashop.id;
+    final headlineColor =
+        isTeashop ? const Color(0xFF3D302D) : const Color(0xFFF8F4EC);
     return ColoredBox(
-      color: const Color(0xFF1B1840),
+      color: isTeashop ? const Color(0xFFF9EBD7) : const Color(0xFF1B1840),
       child: DecoratedBox(
-        decoration: const BoxDecoration(
+        decoration: BoxDecoration(
           gradient: LinearGradient(
             begin: Alignment.topLeft,
             end: Alignment.bottomRight,
-            colors: [Color(0xFF2A2458), Color(0xFF6744F4), Color(0xFF1B1840)],
+            colors: isTeashop
+                ? const [
+                    Color(0xFFFFFAF1),
+                    Color(0xFFEAF4F0),
+                    Color(0xFFD9ECE8)
+                  ]
+                : const [
+                    Color(0xFF2A2458),
+                    Color(0xFF6744F4),
+                    Color(0xFF1B1840)
+                  ],
           ),
         ),
         child: Padding(
@@ -1094,17 +1160,17 @@ class _GlanceScreen extends StatelessWidget {
                     fontFamily: bodyFamily,
                     fontSize: 16,
                     fontWeight: FontWeight.w600,
-                    color: const Color(0xF2FFFFFF),
+                    color: headlineColor,
                     decoration: TextDecoration.none,
                   ),
                 ),
                 Text(
                   _now,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontFamily: 'PixelifySans',
                     fontSize: 72,
                     height: 1.0,
-                    color: Color(0xFFF8F4EC),
+                    color: headlineColor,
                     decoration: TextDecoration.none,
                   ),
                 ),
@@ -1118,6 +1184,7 @@ class _GlanceScreen extends StatelessWidget {
                   child: HomeMediumWidget(
                     viewModel: HomeMediumWidgetViewModel.dummy(l10n),
                     ringSize: 96,
+                    pack: pack,
                   ),
                 ),
                 const Spacer(),
@@ -1125,7 +1192,9 @@ class _GlanceScreen extends StatelessWidget {
                   child: Container(
                     padding: const EdgeInsets.fromLTRB(28, 16, 28, 12),
                     decoration: BoxDecoration(
-                      color: const Color(0x55FFFFFF),
+                      color: isTeashop
+                          ? const Color(0xCCFFFFFF)
+                          : const Color(0x55FFFFFF),
                       borderRadius: BorderRadius.circular(28),
                     ),
                     child: Column(
@@ -1145,7 +1214,7 @@ class _GlanceScreen extends StatelessWidget {
                           style: TextStyle(
                             fontFamily: bodyFamily,
                             fontSize: 12,
-                            color: const Color(0xF2FFFFFF),
+                            color: headlineColor,
                             decoration: TextDecoration.none,
                           ),
                         ),
@@ -1162,7 +1231,7 @@ class _GlanceScreen extends StatelessWidget {
   }
 }
 
-Future<void> _precache(BuildContext context) async {
+Future<void> _precache(BuildContext context, CharacterPack? pack) async {
   for (final icon in RoutineIconId.values) {
     await precacheImage(
       AssetImage('assets/routine_icons/${icon.name}.png'),
@@ -1171,7 +1240,8 @@ Future<void> _precache(BuildContext context) async {
   }
   for (final pose in CatPose.values) {
     await precacheImage(
-      AssetImage(CharacterPackCatalog.defaultPack.assetFor(pose.name)!),
+      AssetImage(
+          (pack ?? CharacterPackCatalog.defaultPack).assetFor(pose.name)!),
       context,
     );
   }

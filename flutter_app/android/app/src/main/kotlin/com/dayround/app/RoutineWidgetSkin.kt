@@ -50,7 +50,7 @@ data class RoutineWidgetSkin(
         val nowLabelText: Int = Color.parseColor("#6A6489"),
     )
 
-    enum class MediumDecor { SKY, GARDEN, FOREST, MOONCLOUD, DAWN, TEASHOP, SEASIDE, NONE }
+    enum class MediumDecor { SKY, GARDEN, FOREST, MOONCLOUD, DAWN, TEASHOP, SEASIDE, SNOWWALK, NONE }
 
     /** 타임라인·카드 위젯([RoutineWidgetVariantBitmap]). */
     data class VariantSkin(
@@ -68,7 +68,7 @@ data class RoutineWidgetSkin(
      * 변형 위젯의 그리기 방식. 기본 장면 위에 값만 바꿔 얹는 팩은 [STANDARD]를
      * 쓰고, 장면을 통째로 새로 그리는 팩은 자기 이름의 방식을 더한다.
      */
-    enum class VariantStyle { STANDARD, STARGAZER, RABBIT, SQUIRREL, SHEEP, TEASHOP, SEASIDE }
+    enum class VariantStyle { STANDARD, STARGAZER, RABBIT, SQUIRREL, SHEEP, TEASHOP, SEASIDE, SNOWWALK }
 
     data class StandardScene(
         val background: Int,
@@ -314,6 +314,37 @@ data class RoutineWidgetSkin(
             ),
         )
 
+        private val penguinSnowWalk = RoutineWidgetSkin(
+            ring = RingColors(
+                dial = Color.parseColor("#F0F4FF"),
+                dialOutline = Color.parseColor("#2D344F"),
+                surface = Color.WHITE,
+                track = Color.parseColor("#D2DCFA"),
+                pointer = Color.parseColor("#6577C7"),
+                hourLabel = Color.parseColor("#2D344F"),
+                tick = Color.parseColor("#697497"),
+                centerLabelInk = Color.parseColor("#2D344F"),
+                centerLabelSurface = Color.parseColor("#E9DEFF"),
+            ),
+            medium = MediumSkin(
+                background = R.drawable.widget_medium_bg_penguin,
+                badgeBackground = R.drawable.widget_badge_bg_penguin,
+                mascot = R.drawable.widget_penguin,
+                featuredMascot = true,
+                decor = MediumDecor.SNOWWALK,
+                title = Color.parseColor("#2D344F"),
+                muted = Color.parseColor("#697497"),
+                accent = Color.parseColor("#6577C7"),
+            ),
+            variant = VariantSkin(
+                style = VariantStyle.SNOWWALK,
+                pet = R.drawable.widget_variant_penguin,
+                timelinePet = RectF(464f, 20f, 633f, 188f),
+                cardsPet = RectF(49f, 49f, 207f, 205f),
+                badgeFill = Color.parseColor("#6577C7"),
+            ),
+        )
+
         /** 기본 팩. 모르는 팩 ID(옛 앱이 남긴 값 등)도 이것으로 그린다. */
         val default: RoutineWidgetSkin get() = starlightCat
 
@@ -326,6 +357,7 @@ data class RoutineWidgetSkin(
             "sheep_mooncloud" -> mooncloudSheep
             "redpanda_teashop" -> redPandaTeashop
             "otter_seaside" -> otterSeaside
+            "penguin_snow_walk" -> penguinSnowWalk
             else -> starlightCat
         }
     }

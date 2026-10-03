@@ -110,6 +110,17 @@ class CharacterArtwork {
         CatPose.guide: Rect.fromLTRB(51, 35, 346, 359),
       },
     ),
+    'penguin_snow_walk': CharacterArtwork(
+      canvas: 384,
+      bounds: {
+        CatPose.idle: Rect.fromLTRB(43, 32, 340, 352),
+        CatPose.activity: Rect.fromLTRB(46, 37, 337, 352),
+        CatPose.focus: Rect.fromLTRB(56, 37, 327, 352),
+        CatPose.complete: Rect.fromLTRB(47, 37, 336, 352),
+        CatPose.rest: Rect.fromLTRB(32, 97, 352, 335),
+        CatPose.guide: Rect.fromLTRB(41, 37, 343, 352),
+      },
+    ),
   };
 }
 

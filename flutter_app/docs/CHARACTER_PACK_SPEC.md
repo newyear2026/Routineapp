@@ -60,8 +60,8 @@
 | `availability` | 여는 방법 |
 | --- | --- |
 | `included` | 기본 제공 |
-| `forSale` | Play 인앱 상품. `productId`는 `loopet.pack.<id>`이고 번들에도 자동으로 들어간다 |
-| `rewardedUnlock` | 보상형 광고 2회. 번들에도 들어간다 |
+| `forSale` | Play 인앱 상품. `productId`는 `loopet.pack.<id>`. 5종 묶음은 `StoreProductCatalog.bundlePackIds`에 지정된 팩만 포함한다 |
+| `rewardedUnlock` | 보상형 광고 2회. 5종 구매 묶음에는 포함하지 않는다 |
 | `launchGift` | 출시 기간에 시작한 사용자. 팔지 않는다 |
 | `comingSoon` | 그림이 아직 없다 |
 
@@ -87,11 +87,11 @@
 
 ### 시간대 장면 (`timedScene`)
 
-현재 8개 팩 모두 `PackTimedScene`을 쓴다. `PackSkinCatalog`가 장면과
+현재 9개 팩 모두 `PackTimedScene`을 쓴다. `PackSkinCatalog`가 장면과
 움직임 계열을 정의하며 화면마다 팩 ID를 분기하지 않는다.
 
 - 기존 다람쥐·별빛 고양이·푸들: `headers` 4장과 `cards` 4장으로 개별 시간대 자산을 지정한다.
-- 유성 관측 고양이·토끼·양·랫서팬더·해달: `PackTimedScene.graded`에
+- 유성 관측 고양이·토끼·양·랫서팬더·해달·펭귄: `PackTimedScene.graded`에
   서로 다른 상단 `header`와 카드 `card` 원화 두 장을 지정한다.
   `ScenicPackBackdrop`/`sceneLighting`이 아침·낮·노을·밤의 조명을 적용한다.
   해·달은 상단에서만 픽셀로 그리고, 실내 찻집에는 그리지 않는다.
@@ -117,7 +117,7 @@
   계절별 움직임이나 파티클 스타일이 새로 필요하면 `PackSceneStyle`과
   해당 배경 위젯을 추가한다.
 
-#### 추가 다섯 팩의 움직임
+#### 추가 여섯 팩의 움직임
 
 | 팩 / style | 아침·낮 | 노을 | 밤 |
 | --- | --- | --- | --- |
@@ -126,8 +126,9 @@
 | 달구름 / cloud | 작은 구름 조각 | 분홍 구름 조각 | 별빛 |
 | 찻집 / teashop | 창가 빗방울, 카드의 김 | 따뜻한 창가와 김 | 어두운 창가와 김 |
 | 해변 / seaside | 수면 반짝임 | 금빛 수면 | 달빛 수면과 별 |
+| 눈길 / snowwalk | 작은 눈꽃 | 노을빛 눈꽃 | 달빛 눈꽃 |
 
-이 다섯 팩은 본문 색을 모든 시간대에 고정하고 `nightBodyColor`를 지정하지 않는다.
+이 여섯 팩은 본문 색을 모든 시간대에 고정하고 `nightBodyColor`를 지정하지 않는다.
 홈 카드는 공통 최소 높이 164dp를 유지한다. 원판 주변에는 기존 소품만 두며,
 예전 가로 배경을 원판 뒤에 늘려 그려서 장면이 한 번 더 반복되지 않게 한다.
 움직임은 오른쪽 풍경 안에서만, 홈 6초 / 진행·루틴 12초 반복이다.

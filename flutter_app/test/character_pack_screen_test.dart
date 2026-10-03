@@ -41,19 +41,19 @@ void main() {
   });
 
   group('목록 화면', () {
-    testWidgets('모든 팩을 보여 주고 기본 팩만 사용 중으로 표시한다', (tester) async {
+    testWidgets('처음에는 보유한 기본 팩만 보여 주고 스토어는 분리한다', (tester) async {
       await tester.pumpWidget(
         localizedApp(home: const CharacterPackStoreScreen()),
       );
       await tester.pump();
 
-      expect(find.text(testL10n.packStarlightCatName), findsOneWidget);
-      expect(find.text(testL10n.packPoodleGardenName), findsOneWidget);
-      // 기본 팩 하나만 소유 상태다.
-      expect(find.text(testL10n.themeInUse), findsOneWidget);
+      expect(find.text(testL10n.packStarlightCatName), findsNWidgets(2));
+      expect(find.text(testL10n.packPoodleGardenName), findsNothing);
+      expect(find.text(testL10n.packPostmanRabbitName), findsNothing);
+      expect(find.text(testL10n.themeInUse), findsNWidgets(2));
     });
 
-    testWidgets('받지 못한 출시 선물은 «출시 선물»을 한 번만 적는다', (tester) async {
+    testWidgets('받지 못한 출시 선물은 보유 목록에 넣지 않는다', (tester) async {
       tester.view.physicalSize = const Size(430, 2400);
       tester.view.devicePixelRatio = 1;
       addTearDown(tester.view.reset);
@@ -62,8 +62,8 @@ void main() {
       );
       await tester.pump();
 
-      expect(find.text(testL10n.launchGiftBadge), findsOneWidget);
-      expect(find.textContaining('${testL10n.launchGiftBadge} ·'), findsNothing);
+      expect(find.text(testL10n.launchGiftBadge), findsNothing);
+      expect(find.text(testL10n.packStargazerName), findsNothing);
     });
 
     testWidgets('팩을 누르면 판매 화면으로 간다', (tester) async {
@@ -85,6 +85,9 @@ void main() {
       await tester.pumpWidget(localizedApp(routerConfig: router));
       await tester.pump();
 
+      await tester.tap(find.byKey(const Key('pack-tab-store')));
+      await tester.pumpAndSettle();
+      await scrollToBottom(tester, find.text(testL10n.packPoodleGardenName));
       await tester.tap(find.text(testL10n.packPoodleGardenName));
       await tester.pumpAndSettle();
 
@@ -105,8 +108,8 @@ void main() {
       await scrollToBottom(tester, find.byType(CharacterPackDecoRow));
       for (final asset in CharacterPackCatalog.postmanRabbit.decoIds) {
         expect(
-          find.byWidgetPredicate((widget) =>
-              widget is PixelDecoration && widget.asset == asset),
+          find.byWidgetPredicate(
+              (widget) => widget is PixelDecoration && widget.asset == asset),
           findsOneWidget,
         );
       }
@@ -275,7 +278,7 @@ void main() {
       ));
       await tester.pump();
 
-      expect(find.text(testL10n.themeInUse), findsOneWidget);
+      expect(find.text(testL10n.themeInUse), findsNWidgets(2));
       // 산 팩이 여럿이라 딱지 수가 아니라 카드마다 본다.
       expect(
           find.descendant(
@@ -283,7 +286,7 @@ void main() {
               of: find.text(testL10n.packPoodleGardenName),
               matching: find.byType(InkWell),
             ),
-            matching: find.text(testL10n.characterPackOwned),
+            matching: find.text(testL10n.packApplyAction),
           ),
           findsOneWidget);
     });
@@ -380,14 +383,50 @@ void main() {
     testWidgets('목록에서 잠긴 팩은 광고로 열기, 한 번 본 팩은 본 수를 보인다', (tester) async {
       await tester.pumpWidget(unlockScoped(const CharacterPackStoreScreen()));
       await tester.pump();
-      expect(find.text(testL10n.characterPackAdUnlockBadge), findsOneWidget);
+      await tester.tap(find.byKey(const Key('pack-tab-store')));
+      await tester.pumpAndSettle();
+      await scrollToBottom(tester, find.text(testL10n.packPoodleGardenName));
+      final poodleRow = find.ancestor(
+        of: find.text(testL10n.packPoodleGardenName),
+        matching: find.byType(InkWell),
+      );
+      expect(
+          find.descendant(
+            of: poodleRow,
+            matching: find.text(testL10n.characterPackAdUnlockBadge),
+          ),
+          findsOneWidget);
 
       await tester.pumpWidget(unlockScoped(
         const CharacterPackStoreScreen(),
         adViews: (pack) => pack.id == 'poodle_garden' ? 1 : null,
       ));
       await tester.pump();
-      expect(find.text(testL10n.characterPackAdUnlockProgress(1, 2)),
+      expect(
+          find.descendant(
+            of: poodleRow,
+            matching: find.text(testL10n.characterPackAdUnlockProgress(1, 2)),
+          ),
+          findsOneWidget);
+    });
+
+    testWidgets('펭귄 팩도 스토어의 광고 해금 목록에서 찾을 수 있다', (tester) async {
+      await tester.pumpWidget(unlockScoped(const CharacterPackStoreScreen()));
+      await tester.pump();
+      await tester.tap(find.byKey(const Key('pack-tab-store')));
+      await tester.pumpAndSettle();
+
+      await scrollToBottom(tester, find.text(testL10n.packPenguinSnowWalkName));
+      expect(find.text(testL10n.packPenguinSnowWalkName), findsOneWidget);
+      final penguinRow = find.ancestor(
+        of: find.text(testL10n.packPenguinSnowWalkName),
+        matching: find.byType(InkWell),
+      );
+      expect(
+          find.descendant(
+            of: penguinRow,
+            matching: find.text(testL10n.characterPackAdUnlockBadge),
+          ),
           findsOneWidget);
     });
 
@@ -403,7 +442,7 @@ void main() {
               of: find.text(testL10n.packPoodleGardenName),
               matching: find.byType(InkWell),
             ),
-            matching: find.text(testL10n.characterPackOwned),
+            matching: find.text(testL10n.packApplyAction),
           ),
           findsOneWidget);
       expect(find.text(testL10n.characterPackAdUnlockBadge), findsNothing);

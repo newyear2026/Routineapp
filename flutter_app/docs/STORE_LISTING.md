@@ -241,6 +241,53 @@ fluye su día, y para quien encontró agotadoras las apps de tareas.
 
 ---
 
+## 출시 노트 — 1.0.3 (versionCode 7)
+
+Play Console 출시 노트 칸에 언어별로 붙여 넣는다. 한 언어당 500자 이내.
+앱 안 «새로운 소식»과 같은 줄이다. 광고 자리·권한 변경 같은 내부 사정은 적지 않는다.
+
+**한국어 (ko-KR)**
+
+```
+우편배달부 토끼, 탐험가 다람쥐, 달구름 양, 랫서팬더 찻집, 햇살 해달 팩을 살 수 있어요.
+캐릭터 팩 홈이 시간대에 따라 다른 장면으로 바뀌어요.
+하루 링 위젯이 더 커졌어요.
+```
+
+**English (en-US)**
+
+```
+You can buy the Postman Rabbit, Explorer Squirrel, Mooncloud Sheep, Red Panda Teashop, and Sunny Sea Otter packs.
+Character pack homes change scene with the time of day.
+The day ring widget is larger.
+```
+
+**Español (es-ES)**
+
+```
+Puedes comprar los packs Conejo Cartero, Ardilla Exploradora, Ovejita de Luna y Nubes, Panda Rojo de la Tetería y Nutria Marina Soleada.
+El inicio de los packs de personaje cambia de escena según la hora del día.
+El widget del anillo del día es más grande.
+```
+
+**日本語 (ja-JP)**
+
+```
+郵便配達うさぎ、探検家リス、月雲ひつじ、レッサーパンダの喫茶店、ひだまりラッコのパックを購入できます。
+キャラクターパックのホームが、時間帯で別の風景に変わります。
+一日リングのウィジェットが大きくなりました。
+```
+
+**Português (pt-BR)**
+
+```
+Dá para comprar os pacotes Coelho Carteiro, Esquilo Explorador, Ovelhinha da Lua e das Nuvens, Casa de Chá do Panda-Vermelho e Lontra Marinha Ensolarada.
+O início dos pacotes de personagem muda de cena conforme a hora do dia.
+O widget do anel do dia ficou maior.
+```
+
+---
+
 ## 출시 노트 — 1.0.2 (versionCode 6)
 
 Play Console 출시 노트 칸에 언어별로 붙여 넣는다. 한 언어당 500자 이내.

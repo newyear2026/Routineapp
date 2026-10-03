@@ -445,6 +445,52 @@ abstract final class PackSkinCatalog {
     ),
   );
 
+  static const _penguinSnowWalk = PackSkin(
+    name: _penguinName,
+    tagline: _penguinTagline,
+    decorStyle: PackDecorStyle.sky,
+    timedScene: PackTimedScene.graded(
+      style: PackSceneStyle.snowwalk,
+      header: 'assets/pack_backgrounds/penguin-scene-header.png',
+      card: 'assets/pack_backgrounds/penguin-scene-card.png',
+    ),
+    homeScene: HomeSceneSpec(
+      props: [
+        SceneProp.deco('penguin-snowflake',
+            left: SceneInset(0.01), bottom: SceneInset.px(0)),
+        SceneProp.deco('penguin-mitten',
+            right: SceneInset(0.01), top: SceneInset(0.03), size: 43),
+        SceneProp.deco('penguin-thermos',
+            right: SceneInset(0.01), bottom: SceneInset.px(0), size: 44),
+      ],
+    ),
+    appDial: DialPalette(
+      dial: Color(0xFFF0F4FF),
+      surface: Color(0xFFFFFFFF),
+      track: Color(0xFFD2DCFA),
+      pointer: Color(0xFF6577C7),
+    ),
+    widget: PackWidgetSkin(
+      background: [Color(0xFFEAF3FF), Color(0xFFE4E0FA)],
+      accent: Color(0xFF6577C7),
+      decor: WidgetDecor.snowwalk,
+      textPrimary: Color(0xFF2D344F),
+      textMuted: Color(0xFF697497),
+      border: Color(0xFFA6B7D8),
+      featuredMascot: true,
+      mascotHalo: Color(0xFFF5F4FF),
+      dial: DialPalette(
+        dial: Color(0xFFF0F4FF),
+        surface: Color(0xFFFFFFFF),
+        track: Color(0xFFD2DCFA),
+        pointer: Color(0xFF6577C7),
+        hourLabel: Color(0xFF2D344F),
+        tick: Color(0xFF697497),
+        centerLabel: Color(0xFFE9DEFF),
+      ),
+    ),
+  );
+
   /// 팩 ID → 겉모습. 순서는 뜻이 없다.
   static const byPackId = <String, PackSkin>{
     'cat_starlight': _starlightCat,
@@ -455,6 +501,7 @@ abstract final class PackSkinCatalog {
     'sheep_mooncloud': _mooncloudSheep,
     'redpanda_teashop': _redPandaTeashop,
     'otter_seaside': _otterSeaside,
+    'penguin_snow_walk': _penguinSnowWalk,
   };
 
   /// [pack]의 겉모습. 등록되지 않은 팩은 기본 팩의 겉모습으로 그린다 —
@@ -481,3 +528,6 @@ String _redPandaTagline(AppLocalizations l10n) =>
     l10n.packRedPandaTeashopTagline;
 String _otterName(AppLocalizations l10n) => l10n.packOtterSeasideName;
 String _otterTagline(AppLocalizations l10n) => l10n.packOtterSeasideTagline;
+String _penguinName(AppLocalizations l10n) => l10n.packPenguinSnowWalkName;
+String _penguinTagline(AppLocalizations l10n) =>
+    l10n.packPenguinSnowWalkTagline;
