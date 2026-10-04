@@ -1,4 +1,8 @@
 {
+  "notificationActionAcknowledge": "確認しました",
+  "notificationActionSnooze": "15分後に通知",
+  "notificationRoutineTitle": "ルーティンの通知",
+  "notificationOccurrenceExpired": "この通知からは操作できません。ホームで今日のルーティンを確認してください。",
   "@@locale": "ja",
   "themeIncluded": "標準",
   "themeInUse": "使用中",
@@ -378,6 +382,9 @@
   "releaseNote103Packs": "郵便配達うさぎ、探検家リス、月雲ひつじ、レッサーパンダの喫茶店、ひだまりラッコのパックを購入できます。",
   "releaseNote103TimeScenes": "キャラクターパックのホームが、時間帯で別の風景に変わります。",
   "releaseNote103RingWidget": "一日リングのウィジェットが大きくなりました。",
+  "releaseNote104Penguin": "雪道さんぽペンギンパックを購入できます。",
+  "releaseNote104Bundle": "キャラクターパック5種と広告なしをまとめて購入できます。",
+  "releaseNote104Notifications": "通知は音・振動・画面から選べて、完了時の短い振動もオンにできます。",
   "packStargazerName": "星を見つめる猫",
   "packStargazerTagline": "夜空のウィジェットが付いた限定の星見猫",
   "launchGiftBadge": "リリース記念ギフト",

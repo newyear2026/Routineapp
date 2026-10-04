@@ -7,6 +7,7 @@ import 'package:routine_timer/data/repositories/routine_repository.dart';
 import 'package:routine_timer/domain/models/routine.dart';
 import 'package:routine_timer/domain/models/routine_icon_id.dart';
 import 'package:routine_timer/domain/models/routine_log.dart';
+import 'package:routine_timer/domain/models/routine_log_status.dart';
 import 'package:routine_timer/domain/utils/time_minutes.dart';
 
 /// 메모리 루틴 저장소.
@@ -50,7 +51,24 @@ class MemoryRoutineRepository implements RoutineRepository {
 /// 날짜별 조회를 실제로 구현한다 — 완료/스킵 같은 액션 결과를 다시 읽어야
 /// 홈 화면의 상태 변화를 검증할 수 있다.
 class MemoryLogRepository implements RoutineLogRepository {
-  final List<RoutineLog> logs = [];
+  MemoryLogRepository([Iterable<RoutineLog> initial = const []])
+      : logs = List.of(initial);
+
+  final List<RoutineLog> logs;
+
+  @override
+  Future<bool> saveNotificationSnooze(RoutineLog log) async {
+    final protected = logs.any((old) =>
+        old.routineId == log.routineId &&
+        old.dateYmd == log.dateYmd &&
+        (old.status == RoutineLogStatus.completed ||
+            old.status == RoutineLogStatus.skipped ||
+            (old.snoozedUntilMs ?? 0) >= (log.snoozedUntilMs ?? 0)));
+    if (protected) return false;
+    // 수정 자체는 await 없이 끝내어 검사와 쓰기 사이에 다른 액션이 끼지 않는다.
+    await upsertLog(log);
+    return true;
+  }
 
   @override
   Future<void> deleteLogForRoutineOnDate(
@@ -79,7 +97,9 @@ class MemoryLogRepository implements RoutineLogRepository {
   @override
   Future<void> upsertLog(RoutineLog log) async {
     final index = logs.indexWhere(
-      (item) => item.routineId == log.routineId && item.dateYmd == log.dateYmd,
+      (item) =>
+          item.id == log.id ||
+          (item.routineId == log.routineId && item.dateYmd == log.dateYmd),
     );
     if (index == -1) {
       logs.add(log);
@@ -91,8 +111,11 @@ class MemoryLogRepository implements RoutineLogRepository {
 
 class NoopNotificationGateway implements LocalNotificationGateway {
   @override
-  Future<void> show({required int id, required String title,
-    required String body, required NotificationDetails details}) async {}
+  Future<void> show(
+      {required int id,
+      required String title,
+      required String body,
+      required NotificationDetails details}) async {}
 
   @override
   Future<void> cancel(int id) async {}
@@ -157,8 +180,11 @@ Routine dailyRoutine({
 /// `PlatformException(Missing type parameter.)`를 던졌다.
 class ThrowingNotificationGateway implements LocalNotificationGateway {
   @override
-  Future<void> show({required int id, required String title,
-    required String body, required NotificationDetails details}) async {}
+  Future<void> show(
+      {required int id,
+      required String title,
+      required String body,
+      required NotificationDetails details}) async {}
 
   @override
   Future<void> cancel(int id) async {}
@@ -230,8 +256,11 @@ class ScheduledOnceNotification {
 
 class RecordingNotificationGateway implements LocalNotificationGateway {
   @override
-  Future<void> show({required int id, required String title,
-    required String body, required NotificationDetails details}) async {}
+  Future<void> show(
+      {required int id,
+      required String title,
+      required String body,
+      required NotificationDetails details}) async {}
 
   final List<ScheduledNotification> scheduled = [];
   final List<ScheduledOnceNotification> scheduledOnce = [];

@@ -66,6 +66,9 @@
              예약·발화되는데 안드로이드가 받을 수신기를 찾지 못해 브로드캐스트를
              조용히 버린다 — 알림이 영영 뜨지 않고 예외도 남지 않는다. -->
         <receiver
+            android:name="com.dexterous.flutterlocalnotifications.ActionBroadcastReceiver"
+            android:exported="false" />
+        <receiver
             android:name="com.dexterous.flutterlocalnotifications.ScheduledNotificationReceiver"
             android:exported="false" />
 

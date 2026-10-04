@@ -34,8 +34,7 @@ void main() {
   test('알림 초기화가 런처 아이콘을 가리키지 않는다', () {
     // 어댑티브 아이콘은 상태바 아이콘으로 쓸 수 없다. 되돌아가는 것을 막는다.
     const sources = [
-      'lib/application/services/routine_notification_service.dart',
-      'lib/application/services/notification_permission_service.dart',
+      'lib/application/services/notification_runtime.dart',
     ];
     for (final path in sources) {
       final code = File(path).readAsStringSync();
@@ -45,10 +44,21 @@ void main() {
         reason: '$path 가 런처 아이콘을 알림 아이콘으로 쓰고 있다',
       );
       expect(
-        code.contains("AndroidInitializationSettings('@drawable/ic_notification')"),
+        code.contains(
+            "AndroidInitializationSettings('@drawable/ic_notification')"),
         isTrue,
         reason: '$path 가 전용 알림 아이콘을 쓰지 않는다',
       );
     }
+  });
+
+  test('알림의 컬러 아이콘이 실제 앱 아이콘과 같고 축소기에서 보존된다', () {
+    final source =
+        File('android/app/src/main/res/mipmap-xxxhdpi/ic_launcher.png');
+    final large = File(
+        'android/app/src/main/res/drawable-nodpi/ic_notification_large.png');
+    expect(large.readAsBytesSync(), source.readAsBytesSync());
+    expect(File('android/app/src/main/res/raw/keep.xml').readAsStringSync(),
+        contains('@drawable/ic_notification_large'));
   });
 }

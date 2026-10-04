@@ -1,16 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
-import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
-import 'package:routine_timer/application/routine_app_controller.dart';
-import 'package:routine_timer/application/services/routine_data_service.dart';
-import 'package:routine_timer/application/services/routine_notification_service.dart';
-import 'package:routine_timer/data/repositories/routine_log_repository.dart';
-import 'package:routine_timer/data/repositories/routine_repository.dart';
 import 'package:routine_timer/domain/models/routine.dart';
-import 'package:routine_timer/domain/models/routine_log.dart';
-import 'package:routine_timer/domain/settings/notification_preferences.dart';
 import 'package:routine_timer/data/store/character_pack_catalog.dart';
 import 'package:routine_timer/domain/store/character_pack.dart';
 import 'package:routine_timer/screens/routine_add_screen.dart';
@@ -20,8 +11,8 @@ import 'package:routine_timer/theme/app_theme_preset.dart';
 import 'package:routine_timer/widgets/store/character_pack_scope.dart';
 import 'package:routine_timer/widgets/ds/app_status_badge.dart';
 import 'package:routine_timer/widgets/ds/pixel_decoration.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'support/localization.dart';
+import 'support/routine_test_harness.dart';
 
 /// 목록·캘린더 전환 칸이 트랙 높이를 다 쓰는지 확인한다.
 ///
@@ -44,46 +35,23 @@ void _expectSwitchFillsTrack(WidgetTester tester) {
 }
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-
-  const homeWidgetChannel = MethodChannel('home_widget');
-
-  setUp(() async {
-    SharedPreferences.setMockInitialValues({});
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(homeWidgetChannel, (call) async => true);
-  });
-
-  tearDown(() async {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(homeWidgetChannel, null);
-  });
+  setUpRoutineTestEnvironment();
 
   testWidgets('calendar view selects a day and projects its repeated routines',
       (tester) async {
-    final controller = RoutineAppController(
-      dataService: RoutineDataService(
-        routineRepository: _MemoryRoutineRepository([
-          const Routine(
-            id: 'thursday_walk',
-            title: '아침 산책',
-            startMinutesFromMidnight: 8 * 60,
-            endMinutesFromMidnight: 9 * 60,
-            repeatWeekdays: {DateTime.thursday},
-            colorValue: 0xFF6C4CF1,
-            iconEmoji: '🚶',
-          ),
-        ]),
-        logRepository: _MemoryLogRepository(),
-      ),
-      notificationService: RoutineNotificationService(
-        exactAlarmsAllowed: () async => false,
-        gateway: _NoopNotificationGateway(),
-        preferencesLoader: () async =>
-            NotificationPreferences.firstLaunchDefaults,
-      ),
-      nowProvider: () => DateTime(2026, 8, 6, 8, 30),
-      clockAutoRefreshEnabled: false,
+    final controller = createTestRoutineController(
+      now: DateTime(2026, 8, 6, 8, 30),
+      routines: [
+        const Routine(
+          id: 'thursday_walk',
+          title: '아침 산책',
+          startMinutesFromMidnight: 8 * 60,
+          endMinutesFromMidnight: 9 * 60,
+          repeatWeekdays: {DateTime.thursday},
+          colorValue: 0xFF6C4CF1,
+          iconEmoji: '🚶',
+        ),
+      ],
     );
     await controller.load();
 
@@ -116,19 +84,9 @@ void main() {
 
   testWidgets('calendar weekday is preselected in the new routine form',
       (tester) async {
-    final controller = RoutineAppController(
-      dataService: RoutineDataService(
-        routineRepository: _MemoryRoutineRepository([]),
-        logRepository: _MemoryLogRepository(),
-      ),
-      notificationService: RoutineNotificationService(
-        exactAlarmsAllowed: () async => false,
-        gateway: _NoopNotificationGateway(),
-        preferencesLoader: () async =>
-            NotificationPreferences.firstLaunchDefaults,
-      ),
-      nowProvider: () => DateTime(2026, 8, 6),
-      clockAutoRefreshEnabled: false,
+    final controller = createTestRoutineController(
+      now: DateTime(2026, 8, 6),
+      routines: [],
     );
     await controller.load();
 
@@ -156,19 +114,9 @@ void main() {
     // 아이콘뿐인 버튼이라 의미 라벨이 없으면 스크린 리더가 «버튼»이라고만
     // 읽는다. 무엇을 하는 버튼인지 알 수 없다.
     final handle = tester.ensureSemantics();
-    final controller = RoutineAppController(
-      dataService: RoutineDataService(
-        routineRepository: _MemoryRoutineRepository(const []),
-        logRepository: _MemoryLogRepository(),
-      ),
-      notificationService: RoutineNotificationService(
-        exactAlarmsAllowed: () async => false,
-        gateway: _NoopNotificationGateway(),
-        preferencesLoader: () async =>
-            NotificationPreferences.firstLaunchDefaults,
-      ),
-      nowProvider: () => DateTime(2026, 8, 6, 8, 30),
-      clockAutoRefreshEnabled: false,
+    final controller = createTestRoutineController(
+      now: DateTime(2026, 8, 6, 8, 30),
+      routines: const [],
     );
     await controller.load();
 
@@ -192,37 +140,27 @@ void main() {
   });
 
   testWidgets('푸들 정원 팩의 루틴 화면은 구름 대신 잎과 청록색 동작을 쓴다', (tester) async {
-    final controller = RoutineAppController(
-      dataService: RoutineDataService(
-        routineRepository: _MemoryRoutineRepository([
-          const Routine(
-            id: 'wake',
-            title: '기상',
-            startMinutesFromMidnight: 7 * 60,
-            endMinutesFromMidnight: 7 * 60 + 30,
-            repeatWeekdays: {
-              DateTime.monday,
-              DateTime.tuesday,
-              DateTime.wednesday,
-              DateTime.thursday,
-              DateTime.friday,
-              DateTime.saturday,
-              DateTime.sunday,
-            },
-            colorValue: 0xFF53B987,
-            iconEmoji: '☀️',
-          ),
-        ]),
-        logRepository: _MemoryLogRepository(),
-      ),
-      notificationService: RoutineNotificationService(
-        exactAlarmsAllowed: () async => false,
-        gateway: _NoopNotificationGateway(),
-        preferencesLoader: () async =>
-            NotificationPreferences.firstLaunchDefaults,
-      ),
-      nowProvider: () => DateTime(2026, 9, 23),
-      clockAutoRefreshEnabled: false,
+    final controller = createTestRoutineController(
+      now: DateTime(2026, 9, 23),
+      routines: [
+        const Routine(
+          id: 'wake',
+          title: '기상',
+          startMinutesFromMidnight: 7 * 60,
+          endMinutesFromMidnight: 7 * 60 + 30,
+          repeatWeekdays: {
+            DateTime.monday,
+            DateTime.tuesday,
+            DateTime.wednesday,
+            DateTime.thursday,
+            DateTime.friday,
+            DateTime.saturday,
+            DateTime.sunday,
+          },
+          colorValue: 0xFF53B987,
+          iconEmoji: '☀️',
+        ),
+      ],
     );
     await controller.load();
     addTearDown(controller.dispose);
@@ -238,15 +176,18 @@ void main() {
         ),
       ),
     ));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 500));
 
+    // 정원 배경은 계속 움직이므로 애니메이션 종료를 기다리지 않는다.
     expect(find.byKey(const Key('routines-sky-decoration')), findsNothing);
     expect(find.byKey(const Key('routines-garden-leaf-left')), findsOneWidget);
     expect(find.byKey(const Key('routines-garden-leaf-right')), findsOneWidget);
     expect(find.byType(GardenLeaf), findsAtLeastNWidgets(4));
     expect(find.byKey(const Key('routines-garden-daisy-left')), findsOneWidget);
-    expect(find.byKey(const Key('routines-garden-daisy-right')), findsOneWidget);
-    expect(find.byKey(const Key('routines-garden-daisy-bottom')), findsOneWidget);
+    expect(
+        find.byKey(const Key('routines-garden-daisy-right')), findsOneWidget);
+    expect(
+        find.byKey(const Key('routines-garden-daisy-bottom')), findsOneWidget);
     expect(
       Theme.of(tester.element(find.byType(RoutinesScreen)))
           .scaffoldBackgroundColor,
@@ -254,7 +195,7 @@ void main() {
     );
     // 탭을 열면 «오늘»이 먼저다. 목록의 반복 배지는 목록으로 옮겨 가서 본다.
     await tester.tap(find.byKey(const Key('routine-view-목록')));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 500));
     final selectedTab = tester.widget<Material>(find
         .ancestor(
           of: find.byKey(const Key('routine-view-목록')),
@@ -267,14 +208,16 @@ void main() {
     expect(badge.tone, AppStatusBadgeTone.meta);
     expect(tester.widget<Text>(find.text('매일')).style?.color,
         AppThemePreset.poodleGarden.primaryColor);
-    final addButton = tester.widget<Material>(find.ancestor(
-      of: find.byKey(const Key('routine-add-button')),
-      matching: find.byType(Material),
-    ).first);
+    final addButton = tester.widget<Material>(find
+        .ancestor(
+          of: find.byKey(const Key('routine-add-button')),
+          matching: find.byType(Material),
+        )
+        .first);
     expect(addButton.color, AppThemePreset.poodleGarden.primaryColor);
 
     await tester.tap(find.byKey(const Key('routine-view-달력')));
-    await tester.pumpAndSettle();
+    await tester.pump(const Duration(milliseconds: 500));
     final selectedDay = tester.widget<Container>(find
         .descendant(
           of: find.byKey(const Key('calendar-day-2026-9-23')),
@@ -284,111 +227,4 @@ void main() {
     expect((selectedDay.decoration! as BoxDecoration).color,
         AppThemePreset.poodleGarden.primaryColor);
   });
-}
-
-class _MemoryRoutineRepository implements RoutineRepository {
-  _MemoryRoutineRepository(this.items);
-
-  final List<Routine> items;
-
-  @override
-  Future<void> addRoutine(Routine routine) async => items.add(routine);
-
-  @override
-  Future<void> deleteRoutine(String routineId) async {
-    items.removeWhere((routine) => routine.id == routineId);
-  }
-
-  @override
-  Future<List<Routine>> loadRoutines() async => List.of(items);
-
-  @override
-  Future<void> saveRoutines(List<Routine> routines) async {
-    items
-      ..clear()
-      ..addAll(routines);
-  }
-
-  @override
-  Future<void> upsertRoutine(Routine routine) async {
-    final index = items.indexWhere((item) => item.id == routine.id);
-    if (index == -1) {
-      items.add(routine);
-    } else {
-      items[index] = routine;
-    }
-  }
-}
-
-class _MemoryLogRepository implements RoutineLogRepository {
-  final List<RoutineLog> _logs = [];
-
-  @override
-  Future<void> deleteLogForRoutineOnDate(
-      String routineId, String dateYmd) async {
-    _logs.removeWhere(
-      (log) => log.routineId == routineId && log.dateYmd == dateYmd,
-    );
-  }
-
-  @override
-  Future<void> deleteLogsForRoutine(String routineId) async {
-    _logs.removeWhere((log) => log.routineId == routineId);
-  }
-
-  @override
-  Future<List<RoutineLog>> loadAllLogs() async => List.of(_logs);
-
-  @override
-  Future<List<RoutineLog>> loadLogsForDate(DateTime dateLocal) async =>
-      const [];
-
-  @override
-  Future<void> upsertLog(RoutineLog log) async {
-    final index = _logs.indexWhere((item) => item.id == log.id);
-    if (index == -1) {
-      _logs.add(log);
-    } else {
-      _logs[index] = log;
-    }
-  }
-}
-
-class _NoopNotificationGateway implements LocalNotificationGateway {
-  @override
-  Future<void> show({required int id, required String title,
-    required String body, required NotificationDetails details}) async {}
-
-  @override
-  Future<void> cancel(int id) async {}
-
-  @override
-  Future<void> initialize() async {}
-
-  @override
-  Future<List<PendingNotificationRequest>>
-      pendingNotificationRequests() async => const [];
-
-  @override
-  Future<void> scheduleWeekly({
-    required int id,
-    required String title,
-    required String body,
-    required int weekday,
-    required TimeOfDay time,
-    required NotificationDetails details,
-    required String payload,
-    required bool exact,
-  }) async {}
-
-  @override
-  Future<void> scheduleOnce({
-    required int id,
-    required String title,
-    required String body,
-    required DateTime whenLocal,
-    required NotificationDetails details,
-    required String payload,
-    required bool exact,
-  }) async {}
 }

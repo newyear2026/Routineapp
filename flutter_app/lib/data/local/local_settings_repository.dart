@@ -24,6 +24,9 @@ class LocalSettingsRepository implements SettingsRepository {
 
   Future<SharedPreferences> get _prefs => SharedPreferences.getInstance();
 
+  /// Background engines have their own SharedPreferences cache.
+  Future<void> reload() async => (await _prefs).reload();
+
   @override
   Future<AppSettings> loadAppSettings() async {
     final raw = (await _prefs).getString(_kSettings);

@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart'
     show defaultTargetPlatform, kIsWeb, TargetPlatform;
 import 'package:flutter/services.dart';
+import 'package:routine_notification_platform/routine_notification_platform.dart';
 
 /// 정확 알람(SCHEDULE_EXACT_ALARM) 권한 상태 조회와 시스템 설정 이동.
 ///
@@ -30,13 +31,21 @@ class ExactAlarmService {
   Future<bool> canScheduleExactAlarms() async {
     if (!_isAndroid) return true;
     try {
-      final granted = await _channel.invokeMethod<bool>('canScheduleExactAlarms');
+      final granted =
+          await _channel.invokeMethod<bool>('canScheduleExactAlarms');
       return granted ?? true;
     } on PlatformException {
       // 채널이 없거나 실패하면 부정확 알람으로 후퇴한다. 알림 자체는 계속 동작한다.
       return false;
     } on MissingPluginException {
-      return false;
+      // Background action engines have no MainActivity, but still need this check.
+      try {
+        return await RoutineNotificationPlatform.exactAlarmsAllowed();
+      } on MissingPluginException {
+        return false;
+      } on PlatformException {
+        return false;
+      }
     }
   }
 

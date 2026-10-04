@@ -15,12 +15,15 @@ import 'application/release/release_announcements.dart';
 import 'application/routine_app_controller.dart';
 import 'application/services/ad_bootstrap.dart';
 import 'application/services/ad_policy_service.dart';
+import 'application/services/notification_runtime.dart';
 import 'application/services/play_update_port.dart';
 import 'application/update/app_updates_controller.dart';
 import 'application/review/review_prompt.dart';
 import 'application/store/pack_purchases.dart';
 import 'data/local/entitlement_storage.dart';
 import 'data/local/first_launch_storage.dart';
+import 'data/local/onboarding_local_storage.dart';
+import 'domain/models/routine_notification_target.dart';
 import 'domain/update/app_update_port.dart';
 import 'domain/settings/app_language.dart';
 import 'l10n/app_localizations.dart';
@@ -29,6 +32,7 @@ import 'screens/onboarding_screen.dart';
 import 'screens/notification_permission_screen.dart';
 import 'screens/initial_routine_setup_screen.dart';
 import 'screens/home_screen.dart';
+import 'screens/notification_routine_screen.dart';
 import 'screens/today_progress_screen.dart';
 import 'screens/settings_screen.dart';
 import 'screens/routine_add_screen.dart';
@@ -58,6 +62,12 @@ Future<void> main() async {
     debugPrint('first launch timestamp failed: $e');
   }
   if (!kIsWeb) {
+    try {
+      // Capture the delivered occurrence before load() replaces weekly alarms.
+      await NotificationRuntime.instance.readLaunchNotification();
+    } catch (e) {
+      debugPrint('notification startup failed: $e');
+    }
     await HomeWidgetSyncService.instance.init();
     // 기다리지 않는다. 광고는 없어도 앱이 돌아가야 하는 기능이라, 여기서
     // 붙잡으면 SDK가 느린 날 첫 화면이 그만큼 늦게 뜬다.
@@ -127,10 +137,100 @@ class RoutineTimerApp extends StatelessWidget {
         Provider(create: (_) => ReviewPrompt()),
       ],
       child: const _ExactAlarmPermissionWatcher(
-        child: _PurchaseFailureReporter(child: _AppRoot()),
+        child: _NotificationNavigation(
+            child: _PurchaseFailureReporter(child: _AppRoot())),
       ),
     );
   }
+}
+
+/// Consumes cold-start and foreground taps after data/onboarding are ready.
+class _NotificationNavigation extends StatefulWidget {
+  const _NotificationNavigation({required this.child});
+  final Widget child;
+  @override
+  State<_NotificationNavigation> createState() =>
+      _NotificationNavigationState();
+}
+
+class _NotificationNavigationState extends State<_NotificationNavigation>
+    with WidgetsBindingObserver {
+  RoutineAppController? _app;
+  bool _opening = false;
+  final _runtime = NotificationRuntime.instance;
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addObserver(this);
+    _runtime.openRequest.addListener(_scheduleOpen);
+    _runtime.recordsChanged.addListener(_refreshLogs);
+    _router.routeInformationProvider.addListener(_scheduleOpen);
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final app = context.read<RoutineAppController>();
+    if (!identical(app, _app)) {
+      _app?.removeListener(_scheduleOpen);
+      _app = app..addListener(_scheduleOpen);
+    }
+    _scheduleOpen();
+  }
+
+  void _refreshLogs() {
+    unawaited(_app?.refreshNotificationLogs().catchError((Object e) {
+      debugPrint('notification log refresh failed: $e');
+    }));
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) _refreshLogs();
+  }
+
+  void _scheduleOpen() {
+    if (!mounted ||
+        _opening ||
+        _runtime.openRequest.value == null ||
+        _app?.isLoaded != true) {
+      return;
+    }
+    _opening = true;
+    WidgetsBinding.instance.addPostFrameCallback((_) async {
+      try {
+        final onboarding = await OnboardingLocalStorage.load();
+        final request = _runtime.openRequest.value;
+        if (!mounted || !onboarding.hasCompletedOnboarding || request == null) {
+          return;
+        }
+        _runtime.openRequest.value = null;
+        _router.go(Uri(path: '/notification-routine', queryParameters: {
+          'payload': request.target.encode(snooze: false),
+          if (request.dateYmd != null) 'date': request.dateYmd!,
+        }).toString());
+      } catch (e) {
+        debugPrint('notification navigation failed: $e');
+      } finally {
+        _opening = false;
+      }
+    });
+    WidgetsBinding.instance.ensureVisualUpdate();
+  }
+
+  @override
+  void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
+    _runtime.openRequest.removeListener(_scheduleOpen);
+    _runtime.recordsChanged.removeListener(_refreshLogs);
+    _router.routeInformationProvider.removeListener(_scheduleOpen);
+    _app?.removeListener(_scheduleOpen);
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }
 
 /// 정확 알람 권한은 시스템 설정에서만 바뀐다. 사용자가 그곳을 다녀오면
@@ -293,6 +393,14 @@ final GoRouter _router = GoRouter(
     GoRoute(
       path: '/home',
       builder: (context, state) => const HomeScreen(),
+    ),
+    GoRoute(
+      path: '/notification-routine',
+      builder: (context, state) => NotificationRoutineScreen(
+        target: RoutineNotificationTarget.parse(
+            state.uri.queryParameters['payload']),
+        dateYmd: state.uri.queryParameters['date'],
+      ),
     ),
     GoRoute(
       path: '/progress',

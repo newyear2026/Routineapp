@@ -1,4 +1,8 @@
 {
+  "notificationActionAcknowledge": "Entendi",
+  "notificationActionSnooze": "Lembrar em 15 min",
+  "notificationRoutineTitle": "Lembrete de rotina",
+  "notificationOccurrenceExpired": "Este lembrete não pode mais ser usado. Confira as rotinas de hoje no Início.",
   "@@locale": "pt",
   "themeIncluded": "Incluído",
   "themeInUse": "Em uso",
@@ -378,6 +382,9 @@
   "releaseNote103Packs": "Dá para comprar os pacotes Coelho Carteiro, Esquilo Explorador, Ovelhinha da Lua e das Nuvens, Casa de Chá do Panda-Vermelho e Lontra Marinha Ensolarada.",
   "releaseNote103TimeScenes": "O início dos pacotes de personagem muda de cena conforme a hora do dia.",
   "releaseNote103RingWidget": "O widget do anel do dia ficou maior.",
+  "releaseNote104Penguin": "Dá para comprar o Pacote Pinguim Passeio na Neve.",
+  "releaseNote104Bundle": "Compre cinco pacotes de personagem e remova os anúncios de uma vez.",
+  "releaseNote104Notifications": "Escolha som, vibração ou aviso na tela, e ative uma vibração curta ao concluir uma rotina.",
   "packStargazerName": "Gato Astrônomo",
   "packStargazerTagline": "Um gato limitado com widget de céu noturno",
   "launchGiftBadge": "Presente de lançamento",

@@ -338,7 +338,16 @@ void main() {
       expect(find.text(testL10n.storeBundleOwned), findsOneWidget);
       expect(controller.packOwnership.owns(CharacterPackCatalog.poodleGarden),
           isFalse);
-      expect(find.text(testL10n.characterPackAdUnlockBadge), findsOneWidget);
+      // 새 광고 팩이 추가되어도 이 테스트는 푸들의 잠금 상태를 확인한다.
+      expect(
+          find.descendant(
+            of: find.ancestor(
+              of: find.text(testL10n.packPoodleGardenName),
+              matching: find.byType(InkWell),
+            ).first,
+            matching: find.text(testL10n.characterPackAdUnlockBadge),
+          ),
+          findsOneWidget);
 
       await tester.tap(find.byKey(const Key('pack-tab-collection')));
       await tester.pumpAndSettle();

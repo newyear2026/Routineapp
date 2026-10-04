@@ -15,8 +15,7 @@ void main() {
 
   const homeWidgetChannel = MethodChannel('home_widget');
   final now = DateTime(2026, 4, 9, 7, 30);
-  final snoozeId =
-      RoutineNotificationService.snoozeNotificationIdFor('wake');
+  final snoozeId = RoutineNotificationService.snoozeNotificationIdFor('wake');
 
   setUp(() async {
     SharedPreferences.setMockInitialValues({});
@@ -135,7 +134,50 @@ void main() {
       expect(undo, isNotNull);
       expect(controller.todayLogs.single.snoozedUntilMs, isNotNull);
     });
+
+    for (final delete in [true, false]) {
+      test(delete ? '미룬 루틴을 삭제하면 재알림도 취소한다' : '미룬 루틴의 개별 알림을 끄면 재알림도 취소한다',
+          () async {
+        final gateway = _PendingSnoozeGateway();
+        final controller = await loadedController(gateway);
+        addTearDown(controller.dispose);
+        await controller.snoozeCurrent();
+        expect(await gateway.pendingNotificationRequests(), hasLength(1));
+
+        if (delete) {
+          await controller.deleteRoutine('wake');
+        } else {
+          await controller.saveRoutine(
+              controller.routines.single.copyWith(notificationEnabled: false));
+        }
+        expect(await gateway.pendingNotificationRequests(), isEmpty);
+      });
+    }
+
+    test('다른 루틴을 저장해도 원래 미룬 재알림은 남긴다', () async {
+      final gateway = _PendingSnoozeGateway();
+      final controller = await loadedController(gateway);
+      addTearDown(controller.dispose);
+      await controller.snoozeCurrent();
+      final reminder = gateway.scheduledOnce.single;
+      await controller.saveRoutine(
+          dailyRoutine(id: 'reading', title: '독서', startHour: 9, endHour: 10));
+      expect(await gateway.pendingNotificationRequests(), hasLength(1));
+      expect(gateway.cancelledIds, isNot(contains(reminder.id)));
+      expect(gateway.scheduledOnce, [reminder]);
+    });
   });
+}
+
+class _PendingSnoozeGateway extends RecordingNotificationGateway {
+  @override
+  Future<List<PendingNotificationRequest>>
+      pendingNotificationRequests() async => [
+            for (final reminder in scheduledOnce)
+              if (!cancelledIds.contains(reminder.id))
+                PendingNotificationRequest(reminder.id, reminder.title,
+                    reminder.body, reminder.payload),
+          ];
 }
 
 /// 1회성 예약만 실패하는 게이트웨이. 나머지는 정상이라 로드는 통과한다.

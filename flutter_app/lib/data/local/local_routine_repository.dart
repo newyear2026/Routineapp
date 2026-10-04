@@ -17,7 +17,9 @@ class LocalRoutineRepository implements RoutineRepository {
 
   @override
   Future<List<Routine>> loadRoutines() async {
-    final raw = (await _prefs).getString(_kRoutines);
+    final prefs = await _prefs;
+    await prefs.reload();
+    final raw = prefs.getString(_kRoutines);
     if (raw == null || raw.isEmpty) return [];
     final list = jsonDecode(raw) as List<dynamic>;
     return list

@@ -241,6 +241,53 @@ fluye su día, y para quien encontró agotadoras las apps de tareas.
 
 ---
 
+## 출시 노트 — 1.0.4 (versionCode 8)
+
+Play Console 출시 노트 칸에 언어별로 붙여 넣는다. 한 언어당 500자 이내.
+앱 안 «새로운 소식»과 같은 줄이다. 광고 자리·권한 변경 같은 내부 사정은 적지 않는다.
+
+**한국어 (ko-KR)**
+
+```
+눈꽃 산책 펭귄 팩을 살 수 있어요.
+캐릭터 팩 5종과 광고 제거를 한 번에 살 수 있어요.
+알림은 소리, 진동, 화면 중에서 고르고, 완료할 때 짧은 진동을 켤 수 있어요.
+```
+
+**English (en-US)**
+
+```
+You can buy the Snow Walk Penguin pack.
+Buy five character packs and remove ads together.
+Choose sound, vibration, or a silent alert, and turn on a short buzz when you finish a routine.
+```
+
+**Español (es-ES)**
+
+```
+Puedes comprar el Pack Pingüino Paseo Nevado.
+Compra cinco packs de personaje y quita los anuncios a la vez.
+Elige sonido, vibración o aviso en pantalla, y activa una vibración corta al completar una rutina.
+```
+
+**日本語 (ja-JP)**
+
+```
+雪道さんぽペンギンパックを購入できます。
+キャラクターパック5種と広告なしをまとめて購入できます。
+通知は音・振動・画面から選べて、完了時の短い振動もオンにできます。
+```
+
+**Português (pt-BR)**
+
+```
+Dá para comprar o Pacote Pinguim Passeio na Neve.
+Compre cinco pacotes de personagem e remova os anúncios de uma vez.
+Escolha som, vibração ou aviso na tela, e ative uma vibração curta ao concluir uma rotina.
+```
+
+---
+
 ## 출시 노트 — 1.0.3 (versionCode 7)
 
 Play Console 출시 노트 칸에 언어별로 붙여 넣는다. 한 언어당 500자 이내.

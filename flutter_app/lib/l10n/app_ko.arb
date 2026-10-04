@@ -1,4 +1,8 @@
 {
+  "notificationActionAcknowledge": "확인했어요",
+  "notificationActionSnooze": "15분 뒤 알림",
+  "notificationRoutineTitle": "루틴 알림",
+  "notificationOccurrenceExpired": "이 알림은 현재 처리할 수 없어요. 홈에서 오늘 루틴을 확인해 주세요.",
   "@@locale": "ko",
   "themeIncluded": "기본 제공",
   "themeInUse": "사용 중",
@@ -378,6 +382,9 @@
   "releaseNote103Packs": "우편배달부 토끼, 탐험가 다람쥐, 달구름 양, 랫서팬더 찻집, 햇살 해달 팩을 살 수 있어요.",
   "releaseNote103TimeScenes": "캐릭터 팩 홈이 시간대에 따라 다른 장면으로 바뀌어요.",
   "releaseNote103RingWidget": "하루 링 위젯이 더 커졌어요.",
+  "releaseNote104Penguin": "눈꽃 산책 펭귄 팩을 살 수 있어요.",
+  "releaseNote104Bundle": "캐릭터 팩 5종과 광고 제거를 한 번에 살 수 있어요.",
+  "releaseNote104Notifications": "알림은 소리, 진동, 화면 중에서 고르고, 완료할 때 짧은 진동을 켤 수 있어요.",
   "packStargazerName": "유성 관측 고양이",
   "packStargazerTagline": "별을 관측하는 한정 고양이와 밤하늘 위젯",
   "launchGiftBadge": "출시 선물",

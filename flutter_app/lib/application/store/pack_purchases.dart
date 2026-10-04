@@ -195,6 +195,10 @@ class PackPurchases extends ChangeNotifier {
   final Duration checkoutTimeout;
 
   StreamSubscription<List<PurchaseDetails>>? _subscription;
+  Future<void> _purchaseWork = Future.value();
+  final Map<String, PurchaseDetails> _pendingCompletions = {};
+  Timer? _completionRetryTimer;
+  bool _disposed = false;
   final Map<String, ProductDetails> _products = {};
   final Map<String, Timer> _checkingOut = {};
 
@@ -265,7 +269,8 @@ class PackPurchases extends ChangeNotifier {
     }
     notifyListeners();
     _subscription ??= _backend.purchaseStream.listen(
-      _handlePurchases,
+      (purchases) =>
+          unawaited(_enqueuePurchaseWork(() => _handlePurchases(purchases))),
       onError: (Object _) => _report(PurchaseFailure.purchaseRejected),
     );
     bool available;
@@ -337,6 +342,12 @@ class PackPurchases extends ChangeNotifier {
     // 답이 없는 것은 빈 답이 아니다. 조회 실패에 회수하면 오프라인으로 켤
     // 때마다 결제한 사용자가 빈손이 된다.
     if (paid == null) return;
+    // 지급과 회수 모두 같은 큐에서 최신 장부를 읽고 저장한다.
+    // 회수 저장을 기다리는 사이 들어온 구매도 덮어쓰지 않는다.
+    await _enqueuePurchaseWork(() => _removeUnpaidEntitlements(paid!));
+  }
+
+  Future<void> _removeUnpaidEntitlements(Set<String> paid) async {
     final stillPaidFor = {
       for (final productId in paid) ..._deliveredBy(productId),
     };
@@ -436,6 +447,7 @@ class PackPurchases extends ChangeNotifier {
 
   Future<void> _handlePurchases(List<PurchaseDetails> purchases) async {
     for (final purchase in purchases) {
+      if (_disposed) return;
       switch (purchase.status) {
         case PurchaseStatus.pending:
           // Play가 돈을 받고 아직 확정하지 않았다. 팩은 잠긴 채로, 버튼은 지급한
@@ -466,14 +478,62 @@ class PackPurchases extends ChangeNotifier {
           _endCheckout(purchase.productID);
           _pending.remove(purchase.productID);
       }
-      if (purchase.pendingCompletePurchase) {
+      // 지급된 팩은 완료 응답이 늦거나 실패해도 바로 화면에 반영한다.
+      notifyListeners();
+      if (purchase.pendingCompletePurchase &&
+          (purchase.status == PurchaseStatus.purchased ||
+              purchase.status == PurchaseStatus.restored)) {
         // 반드시 지급 뒤에. 먼저 완료하고 지급에 실패하면 스토어는 준 줄 알고
         // 사용자는 빈손이다. 이 순서면 최악이 다음 실행에 다시 지급되는
         // 것뿐이고, 같은 권리를 두 번 주는 것은 아무 일도 아니다.
-        await _backend.completePurchase(purchase);
+        await _completePurchase(purchase);
       }
     }
     notifyListeners();
+  }
+
+  /// Stream.listen은 async 콜백의 종료를 기다리지 않는다. 저장까지 한 작업으로
+  /// 묶어야 연속 도착한 구매·복원 결과가 서로의 권리를 덮어쓰지 않는다.
+  Future<void> _enqueuePurchaseWork(Future<void> Function() work) {
+    _purchaseWork = _purchaseWork.then((_) async {
+      if (!_disposed) await work();
+    }).catchError((Object error, StackTrace stack) {
+      debugPrint('LOOPET: 구매 처리 실패: $error\n$stack');
+      if (!_disposed) _report(PurchaseFailure.purchaseRejected);
+    });
+    return _purchaseWork;
+  }
+
+  Future<void> _completePurchase(PurchaseDetails purchase) async {
+    try {
+      await _backend.completePurchase(purchase).timeout(
+            const Duration(seconds: 10),
+          );
+      _pendingCompletions.remove(purchase.productID);
+    } on Object catch (error) {
+      // 지급은 끝났다. 이 상품의 완료 실패로 나머지 복원을 중단하거나
+      // 이미 산 팩을 다시 잠그지 않는다. 완료 호출만 별도로 재시도한다.
+      _pendingCompletions[purchase.productID] = purchase;
+      debugPrint('LOOPET: ${purchase.productID} 구매 완료 재시도 예정: $error');
+    }
+    _scheduleCompletionRetry();
+  }
+
+  void _scheduleCompletionRetry() {
+    if (_disposed || _pendingCompletions.isEmpty) {
+      _completionRetryTimer?.cancel();
+      _completionRetryTimer = null;
+      return;
+    }
+    _completionRetryTimer ??= Timer(const Duration(seconds: 30), () {
+      _completionRetryTimer = null;
+      unawaited(_enqueuePurchaseWork(() async {
+        for (final purchase in _pendingCompletions.values.toList()) {
+          if (_disposed) return;
+          await _completePurchase(purchase);
+        }
+      }));
+    });
   }
 
   /// 권리를 장부에 쓴다. 쓰기가 됐는지 답한다.
@@ -507,7 +567,14 @@ class PackPurchases extends ChangeNotifier {
   }
 
   @override
+  void notifyListeners() {
+    if (!_disposed) super.notifyListeners();
+  }
+
+  @override
   void dispose() {
+    _disposed = true;
+    _completionRetryTimer?.cancel();
     unawaited(_subscription?.cancel());
     _subscription = null;
     for (final timer in _checkingOut.values) {

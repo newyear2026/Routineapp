@@ -1,4 +1,8 @@
 {
+  "notificationActionAcknowledge": "Entendido",
+  "notificationActionSnooze": "Avisar en 15 min",
+  "notificationRoutineTitle": "Recordatorio de rutina",
+  "notificationOccurrenceExpired": "Este recordatorio ya no se puede usar. Revisa las rutinas de hoy en Inicio.",
   "@@locale": "es",
   "themeIncluded": "Incluido",
   "themeInUse": "En uso",
@@ -378,6 +382,9 @@
   "releaseNote103Packs": "Puedes comprar los packs Conejo Cartero, Ardilla Exploradora, Ovejita de Luna y Nubes, Panda Rojo de la Tetería y Nutria Marina Soleada.",
   "releaseNote103TimeScenes": "El inicio de los packs de personaje cambia de escena según la hora del día.",
   "releaseNote103RingWidget": "El widget del anillo del día es más grande.",
+  "releaseNote104Penguin": "Puedes comprar el Pack Pingüino Paseo Nevado.",
+  "releaseNote104Bundle": "Compra cinco packs de personaje y quita los anuncios a la vez.",
+  "releaseNote104Notifications": "Elige sonido, vibración o aviso en pantalla, y activa una vibración corta al completar una rutina.",
   "packStargazerName": "Gato astrónomo",
   "packStargazerTagline": "Un gato de edición limitada y un widget de cielo nocturno",
   "launchGiftBadge": "Regalo de lanzamiento",

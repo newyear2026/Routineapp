@@ -1,42 +1,25 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
 import 'package:routine_timer/application/review/review_prompt.dart';
 import 'package:routine_timer/application/routine_app_controller.dart';
-import 'package:routine_timer/application/services/routine_data_service.dart';
-import 'package:routine_timer/application/services/routine_notification_service.dart';
 import 'package:routine_timer/data/repositories/routine_log_repository.dart';
 import 'package:routine_timer/domain/models/routine.dart';
 import 'package:routine_timer/domain/models/routine_icon_id.dart';
 import 'package:routine_timer/domain/models/routine_log.dart';
 import 'package:routine_timer/domain/models/routine_log_status.dart';
-import 'package:routine_timer/domain/settings/notification_preferences.dart';
 import 'package:routine_timer/screens/home_screen.dart';
 import 'package:routine_timer/widgets/ds/animated_cat.dart';
 import 'package:routine_timer/widgets/ds/orbit_bottom_navigation.dart';
 import 'package:routine_timer/widgets/ds/routine_mark.dart';
 import 'package:routine_timer/widgets/home/starlight_home_motion.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/test_doubles.dart';
 import 'support/localization.dart';
+import 'support/routine_test_harness.dart';
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-
-  const homeWidgetChannel = MethodChannel('home_widget');
-
-  setUp(() async {
-    SharedPreferences.setMockInitialValues({});
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(homeWidgetChannel, (call) async => true);
-  });
-
-  tearDown(() {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(homeWidgetChannel, null);
-  });
+  setUpRoutineTestEnvironment();
 
   final routines = <Routine>[
     dailyRoutine(id: 'wake', title: '기상', startHour: 7, endHour: 8),
@@ -52,19 +35,10 @@ void main() {
     RoutineLogRepository? logRepository,
     ReviewPrompt? reviewPrompt,
   }) async {
-    final controller = RoutineAppController(
-      dataService: RoutineDataService(
-        routineRepository: MemoryRoutineRepository(withRoutines ?? routines),
-        logRepository: logRepository ?? MemoryLogRepository(),
-      ),
-      notificationService: RoutineNotificationService(
-        exactAlarmsAllowed: () async => false,
-        gateway: NoopNotificationGateway(),
-        preferencesLoader: () async =>
-            NotificationPreferences.firstLaunchDefaults,
-      ),
-      nowProvider: () => now,
-      clockAutoRefreshEnabled: false,
+    final controller = createTestRoutineController(
+      now: now,
+      routines: withRoutines ?? routines,
+      logRepository: logRepository,
     );
     await controller.load();
     final app = localizedApp(home: const HomeScreen());
@@ -237,10 +211,12 @@ void main() {
         tester.getRect(find.byKey(const Key('home-complete-button')));
 
     expect(
-      tester.widget<StarlightHomeMotion>(find.descendant(
-        of: find.byKey(const Key('home-focus-cat')),
-        matching: find.byType(StarlightHomeMotion),
-      )).mode,
+      tester
+          .widget<StarlightHomeMotion>(find.descendant(
+            of: find.byKey(const Key('home-focus-cat')),
+            matching: find.byType(StarlightHomeMotion),
+          ))
+          .mode,
       StarlightHomeMode.active,
     );
     expect(card.contains(cat.center), isTrue);
@@ -535,23 +511,13 @@ void main() {
   });
 }
 
-class _FailingLogWriteRepository implements RoutineLogRepository {
+class _FailingLogWriteRepository extends MemoryLogRepository {
   @override
   Future<void> deleteLogForRoutineOnDate(
     String routineId,
     String dateYmd,
   ) async =>
       throw Exception('disk full');
-
-  @override
-  Future<void> deleteLogsForRoutine(String routineId) async {}
-
-  @override
-  Future<List<RoutineLog>> loadAllLogs() async => const [];
-
-  @override
-  Future<List<RoutineLog>> loadLogsForDate(DateTime dateLocal) async =>
-      const [];
 
   @override
   Future<void> upsertLog(RoutineLog log) async => throw Exception('disk full');

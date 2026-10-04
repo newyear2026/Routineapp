@@ -3,17 +3,21 @@ import 'package:flutter/foundation.dart'
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:routine_notification_platform/routine_notification_platform.dart';
 import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../../domain/models/routine.dart';
 import '../../domain/models/routine_log.dart';
 import '../../domain/models/routine_log_status.dart';
+import '../../domain/models/routine_notification_target.dart';
+import '../../domain/utils/time_minutes.dart';
 import '../../domain/settings/notification_permission_status.dart';
 import '../../domain/settings/notification_preferences.dart';
 import '../../data/local/notification_preferences_storage.dart';
 import '../../l10n/app_localizations.dart';
 import 'exact_alarm_service.dart';
+import 'notification_runtime.dart';
 
 class RoutineNotificationService {
   RoutineNotificationService({
@@ -56,6 +60,7 @@ class RoutineNotificationService {
       return;
     }
 
+    await _cancelInvalidPendingSnoozes(routines);
     final exact = await _exactAlarmsAllowed();
     for (final routine in routines) {
       if (!routine.notificationEnabled) continue;
@@ -90,6 +95,22 @@ class RoutineNotificationService {
     }
   }
 
+  /// 삭제하거나 개별 알림을 끈 루틴의 재알림은 남기지 않는다.
+  /// 다른 루틴을 저장한 경우에는 기존에 약속한 재알림 시각을 유지한다.
+  Future<void> _cancelInvalidPendingSnoozes(List<Routine> routines) async {
+    final enabledIds = {
+      for (final routine in routines)
+        if (routine.notificationEnabled) routine.id,
+    };
+    final pending = await _gateway.pendingNotificationRequests();
+    for (final request in pending.where((p) => isSnoozePayload(p.payload))) {
+      final id = RoutineNotificationTarget.parse(request.payload)?.routineId;
+      if (!enabledIds.contains(id)) {
+        await _gateway.cancel(request.id);
+      }
+    }
+  }
+
   /// «나중에»로 미뤄둔 루틴을 [whenLocal]에 한 번 다시 알린다.
   ///
   /// 루틴별 알림 설정을 끈 루틴은 걸지 않는다. 원래 알림도 가지 않는
@@ -97,8 +118,9 @@ class RoutineNotificationService {
   Future<void> scheduleSnooze(
     Routine routine,
     DateTime whenLocal,
-    AppLocalizations l10n,
-  ) async {
+    AppLocalizations l10n, {
+    String? occurrenceDate,
+  }) async {
     if (kIsWeb) return;
 
     await _gateway.initialize();
@@ -117,7 +139,9 @@ class RoutineNotificationService {
         mode: prefs.mode,
         l10n: l10n,
       ),
-      payload: snoozePayloadFor(routine.id),
+      payload: RoutineNotificationTarget.forRoutine(routine,
+              dateYmd: occurrenceDate ?? TimeMinutes.dateYmd(whenLocal))
+          .encode(snooze: true),
       exact: await _exactAlarmsAllowed(),
     );
   }
@@ -162,7 +186,8 @@ class RoutineNotificationService {
           minute: routine.startMinutesFromMidnight % 60,
         ),
         details: notificationDetails,
-        payload: payloadFor(routine.id, weekday),
+        payload: RoutineNotificationTarget.forRoutine(routine, weekday: weekday)
+            .encode(snooze: false),
         exact: exact,
       );
     }
@@ -171,6 +196,7 @@ class RoutineNotificationService {
   NotificationDetails _notificationDetails({
     required RoutineNotificationMode mode,
     required AppLocalizations l10n,
+    bool routineActions = true,
   }) {
     // 채널 ID는 고정이다. 언어가 바뀌어도 같은 채널을 계속 쓴다 —
     // ID를 번역하면 언어를 바꿀 때마다 새 채널이 생기고, 사용자가 예전 채널에서
@@ -203,6 +229,20 @@ class RoutineNotificationService {
       priority: Priority.high,
       playSound: soundEnabled,
       enableVibration: vibrationEnabled,
+      icon: '@drawable/ic_notification',
+      largeIcon: const DrawableResourceAndroidBitmap('ic_notification_large'),
+      color: const Color(0xFF6841F5),
+      // Keep the delivered occurrence available until our handler reads its date.
+      autoCancel: false,
+      actions: [
+        AndroidNotificationAction(
+            notificationAcknowledgeAction, l10n.notificationActionAcknowledge,
+            cancelNotification: false),
+        if (routineActions)
+          AndroidNotificationAction(
+              notificationSnoozeAction, l10n.notificationActionSnooze,
+              cancelNotification: false),
+      ],
     );
     final darwin = DarwinNotificationDetails(
       presentAlert: true,
@@ -230,7 +270,8 @@ class RoutineNotificationService {
     final currentTime = now ?? DateTime.now();
     final byId = {for (final routine in routines) routine.id: routine};
     for (final request in pending.where((p) => isSnoozePayload(p.payload))) {
-      final routineId = request.payload!.substring(snoozePayloadPrefix.length);
+      final routineId =
+          RoutineNotificationTarget.parse(request.payload)?.routineId;
       final routine = byId[routineId];
       final matches = logs
           .where((log) =>
@@ -247,7 +288,8 @@ class RoutineNotificationService {
       await scheduleSnooze(
           routine,
           DateTime.fromMillisecondsSinceEpoch(matches.first.snoozedUntilMs!),
-          l10n);
+          l10n,
+          occurrenceDate: matches.first.dateYmd);
     }
   }
 
@@ -265,7 +307,8 @@ class RoutineNotificationService {
       id: previewNotificationId,
       title: l10n.notificationPreviewTitle,
       body: l10n.notificationPreviewBody,
-      details: _notificationDetails(mode: prefs.mode, l10n: l10n),
+      details: _notificationDetails(
+          mode: prefs.mode, l10n: l10n, routineActions: false),
     );
   }
 
@@ -337,8 +380,8 @@ abstract class LocalNotificationGateway {
 }
 
 class FlutterLocalNotificationGateway implements LocalNotificationGateway {
-  final FlutterLocalNotificationsPlugin _plugin =
-      FlutterLocalNotificationsPlugin();
+  FlutterLocalNotificationsPlugin get _plugin =>
+      NotificationRuntime.instance.plugin;
   static const MethodChannel _timezoneChannel =
       MethodChannel('routine_timer/device_timezone');
 
@@ -349,22 +392,7 @@ class FlutterLocalNotificationGateway implements LocalNotificationGateway {
   Future<void> initialize() async {
     if (kIsWeb || _initialized) return;
 
-    // 런처 아이콘(@mipmap/ic_launcher)은 어댑티브 아이콘이라 이 자리에 쓸 수 없다.
-    // 상태바 아이콘은 알파 채널로 모양만 정의하는 단색 드로어블이어야 하고,
-    // 어댑티브를 주면 알림이 조용히 게시되지 않는다.
-    const android = AndroidInitializationSettings('@drawable/ic_notification');
-    const darwin = DarwinInitializationSettings(
-      requestAlertPermission: false,
-      requestBadgePermission: false,
-      requestSoundPermission: false,
-    );
-    await _plugin.initialize(
-      settings: const InitializationSettings(
-        android: android,
-        iOS: darwin,
-        macOS: darwin,
-      ),
-    );
+    await NotificationRuntime.instance.initialize();
     await _ensureTimezoneInitialized();
     _initialized = true;
   }
@@ -462,6 +490,9 @@ class FlutterLocalNotificationGateway implements LocalNotificationGateway {
   }
 
   Future<String?> _deviceTimezoneName() async {
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      return RoutineNotificationPlatform.timezone();
+    }
     if (defaultTargetPlatform != TargetPlatform.android &&
         defaultTargetPlatform != TargetPlatform.iOS) {
       return null;

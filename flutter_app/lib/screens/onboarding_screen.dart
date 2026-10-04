@@ -35,7 +35,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
 
   /// 카피는 실제 동작만 약속한다.
   ///
-  /// 알림에는 액션 버튼이 없다 (`RoutineNotificationService`는 예약만 한다).
+  /// 알림에는 확인·15분 뒤 알림만 있다. 완료는 앱에서 기록한다.
   /// "알림에서 바로 완료"처럼 앱이 못 하는 일을 적지 않는다.
   static const _previews = <_OnboardingPreviewType>[
     _OnboardingPreviewType.orbit,

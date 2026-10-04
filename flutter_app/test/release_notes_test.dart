@@ -115,7 +115,13 @@ void main() {
       await pumpNotes(tester);
 
       for (final note in releaseNotes) {
-        expect(find.text('v${note.version}'), findsOneWidget);
+        final version = find.text('v${note.version}');
+        await tester.scrollUntilVisible(
+          version,
+          200,
+          scrollable: find.byType(Scrollable),
+        );
+        expect(version, findsOneWidget);
       }
       expect(find.text(testL10n.releaseNotesCurrentBadge), findsOneWidget);
     });

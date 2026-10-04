@@ -3,12 +3,15 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:routine_timer/application/services/routine_notification_service.dart';
 import 'package:routine_timer/domain/models/routine.dart';
+import 'package:routine_timer/domain/models/routine_notification_target.dart';
 import 'package:routine_timer/domain/settings/notification_permission_status.dart';
 import 'package:routine_timer/domain/settings/notification_preferences.dart';
 import 'support/localization.dart';
 
 void main() {
-  test('syncAll cancels existing managed notifications and reschedules enabled routines', () async {
+  test(
+      'syncAll cancels existing managed notifications and reschedules enabled routines',
+      () async {
     final gateway = _FakeLocalNotificationGateway(
       pending: [
         const PendingNotificationRequest(
@@ -50,7 +53,8 @@ void main() {
     ]);
   });
 
-  test('syncAll skips scheduling when app notifications are disabled', () async {
+  test('syncAll skips scheduling when app notifications are disabled',
+      () async {
     final gateway = _FakeLocalNotificationGateway();
     final service = RoutineNotificationService(
       exactAlarmsAllowed: () async => false,
@@ -202,7 +206,10 @@ void main() {
       expect(gateway.scheduledOnce, hasLength(1));
       final once = gateway.scheduledOnce.single;
       expect(once.id, snoozeId);
-      expect(once.payload, snoozePayload);
+      final target = RoutineNotificationTarget.parse(once.payload)!;
+      expect(target.routineId, routine.id);
+      expect(target.dateYmd, '2026-04-09');
+      expect(target.matches(routine), isTrue);
       expect(once.whenLocal, when);
       expect(once.title, '아침 산책');
     });
@@ -235,8 +242,7 @@ void main() {
     });
 
     test('앱 알림을 끄면 미뤄둔 재알림도 거둔다', () async {
-      final gateway =
-          _FakeLocalNotificationGateway(pending: [pendingSnooze()]);
+      final gateway = _FakeLocalNotificationGateway(pending: [pendingSnooze()]);
 
       await serviceOn(gateway, notificationsEnabled: false)
           .syncAll([routine], testL10n);
@@ -286,8 +292,11 @@ void main() {
 
 class _FakeLocalNotificationGateway implements LocalNotificationGateway {
   @override
-  Future<void> show({required int id, required String title,
-    required String body, required NotificationDetails details}) async {}
+  Future<void> show(
+      {required int id,
+      required String title,
+      required String body,
+      required NotificationDetails details}) async {}
 
   _FakeLocalNotificationGateway({
     List<PendingNotificationRequest>? pending,

@@ -1,17 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/semantics.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 import 'package:routine_timer/application/routine_app_controller.dart';
-import 'package:routine_timer/application/services/routine_data_service.dart';
-import 'package:routine_timer/application/services/routine_notification_service.dart';
 import 'package:routine_timer/data/store/character_pack_catalog.dart';
 import 'package:routine_timer/domain/models/routine.dart';
 import 'package:routine_timer/domain/models/routine_icon_id.dart';
 import 'package:routine_timer/domain/models/routine_suggestion.dart';
-import 'package:routine_timer/domain/settings/notification_preferences.dart';
 import 'package:routine_timer/domain/store/character_pack.dart';
 import 'package:routine_timer/l10n/app_localizations.dart';
 import 'package:routine_timer/screens/routine_add/routine_form_controls.dart';
@@ -21,26 +17,13 @@ import 'package:routine_timer/theme/app_theme.dart';
 import 'package:routine_timer/theme/app_theme_preset.dart';
 import 'package:routine_timer/widgets/ds/ds.dart';
 import 'package:routine_timer/widgets/store/character_pack_scope.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/test_doubles.dart';
 import 'support/localization.dart';
+import 'support/routine_test_harness.dart';
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-
-  const homeWidgetChannel = MethodChannel('home_widget');
-
-  setUp(() async {
-    SharedPreferences.setMockInitialValues({});
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(homeWidgetChannel, (call) async => true);
-  });
-
-  tearDown(() {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(homeWidgetChannel, null);
-  });
+  setUpRoutineTestEnvironment();
 
   Future<RoutineAppController> pumpAddScreen(
     WidgetTester tester, {
@@ -50,22 +33,10 @@ void main() {
     CharacterPack? pack,
     Locale locale = testLocale,
   }) async {
-    final controller = RoutineAppController(
-      dataService: RoutineDataService(
-        routineRepository: MemoryRoutineRepository(
-          routines ??
-              [dailyRoutine(id: 'wake', title: '기상', startHour: 7, endHour: 8)],
-        ),
-        logRepository: MemoryLogRepository(),
-      ),
-      notificationService: RoutineNotificationService(
-        exactAlarmsAllowed: () async => false,
-        gateway: NoopNotificationGateway(),
-        preferencesLoader: () async =>
-            NotificationPreferences.firstLaunchDefaults,
-      ),
-      nowProvider: () => DateTime(2026, 8, 4, 10, 0),
-      clockAutoRefreshEnabled: false,
+    final controller = createTestRoutineController(
+      now: DateTime(2026, 8, 4, 10, 0),
+      routines: routines ??
+          [dailyRoutine(id: 'wake', title: '기상', startHour: 7, endHour: 8)],
     );
     await controller.load();
     // 저장 성공 경로가 context.go('/home')을 타므로 실제 라우터가 필요하다.
@@ -133,7 +104,10 @@ void main() {
     expect(find.byKey(const Key('routine-add-preview-garden-daisy')),
         findsOneWidget);
     expect(
-      tester.widget<ActionChip>(find.byType(ActionChip).first).labelStyle?.color,
+      tester
+          .widget<ActionChip>(find.byType(ActionChip).first)
+          .labelStyle
+          ?.color,
       AppThemePreset.poodleGarden.primaryColor,
     );
   });
@@ -144,8 +118,8 @@ void main() {
 
     expect(find.byKey(const Key('routine-add-header-cloud')), findsOneWidget);
     expect(find.byKey(const Key('routine-add-preview-cloud')), findsOneWidget);
-    expect(find.byKey(const Key('routine-add-header-garden-leaf')),
-        findsNothing);
+    expect(
+        find.byKey(const Key('routine-add-header-garden-leaf')), findsNothing);
   });
 
   testWidgets('하단 저장 바 뒤에 배경이 칠해져 검은 띠가 보이지 않는다', (tester) async {
@@ -155,8 +129,8 @@ void main() {
     final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
     expect(scaffold.bottomNavigationBar, isA<ColoredBox>());
     // 본문(AppScreenShell)과 같은 색이어야 저장 바 뒤에 색 띠가 생기지 않는다.
-    final pageColor = Theme.of(tester.element(find.byType(Scaffold)))
-        .scaffoldBackgroundColor;
+    final pageColor =
+        Theme.of(tester.element(find.byType(Scaffold))).scaffoldBackgroundColor;
     expect(
       (scaffold.bottomNavigationBar! as ColoredBox).color,
       pageColor,

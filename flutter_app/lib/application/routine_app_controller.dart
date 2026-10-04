@@ -2,7 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart' show HapticFeedback, MissingPluginException;
+import 'package:flutter/services.dart'
+    show HapticFeedback, MissingPluginException;
 
 import '../data/local/local_settings_repository.dart';
 import '../data/local/first_launch_storage.dart';
@@ -591,8 +592,52 @@ class RoutineAppController extends ChangeNotifier {
   ) async {
     final c = _currentSlot;
     if (c == null) return null;
+    return _applyForRoutine(c, action);
+  }
+
+  /// Notification navigation can show an overlapping routine other than _currentSlot.
+  Future<RoutineActionUndo?> completeNotificationRoutine(
+      String id, String dateYmd) async {
+    await refreshNotificationLogs();
+    final routine = _routineById(id);
+    if (routine == null ||
+        dateYmd != TimeMinutes.dateYmd(_now) ||
+        !routine.repeatWeekdays.contains(_now.weekday) ||
+        !RoutineStateResolver.canApplyUserAction(
+            routine: routine,
+            log: _dayService.logForRoutine(id, _logsToday),
+            nowLocal: _now)) {
+      return null;
+    }
+    return _applyForRoutine(
+        routine,
+        (r, log, date) => RoutineLogActionService.complete(
+              routine: r,
+              dateYmd: date,
+              existing: log,
+              nowLocal: _now,
+              source: RoutineActionSource.notification,
+            ));
+  }
+
+  Future<void> refreshNotificationLogs() async {
+    if (!_loaded) return;
+    final now = _now;
+    final logs = await _data.loadLogsForDate(now);
+    _logsToday = logs;
+    _loadedDateYmd = TimeMinutes.dateYmd(now);
+    notifyListeners();
+  }
+
+  Future<RoutineActionUndo?> _applyForRoutine(
+    Routine c,
+    RoutineLogApplyOutcome Function(Routine, RoutineLog?, String) action,
+  ) async {
     final ymd = TimeMinutes.dateYmd(_now);
-    final log = _dayService.logForRoutine(c.id, _logsToday);
+    // Notification actions may have written through another engine since this
+    // screen was built. Read the current record before applying the next action.
+    final fresh = await _data.loadLogsForDate(_now);
+    final log = _dayService.logForRoutine(c.id, fresh);
     final outcome = action(c, log, ymd);
     if (!outcome.shouldPersist) return null;
     try {
@@ -685,7 +730,8 @@ class RoutineAppController extends ChangeNotifier {
         await _notifications.cancelSnooze(routine.id);
         return;
       }
-      await _notifications.scheduleSnooze(routine, when, strings);
+      await _notifications.scheduleSnooze(routine, when, strings,
+          occurrenceDate: log!.dateYmd);
     } catch (e, st) {
       debugPrint('snooze alarm sync failed: $e\n$st');
     }

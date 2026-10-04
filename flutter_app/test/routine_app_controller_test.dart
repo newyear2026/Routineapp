@@ -6,32 +6,19 @@ import 'package:routine_timer/application/routine_app_controller.dart';
 import 'package:routine_timer/application/services/routine_data_service.dart';
 import 'package:routine_timer/application/services/routine_notification_service.dart';
 import 'package:routine_timer/data/local/local_routine_log_repository.dart';
-import 'package:routine_timer/data/repositories/routine_log_repository.dart';
 import 'package:routine_timer/data/repositories/routine_repository.dart';
 import 'package:routine_timer/domain/models/routine.dart';
 import 'package:routine_timer/domain/models/routine_log.dart';
 import 'package:routine_timer/domain/models/routine_log_status.dart';
 import 'package:routine_timer/domain/settings/notification_permission_status.dart';
 import 'package:routine_timer/domain/settings/notification_preferences.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:routine_timer/domain/models/routine_write_error.dart';
 import 'support/localization.dart';
+import 'support/test_doubles.dart';
+import 'support/routine_test_harness.dart';
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-
-  const homeWidgetChannel = MethodChannel('home_widget');
-
-  setUp(() async {
-    SharedPreferences.setMockInitialValues({});
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(homeWidgetChannel, (call) async => true);
-  });
-
-  tearDown(() async {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(homeWidgetChannel, null);
-  });
+  setUpRoutineTestEnvironment();
 
   test('local log repository upserts by routine/date even when id differs',
       () async {
@@ -65,7 +52,7 @@ void main() {
     var now = DateTime(2026, 4, 9, 23, 59);
     final controller = RoutineAppController(
       dataService: RoutineDataService(
-        routineRepository: _FakeRoutineRepository([
+        routineRepository: MemoryRoutineRepository([
           Routine(
             id: 'routine_1',
             title: '야간 루틴',
@@ -112,7 +99,7 @@ void main() {
   });
 
   test('controller deletes routine and associated logs together', () async {
-    final routineRepository = _FakeRoutineRepository([
+    final routineRepository = MemoryRoutineRepository([
       Routine(
         id: 'routine_1',
         title: '아침 루틴',
@@ -175,7 +162,7 @@ void main() {
       () async {
     final controller = RoutineAppController(
       dataService: RoutineDataService(
-        routineRepository: _FakeRoutineRepository([]),
+        routineRepository: MemoryRoutineRepository([]),
         logRepository: _FakeRoutineLogRepository({}),
       ),
       notificationService: _testNotificationService(),
@@ -202,14 +189,23 @@ void main() {
     expect(addResult.ok, isTrue);
     expect(controller.homeSnapshotFor(testL10n).segments, hasLength(1));
     expect(controller.homeSnapshotFor(testL10n).isEmptyDay, isFalse);
-    expect(controller.homeSnapshotFor(testL10n).segments.single.id, 'routine_1');
+    expect(
+        controller.homeSnapshotFor(testL10n).segments.single.id, 'routine_1');
     expect(controller.homeSnapshotFor(testL10n).segments.single.label, '아침 산책');
     expect(
-      controller.homeSnapshotFor(testL10n).segments.single.startMinutesFromMidnight,
+      controller
+          .homeSnapshotFor(testL10n)
+          .segments
+          .single
+          .startMinutesFromMidnight,
       8 * 60,
     );
     expect(
-      controller.homeSnapshotFor(testL10n).segments.single.endMinutesFromMidnight,
+      controller
+          .homeSnapshotFor(testL10n)
+          .segments
+          .single
+          .endMinutesFromMidnight,
       9 * 60,
     );
 
@@ -227,14 +223,23 @@ void main() {
 
     expect(updateResult.ok, isTrue);
     expect(controller.homeSnapshotFor(testL10n).segments, hasLength(1));
-    expect(controller.homeSnapshotFor(testL10n).segments.single.id, 'routine_1');
+    expect(
+        controller.homeSnapshotFor(testL10n).segments.single.id, 'routine_1');
     expect(controller.homeSnapshotFor(testL10n).segments.single.label, '아침 독서');
     expect(
-      controller.homeSnapshotFor(testL10n).segments.single.startMinutesFromMidnight,
+      controller
+          .homeSnapshotFor(testL10n)
+          .segments
+          .single
+          .startMinutesFromMidnight,
       10 * 60,
     );
     expect(
-      controller.homeSnapshotFor(testL10n).segments.single.endMinutesFromMidnight,
+      controller
+          .homeSnapshotFor(testL10n)
+          .segments
+          .single
+          .endMinutesFromMidnight,
       11 * 60,
     );
 
@@ -252,7 +257,7 @@ void main() {
     // PlatformException(Missing type parameter.)를 던졌다. 예전에는 이 예외가
     // saveRoutine의 catch까지 올라가 "저장에 실패했어요"가 떴고, 실제로는
     // 이미 저장된 뒤라 사용자가 다시 눌러 같은 루틴이 여러 개 생겼다.
-    final repository = _FakeRoutineRepository([]);
+    final repository = MemoryRoutineRepository([]);
     final controller = RoutineAppController(
       dataService: RoutineDataService(
         routineRepository: repository,
@@ -317,14 +322,14 @@ void main() {
     // 터졌다고 홈의 성공 안내와 되돌리기 버튼까지 사라지면 안 된다.
     TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
         .setMockMethodCallHandler(
-      homeWidgetChannel,
+      const MethodChannel('home_widget'),
       (call) async => throw PlatformException(code: 'unavailable'),
     );
 
     final now = DateTime(2026, 4, 9, 7, 30);
     final controller = RoutineAppController(
       dataService: RoutineDataService(
-        routineRepository: _FakeRoutineRepository([
+        routineRepository: MemoryRoutineRepository([
           Routine(
             id: 'routine_1',
             title: '기상',
@@ -356,96 +361,15 @@ void main() {
   });
 }
 
-class _FakeRoutineRepository implements RoutineRepository {
-  _FakeRoutineRepository(this._items);
-
-  final List<Routine> _items;
-
-  @override
-  Future<void> addRoutine(Routine routine) async {
-    _items.add(routine);
-  }
-
-  @override
-  Future<List<Routine>> loadRoutines() async {
-    return List<Routine>.from(_items);
-  }
-
-  @override
-  Future<void> deleteRoutine(String routineId) async {
-    _items.removeWhere((item) => item.id == routineId);
-  }
-
-  @override
-  Future<void> saveRoutines(List<Routine> routines) async {
-    _items
-      ..clear()
-      ..addAll(routines);
-  }
-
-  @override
-  Future<void> upsertRoutine(Routine routine) async {
-    final index = _items.indexWhere((item) => item.id == routine.id);
-    if (index == -1) {
-      _items.add(routine);
-    } else {
-      _items[index] = routine;
-    }
-  }
-}
-
-class _FakeRoutineLogRepository implements RoutineLogRepository {
-  _FakeRoutineLogRepository(this._logsByDate);
-
-  final Map<String, List<RoutineLog>> _logsByDate;
-
-  @override
-  Future<List<RoutineLog>> loadAllLogs() async {
-    return _logsByDate.values.expand((logs) => logs).toList();
-  }
-
-  @override
-  Future<List<RoutineLog>> loadLogsForDate(DateTime dateLocal) async {
-    final key =
-        '${dateLocal.year.toString().padLeft(4, '0')}-${dateLocal.month.toString().padLeft(2, '0')}-${dateLocal.day.toString().padLeft(2, '0')}';
-    return List<RoutineLog>.from(_logsByDate[key] ?? const []);
-  }
-
-  @override
-  Future<void> upsertLog(RoutineLog log) async {
-    final list = _logsByDate.putIfAbsent(log.dateYmd, () => <RoutineLog>[]);
-    final index = list.indexWhere(
-      (item) =>
-          item.id == log.id ||
-          (item.routineId == log.routineId && item.dateYmd == log.dateYmd),
-    );
-    if (index == -1) {
-      list.add(log);
-    } else {
-      list[index] = log;
-    }
-  }
-
-  @override
-  Future<void> deleteLogsForRoutine(String routineId) async {
-    for (final logs in _logsByDate.values) {
-      logs.removeWhere((log) => log.routineId == routineId);
-    }
-  }
-
-  @override
-  Future<void> deleteLogForRoutineOnDate(
-    String routineId,
-    String dateYmd,
-  ) async {
-    _logsByDate[dateYmd]?.removeWhere((log) => log.routineId == routineId);
-  }
+class _FakeRoutineLogRepository extends MemoryLogRepository {
+  _FakeRoutineLogRepository(Map<String, List<RoutineLog>> logsByDate)
+      : super(logsByDate.values.expand((logs) => logs));
 }
 
 RoutineNotificationService _testNotificationService() {
   return RoutineNotificationService(
     exactAlarmsAllowed: () async => false,
-    gateway: _FakeLocalNotificationGateway(),
+    gateway: NoopNotificationGateway(),
     preferencesLoader: () async => const NotificationPreferences(
       notificationsEnabled: false,
       permissionStatus: NotificationPermissionStatus.notRequested,
@@ -454,50 +378,13 @@ RoutineNotificationService _testNotificationService() {
   );
 }
 
-class _FakeLocalNotificationGateway implements LocalNotificationGateway {
-  @override
-  Future<void> show({required int id, required String title,
-    required String body, required NotificationDetails details}) async {}
-
-  @override
-  Future<void> initialize() async {}
-
-  @override
-  Future<void> cancel(int id) async {}
-
-  @override
-  Future<List<PendingNotificationRequest>> pendingNotificationRequests() async {
-    return const [];
-  }
-
-  @override
-  Future<void> scheduleWeekly({
-    required int id,
-    required String title,
-    required String body,
-    required int weekday,
-    required TimeOfDay time,
-    required NotificationDetails details,
-    required String payload,
-    required bool exact,
-  }) async {}
-
-  @override
-  Future<void> scheduleOnce({
-    required int id,
-    required String title,
-    required String body,
-    required DateTime whenLocal,
-    required NotificationDetails details,
-    required String payload,
-    required bool exact,
-  }) async {}
-}
-
 class _ThrowingNotificationGateway implements LocalNotificationGateway {
   @override
-  Future<void> show({required int id, required String title,
-    required String body, required NotificationDetails details}) async {}
+  Future<void> show(
+      {required int id,
+      required String title,
+      required String body,
+      required NotificationDetails details}) async {}
 
   @override
   Future<void> initialize() async {}
@@ -537,7 +424,8 @@ class _ThrowingNotificationGateway implements LocalNotificationGateway {
 
 class _FailingRoutineRepository implements RoutineRepository {
   @override
-  Future<void> addRoutine(Routine routine) async => throw Exception('disk full');
+  Future<void> addRoutine(Routine routine) async =>
+      throw Exception('disk full');
 
   @override
   Future<void> deleteRoutine(String routineId) async =>

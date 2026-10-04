@@ -1,41 +1,24 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:routine_timer/domain/models/routine_log_status.dart';
 import 'package:routine_timer/domain/models/routine_log.dart';
 import 'package:routine_timer/widgets/ds/pixel_digits.dart';
 import 'package:provider/provider.dart';
 import 'package:routine_timer/application/routine_app_controller.dart';
-import 'package:routine_timer/application/services/routine_data_service.dart';
-import 'package:routine_timer/application/services/routine_notification_service.dart';
 import 'package:routine_timer/domain/models/routine.dart';
-import 'package:routine_timer/domain/settings/notification_preferences.dart';
 import 'package:routine_timer/screens/routines_screen.dart';
 import 'package:routine_timer/screens/today_progress_screen.dart';
 import 'package:routine_timer/widgets/ds/animated_cat.dart';
 import 'package:routine_timer/widgets/ds/orbit_bottom_navigation.dart';
 import 'package:routine_timer/widgets/ds/segmented_progress.dart';
 import 'package:routine_timer/widgets/home/starlight_time_of_day.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 import 'support/test_doubles.dart';
 import 'support/localization.dart';
+import 'support/routine_test_harness.dart';
 
 void main() {
-  TestWidgetsFlutterBinding.ensureInitialized();
-
-  const homeWidgetChannel = MethodChannel('home_widget');
-
-  setUp(() async {
-    SharedPreferences.setMockInitialValues({});
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(homeWidgetChannel, (call) async => true);
-  });
-
-  tearDown(() {
-    TestDefaultBinaryMessengerBinding.instance.defaultBinaryMessenger
-        .setMockMethodCallHandler(homeWidgetChannel, null);
-  });
+  setUpRoutineTestEnvironment();
 
   Future<RoutineAppController> pump(
     WidgetTester tester,
@@ -44,19 +27,10 @@ void main() {
     DateTime? now,
     MemoryLogRepository? logs,
   }) async {
-    final controller = RoutineAppController(
-      dataService: RoutineDataService(
-        routineRepository: MemoryRoutineRepository(routines),
-        logRepository: logs ?? MemoryLogRepository(),
-      ),
-      notificationService: RoutineNotificationService(
-        exactAlarmsAllowed: () async => false,
-        gateway: NoopNotificationGateway(),
-        preferencesLoader: () async =>
-            NotificationPreferences.firstLaunchDefaults,
-      ),
-      nowProvider: () => now ?? DateTime(2026, 8, 4, 16, 24),
-      clockAutoRefreshEnabled: false,
+    final controller = createTestRoutineController(
+      now: now ?? DateTime(2026, 8, 4, 16, 24),
+      routines: routines,
+      logRepository: logs,
     );
     await controller.load();
     await tester.pumpWidget(
@@ -77,7 +51,11 @@ void main() {
       dailyRoutine(
           id: 'rest', title: '휴식', startHour: 16, endHour: 17, updatedAtMs: 3),
       dailyRoutine(
-          id: 'dinner', title: '저녁', startHour: 18, endHour: 19, updatedAtMs: 4),
+          id: 'dinner',
+          title: '저녁',
+          startHour: 18,
+          endHour: 19,
+          updatedAtMs: 4),
     ];
 
     testWidgets('탭을 열면 오늘 루틴이 시간 순서로 상태와 함께 보인다', (tester) async {
@@ -97,9 +75,7 @@ void main() {
       addTearDown(controller.dispose);
 
       expect(
-        tester
-            .getRect(find.byKey(const Key('routines-today-wake')))
-            .top,
+        tester.getRect(find.byKey(const Key('routines-today-wake'))).top,
         lessThan(
             tester.getRect(find.byKey(const Key('routines-today-lunch'))).top),
       );
