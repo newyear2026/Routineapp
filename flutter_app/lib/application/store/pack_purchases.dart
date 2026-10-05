@@ -421,6 +421,20 @@ class PackPurchases extends ChangeNotifier {
   void _endCheckout(String productId) =>
       _checkingOut.remove(productId)?.cancel();
 
+  void _endUnsuccessfulPurchase(String productId) {
+    if (productId.isEmpty) {
+      // Android는 구매 목록이 없는 취소·오류를 빈 상품 ID로 보낸다.
+      // 열린 결제 창의 상태만 풀고 Play의 실제 승인 대기 구매는 유지한다.
+      for (final timer in _checkingOut.values) {
+        timer.cancel();
+      }
+      _checkingOut.clear();
+      return;
+    }
+    _endCheckout(productId);
+    _pending.remove(productId);
+  }
+
   /// 이 스토어 계정이 이미 가진 것을 다시 받고, 결과를 답한다.
   ///
   /// 결과를 [takeFailure]에 두지 않고 돌려준다. 물어본 행이 답해야 한다.
@@ -469,14 +483,12 @@ class PackPurchases extends ChangeNotifier {
             continue;
           }
         case PurchaseStatus.error:
-          _endCheckout(purchase.productID);
-          _pending.remove(purchase.productID);
+          _endUnsuccessfulPurchase(purchase.productID);
           _pendingFailure = PurchaseFailure.purchaseRejected;
         case PurchaseStatus.canceled:
           // 사용자가 물러났다. 답이지 잘못이 아니고, 무언가 말하면 취소 버튼을
           // 누른 것을 나무라는 셈이다.
-          _endCheckout(purchase.productID);
-          _pending.remove(purchase.productID);
+          _endUnsuccessfulPurchase(purchase.productID);
       }
       // 지급된 팩은 완료 응답이 늦거나 실패해도 바로 화면에 반영한다.
       notifyListeners();

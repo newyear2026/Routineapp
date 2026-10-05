@@ -180,6 +180,56 @@ void main() {
     expect(p.isBuying(_rabbit), isFalse);
   });
 
+  for (final status in [PurchaseStatus.canceled, PurchaseStatus.error]) {
+    test('상품 ID 없는 $status 응답도 결제 창을 닫고 재구매를 허용한다', () async {
+      final p = purchases(restoreOnStart: false);
+      await p.start();
+      await p.buy(_rabbit);
+      expect(p.isBuying(_rabbit), isTrue);
+      var notified = false;
+      p.addListener(() => notified = true);
+
+      // Android는 구매 목록 없이 돌아온 취소·오류를 빈 상품 ID로 보낸다.
+      backend.emit([detailsFor('', status, needsCompleting: false)]);
+      await settle();
+
+      expect(p.isBuying(_rabbit), isFalse);
+      expect(p.isBusy, isFalse);
+      expect(notified, isTrue);
+      expect(p.entitlements, isEmpty);
+      expect(store.saved, isEmpty);
+      expect(backend.completed, isEmpty);
+      expect(
+          p.takeFailure(),
+          status == PurchaseStatus.error
+              ? PurchaseFailure.purchaseRejected
+              : null);
+      expect(p.takeFailure(), isNull);
+
+      await p.buy(_rabbit);
+      expect(backend.bought, [_rabbit, _rabbit]);
+      expect(p.isBuying(_rabbit), isTrue);
+    });
+
+    test('상품 ID 없는 $status 응답은 Play의 실제 승인 대기 구매를 지우지 않는다', () async {
+      final p = purchases(restoreOnStart: false);
+      await p.start();
+      backend.emit([detailsFor(_squirrel, PurchaseStatus.pending)]);
+      await settle();
+      await p.buy(_rabbit);
+
+      backend.emit([detailsFor('', status, needsCompleting: false)]);
+      await settle();
+
+      expect(p.isBuying(_rabbit), isFalse);
+      expect(p.isPending(_squirrel), isTrue);
+      expect(p.isBuying(_squirrel), isTrue);
+      expect(p.isBusy, isTrue);
+      expect(p.entitlements, isEmpty);
+      expect(backend.completed, isEmpty);
+    });
+  }
+
   test('거절된 결제는 한 번만 알린다', () async {
     final p = purchases(restoreOnStart: false);
     await p.start();

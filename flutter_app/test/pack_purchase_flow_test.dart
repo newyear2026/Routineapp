@@ -229,6 +229,54 @@ void main() {
       await tester.pump();
       expect(backend.bought, isEmpty);
     });
+
+    testWidgets('Play 구매창에서 뒤로 가면 로딩을 끝내고 다시 구매할 수 있다', (tester) async {
+      tester.view.physicalSize = const Size(430, 2400);
+      tester.view.devicePixelRatio = 1;
+      addTearDown(tester.view.reset);
+      late PackPurchases purchases;
+      late RoutineAppController controller;
+      await tester.runAsync(() async {
+        purchases = await startPurchases();
+        controller = await loadController(purchases);
+      });
+      await tester.pumpWidget(app(controller, purchases,
+          const CharacterPackDetailScreen(packId: 'rabbit_postman')));
+      await tester.pump();
+
+      final buy = find.text(testL10n.characterPackBuyAction(r'$39.00'));
+      await tester.tap(buy);
+      await tester.pump();
+      expect(backend.bought, [_rabbit]);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      // Play의 뒤로 가기 응답에는 상품 ID가 없다.
+      await tester.runAsync(() async {
+        backend.emit([
+          detailsFor('', PurchaseStatus.canceled, needsCompleting: false),
+        ]);
+        await Future<void>.delayed(Duration.zero);
+      });
+      await tester.pump();
+
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+      expect(purchases.isBusy, isFalse);
+      expect(purchases.entitlements, isEmpty);
+      expect(purchases.takeFailure(), isNull);
+      await tester.tap(buy);
+      await tester.pump();
+      expect(backend.bought, [_rabbit, _rabbit]);
+      expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+      await tester.runAsync(() async {
+        backend.emit([
+          detailsFor('', PurchaseStatus.canceled, needsCompleting: false),
+        ]);
+        await Future<void>.delayed(Duration.zero);
+      });
+      await tester.pump();
+      expect(find.byType(CircularProgressIndicator), findsNothing);
+    });
   });
 
   group('팩 목록', () {
@@ -290,10 +338,14 @@ void main() {
 
       // 결제 창을 닫는다. 열린 채로 두면 결제 기한 타이머가 남는다.
       await tester.runAsync(() async {
-        backend.emit([detailsFor(_bundle, PurchaseStatus.canceled)]);
+        backend.emit([
+          detailsFor('', PurchaseStatus.canceled, needsCompleting: false),
+        ]);
         await Future<void>.delayed(const Duration(milliseconds: 10));
       });
       await tester.pump();
+      expect(purchases.isBuying(_bundle), isFalse);
+      expect(find.byType(CircularProgressIndicator), findsNothing);
     });
 
     testWidgets('스토어가 없으면 번들 카드를 두지 않는다', (tester) async {
