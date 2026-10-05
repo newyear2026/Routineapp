@@ -52,12 +52,28 @@ class AdBootstrap {
   /// bool 플래그로 «시작했음»만 표시하면, 초기화가 도는 중에 부른 쪽은
   /// 곧바로 반환받아 아직 준비 안 된 SDK에 광고를 요청하게 된다. 홈 화면은
   /// 스플래시 직후에 뜨므로 실제로 이 경합에 걸린다.
+  ///
+  /// 준비되지 못한 시도는 붙들지 않는다. 오프라인으로 켠 날 동의 확인이
+  /// 실패한 결과를 남겨 두면, 망이 돌아와도 앱을 완전히 끌 때까지 광고가
+  /// 하나도 뜨지 않는다. 다음 요청이 처음부터 다시 시도한다.
   Future<void> ensureInitialized() {
-    if (!AdConfig.isPlatformSupported) return Future<void>.value();
-    return _initialization ??= _initialize();
+    if (!AdConfig.isPlatformSupported || _ready) return Future<void>.value();
+    return _initialization ??= _initialize().whenComplete(() {
+      if (!_ready) _initialization = null;
+    });
   }
 
   Future<void> _initialize() async {
+    try {
+      await _initializeOnce();
+    } on Object catch (error) {
+      // 앱 복귀마다 다시 부르므로, 실패가 처리되지 않은 비동기 오류로
+      // 새어 나가면 같은 오류가 치명 오류로 거듭 보고된다.
+      debugPrint('[ads] SDK 초기화 실패: $error');
+    }
+  }
+
+  Future<void> _initializeOnce() async {
     await _gatherConsent();
 
     // 동의가 필요한데 아직 못 받았으면 광고를 요청하지 않는다.

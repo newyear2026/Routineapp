@@ -269,6 +269,9 @@ class _ExactAlarmPermissionWatcherState
     context.read<RoutineAppController>().resyncIfExactAlarmPermissionChanged();
     // 앱 밖(Play 스토어)에서 쓴 프로모션 코드 등을 잡는다.
     unawaited(context.read<PackPurchases>().refreshOnResume());
+    // 오프라인으로 시작해 준비되지 못한 광고 SDK를 다시 올린다. 준비됐으면
+    // 바로 돌아온다.
+    if (!kIsWeb) unawaited(AdBootstrap.instance.ensureInitialized());
     // 어느 화면에 있든 앱 복귀 시 확인한다. 간격 제한은 컨트롤러가 맡는다.
     unawaited(context.read<AppUpdates>().refreshOnResume());
   }

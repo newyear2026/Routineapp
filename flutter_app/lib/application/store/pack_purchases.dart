@@ -42,7 +42,10 @@ abstract interface class PurchaseBackend {
   Stream<List<PurchaseDetails>> get purchaseStream;
   Future<bool> isAvailable();
   Future<ProductDetailsResponse> queryProductDetails(Set<String> identifiers);
-  Future<void> buyNonConsumable(ProductDetails product);
+
+  /// 결제 창을 열었는가. false면 Play가 창을 띄우지 않았고, 스트림으로 아무
+  /// 답도 오지 않을 수 있다.
+  Future<bool> buyNonConsumable(ProductDetails product);
   Future<void> restorePurchases();
   Future<void> completePurchase(PurchaseDetails purchase);
 
@@ -71,7 +74,7 @@ final class UnavailablePurchaseBackend implements PurchaseBackend {
       ProductDetailsResponse(productDetails: const [], notFoundIDs: [...ids]);
 
   @override
-  Future<void> buyNonConsumable(ProductDetails product) async =>
+  Future<bool> buyNonConsumable(ProductDetails product) async =>
       throw StateError('no store on this platform');
 
   @override
@@ -120,7 +123,7 @@ final class PluginPurchaseBackend implements PurchaseBackend {
       _plugin.queryProductDetails(identifiers);
 
   @override
-  Future<void> buyNonConsumable(ProductDetails product) => _plugin
+  Future<bool> buyNonConsumable(ProductDetails product) => _plugin
       .buyNonConsumable(purchaseParam: PurchaseParam(productDetails: product));
 
   @override
@@ -410,29 +413,69 @@ class PackPurchases extends ChangeNotifier {
       notifyListeners();
     });
     notifyListeners();
+    bool launched;
     try {
-      await _backend.buyNonConsumable(product);
+      launched = await _backend.buyNonConsumable(product);
     } on Object {
       _endCheckout(productId);
       _report(PurchaseFailure.purchaseRejected);
+      return;
     }
+    // 창을 열지 못한 결제는 스트림이 답하지 않을 수 있다. 기다리면 버튼이
+    // 기한 내내 «결제 중»으로 남는다. 스트림이 먼저 답해 이미 닫았으면 둔다.
+    if (launched || !_checkingOut.containsKey(productId)) return;
+    _endCheckout(productId);
+    notifyListeners();
+    await _enqueuePurchaseWork(() =>
+        _settleFailedCheckout({productId}, PurchaseFailure.storeUnavailable));
   }
 
   void _endCheckout(String productId) =>
       _checkingOut.remove(productId)?.cancel();
 
-  void _endUnsuccessfulPurchase(String productId) {
+  /// 끝나지 못한 결제를 닫고, 그 결제가 가리키던 상품을 답한다.
+  Set<String> _endUnsuccessfulPurchase(String productId) {
     if (productId.isEmpty) {
       // Android는 구매 목록이 없는 취소·오류를 빈 상품 ID로 보낸다.
       // 열린 결제 창의 상태만 풀고 Play의 실제 승인 대기 구매는 유지한다.
+      final closed = _checkingOut.keys.toSet();
       for (final timer in _checkingOut.values) {
         timer.cancel();
       }
       _checkingOut.clear();
-      return;
+      return closed;
     }
     _endCheckout(productId);
     _pending.remove(productId);
+    return {productId};
+  }
+
+  /// 실패한 결제를 Play의 실제 결제 목록과 맞춘다.
+  ///
+  /// «이미 소유한 상품»도 Play에는 결제 오류다. 재설치나 저장 실패로 이 폰의
+  /// 장부만 비어 있으면, 돈을 낸 사람이 실패 메시지와 잠긴 팩을 보게 된다.
+  /// 목록에 있으면 실패가 아니라 지급이고, 없을 때만 [failure]를 말한다.
+  Future<void> _settleFailedCheckout(
+      Set<String> productIds, PurchaseFailure failure) async {
+    if (productIds.isEmpty) return;
+    Set<String>? paid;
+    try {
+      paid = await _backend.queryPaidProductIds();
+    } on Object {
+      paid = null;
+    }
+    final owned = paid?.intersection(productIds) ?? const <String>{};
+    if (owned.isEmpty) {
+      _report(failure);
+      return;
+    }
+    for (final productId in owned) {
+      if (!await _grant(productId, fromRestore: false)) {
+        _report(PurchaseFailure.deliveryNotSaved);
+        return;
+      }
+    }
+    notifyListeners();
   }
 
   /// 이 스토어 계정이 이미 가진 것을 다시 받고, 결과를 답한다.
@@ -483,8 +526,10 @@ class PackPurchases extends ChangeNotifier {
             continue;
           }
         case PurchaseStatus.error:
-          _endUnsuccessfulPurchase(purchase.productID);
-          _pendingFailure = PurchaseFailure.purchaseRejected;
+          await _settleFailedCheckout(
+            _endUnsuccessfulPurchase(purchase.productID),
+            PurchaseFailure.purchaseRejected,
+          );
         case PurchaseStatus.canceled:
           // 사용자가 물러났다. 답이지 잘못이 아니고, 무언가 말하면 취소 버튼을
           // 누른 것을 나무라는 셈이다.

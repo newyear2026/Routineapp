@@ -10,6 +10,9 @@ class FakePurchaseBackend implements PurchaseBackend {
 
   bool available = true;
   bool failBuy = false;
+
+  /// Play가 결제 창을 띄우지 못한 것처럼 false로 답한다.
+  bool refuseLaunch = false;
   bool failRestore = false;
   List<ProductDetails> catalogue = [];
 
@@ -42,9 +45,10 @@ class FakePurchaseBackend implements PurchaseBackend {
       );
 
   @override
-  Future<void> buyNonConsumable(ProductDetails product) async {
+  Future<bool> buyNonConsumable(ProductDetails product) async {
     if (failBuy) throw StateError('store refused');
     bought.add(product.id);
+    return !refuseLaunch;
   }
 
   @override

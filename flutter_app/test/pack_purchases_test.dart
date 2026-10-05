@@ -230,6 +230,97 @@ void main() {
     });
   }
 
+  group('Play가 결제 창을 띄우지 못하면', () {
+    test('기한을 기다리지 않고 버튼을 돌려주며 연결할 수 없다고 말한다', () async {
+      final p = purchases(restoreOnStart: false);
+      await p.start();
+      backend.refuseLaunch = true;
+
+      await p.buy(_rabbit);
+
+      expect(p.isBuying(_rabbit), isFalse);
+      expect(p.isBusy, isFalse);
+      expect(p.entitlements, isEmpty);
+      expect(p.takeFailure(), PurchaseFailure.storeUnavailable);
+    });
+
+    test('이미 결제된 상품이면 실패 대신 조용히 지급한다', () async {
+      final p = purchases(restoreOnStart: false);
+      await p.start();
+      backend
+        ..refuseLaunch = true
+        ..paidProductIds = {_rabbit};
+
+      await p.buy(_rabbit);
+
+      expect(p.entitlements, {'rabbit_postman'});
+      expect(store.saved, {'rabbit_postman'});
+      expect(p.takeFailure(), isNull);
+    });
+
+    test('스트림이 먼저 답해 닫은 결제는 다시 알리지 않는다', () async {
+      final p = purchases(restoreOnStart: false);
+      await p.start();
+      backend.refuseLaunch = true;
+      var failures = 0;
+      p.addListener(() {
+        if (p.takeFailure() != null) failures++;
+      });
+      backend
+          .emit([detailsFor('', PurchaseStatus.error, needsCompleting: false)]);
+      // 스트림이 처리되기 전에 결제 창 요청이 false로 돌아오는 순서와,
+      // 그 반대 순서 모두 한 번만 알려야 한다.
+      await p.buy(_rabbit);
+      await settle();
+
+      expect(p.isBuying(_rabbit), isFalse);
+      expect(failures, 1);
+    });
+  });
+
+  group('이미 소유한 상품의 결제 오류는', () {
+    test('Play 목록에 있으면 실패 대신 지급한다', () async {
+      final p = purchases(restoreOnStart: false);
+      await p.start();
+      await p.buy(_sheep);
+      backend.paidProductIds = {_sheep};
+
+      // ITEM_ALREADY_OWNED도 상품 ID 없는 오류로 온다.
+      backend
+          .emit([detailsFor('', PurchaseStatus.error, needsCompleting: false)]);
+      await settle();
+
+      expect(p.entitlements, {'sheep_mooncloud'});
+      expect(p.isBuying(_sheep), isFalse);
+      expect(p.takeFailure(), isNull);
+    });
+
+    test('Play가 답하지 못하면 원래대로 거절을 알린다', () async {
+      final p = purchases(restoreOnStart: false);
+      await p.start();
+      await p.buy(_sheep);
+      backend.paidProductIds = null;
+
+      backend
+          .emit([detailsFor('', PurchaseStatus.error, needsCompleting: false)]);
+      await settle();
+
+      expect(p.entitlements, isEmpty);
+      expect(p.takeFailure(), PurchaseFailure.purchaseRejected);
+    });
+
+    test('열린 결제 창이 없으면 아무 말도 하지 않는다', () async {
+      final p = purchases(restoreOnStart: false);
+      await p.start();
+
+      backend
+          .emit([detailsFor('', PurchaseStatus.error, needsCompleting: false)]);
+      await settle();
+
+      expect(p.takeFailure(), isNull);
+    });
+  });
+
   test('거절된 결제는 한 번만 알린다', () async {
     final p = purchases(restoreOnStart: false);
     await p.start();
