@@ -144,21 +144,37 @@ dart run flutter_launcher_icons             # 플랫폼별 해상도 생성
 | 알람 및 리마인더 권한 | 해당 없음 — `USE_EXACT_ALARM` 을 쓰지 않는다. 아래 참고 |
 | 콘텐츠 등급 | 설문 후 자동 산정 (유틸리티, 전체이용가 예상) |
 | 타겟층 | 만 13세 이상 권장 |
-| 데이터 안전성 | **기기 또는 기타 ID(광고 ID) 수집·공유 — 광고 목적** |
+| 데이터 안전성 | AdMob 항목 + Firebase의 **앱 활동, 기기 또는 기타 ID, 충돌 로그·진단** 등 실제 수집 항목 반영 |
 | 정부 앱 | 아니요 |
 
-앱 자체는 서버가 없고 루틴·기록은 모두 `SharedPreferences` 로컬에만 저장한다. 앱이 직접 모으는 데이터는 없다.
+루틴 원문·기록은 `SharedPreferences` 로컬에 저장한다. Firebase Analytics에는
+화면 방문과 루틴 동작 종류를 전송하고, Crashlytics에는 오류 유형·스택과
+SDK가 수집하는 앱·기기·설치 정보를 전송한다. 루틴 제목·메모·알림 payload·
+루틴 ID·구매 영수증을 맞춤 이벤트나 오류 메시지에 넣지 않는다.
 
-다만 Google AdMob SDK가 광고를 게재하려고 광고 ID를 처리하고 Google에 보낸다. 그래서 데이터 안전성에는 아래처럼 신고한다.
+Google AdMob SDK는 광고 ID 등을 처리한다. 기존 광고 항목과 함께 Firebase 항목도
+실제 설정에 맞춰 신고한다. SDK 버전별 전체 항목은 아래 공식 공개 문서를 기준으로 확인한다.
 
 - 수집: 기기 또는 기타 ID — 목적: 광고 또는 마케팅
 - 공유: 같은 항목을 Google(광고 네트워크)과 공유
+- Firebase Analytics: 앱 활동(앱 상호작용 등), 앱 인스턴스 식별자, 앱·기기 정보,
+  대략적인 지역 및 SDK 자동 수집 이벤트 — 목적: 분석. Analytics의 광고 ID 수집과
+  맞춤 광고 신호는 비활성화했지만 AdMob의 광고 ID 사용은 그대로다.
+- Firebase Crashlytics: 충돌 로그·진단 및 설치 식별자 — 목적: 앱 기능·분석.
+  서비스 제공자 처리와 Play의 «공유» 예외는 공식 설문 정의에 따라 판단한다.
 - 전송 중 암호화: 예
-- 삭제 요청: 사용자가 기기 설정에서 광고 ID를 재설정하거나 삭제할 수 있다
+- 로컬 데이터는 앱 삭제로 제거된다. 이미 전송된 분석·진단 데이터는 서비스 보존 정책을
+  따른다. 광고 ID 재설정이 Firebase 설치 식별자나 기존 보고서까지 삭제하지는 않는다.
+
+공식 자료: [Firebase 데이터 공개](https://firebase.google.com/docs/android/play-data-disclosure),
+[Analytics 데이터 공개](https://support.google.com/analytics/answer/11582702),
+[Firebase 개인정보 처리](https://firebase.google.com/support/privacy).
 
 EEA 사용자에게는 UMP 동의 창을 먼저 띄우고, 동의 상태를 확인한 뒤에만 광고를 요청한다(`ad_bootstrap.dart`). 개인정보처리방침(`PRIVACY_POLICY.md`, `docs/privacy/index.html`)도 같은 내용으로 맞춰 두었다.
 
-**선언과 실제 SDK가 어긋난 채 올리면 정책 위반으로 거부되거나 정지된다.** 빌드를 올리기 전에 위 네 항목(광고, 광고 ID, 데이터 안전성, 개인정보처리방침 URL)을 Play Console에서 먼저 고친다. 분석 도구 같은 SDK를 더 넣으면 이 답변도 다시 갱신한다.
+Firebase를 포함하는 빌드를 배포하기 전에 수정된 공개 개인정보처리방침을 게시하고,
+Play Console의 데이터 안전성을 갱신한다. 저장소 파일을 수정하는 것만으로 공개 페이지나
+Play Console 답변이 자동 갱신되지는 않는다. 연결 정보와 검증 절차는 `FIREBASE.md`를 따른다.
 
 ### 정확한 알람: `USE_EXACT_ALARM` 을 쓰지 않는 이유
 

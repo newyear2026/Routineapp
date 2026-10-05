@@ -34,6 +34,7 @@ import 'home/home_snapshot_builder.dart';
 import 'home/progress_summary.dart';
 import 'routine_save_result.dart';
 import 'services/ad_config.dart';
+import 'services/app_telemetry.dart';
 import 'services/exact_alarm_service.dart';
 import 'services/rewarded_ad_service.dart';
 import 'services/routine_notification_service.dart';
@@ -59,6 +60,7 @@ class RoutineAppController extends ChangeNotifier {
     DateTime Function()? nowProvider,
     DateTime? launchGiftDeadline,
     bool clockAutoRefreshEnabled = true,
+    AppTelemetry? telemetry,
   })  : _data = dataService ?? RoutineDataService(),
         _dayService = dayService ?? const RoutineDayService(),
         _notifications = notificationService ?? RoutineNotificationService(),
@@ -74,11 +76,13 @@ class RoutineAppController extends ChangeNotifier {
         _nowProvider = nowProvider ?? DateTime.now,
         _launchGiftDeadline =
             launchGiftDeadline ?? LaunchGiftCampaign.lastEligibleAt,
-        _clockAutoRefreshEnabled = clockAutoRefreshEnabled {
+        _clockAutoRefreshEnabled = clockAutoRefreshEnabled,
+        _telemetry = telemetry ?? AppTelemetry.instance {
     _purchases?.addListener(_onPurchasesChanged);
   }
 
   final RoutineDataService _data;
+  final AppTelemetry _telemetry;
   final RoutineDayService _dayService;
   final RoutineNotificationService _notifications;
   final Future<void> Function() _completionHaptic;
@@ -283,6 +287,7 @@ class RoutineAppController extends ChangeNotifier {
       settings = await _settings.loadAppSettings();
     } catch (e, st) {
       debugPrint('initial load failed: $e\n$st');
+      unawaited(_telemetry.reportError(e, st, reason: 'routine_load'));
       _loadFailed = true;
       notifyListeners();
       return;
@@ -506,6 +511,7 @@ class RoutineAppController extends ChangeNotifier {
   /// 재로드·동기화가 실패해도 데이터는 이미 남아 있으므로 성공으로 답한다.
   /// 여기서 실패라고 말하면 사용자가 다시 눌러 중복을 만든다.
   Future<RoutineSaveResult> saveRoutine(Routine routine) async {
+    final created = _routineById(routine.id) == null;
     final toSave = routine.copyWith(
       updatedAtMs: _now.millisecondsSinceEpoch,
     );
@@ -513,8 +519,10 @@ class RoutineAppController extends ChangeNotifier {
       await _data.upsertRoutine(toSave);
     } catch (e, st) {
       debugPrint('saveRoutine write failed: $e\n$st');
+      unawaited(_telemetry.reportError(e, st, reason: 'routine_save'));
       return RoutineSaveResult.failure(RoutineWriteError.save);
     }
+    unawaited(_telemetry.routineSaved(created: created));
     await _reloadAfterWrite();
     return RoutineSaveResult.success;
   }
@@ -536,8 +544,10 @@ class RoutineAppController extends ChangeNotifier {
       await _data.deleteRoutine(routineId);
     } catch (e, st) {
       debugPrint('deleteRoutine write failed: $e\n$st');
+      unawaited(_telemetry.reportError(e, st, reason: 'routine_delete'));
       return RoutineSaveResult.failure(RoutineWriteError.delete);
     }
+    unawaited(_telemetry.routineDeleted());
     await _reloadAfterWrite();
     return RoutineSaveResult.success;
   }
@@ -646,8 +656,13 @@ class RoutineAppController extends ChangeNotifier {
       // 성공 스낵바를 띄워도 되는지는 저장소 쓰기 성공 여부로만 정한다.
       // 화면이 현재 언어로 실패 문구를 고를 수 있도록 예외는 다시 올린다.
       debugPrint('routine action write failed: $e\n$st');
+      unawaited(_telemetry.reportError(e, st, reason: 'routine_action'));
       rethrow;
     }
+
+    unawaited(_telemetry.routineAction(outcome.log.status.name,
+        fromNotification:
+            outcome.log.actionSource == RoutineActionSource.notification));
 
     // 쓰기가 끝난 뒤 다시 읽다가 실패해도 이미 저장된 기록을 실패로
     // 오해하면 안 된다. 저장한 결과로 메모리 상태를 바로 갱신한다.
@@ -681,9 +696,11 @@ class RoutineAppController extends ChangeNotifier {
       }
     } catch (e, st) {
       debugPrint('routine action undo write failed: $e\n$st');
+      unawaited(_telemetry.reportError(e, st, reason: 'routine_action_undo'));
       rethrow;
     }
 
+    unawaited(_telemetry.routineActionUndone());
     if (undo.previousLog == null) {
       _logsToday.removeWhere(
         (item) =>

@@ -15,6 +15,8 @@ import 'application/release/release_announcements.dart';
 import 'application/routine_app_controller.dart';
 import 'application/services/ad_bootstrap.dart';
 import 'application/services/ad_policy_service.dart';
+import 'application/services/app_telemetry.dart';
+import 'application/services/firebase_telemetry.dart';
 import 'application/services/notification_runtime.dart';
 import 'application/services/play_update_port.dart';
 import 'application/update/app_updates_controller.dart';
@@ -51,6 +53,7 @@ import 'domain/onboarding/onboarding_preview_nav.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await initializeFirebaseTelemetry();
   // 날짜·시간 포맷을 로케일별로 쓰려면 심볼을 먼저 올려야 한다.
   // 빠뜨리면 ko/es에서 DateFormat이 예외를 던진다.
   await initializeDateFormatting();
@@ -363,7 +366,7 @@ class _AppRoot extends StatelessWidget {
 // 라우터 설정
 final GoRouter _router = GoRouter(
   initialLocation: '/',
-  observers: [appRouteObserver],
+  observers: [appRouteObserver, TelemetryRouteObserver()],
   routes: [
     GoRoute(
       path: '/',
