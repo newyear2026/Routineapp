@@ -13,7 +13,6 @@ class AdPolicyContext {
     required this.startedFromNotification,
     required this.nativeImpressionsThisSession,
     required this.slotsShownThisSession,
-    required this.rewardedShownToday,
     this.upcomingCount = 0,
     this.todayRoutineCount = 0,
     this.isPro = false,
@@ -34,8 +33,6 @@ class AdPolicyContext {
   final int nativeImpressionsThisSession;
 
   final Set<AdSlot> slotsShownThisSession;
-
-  final int rewardedShownToday;
 
   /// 홈 «다음 일정»에 남은 개수 — Slot A 조건.
   final int upcomingCount;

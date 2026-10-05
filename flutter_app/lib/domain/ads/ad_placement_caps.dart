@@ -18,9 +18,6 @@ abstract final class AdPlacementCaps {
   /// Phase 2에서 Slot A와 C를 한 세션에 모두 보더라도 여기까지다.
   static const int nativeImpressionsPerSession = 2;
 
-  /// 보상형 광고를 하루에 볼 수 있는 횟수.
-  static const int rewardedPerDay = 3;
-
   /// Slot A를 띄우려면 «다음 일정»에 최소 몇 개가 남아 있어야 하는가.
   ///
   /// 목록이 비면 캡션 한 줄만 나오는데, 그 뒤에 광고를 붙이면 광고가

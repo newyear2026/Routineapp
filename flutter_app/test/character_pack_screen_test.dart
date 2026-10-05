@@ -503,10 +503,6 @@ void main() {
         testL10n.characterPackAdUnlockNotCompleted
       ),
       (
-        PackAdUnlockOutcome.dailyLimitReached,
-        testL10n.characterPackAdUnlockDailyLimit
-      ),
-      (
         PackAdUnlockOutcome.adUnavailable,
         testL10n.characterPackAdUnlockUnavailable
       ),

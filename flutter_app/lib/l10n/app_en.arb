@@ -843,8 +843,6 @@
   },
   "characterPackAdUnlockNotCompleted": "Only fully watched ads count.",
   "@characterPackAdUnlockNotCompleted": {},
-  "characterPackAdUnlockDailyLimit": "No more ads today. Please try again tomorrow.",
-  "@characterPackAdUnlockDailyLimit": {},
   "characterPackAdUnlockUnavailable": "Couldn't load an ad right now. Please try again in a moment.",
   "@characterPackAdUnlockUnavailable": {},
   "packStarlightCatName": "Starlight Cat",

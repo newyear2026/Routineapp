@@ -29,9 +29,6 @@ enum AdDenialReason {
   /// 스크롤을 오갈 때마다 소재가 바뀌면 화면이 불안해진다.
   slotAlreadyShown,
 
-  /// 오늘 보상형 광고 횟수를 채웠다.
-  dailyRewardCap,
-
   /// 자리별 조건이 안 맞는다 (목록이 비었거나 너무 짧다).
   slotCondition,
 

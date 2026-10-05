@@ -331,7 +331,6 @@
   "characterPackAdUnlockProgress": "Anúncios {watched}/{required}",
   "characterPackAdUnlockProgressed": "{remaining, plural, =1{Assista a mais 1 anúncio para ficar com este pacote.} other{Assista a mais {remaining} anúncios para ficar com este pacote.}}",
   "characterPackAdUnlockNotCompleted": "Só contam anúncios assistidos até o fim.",
-  "characterPackAdUnlockDailyLimit": "Não há mais anúncios hoje. Tente novamente amanhã.",
   "characterPackAdUnlockUnavailable": "Não foi possível carregar um anúncio agora. Tente novamente em instantes.",
   "packStarlightCatName": "Gato Estrelado",
   "packStarlightCatTagline": "O companheiro de sempre num fundo creme",

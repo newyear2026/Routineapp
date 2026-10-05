@@ -4,7 +4,6 @@ import 'package:flutter/foundation.dart';
 import 'package:google_mobile_ads/google_mobile_ads.dart';
 
 import '../../domain/ads/ad_slot.dart';
-import '../../domain/ads/ad_slot_decision.dart';
 import 'ad_bootstrap.dart';
 import 'ad_policy_service.dart';
 import 'ad_unit_ids.dart';
@@ -16,9 +15,6 @@ enum RewardedAdOutcome {
 
   /// 보상 전에 닫았다.
   dismissed,
-
-  /// 오늘 볼 수 있는 횟수를 다 썼다.
-  dailyCapReached,
 
   /// 띄우지 못했다 — SDK 미준비, 정책 거절, 로드 실패.
   unavailable,
@@ -51,12 +47,9 @@ class RewardedAdService {
       }
 
       final decision = await AdPolicyService.instance.decide(slot);
-      debugPrint('[ads] 보상형 판정: $decision (단위=${AdUnitIds.packUnlockRewarded})');
-      if (!decision.isAllowed) {
-        return decision.reason == AdDenialReason.dailyRewardCap
-            ? RewardedAdOutcome.dailyCapReached
-            : RewardedAdOutcome.unavailable;
-      }
+      debugPrint(
+          '[ads] 보상형 판정: $decision (단위=${AdUnitIds.packUnlockRewarded})');
+      if (!decision.isAllowed) return RewardedAdOutcome.unavailable;
 
       final ad = await _load();
       if (ad == null) return RewardedAdOutcome.unavailable;
@@ -104,8 +97,6 @@ class RewardedAdService {
     }
 
     ad.fullScreenContentCallback = FullScreenContentCallback(
-      // 하루 상한은 «본 광고» 단위다. 불러 놓고 못 띄운 광고까지 세면
-      // 사용자는 아무것도 못 봤는데 오늘 몫이 깎인다.
       onAdImpression: (_) => AdPolicyService.instance.recordShown(slot),
       onAdDismissedFullScreenContent: (_) => finish(
         earned ? RewardedAdOutcome.earned : RewardedAdOutcome.dismissed,

@@ -14,7 +14,6 @@ AdPolicyContext _context({
   bool startedFromNotification = false,
   int nativeImpressionsThisSession = 0,
   Set<AdSlot> slotsShownThisSession = const <AdSlot>{},
-  int rewardedShownToday = 0,
   int upcomingCount = 3,
   int todayRoutineCount = 7,
   bool isPro = false,
@@ -27,7 +26,6 @@ AdPolicyContext _context({
     startedFromNotification: startedFromNotification,
     nativeImpressionsThisSession: nativeImpressionsThisSession,
     slotsShownThisSession: slotsShownThisSession,
-    rewardedShownToday: rewardedShownToday,
     upcomingCount: upcomingCount,
     todayRoutineCount: todayRoutineCount,
     isPro: isPro,
@@ -161,19 +159,13 @@ void main() {
     });
   });
 
-  group('보상형 하루 상한', () {
-    test('하루 3회를 채우면 더 안 뜬다', () {
+  group('보상형 횟수', () {
+    test('이번 세션에 이미 봤어도 또 뜬다', () {
       final context = _context(
-        rewardedShownToday: AdPlacementCaps.rewardedPerDay,
+        slotsShownThisSession: const {AdSlot.packUnlockReward},
+        nativeImpressionsThisSession:
+            AdPlacementCaps.nativeImpressionsPerSession,
       );
-      expect(
-        _reason(AdSlot.packUnlockReward, context),
-        AdDenialReason.dailyRewardCap,
-      );
-    });
-
-    test('2회까지는 뜬다', () {
-      final context = _context(rewardedShownToday: 2);
       expect(
         AdSlotPolicy.decide(AdSlot.packUnlockReward, context).isAllowed,
         isTrue,

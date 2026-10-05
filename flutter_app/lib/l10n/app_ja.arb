@@ -331,7 +331,6 @@
   "characterPackAdUnlockProgress": "広告 {watched}/{required}",
   "characterPackAdUnlockProgressed": "あと{remaining}回見ると、ずっと使えます。",
   "characterPackAdUnlockNotCompleted": "広告を最後まで見ると回数に数えられます。",
-  "characterPackAdUnlockDailyLimit": "今日はこれ以上広告を見られません。明日もう一度お試しください。",
   "characterPackAdUnlockUnavailable": "今は広告を読み込めません。しばらくしてからもう一度お試しください。",
   "packStarlightCatName": "星あかりねこ",
   "packStarlightCatTagline": "最初から一緒のキャラクターとクリーム色の背景",

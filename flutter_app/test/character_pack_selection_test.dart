@@ -282,26 +282,18 @@ void main() {
       expect(settings.saveCount, 0);
     });
 
-    test('하루 상한과 로드 실패를 구분해 돌려준다', () async {
-      for (final (ad, expected) in [
-        (
-          RewardedAdOutcome.dailyCapReached,
-          PackAdUnlockOutcome.dailyLimitReached
-        ),
-        (RewardedAdOutcome.unavailable, PackAdUnlockOutcome.adUnavailable),
-      ]) {
-        final controller = await loadController(
-          _MemorySettingsRepository(),
-          characterPacks: CharacterPackCatalog.all,
-          rewardedPackUnlocks: true,
-          showRewardedAd: (_) async => ad,
-        );
-        expect(
-          await controller
-              .watchAdForPackUnlock(CharacterPackCatalog.poodleGarden),
-          expected,
-        );
-      }
+    test('광고를 불러오지 못하면 그렇다고 돌려준다', () async {
+      final controller = await loadController(
+        _MemorySettingsRepository(),
+        characterPacks: CharacterPackCatalog.all,
+        rewardedPackUnlocks: true,
+        showRewardedAd: (_) async => RewardedAdOutcome.unavailable,
+      );
+      expect(
+        await controller
+            .watchAdForPackUnlock(CharacterPackCatalog.poodleGarden),
+        PackAdUnlockOutcome.adUnavailable,
+      );
     });
 
     test('저장이 실패해도 광고를 본 이번 실행에는 센 수를 쥐고 있다', () async {

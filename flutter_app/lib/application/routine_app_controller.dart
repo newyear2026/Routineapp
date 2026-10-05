@@ -463,8 +463,6 @@ class RoutineAppController extends ChangeNotifier {
         break;
       case RewardedAdOutcome.dismissed:
         return PackAdUnlockOutcome.adNotCompleted;
-      case RewardedAdOutcome.dailyCapReached:
-        return PackAdUnlockOutcome.dailyLimitReached;
       case RewardedAdOutcome.unavailable:
         return PackAdUnlockOutcome.adUnavailable;
     }

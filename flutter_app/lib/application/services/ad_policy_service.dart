@@ -12,7 +12,8 @@ import 'ad_config.dart';
 ///
 /// 세션의 경계는 앱 프로세스다. 프로세스가 죽으면 카운트도 사라진다.
 class AdPolicyService {
-  AdPolicyService({DateTime Function()? clock}) : _clock = clock ?? DateTime.now;
+  AdPolicyService({DateTime Function()? clock})
+      : _clock = clock ?? DateTime.now;
 
   static final AdPolicyService instance = AdPolicyService();
 
@@ -52,7 +53,6 @@ class AdPolicyService {
         startedFromNotification: _startedFromNotification,
         nativeImpressionsThisSession: _nativeImpressions,
         slotsShownThisSession: _shownSlots,
-        rewardedShownToday: await AdLocalStorage.rewardedShownToday(now),
         upcomingCount: upcomingCount,
         todayRoutineCount: todayRoutineCount,
         isPro: isPro || isAdFree(),
@@ -67,11 +67,7 @@ class AdPolicyService {
   /// 못 봤는데 «오늘은 여기까지»가 되어 버린다.
   Future<void> recordShown(AdSlot slot) async {
     _shownSlots.add(slot);
-    if (slot.isUserInitiated) {
-      await AdLocalStorage.recordRewardedShown(_clock());
-    } else {
-      _nativeImpressions++;
-    }
+    if (!slot.isUserInitiated) _nativeImpressions++;
   }
 
   /// 테스트용 — 세션 상태를 처음으로 되돌린다.

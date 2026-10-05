@@ -331,7 +331,6 @@
   "characterPackAdUnlockProgress": "광고 {watched}/{required}",
   "characterPackAdUnlockProgressed": "{remaining}번 더 보면 계속 쓸 수 있어요.",
   "characterPackAdUnlockNotCompleted": "광고를 끝까지 봐야 횟수에 들어가요.",
-  "characterPackAdUnlockDailyLimit": "오늘은 더 볼 수 있는 광고가 없어요. 내일 다시 시도해 주세요.",
   "characterPackAdUnlockUnavailable": "지금은 광고를 불러올 수 없어요. 잠시 후 다시 시도해 주세요.",
   "packStarlightCatName": "별빛 고양이",
   "packStarlightCatTagline": "처음부터 함께한 기본 캐릭터와 크림빛 배경",

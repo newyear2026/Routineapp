@@ -341,8 +341,6 @@ class _PackActionState extends State<_PackAction> {
         l10n.characterPackAdUnlockProgressed(remainingAfterThis),
       PackAdUnlockOutcome.adNotCompleted =>
         l10n.characterPackAdUnlockNotCompleted,
-      PackAdUnlockOutcome.dailyLimitReached =>
-        l10n.characterPackAdUnlockDailyLimit,
       PackAdUnlockOutcome.adUnavailable =>
         l10n.characterPackAdUnlockUnavailable,
       PackAdUnlockOutcome.failed => l10n.characterPackSelectFailed,

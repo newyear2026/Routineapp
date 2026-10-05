@@ -21,9 +21,6 @@ enum PackAdUnlockOutcome {
   /// 광고를 도중에 닫았다. 세지 않는다.
   adNotCompleted,
 
-  /// 오늘 볼 수 있는 보상형 광고를 다 봤다.
-  dailyLimitReached,
-
   /// 광고를 불러오지 못했다 — 네트워크, 채울 광고 없음, SDK 미준비.
   adUnavailable,
 
@@ -44,8 +41,8 @@ class RewardedUnlockOwnership implements CharacterPackOwnership {
 
   /// 팩 하나를 영구히 여는 데 끝까지 봐야 하는 광고 수. 나눠 봐도 된다.
   ///
-  /// 한 번이면 결제가 붙었을 때 살 이유가 사라지고, 너무 많으면 하루
-  /// 상한(`AdPlacementCaps.rewardedPerDay`)에 걸려 며칠을 기다리게 된다.
+  /// 한 번이면 결제가 붙었을 때 살 이유가 사라지고, 너무 많으면 팩 하나에
+  /// 광고를 몇 분씩 봐야 해 중간에 포기한다.
   static const int adsRequired = 2;
 
   final CharacterPackOwnership base;

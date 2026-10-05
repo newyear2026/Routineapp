@@ -16,7 +16,8 @@ abstract final class AdSlotPolicy {
   ///
   /// 세션 상한과 «알림 진입 세션» 금지는 사용자가 원하지 않았는데 나타나는
   /// 광고를 막기 위한 것이다. 보상형은 사용자가 먼저 눌러야 시작하므로
-  /// 그 두 상한의 대상이 아니고, 대신 하루 횟수로 제한한다.
+  /// 그 두 상한의 대상이 아니다. 횟수 제한도 두지 않는다 — 팩을 열려는
+  /// 사람이 더 보겠다는데 막을 이유가 없다.
   static AdSlotDecision decide(AdSlot slot, AdPolicyContext context) {
     if (!context.platformSupported) {
       return const AdSlotDecision.deny(AdDenialReason.platformNotSupported);
@@ -50,8 +51,6 @@ abstract final class AdSlotPolicy {
       if (context.slotsShownThisSession.contains(slot)) {
         return const AdSlotDecision.deny(AdDenialReason.slotAlreadyShown);
       }
-    } else if (context.rewardedShownToday >= AdPlacementCaps.rewardedPerDay) {
-      return const AdSlotDecision.deny(AdDenialReason.dailyRewardCap);
     }
 
     if (!_slotContentReady(slot, context)) {
