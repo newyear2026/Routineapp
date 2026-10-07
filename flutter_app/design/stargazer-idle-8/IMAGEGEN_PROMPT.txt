@@ -1,0 +1,15 @@
+Use case: identity-preserve.
+Asset type: production pixel-art character animation sprite sheet, 8-frame idle loop for a Flutter mobile routine app.
+Input image: the reference is the exact existing Stargazer wizard cat, a navy kitten seated facing forward, gold eyes, cream muzzle/chest/paws and tail tip, navy wizard beret with gold stars and gold top pin, gold-trim navy cape and star clasp.
+Create a single TRANSPARENT PNG sprite atlas, ideally 2048x1024, with EXACTLY 8 frames arranged in a strict 4-column by 2-row equal square-cell grid. Reading order: top row 1–4, bottom row 5–8. No labels, text, grid lines, shadows, backgrounds, swatches, extra characters, sparkles outside the body, or props.
+Every frame shows this SAME full-body seated cat at the SAME scale, same head proportions, same color palette, same crisp pixel-art style, fixed feet baseline and fixed central body anchor. Feet must remain planted. Match the reference character faithfully, do not redesign it, do not simplify the face or remove costume details. Leave generous transparent padding inside each cell; nothing crosses a cell edge.
+Animate ONE gentle readable idle sequence: a relaxed blink and a small swish of the cream-tipped tail on the viewer's right. Body, paws, hat, cape, star clasp and muzzle remain virtually identical from frame to frame. Only eyes and tail change, with a tiny breathing movement in the chest. No overall bobbing, jumping, whole-sprite scaling, viewpoint rotation or travel.
+Frame 1: exact neutral reference pose, both gold eyes wide open, tail relaxed toward right.
+Frame 2: eyes open, tail begins gently curving toward the body.
+Frame 3: eyelids half lowered, tail moving closer.
+Frame 4: both eyes fully closed in happy curved blink, tail closest to body.
+Frame 5: closed blink held, tail starting to return.
+Frame 6: eyes half open, tail returns outward.
+Frame 7: eyes fully open, tail almost neutral.
+Frame 8: returns seamlessly to frame 1 neutral pose.
+Maintain exact identity, consistent silhouette size, pixel scale, outline thickness and paw placement across ALL eight cells. Genuine alpha transparency, no checkerboard drawn into the image.

@@ -16,6 +16,14 @@ import '../ds/routine_mark.dart';
 import '../ds/segmented_progress.dart';
 import 'pack_time_scene.dart';
 import 'starlight_home_motion.dart';
+import 'stargazer_home_motion.dart';
+import 'poodle_home_motion.dart';
+import 'rabbit_home_motion.dart';
+import 'squirrel_home_motion.dart';
+import 'sheep_home_motion.dart';
+import 'redpanda_home_motion.dart';
+import 'otter_home_motion.dart';
+import 'penguin_home_motion.dart';
 import '../store/character_pack_scope.dart';
 
 /// 홈 첫 카드 — 홈 화면 위젯 카드를 앱 안으로 옮긴 것.
@@ -41,11 +49,58 @@ class HomeFocusCard extends StatelessWidget {
     final cardAtmosphere = timeScene?.cardAtmosphere();
     final starlightPack = CharacterPackScope.currentOf(context).id ==
         CharacterPackCatalog.starlightCat.id;
-    final starlightMode = switch (state) {
-      HomeFocusState.active => StarlightHomeMode.active,
-      HomeFocusState.completed => StarlightHomeMode.complete,
-      _ => StarlightHomeMode.idle,
-    };
+    final stargazerPack = CharacterPackScope.currentOf(context).id ==
+        CharacterPackCatalog.stargazerCat.id;
+    final poodlePack = CharacterPackScope.currentOf(context).id ==
+        CharacterPackCatalog.poodleGarden.id;
+    final rabbitPack = CharacterPackScope.currentOf(context).id ==
+        CharacterPackCatalog.postmanRabbit.id;
+    final squirrelPack = CharacterPackScope.currentOf(context).id ==
+        CharacterPackCatalog.explorerSquirrel.id;
+    final sheepPack = CharacterPackScope.currentOf(context).id ==
+        CharacterPackCatalog.mooncloudSheep.id;
+    final redPandaPack = CharacterPackScope.currentOf(context).id ==
+        CharacterPackCatalog.redPandaTeashop.id;
+    final otterPack = CharacterPackScope.currentOf(context).id ==
+        CharacterPackCatalog.otterSeaside.id;
+    final penguinPack = CharacterPackScope.currentOf(context).id ==
+        CharacterPackCatalog.penguinSnowWalk.id;
+    final routineKey = home.displayRoutine == null
+        ? null
+        : '${home.dateYmd}:${home.displayRoutine!.id}';
+    final pose = homeCatPose(home);
+
+    Widget character;
+    if (starlightPack) {
+      character = StarlightHomeMotion(
+          focusState: state, routineKey: routineKey, fallbackPose: pose);
+    } else if (stargazerPack) {
+      character = StargazerHomeMotion(
+          focusState: state, routineKey: routineKey, fallbackPose: pose);
+    } else if (poodlePack) {
+      character = PoodleHomeMotion(
+          focusState: state, routineKey: routineKey, fallbackPose: pose);
+    } else if (rabbitPack) {
+      character = RabbitHomeMotion(
+          focusState: state, routineKey: routineKey, fallbackPose: pose);
+    } else if (squirrelPack) {
+      character = SquirrelHomeMotion(
+          focusState: state, routineKey: routineKey, fallbackPose: pose);
+    } else if (sheepPack) {
+      character = SheepHomeMotion(
+          focusState: state, routineKey: routineKey, fallbackPose: pose);
+    } else if (redPandaPack) {
+      character = RedPandaHomeMotion(
+          focusState: state, routineKey: routineKey, fallbackPose: pose);
+    } else if (otterPack) {
+      character = OtterHomeMotion(
+          focusState: state, routineKey: routineKey, fallbackPose: pose);
+    } else if (penguinPack) {
+      character = PenguinHomeMotion(
+          focusState: state, routineKey: routineKey, fallbackPose: pose);
+    } else {
+      character = AnimatedCat(pose: pose, homeMotion: true);
+    }
 
     return Material(
       type: MaterialType.transparency,
@@ -187,12 +242,7 @@ class HomeFocusCard extends StatelessWidget {
                   bottom: 4,
                   width: _catWidth,
                   height: 96,
-                  child: starlightPack
-                      ? StarlightHomeMotion(mode: starlightMode)
-                      : AnimatedCat(
-                          pose: homeCatPose(home),
-                          homeMotion: true,
-                        ),
+                  child: character,
                 ),
               ],
             ),

@@ -180,12 +180,18 @@ flutter:
     - assets/pack_backgrounds/penguin-scene-card.png
     - assets/pack_backgrounds/penguin-snowpath.png
     - assets/characters/cat_starlight/v1/approved/idle.png
+    - assets/characters/cat_starlight/v1/motion/idle_8.png
+    - assets/characters/cat_starlight/v1/motion/walk_loop_8.png
+    - assets/characters/cat_starlight/v1/motion/complete_8.png
     - assets/characters/cat_starlight/v1/approved/activity.png
     - assets/characters/cat_starlight/v1/prototype/walk_step.png
     - assets/characters/cat_starlight/v1/approved/focus.png
     - assets/characters/cat_starlight/v1/approved/complete.png
     - assets/characters/cat_starlight/v1/approved/rest.png
     - assets/characters/poodle_garden/v1/approved/idle.png
+    - assets/characters/poodle_garden/v1/motion/idle_8.png
+    - assets/characters/poodle_garden/v1/motion/walk_loop_8.png
+    - assets/characters/poodle_garden/v1/motion/complete_8.png
     - assets/characters/poodle_garden/v1/approved/activity.png
     - assets/characters/poodle_garden/v1/approved/focus.png
     - assets/characters/poodle_garden/v1/approved/complete.png
@@ -193,42 +199,63 @@ flutter:
     - assets/characters/poodle_garden/v1/approved/guide.png
     - assets/characters/cat_starlight/v1/approved/guide.png
     - assets/characters/cat_stargazer/v1/approved/idle.png
+    - assets/characters/cat_stargazer/v1/motion/idle_8.png
+    - assets/characters/cat_stargazer/v1/motion/walk_loop_8.png
+    - assets/characters/cat_stargazer/v1/motion/complete_8.png
     - assets/characters/cat_stargazer/v1/approved/activity.png
     - assets/characters/cat_stargazer/v1/approved/focus.png
     - assets/characters/cat_stargazer/v1/approved/complete.png
     - assets/characters/cat_stargazer/v1/approved/rest.png
     - assets/characters/cat_stargazer/v1/approved/guide.png
     - assets/characters/rabbit_postman/v1/approved/idle.png
+    - assets/characters/rabbit_postman/v1/motion/idle_8.png
+    - assets/characters/rabbit_postman/v1/motion/walk_loop_8.png
+    - assets/characters/rabbit_postman/v1/motion/complete_8.png
     - assets/characters/rabbit_postman/v1/approved/activity.png
     - assets/characters/rabbit_postman/v1/approved/focus.png
     - assets/characters/rabbit_postman/v1/approved/complete.png
     - assets/characters/rabbit_postman/v1/approved/rest.png
     - assets/characters/rabbit_postman/v1/approved/guide.png
     - assets/characters/squirrel_explorer/v1/approved/idle.png
+    - assets/characters/squirrel_explorer/v1/motion/idle_8.png
+    - assets/characters/squirrel_explorer/v1/motion/walk_loop_8.png
+    - assets/characters/squirrel_explorer/v1/motion/complete_8.png
     - assets/characters/squirrel_explorer/v1/approved/activity.png
     - assets/characters/squirrel_explorer/v1/approved/focus.png
     - assets/characters/squirrel_explorer/v1/approved/complete.png
     - assets/characters/squirrel_explorer/v1/approved/rest.png
     - assets/characters/squirrel_explorer/v1/approved/guide.png
     - assets/characters/sheep_mooncloud/v1/approved/idle.png
+    - assets/characters/sheep_mooncloud/v1/motion/idle_8.png
+    - assets/characters/sheep_mooncloud/v1/motion/walk_loop_8.png
+    - assets/characters/sheep_mooncloud/v1/motion/complete_8.png
     - assets/characters/sheep_mooncloud/v1/approved/activity.png
     - assets/characters/sheep_mooncloud/v1/approved/focus.png
     - assets/characters/sheep_mooncloud/v1/approved/complete.png
     - assets/characters/sheep_mooncloud/v1/approved/rest.png
     - assets/characters/sheep_mooncloud/v1/approved/guide.png
     - assets/characters/redpanda_teashop/v1/approved/idle.png
+    - assets/characters/redpanda_teashop/v1/motion/idle_8.png
+    - assets/characters/redpanda_teashop/v1/motion/walk_loop_8.png
+    - assets/characters/redpanda_teashop/v1/motion/complete_8.png
     - assets/characters/redpanda_teashop/v1/approved/activity.png
     - assets/characters/redpanda_teashop/v1/approved/focus.png
     - assets/characters/redpanda_teashop/v1/approved/complete.png
     - assets/characters/redpanda_teashop/v1/approved/rest.png
     - assets/characters/redpanda_teashop/v1/approved/guide.png
     - assets/characters/otter_seaside/v1/approved/idle.png
+    - assets/characters/otter_seaside/v1/motion/idle_8.png
+    - assets/characters/otter_seaside/v1/motion/walk_loop_8.png
+    - assets/characters/otter_seaside/v1/motion/complete_8.png
     - assets/characters/otter_seaside/v1/approved/activity.png
     - assets/characters/otter_seaside/v1/approved/focus.png
     - assets/characters/otter_seaside/v1/approved/complete.png
     - assets/characters/otter_seaside/v1/approved/rest.png
     - assets/characters/otter_seaside/v1/approved/guide.png
     - assets/characters/penguin_snow_walk/v1/approved/idle.png
+    - assets/characters/penguin_snow_walk/v1/motion/idle_8.png
+    - assets/characters/penguin_snow_walk/v1/motion/walk_loop_8.png
+    - assets/characters/penguin_snow_walk/v1/motion/complete_8.png
     - assets/characters/penguin_snow_walk/v1/approved/activity.png
     - assets/characters/penguin_snow_walk/v1/approved/focus.png
     - assets/characters/penguin_snow_walk/v1/approved/complete.png

@@ -1,0 +1,16 @@
+Use case: identity-preserve
+Asset type: mobile app pixel-art IDLE animation sprite sheet, eight frames.
+Reference image is the exact approved garden poodle character. Animate this same character, preserving its identity, not a redesign.
+Character: apricot-orange toy poodle, round dense curly topknot, two long fluffy floppy ears, black round eyes with warm golden lower highlights, small black nose, cream muzzle and chest patch, cream tips on four feet, teal collar and square gold tag, one small curly pom-pom tail on viewer-left. Match the reference's soft detailed pixel clusters and very dark outlines. No hat, clothes, new accessories or other objects.
+Exactly 8 equal square cells in 4 equal columns x 2 equal rows, chronological left-to-right then top-to-bottom. Suggested canvas1536x768. True transparent RGBA background. No labels, grid lines, text, shadows, floor, borders, glow, or scenery. Each sprite fully inside its cell, same scale, front-facing seated, body centered, grounded paw baseline at92% cell height, head near13%, safe margins for ears/tail.
+Motion sequence:
+1 exact neutral seated pose, eyes open.
+2 eyes open, pom-pom tail sways a little outward.
+3 eyes half closed, ears relax just a few pixels.
+4 full gentle blink, closed eyes, mouth still softly smiling.
+5 eyes half open.
+6 eyes open, tail sways slightly inward.
+7 ears and tail settle.
+8 exactly neutral pose matching frame1.
+Only eyelids, subtle ear/tail motion and tiny breathing change; keep body/head size and four feet position consistent.
+ANATOMY: exactly FOUR legs total, the two central front feet plus the two outer hind feet visible in the reference. No lifted front paws in this idle sequence, no additional feet, no detached hands, no extra tail or ears. Clear transparency around every frame, not a checkerboard.

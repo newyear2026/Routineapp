@@ -1,0 +1,15 @@
+Use case: identity-preserve
+Asset type: eight-frame COMPLETE celebration pixel sprite sheet for a mobile routine app.
+Reference1 is definitive full-body neutral identity and scale. Reference2 is a supporting expression/coat reference for a cheerful poodle; retain the reference1 frontal character design.
+Subject: exact same apricot orange toy poodle, dense curly topknot, two long fluffy floppy ears, round black eyes with golden highlights when open, cream muzzle/chest and four paw tips, black nose, teal collar and square gold tag, one pom-pom tail. Same crisp dark outline and soft detailed pixel clusters. No hat, clothes, new objects or scenery.
+Produce true transparent RGBA with exactly8 equal square cells, 4 columns x 2 rows in chronological reading order, suggested1536x768. No labels, grid, floor, shadows, glow, backgrounds or borders. Safe margins everywhere; ears/paws/tail never leave the cell. Constant camera and skull size. Neutral grounded paws at92% height with ample headroom for a small hop.
+Celebration is a gentle FRONT-FACING HAPPY BOUNCE with floppy ears following through. Keep paws anatomically simple and pointing down, not human hands raised by the face.
+1 exact neutral seated pose from reference1, eyes open.
+2 small crouch preparing to spring, ears sink slightly; four feet grounded.
+3 pushes upward, two front legs extend downward, two hind legs tuck below rump; all four feet begin leaving ground.
+4 a small airborne hop, happy closed eyes and open smiling mouth; ears flare a little sideways, FOUR paws total beneath body (two front central, two hind outside), not raised arms. Two tiny warm-gold diamond sparkles beside ears.
+5 peak bounce, same happy expression, ears at highest follow-through; same four limbs, paws down, two sparkles fade.
+6 descends and lands gently on all four paws, knees flex, ears fall softly. No duplicate grounded footprints.
+7 settles into original seated pose, eyes closed smiling, ears relax, four grounded paws.
+8 exact original seated body/feet/tail placement with warm closed-eye smile, mouth softly closed; hold this happy final pose.
+IMPORTANT: avoid standing humanoid arms-up gestures. Only the original FOUR dog legs are present throughout; keep front legs connected down from shoulders and rear legs from hips. Never add additional front hands on top of the existing four feet. No extra tail, no disconnected limbs. All eight fully drawn frames should belong to the same continuous animation.

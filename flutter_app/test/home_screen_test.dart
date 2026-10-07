@@ -1,3 +1,4 @@
+import 'package:routine_timer/application/home/home_focus_state.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:provider/provider.dart';
@@ -9,7 +10,6 @@ import 'package:routine_timer/domain/models/routine_icon_id.dart';
 import 'package:routine_timer/domain/models/routine_log.dart';
 import 'package:routine_timer/domain/models/routine_log_status.dart';
 import 'package:routine_timer/screens/home_screen.dart';
-import 'package:routine_timer/widgets/ds/animated_cat.dart';
 import 'package:routine_timer/widgets/ds/orbit_bottom_navigation.dart';
 import 'package:routine_timer/widgets/ds/routine_mark.dart';
 import 'package:routine_timer/widgets/home/starlight_home_motion.dart';
@@ -88,8 +88,10 @@ void main() {
     expect(find.text('예정'), findsWidgets);
     expect(find.text('진행 중'), findsNothing);
     expect(
-      tester.widget<StarlightHomeMotion>(find.byType(StarlightHomeMotion)).mode,
-      StarlightHomeMode.idle,
+      tester
+          .widget<StarlightHomeMotion>(find.byType(StarlightHomeMotion))
+          .focusState,
+      HomeFocusState.upcoming,
     );
   });
 
@@ -102,8 +104,10 @@ void main() {
 
     expect(find.text('진행 중'), findsOneWidget);
     expect(
-      tester.widget<StarlightHomeMotion>(find.byType(StarlightHomeMotion)).mode,
-      StarlightHomeMode.active,
+      tester
+          .widget<StarlightHomeMotion>(find.byType(StarlightHomeMotion))
+          .focusState,
+      HomeFocusState.active,
     );
     expect(find.text('NOW'), findsNothing);
     expect(find.text('NEXT'), findsNothing);
@@ -216,8 +220,8 @@ void main() {
             of: find.byKey(const Key('home-focus-cat')),
             matching: find.byType(StarlightHomeMotion),
           ))
-          .mode,
-      StarlightHomeMode.active,
+          .focusState,
+      HomeFocusState.active,
     );
     expect(card.contains(cat.center), isTrue);
     expect(cat.overlaps(line), isFalse);
@@ -242,17 +246,17 @@ void main() {
     expect(controller.todayLogs.single.status, RoutineLogStatus.completed);
     expect(controller.progressSummary.completed, 1);
     expect(
-      tester.widget<StarlightHomeMotion>(find.byType(StarlightHomeMotion)).mode,
-      StarlightHomeMode.complete,
+      tester
+          .widget<StarlightHomeMotion>(find.byType(StarlightHomeMotion))
+          .focusState,
+      HomeFocusState.completed,
     );
     expect(
-      tester
-          .widget<AnimatedCat>(find.descendant(
-            of: find.byKey(const Key('home-focus-cat')),
-            matching: find.byType(AnimatedCat),
-          ))
-          .pose,
-      CatPose.complete,
+      find.descendant(
+        of: find.byKey(const Key('home-focus-cat')),
+        matching: find.byKey(const Key('starlight-complete-image')),
+      ),
+      findsOneWidget,
     );
 
     // 되돌리기 스낵바로 원상복구된다.
