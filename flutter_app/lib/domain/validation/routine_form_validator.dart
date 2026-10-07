@@ -7,6 +7,7 @@ enum RoutineFormError {
   titleTooLong,
   endBeforeStart,
   noRepeatDays,
+  equalSleepTimes,
 }
 
 /// 루틴 추가 폼 검증 — 규칙만 판단한다
@@ -21,6 +22,15 @@ abstract final class RoutineFormValidator {
   /// MVP: 같은 날 안에서만 구간 허용 (자정 넘김 미지원)
   static RoutineFormError? validateTimeRange(int startMinutes, int endMinutes) {
     if (startMinutes >= endMinutes) return RoutineFormError.endBeforeStart;
+    return null;
+  }
+
+  /// Equal clock times mean neither zero hours nor an implicit 24-hour sleep.
+  static RoutineFormError? validateSleepTimeRange(int start, int end) {
+    if (start == end) return RoutineFormError.equalSleepTimes;
+    if (start < 0 || start >= 1440 || end < 0 || end >= 1440) {
+      return RoutineFormError.endBeforeStart;
+    }
     return null;
   }
 

@@ -23,7 +23,7 @@ abstract final class TimeMinutes {
 
   /// `HH:mm–HH:mm` — 구분자는 en dash, 공백 없음
   static String formatRange(int startMinutes, int endMinutes) =>
-      '${formatHm(startMinutes)}–${formatHm(endMinutes)}';
+      '${formatHm(startMinutes)}–${formatHm(endMinutes)}${endMinutes < startMinutes ? ' (+1)' : ''}';
 
   /// [TimeOfDay]를 그대로 `HH:mm`으로
   static String formatTimeOfDay(TimeOfDay time) =>

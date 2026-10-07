@@ -1,3 +1,5 @@
+import '../domain/services/routine_occurrences.dart';
+import '../domain/validation/routine_form_validator.dart';
 import 'dart:async';
 
 import 'package:flutter/foundation.dart' show kIsWeb, visibleForTesting;
@@ -229,12 +231,21 @@ class RoutineAppController extends ChangeNotifier {
 
   /// Progress — 오늘 요일 스케줄 루틴
   List<Routine> get todayScheduledRoutines =>
-      _dayService.routinesForDate(_now, _routines);
+      RoutineOccurrences.ownedByDate(_now, _routines);
 
-  List<RoutineLog> get todayLogs => List<RoutineLog>.unmodifiable(_logsToday);
+  List<RoutineLog> get todayLogs => List<RoutineLog>.unmodifiable(
+      _logsToday.where((l) => l.dateYmd == TimeMinutes.dateYmd(_now)));
+
+  List<RoutineLog> get occurrenceLogs =>
+      List<RoutineLog>.unmodifiable(_logsToday);
+
+  Future<List<RoutineLog>> _loadOccurrenceLogs(DateTime now) async => [
+        ...await _data.loadLogsForDate(now),
+        ...await _data.loadLogsForDate(RoutineOccurrences.day(now, 1)),
+      ];
 
   List<Routine> get _todaySorted =>
-      _dayService.routinesForDate(_now, _routines);
+      RoutineOccurrences.timeline(_now, _routines);
 
   Routine? get _currentSlot => _dayService.currentRoutineAt(_now, _todaySorted);
 
@@ -283,7 +294,7 @@ class RoutineAppController extends ChangeNotifier {
     final AppSettings settings;
     try {
       routines = await _data.loadRoutines();
-      logs = await _data.loadLogsForDate(now);
+      logs = await _loadOccurrenceLogs(now);
       settings = await _settings.loadAppSettings();
     } catch (e, st) {
       debugPrint('initial load failed: $e\n$st');
@@ -509,6 +520,13 @@ class RoutineAppController extends ChangeNotifier {
   /// 재로드·동기화가 실패해도 데이터는 이미 남아 있으므로 성공으로 답한다.
   /// 여기서 실패라고 말하면 사용자가 다시 눌러 중복을 만든다.
   Future<RoutineSaveResult> saveRoutine(Routine routine) async {
+    if (routine.isSleep &&
+        RoutineFormValidator.validateSleepTimeRange(
+                routine.startMinutesFromMidnight,
+                routine.endMinutesFromMidnight) !=
+            null) {
+      return RoutineSaveResult.failure(RoutineWriteError.save);
+    }
     final created = _routineById(routine.id) == null;
     final toSave = routine.copyWith(
       updatedAtMs: _now.millisecondsSinceEpoch,
@@ -553,7 +571,7 @@ class RoutineAppController extends ChangeNotifier {
   bool get canActOnCurrentSlot {
     final c = _currentSlot;
     if (c == null) return false;
-    final log = _dayService.logForRoutine(c.id, _logsToday);
+    final log = RoutineOccurrences.logFor(c, _logsToday, _now);
     return RoutineStateResolver.canApplyUserAction(
       routine: c,
       log: log,
@@ -607,13 +625,15 @@ class RoutineAppController extends ChangeNotifier {
   Future<RoutineActionUndo?> completeNotificationRoutine(
       String id, String dateYmd) async {
     await refreshNotificationLogs();
-    final routine = _routineById(id);
-    if (routine == null ||
-        dateYmd != TimeMinutes.dateYmd(_now) ||
-        !routine.repeatWeekdays.contains(_now.weekday) ||
+    final definition = _routineById(id);
+    final date = DateTime.tryParse(dateYmd);
+    if (definition == null || date == null) return null;
+    final routine = RoutineOccurrences.onDate(definition, date);
+    if (!routine.repeatWeekdays.contains(date.weekday) ||
+        (!routine.isSleep && dateYmd != TimeMinutes.dateYmd(_now)) ||
         !RoutineStateResolver.canApplyUserAction(
             routine: routine,
-            log: _dayService.logForRoutine(id, _logsToday),
+            log: RoutineOccurrences.logFor(routine, _logsToday, _now),
             nowLocal: _now)) {
       return null;
     }
@@ -631,7 +651,7 @@ class RoutineAppController extends ChangeNotifier {
   Future<void> refreshNotificationLogs() async {
     if (!_loaded) return;
     final now = _now;
-    final logs = await _data.loadLogsForDate(now);
+    final logs = await _loadOccurrenceLogs(now);
     _logsToday = logs;
     _loadedDateYmd = TimeMinutes.dateYmd(now);
     notifyListeners();
@@ -641,11 +661,12 @@ class RoutineAppController extends ChangeNotifier {
     Routine c,
     RoutineLogApplyOutcome Function(Routine, RoutineLog?, String) action,
   ) async {
-    final ymd = TimeMinutes.dateYmd(_now);
+    final occurrenceDate = RoutineOccurrences.dateFor(c, _now);
+    final ymd = TimeMinutes.dateYmd(occurrenceDate);
     // Notification actions may have written through another engine since this
     // screen was built. Read the current record before applying the next action.
-    final fresh = await _data.loadLogsForDate(_now);
-    final log = _dayService.logForRoutine(c.id, fresh);
+    final fresh = await _data.loadLogsForDate(occurrenceDate);
+    final log = RoutineOccurrences.logFor(c, fresh, _now);
     final outcome = action(c, log, ymd);
     if (!outcome.shouldPersist) return null;
     try {
@@ -793,7 +814,7 @@ class RoutineAppController extends ChangeNotifier {
       final now = _now;
       final currentYmd = TimeMinutes.dateYmd(now);
       if (_loadedDateYmd != currentYmd) {
-        _logsToday = await _data.loadLogsForDate(now);
+        _logsToday = await _loadOccurrenceLogs(now);
         _loadedDateYmd = currentYmd;
       }
 

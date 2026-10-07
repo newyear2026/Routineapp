@@ -1,10 +1,11 @@
 import 'package:flutter/material.dart';
+import '../../application/mappers/sleep_schedule_copy.dart';
 
 import '../../application/home/home_snapshot.dart';
 import '../../domain/models/routine.dart';
 import '../../domain/models/routine_log.dart';
 import '../../domain/models/routine_log_status.dart';
-import '../../domain/services/routine_day_service.dart';
+import '../../domain/services/routine_occurrences.dart';
 import '../../domain/services/routine_state_resolver.dart';
 import '../../domain/utils/time_minutes.dart';
 import '../../l10n/app_localizations.dart';
@@ -39,12 +40,12 @@ class RoutineTodayTimeline extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final routines = home.todayRoutines;
-    const days = RoutineDayService();
+
     final statuses = [
       for (final routine in routines)
         RoutineStateResolver.effectiveStatus(
           routine: routine,
-          log: days.logForRoutine(routine.id, logsToday),
+          log: RoutineOccurrences.logFor(routine, logsToday, now),
           nowLocal: now,
         ),
     ];
@@ -52,16 +53,32 @@ class RoutineTodayTimeline extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        _Summary(routines: routines, statuses: statuses),
+        _Summary(
+          routines: [
+            for (final r in routines)
+              if (r.occurrenceDate == null ||
+                  r.occurrenceDate == RoutineOccurrences.day(now))
+                r
+          ],
+          statuses: [
+            for (var i = 0; i < routines.length; i++)
+              if (routines[i].occurrenceDate == null ||
+                  routines[i].occurrenceDate == RoutineOccurrences.day(now))
+                statuses[i]
+          ],
+        ),
         const SizedBox(height: 14),
         for (var i = 0; i < routines.length; i++)
           _TimelineItem(
             routine: routines[i],
+            displayDate: now,
             status: statuses[i],
-            isCurrent: routines[i].id == home.currentRoutine?.id,
-            timingHint: routines[i].id == home.currentRoutine?.id
-                ? home.currentRoutineCard?.timingHint
-                : null,
+            isCurrent:
+                routines[i].occurrenceKey == home.currentRoutine?.occurrenceKey,
+            timingHint:
+                routines[i].occurrenceKey == home.currentRoutine?.occurrenceKey
+                    ? home.currentRoutineCard?.timingHint
+                    : null,
             isFirst: i == 0,
             isLast: i == routines.length - 1,
             onTap: () => onOpen(routines[i]),
@@ -159,6 +176,7 @@ class _Summary extends StatelessWidget {
 class _TimelineItem extends StatelessWidget {
   const _TimelineItem({
     required this.routine,
+    required this.displayDate,
     required this.status,
     required this.isCurrent,
     required this.timingHint,
@@ -168,6 +186,7 @@ class _TimelineItem extends StatelessWidget {
   });
 
   final Routine routine;
+  final DateTime displayDate;
   final RoutineLogStatus status;
   final bool isCurrent;
   final String? timingHint;
@@ -238,6 +257,7 @@ class _TimelineItem extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: _gap),
               child: _TimelineCard(
                 routine: routine,
+                displayDate: displayDate,
                 status: status,
                 isCurrent: isCurrent,
                 timingHint: timingHint,
@@ -254,6 +274,7 @@ class _TimelineItem extends StatelessWidget {
 class _TimelineCard extends StatelessWidget {
   const _TimelineCard({
     required this.routine,
+    required this.displayDate,
     required this.status,
     required this.isCurrent,
     required this.timingHint,
@@ -261,6 +282,7 @@ class _TimelineCard extends StatelessWidget {
   });
 
   final Routine routine;
+  final DateTime displayDate;
   final RoutineLogStatus status;
   final bool isCurrent;
   final String? timingHint;
@@ -282,10 +304,7 @@ class _TimelineCard extends StatelessWidget {
       constraints: const BoxConstraints(maxWidth: 96),
       child: AppStatusBadge(label: label, tone: tone, compact: isCurrent),
     );
-    final range = TimeMinutes.formatRange(
-      routine.startMinutesFromMidnight,
-      routine.endMinutesFromMidnight,
-    );
+    final range = SleepScheduleCopy.range(l10n, routine, displayDate);
 
     return Material(
       type: MaterialType.transparency,
@@ -307,7 +326,7 @@ class _TimelineCard extends StatelessWidget {
           ],
         ),
         child: InkWell(
-          key: Key('routines-today-${routine.id}'),
+          key: Key('routines-today-${routine.occurrenceKey}'),
           customBorder: shape,
           onTap: onTap,
           child: ConstrainedBox(

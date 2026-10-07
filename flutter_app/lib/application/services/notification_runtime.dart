@@ -1,3 +1,4 @@
+import '../../domain/services/routine_occurrences.dart';
 import 'dart:async';
 
 import 'package:flutter/foundation.dart';
@@ -120,8 +121,11 @@ class NotificationRuntime {
         await HomeWidgetSyncService.instance.push(
           now: now,
           routines: await LocalRoutineRepository.instance.loadRoutines(),
-          logsToday:
-              await LocalRoutineLogRepository.instance.loadLogsForDate(now),
+          logsToday: [
+            ...await LocalRoutineLogRepository.instance.loadLogsForDate(now),
+            ...await LocalRoutineLogRepository.instance
+                .loadLogsForDate(RoutineOccurrences.day(now, 1)),
+          ],
           l10n: l10n,
           characterPackId:
               settings.characterPackId ?? CharacterPackCatalog.defaultPack.id,

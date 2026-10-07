@@ -1,8 +1,7 @@
 import '../models/routine.dart';
 import '../models/routine_log.dart';
 import '../progress/daily_progress_calculator.dart';
-import '../utils/time_minutes.dart';
-import '../utils/time_calculation.dart';
+import 'routine_occurrences.dart';
 
 /// 일일 진행률·창구 내 진행률 — 로그와 루틴 정의만으로 계산
 class RoutineProgressService {
@@ -22,13 +21,11 @@ class RoutineProgressService {
 
   /// 현재 루틴 시간 창 안에서의 경과 0~100%
   int progressPercentInWindow(Routine r, DateTime nowLocal) {
-    final m = TimeMinutes.fromDateTime(nowLocal);
-    final ratio = TimeCalculation.elapsedRatioInInterval(
-      m,
-      r.startMinutesFromMidnight,
-      r.endMinutesFromMidnight,
-    );
-    if (ratio == null) return 0;
-    return (ratio * 100).round().clamp(0, 100);
+    final w = RoutineOccurrences.window(r, nowLocal);
+    final duration = w.end.difference(w.start).inMilliseconds;
+    if (duration <= 0) return 0;
+    return (100 * nowLocal.difference(w.start).inMilliseconds / duration)
+        .round()
+        .clamp(0, 100);
   }
 }

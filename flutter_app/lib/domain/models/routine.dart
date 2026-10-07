@@ -4,6 +4,8 @@ import '../../theme/routine_palette.dart';
 import '../utils/time_minutes.dart';
 import 'routine_icon_id.dart';
 
+enum RoutineType { activity, sleep }
+
 /// 루틴 정의 — 저장소·도메인 공통 모델 (UI Color는 [colorValue]로 보관)
 class Routine {
   const Routine({
@@ -16,6 +18,9 @@ class Routine {
     required this.iconEmoji,
     this.iconId = RoutineIconId.coffee,
     this.notificationEnabled = true,
+    this.type = RoutineType.activity,
+    this.wakeNotificationEnabled = false,
+    this.occurrenceDate,
     this.memo,
     this.updatedAtMs = 0,
   });
@@ -23,11 +28,11 @@ class Routine {
   final String id;
   final String title;
 
-  /// 0 ~ 24*60-1, 하루 내 구간 (자정 넘김 구간은 MVP에서 미지원)
+  /// Wall-clock minutes. Sleep may cross midnight; legacy activity end=1440 is preserved.
   final int startMinutesFromMidnight;
   final int endMinutesFromMidnight;
 
-  /// DateTime.weekday와 동일: 월=1 … 일=7
+  /// 월=1 … 일=7. Activity repeats by start date; sleep repeats by wake date.
   final Set<int> repeatWeekdays;
 
   final int colorValue;
@@ -38,6 +43,23 @@ class Routine {
   /// 목록·폼·홈에서 쓰는 픽셀 아이콘.
   final RoutineIconId iconId;
   final bool notificationEnabled;
+  final RoutineType type;
+  final bool wakeNotificationEnabled;
+
+  /// Transient projection only; never persisted. Sleep records belong to the wake date.
+  final DateTime? occurrenceDate;
+  bool get isSleep => type == RoutineType.sleep;
+  bool get crossesMidnight =>
+      isSleep && endMinutesFromMidnight < startMinutesFromMidnight;
+  int get durationMinutes =>
+      endMinutesFromMidnight -
+      startMinutesFromMidnight +
+      (crossesMidnight ? 1440 : 0);
+  bool get alertsEnabled =>
+      isSleep ? wakeNotificationEnabled : notificationEnabled;
+  String get occurrenceKey => occurrenceDate == null
+      ? id
+      : "${id}_${TimeMinutes.dateYmd(occurrenceDate!)}";
   final String? memo;
 
   /// 마지막 저장 시각(epoch ms) — 겹침 시 현재 슬롯 우선순위
@@ -53,6 +75,8 @@ class Routine {
     required Set<int> repeatWeekdays,
     required int colorValue,
     bool notificationEnabled = true,
+    RoutineType type = RoutineType.activity,
+    bool wakeNotificationEnabled = false,
     String iconEmoji = '',
     RoutineIconId? iconId,
   }) {
@@ -68,6 +92,8 @@ class Routine {
       iconEmoji: iconEmoji,
       iconId: iconId ?? RoutineIconId.guess(title: title),
       notificationEnabled: notificationEnabled,
+      type: type,
+      wakeNotificationEnabled: wakeNotificationEnabled,
       updatedAtMs: now,
     );
   }
@@ -82,6 +108,9 @@ class Routine {
     String? iconEmoji,
     RoutineIconId? iconId,
     bool? notificationEnabled,
+    RoutineType? type,
+    bool? wakeNotificationEnabled,
+    DateTime? occurrenceDate,
     String? memo,
     int? updatedAtMs,
   }) {
@@ -97,6 +126,10 @@ class Routine {
       iconEmoji: iconEmoji ?? this.iconEmoji,
       iconId: iconId ?? this.iconId,
       notificationEnabled: notificationEnabled ?? this.notificationEnabled,
+      type: type ?? this.type,
+      wakeNotificationEnabled:
+          wakeNotificationEnabled ?? this.wakeNotificationEnabled,
+      occurrenceDate: occurrenceDate ?? this.occurrenceDate,
       memo: memo ?? this.memo,
       updatedAtMs: updatedAtMs ?? this.updatedAtMs,
     );
@@ -112,6 +145,8 @@ class Routine {
         'iconEmoji': iconEmoji,
         'iconId': iconId.name,
         'notificationEnabled': notificationEnabled,
+        'type': type.name,
+        'wakeNotificationEnabled': wakeNotificationEnabled,
         'memo': memo,
         'updatedAtMs': updatedAtMs,
       };
@@ -135,6 +170,9 @@ class Routine {
               title: json['title'] as String? ?? '',
             ),
       notificationEnabled: json['notificationEnabled'] as bool? ?? true,
+      type: json['type'] == 'sleep' ? RoutineType.sleep : RoutineType.activity,
+      wakeNotificationEnabled:
+          json['wakeNotificationEnabled'] as bool? ?? false,
       memo: json['memo'] as String?,
       updatedAtMs: json['updatedAtMs'] as int? ?? 0,
     );

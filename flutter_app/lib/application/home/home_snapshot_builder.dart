@@ -1,3 +1,5 @@
+import '../../domain/services/routine_occurrences.dart';
+import '../../domain/utils/time_minutes.dart';
 import 'package:flutter/material.dart';
 
 import '../../domain/models/routine.dart';
@@ -33,28 +35,33 @@ abstract final class HomeSnapshotBuilder {
         AppDateFormats.monthDayWeekdayIn(localeName, nowLocal);
     final greeting = _greetingForHour(l10n, nowLocal.hour);
 
-    final todaySorted =
-        HomeRoutineSchedule.getTodayRoutines(nowLocal, allRoutines);
+    final todaySorted = RoutineOccurrences.timeline(nowLocal, allRoutines);
     final current =
         HomeRoutineSchedule.getCurrentRoutine(nowLocal, todaySorted);
-    final next = HomeRoutineSchedule.getNextRoutine(nowLocal, todaySorted);
+    final focusSchedule =
+        HomeRoutineSchedule.throughWakeDay(nowLocal, todaySorted, allRoutines);
+    final next = HomeRoutineSchedule.getNextRoutine(nowLocal, focusSchedule);
 
     final display = current ?? next;
     final upcomingRoutines = display != null
-        ? HomeRoutineSchedule.routinesAfter(display, todaySorted)
+        ? HomeRoutineSchedule.routinesAfter(display, focusSchedule)
         : const <Routine>[];
     final nextAfterDisplay =
         upcomingRoutines.isEmpty ? null : upcomingRoutines.first;
 
     // Home 상단·Progress 화면과 동일: [calculateProgress] (DailyProgressCalculator)
-    final dayProgress = calculateProgress(todaySorted, logsToday);
+    final ownedToday = RoutineOccurrences.ownedByDate(nowLocal, allRoutines);
+    final dayLogs = logsToday
+        .where((l) => l.dateYmd == TimeMinutes.dateYmd(nowLocal))
+        .toList();
+    final dayProgress = calculateProgress(ownedToday, dayLogs);
     final total = dayProgress.total;
     final completed = dayProgress.completed;
     final dayPct = dayProgress.percent;
 
     RoutineLogStatus? effectiveCurrent;
     if (current != null) {
-      final log = dayService.logForRoutine(current.id, logsToday);
+      final log = RoutineOccurrences.logFor(current, logsToday, nowLocal);
       effectiveCurrent = RoutineStateResolver.effectiveStatus(
         routine: current,
         log: log,
@@ -64,13 +71,12 @@ abstract final class HomeSnapshotBuilder {
     final statusLabel = _statusLabel(l10n, effectiveCurrent);
 
     final clockTime = TimeOfDay.fromDateTime(nowLocal);
-    final segments = HomeViewMapper.toSegments(todaySorted);
+    final segments = HomeViewMapper.toSegments(todaySorted, date: nowLocal);
     final centerName = current?.title ?? next?.title ?? l10n.commonRoutine;
 
-    final activeRing =
-        current != null
-            ? HomeViewMapper.ringStubFromRoutine(current, localeName)
-            : null;
+    final activeRing = current != null
+        ? HomeViewMapper.ringStubFromRoutine(current, localeName)
+        : null;
     final isUpcoming = current == null && display != null;
 
     CurrentRoutine? card;
@@ -106,7 +112,7 @@ abstract final class HomeSnapshotBuilder {
     final canAct = current != null &&
         RoutineStateResolver.canApplyUserAction(
           routine: current,
-          log: dayService.logForRoutine(current.id, logsToday),
+          log: RoutineOccurrences.logFor(current, logsToday, nowLocal),
           nowLocal: nowLocal,
         );
     final completeLabel = _completeLabel(l10n, display);
@@ -117,7 +123,8 @@ abstract final class HomeSnapshotBuilder {
       currentStatus: effectiveCurrent,
     );
     final snoozedUntilMs = focusState == HomeFocusState.snoozed
-        ? dayService.logForRoutine(current!.id, logsToday)?.snoozedUntilMs
+        ? RoutineOccurrences.logFor(current!, logsToday, nowLocal)
+            ?.snoozedUntilMs
         : null;
     final tomorrow = HomeRoutineSchedule.getTodayRoutines(
       DateTime(nowLocal.year, nowLocal.month, nowLocal.day + 1),
@@ -125,6 +132,7 @@ abstract final class HomeSnapshotBuilder {
     );
 
     return HomeSnapshot(
+      dateYmd: TimeMinutes.dateYmd(nowLocal),
       dateLabel: dateLabel,
       dayOfWeekLabel: dayOfWeekLabel,
       dateWithWeekdayLabel: dateWithWeekdayLabel,
@@ -155,7 +163,7 @@ abstract final class HomeSnapshotBuilder {
           ? null
           : DateTime.fromMillisecondsSinceEpoch(snoozedUntilMs),
       dayResult: _dayResult(
-        todaySorted: todaySorted,
+        todaySorted: ownedToday,
         logsToday: logsToday,
         nowLocal: nowLocal,
         dayService: dayService,
@@ -212,7 +220,7 @@ abstract final class HomeSnapshotBuilder {
     for (final routine in todaySorted) {
       final status = RoutineStateResolver.effectiveStatus(
         routine: routine,
-        log: dayService.logForRoutine(routine.id, logsToday),
+        log: RoutineOccurrences.logFor(routine, logsToday, nowLocal),
         nowLocal: nowLocal,
       );
       switch (status) {
@@ -242,10 +250,9 @@ abstract final class HomeSnapshotBuilder {
     required Routine display,
     required bool isUpcoming,
   }) {
-    final nowMinutes = nowLocal.hour * 60 + nowLocal.minute;
-    final targetMinutes = isUpcoming
-        ? display.startMinutesFromMidnight - nowMinutes
-        : display.endMinutesFromMidnight - nowMinutes;
+    final window = RoutineOccurrences.window(display, nowLocal);
+    final targetMinutes =
+        (isUpcoming ? window.start : window.end).difference(nowLocal).inMinutes;
     final safeMinutes = targetMinutes.clamp(0, 24 * 60);
     if (safeMinutes <= 0) {
       return isUpcoming ? l10n.timingStartingSoon : l10n.timingEndingNow;

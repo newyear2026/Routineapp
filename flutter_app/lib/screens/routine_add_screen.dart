@@ -23,18 +23,22 @@ import 'routine_add/routine_edit_status_views.dart';
 import 'routine_add/routine_form_controls.dart';
 import 'routine_add/routine_form_preview.dart';
 import 'routine_add/routine_icon_picker.dart';
+import 'routine_add/sleep_routine_entry_card.dart';
+import 'routine_add/sleep_routine_fields.dart';
 
 /// 루틴 추가·편집 — 저장은 [RoutineAppController.saveRoutine]
 class RoutineAddScreen extends StatefulWidget {
   const RoutineAddScreen({
     super.key,
     this.editRoutineId,
+    this.initialType = RoutineType.activity,
     this.initialWeekday,
     this.returnToRoutines = false,
   });
 
   /// 쿼리 `?id=` — 있으면 해당 루틴 편집
   final String? editRoutineId;
+  final RoutineType initialType;
 
   /// 달력에서 진입했을 때 선택 날짜의 요일(월=1 … 일=7)을 미리 선택한다.
   final int? initialWeekday;
@@ -59,12 +63,19 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
   late int _selectedColorArgb;
   RoutineIconId _selectedIconId = RoutineIconId.coffee;
 
+  bool _legacyEndOfDay = false;
+  int get _endMinutes =>
+      _legacyEndOfDay ? 1440 : TimeMinutes.fromTimeOfDay(_endTime);
   bool _notificationEnabled = true;
+  bool _wakeNotificationEnabled = true;
+  RoutineType _type = RoutineType.activity;
+  bool get _isSleep => _type == RoutineType.sleep;
   RoutineFormError? _titleError;
   RoutineFormError? _timeError;
   RoutineFormError? _repeatError;
   bool _isSaving = false;
   bool _isDeleting = false;
+  bool _isOpeningSleep = false;
   bool _isEditLoading = false;
   bool _editLoadFailed = false;
   bool _showMoreSettings = true;
@@ -76,6 +87,12 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
   @override
   void initState() {
     super.initState();
+    _type = widget.initialType;
+    if (_isSleep) {
+      _startTime = const TimeOfDay(hour: 23, minute: 0);
+      _endTime = const TimeOfDay(hour: 7, minute: 0);
+      _selectedIconId = RoutineIconId.moon;
+    }
     final initialWeekday = widget.initialWeekday;
     _weekdays =
         initialWeekday != null && initialWeekday >= 1 && initialWeekday <= 7
@@ -117,13 +134,16 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
       _editLoadFailed = false;
       _isEditLoading = false;
       _editingBaseline = r;
+      _legacyEndOfDay = !r.isSleep && r.endMinutesFromMidnight == 1440;
+      _type = r.type;
+      _wakeNotificationEnabled = r.wakeNotificationEnabled;
       _nameController.text = r.title;
       _startTime = TimeOfDay(
         hour: r.startMinutesFromMidnight ~/ 60,
         minute: r.startMinutesFromMidnight % 60,
       );
       _endTime = TimeOfDay(
-        hour: r.endMinutesFromMidnight ~/ 60,
+        hour: (r.endMinutesFromMidnight ~/ 60) % 24,
         minute: r.endMinutesFromMidnight % 60,
       );
       for (var i = 0; i < 7; i++) {
@@ -139,6 +159,29 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
   void dispose() {
     _nameController.dispose();
     super.dispose();
+  }
+
+  Future<void> _openSleep() async {
+    if (_isOpeningSleep || _isEdit || _isSleep || _isSaving || _isDeleting) {
+      return;
+    }
+    setState(() => _isOpeningSleep = true);
+    FocusScope.of(context).unfocus();
+    try {
+      await context.push(
+        Uri(
+          path: '/routine-add',
+          queryParameters: {
+            'type': 'sleep',
+            if (widget.initialWeekday != null)
+              'weekday': '${widget.initialWeekday}',
+            if (widget.returnToRoutines) 'returnTo': 'routines',
+          },
+        ).toString(),
+      );
+    } finally {
+      if (mounted) setState(() => _isOpeningSleep = false);
+    }
   }
 
   void _onWeekdayChanged(int index, bool value) {
@@ -157,9 +200,11 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
   RoutineFormError? _titleValidationError(String value) =>
       RoutineFormValidator.validateTitle(value);
 
-  RoutineFormError? _timeRangeError() => RoutineFormValidator.validateTimeRange(
+  RoutineFormError? _timeRangeError() => (_isSleep
+          ? RoutineFormValidator.validateSleepTimeRange
+          : RoutineFormValidator.validateTimeRange)(
         TimeMinutes.fromTimeOfDay(_startTime),
-        TimeMinutes.fromTimeOfDay(_endTime),
+        _endMinutes,
       );
 
   RoutineFormError? _repeatDaysError() =>
@@ -175,7 +220,9 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
   }
 
   Routine _routineFromForm() {
-    final title = _nameController.text;
+    final title = _isSleep && !_isEdit
+        ? AppLocalizations.of(context).sleepName
+        : _nameController.text;
     final colorValue = routineColorArgbNormalize(_selectedColorArgb);
     final repeat = _selectedRepeatDays();
 
@@ -184,11 +231,13 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
       return b.copyWith(
         title: title.trim(),
         startMinutesFromMidnight: TimeMinutes.fromTimeOfDay(_startTime),
-        endMinutesFromMidnight: TimeMinutes.fromTimeOfDay(_endTime),
+        endMinutesFromMidnight: _endMinutes,
         repeatWeekdays: repeat,
         colorValue: colorValue,
         iconId: _selectedIconId,
-        notificationEnabled: _notificationEnabled,
+        notificationEnabled: _isSleep ? false : _notificationEnabled,
+        type: _type,
+        wakeNotificationEnabled: _isSleep && _wakeNotificationEnabled,
       );
     }
 
@@ -199,7 +248,9 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
       repeatWeekdays: repeat,
       colorValue: colorValue,
       iconId: _selectedIconId,
-      notificationEnabled: _notificationEnabled,
+      notificationEnabled: _isSleep ? false : _notificationEnabled,
+      type: _type,
+      wakeNotificationEnabled: _isSleep && _wakeNotificationEnabled,
     );
   }
 
@@ -215,13 +266,13 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
     if (_isSaving || _isDeleting || (_isEdit && _isEditLoading)) return;
     FocusScope.of(context).unfocus();
 
-    final title = _nameController.text;
-    final startMin = TimeMinutes.fromTimeOfDay(_startTime);
-    final endMin = TimeMinutes.fromTimeOfDay(_endTime);
+    final title = _isSleep && !_isEdit
+        ? AppLocalizations.of(context).sleepName
+        : _nameController.text;
     final repeat = _selectedRepeatDays();
 
     final titleError = _titleValidationError(title);
-    final timeError = RoutineFormValidator.validateTimeRange(startMin, endMin);
+    final timeError = _timeRangeError();
     final repeatError = RoutineFormValidator.validateRepeatDays(repeat);
 
     setState(() {
@@ -235,7 +286,8 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text(AppLocalizations.of(context).routineAddCheckInput)),
+          content: Text(AppLocalizations.of(context).routineAddCheckInput),
+        ),
       );
       return;
     }
@@ -244,7 +296,8 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-            content: Text(AppLocalizations.of(context).routineAddNotFound)),
+          content: Text(AppLocalizations.of(context).routineAddNotFound),
+        ),
       );
       return;
     }
@@ -334,8 +387,9 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
     if (shouldDelete != true || !mounted) return;
 
     setState(() => _isDeleting = true);
-    final result =
-        await context.read<RoutineAppController>().deleteRoutine(routine.id);
+    final result = await context.read<RoutineAppController>().deleteRoutine(
+          routine.id,
+        );
     if (!mounted) return;
     setState(() => _isDeleting = false);
 
@@ -394,8 +448,12 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
         child: Column(
           children: [
             RoutineFormHeader(
-              title:
-                  _isEdit ? l10n.routineAddTitleEdit : l10n.routineAddTitleNew,
+              showDecoration: !_isSleep,
+              title: _isSleep
+                  ? l10n.sleepSettingsTitle
+                  : _isEdit
+                      ? l10n.routineAddTitleEdit
+                      : l10n.routineAddTitleNew,
               onBack: () => context.pop(),
               onDelete: _isEdit && !isBusy ? _handleDelete : null,
             ),
@@ -405,207 +463,249 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    RoutineFormPreview(candidate: candidate),
-                    const SizedBox(height: 22),
-                    Text(l10n.routineAddWhatSection,
-                        style: AppTextStyles.titleSection),
-                    const SizedBox(height: 10),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Text(l10n.routineAddNameLabel,
-                            style: AppTextStyles.caption),
-                        const SizedBox(height: 8),
-                        TextField(
-                          controller: _nameController,
-                          onChanged: _validateTitle,
-                          textInputAction: TextInputAction.next,
-                          style: AppTextStyles.titleSection.copyWith(
-                            fontSize: 20,
-                            fontWeight: FontWeight.w600,
-                          ),
-                          decoration: InputDecoration(
-                            hintText: l10n.routineAddNameHint,
-                            hintStyle: AppTextStyles.body.copyWith(
-                              color: AppColors.textMuted.withValues(alpha: .7),
-                            ),
-                            contentPadding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 12,
-                            ),
-                          ),
+                    if (_isSleep)
+                      SleepRoutineFields(
+                        routine: candidate,
+                        start: _startTime,
+                        end: _endTime,
+                        weekdays: _weekdays,
+                        onStart: () => _pickTime(start: true),
+                        onEnd: () => _pickTime(start: false),
+                        onWeekday: _onWeekdayChanged,
+                        alarmEnabled: _wakeNotificationEnabled,
+                        onAlarm: (value) =>
+                            setState(() => _wakeNotificationEnabled = value),
+                        timeError: _timeError == null
+                            ? null
+                            : _errorMessage(l10n, _timeError!),
+                        daysError: _repeatError == null
+                            ? null
+                            : _errorMessage(l10n, _repeatError!),
+                      )
+                    else ...[
+                      if (!_isEdit) ...[
+                        SleepRoutineEntryCard(
+                          key: const Key('choose-sleep'),
+                          onTap: isBusy || _isOpeningSleep ? null : _openSleep,
                         ),
-                        if (_titleError != null) ...[
-                          const SizedBox(height: 6),
-                          AppFieldMessage(
-                            message: _errorMessage(l10n, _titleError!),
-                            isError: true,
-                          ),
-                        ],
-                        const SizedBox(height: 12),
-                        Text(l10n.routineAddSuggestionsLabel,
-                            style: AppTextStyles.caption),
-                        const SizedBox(height: 8),
-                        Wrap(
-                          spacing: 8,
-                          runSpacing: 8,
-                          children: [
-                            for (final suggestion in RoutineSuggestion.values)
-                              RoutineSuggestionChip(
-                                label: _suggestionLabel(l10n, suggestion),
-                                onTap: () => _applySuggestion(
-                                  _suggestionLabel(l10n, suggestion),
-                                  suggestion.iconId,
-                                ),
-                              ),
-                          ],
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 22),
-                    Text(l10n.routineAddWhenSection,
-                        style: AppTextStyles.titleSection),
-                    const SizedBox(height: 10),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Row(
-                          children: [
-                            Expanded(
-                              child: RoutineTimeTile(
-                                label: l10n.routineAddStartTime,
-                                value: _startTime,
-                                onTap: () => _pickTime(start: true),
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: RoutineTimeTile(
-                                label: l10n.routineAddEndTime,
-                                value: _endTime,
-                                onTap: () => _pickTime(start: false),
-                              ),
-                            ),
-                          ],
-                        ),
-                        if (_timeError != null) ...[
-                          const SizedBox(height: 8),
-                          AppFieldMessage(
-                            message: _errorMessage(l10n, _timeError!),
-                            isError: true,
-                          ),
-                        ],
-                        const SizedBox(height: 22),
-                        Text(l10n.routineAddRepeatDays,
-                            style: AppTextStyles.label),
-                        const SizedBox(height: 12),
-                        Row(
-                          children: List.generate(
-                            DateTime.daysPerWeek,
-                            (index) => Expanded(
-                              child: RoutineWeekdayCircle(
-                                weekday: index + 1,
-                                selected: _weekdays[index],
-                                onTap: () => _onWeekdayChanged(
-                                  index,
-                                  !_weekdays[index],
-                                ),
-                              ),
-                            ),
-                          ),
-                        ),
-                        if (_repeatError != null) ...[
-                          const SizedBox(height: 8),
-                          AppFieldMessage(
-                            message: _errorMessage(l10n, _repeatError!),
-                            isError: true,
-                          ),
-                        ],
                         const SizedBox(height: 16),
-                        RoutineFormInfoLine(
-                          text: widget.initialWeekday == null
-                              ? l10n.routineAddReflectedHint
-                              : l10n.routineAddPreselectedHint,
-                        ),
                       ],
-                    ),
-                    const SizedBox(height: 16),
-                    RoutineFormSurface(
-                      padding: EdgeInsets.zero,
-                      child: InkWell(
-                        onTap: () => setState(
-                          () => _showMoreSettings = !_showMoreSettings,
-                        ),
-                        borderRadius: BorderRadius.zero,
-                        child: Padding(
-                          padding: const EdgeInsets.all(18),
-                          child: Row(
+                      RoutineFormPreview(candidate: candidate),
+                      const SizedBox(height: 22),
+                      Text(
+                        l10n.routineAddWhatSection,
+                        style: AppTextStyles.titleSection,
+                      ),
+                      const SizedBox(height: 10),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Text(
+                            l10n.routineAddNameLabel,
+                            style: AppTextStyles.caption,
+                          ),
+                          const SizedBox(height: 8),
+                          TextField(
+                            controller: _nameController,
+                            onChanged: _validateTitle,
+                            textInputAction: TextInputAction.next,
+                            style: AppTextStyles.titleSection.copyWith(
+                              fontSize: 20,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            decoration: InputDecoration(
+                              hintText: l10n.routineAddNameHint,
+                              hintStyle: AppTextStyles.body.copyWith(
+                                color: AppColors.textMuted.withValues(
+                                  alpha: .7,
+                                ),
+                              ),
+                              contentPadding: const EdgeInsets.symmetric(
+                                horizontal: 12,
+                                vertical: 12,
+                              ),
+                            ),
+                          ),
+                          if (_titleError != null) ...[
+                            const SizedBox(height: 6),
+                            AppFieldMessage(
+                              message: _errorMessage(l10n, _titleError!),
+                              isError: true,
+                            ),
+                          ],
+                          const SizedBox(height: 12),
+                          Text(
+                            l10n.routineAddSuggestionsLabel,
+                            style: AppTextStyles.caption,
+                          ),
+                          const SizedBox(height: 8),
+                          Wrap(
+                            spacing: 8,
+                            runSpacing: 8,
                             children: [
-                              AppIcon(
-                                Icons.tune_rounded,
-                                color: Theme.of(context).colorScheme.primary,
+                              for (final suggestion in RoutineSuggestion.values)
+                                RoutineSuggestionChip(
+                                  label: _suggestionLabel(l10n, suggestion),
+                                  onTap: () => _applySuggestion(
+                                    _suggestionLabel(l10n, suggestion),
+                                    suggestion.iconId,
+                                  ),
+                                ),
+                            ],
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 22),
+                      Text(
+                        l10n.routineAddWhenSection,
+                        style: AppTextStyles.titleSection,
+                      ),
+                      const SizedBox(height: 10),
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            children: [
+                              Expanded(
+                                child: RoutineTimeTile(
+                                  label: l10n.routineAddStartTime,
+                                  value: _startTime,
+                                  onTap: () => _pickTime(start: true),
+                                ),
                               ),
                               const SizedBox(width: 12),
                               Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(l10n.routineAddMoreSection,
-                                        style: AppTextStyles.bodyStrong),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      l10n.routineAddMoreCaption,
-                                      style: AppTextStyles.caption,
-                                    ),
-                                  ],
+                                child: RoutineTimeTile(
+                                  label: l10n.routineAddEndTime,
+                                  value: _endTime,
+                                  onTap: () => _pickTime(start: false),
                                 ),
-                              ),
-                              Icon(
-                                _showMoreSettings
-                                    ? Icons.keyboard_arrow_up_rounded
-                                    : Icons.keyboard_arrow_down_rounded,
-                                color: AppColors.textMuted,
                               ),
                             ],
                           ),
-                        ),
+                          if (_timeError != null) ...[
+                            const SizedBox(height: 8),
+                            AppFieldMessage(
+                              message: _errorMessage(l10n, _timeError!),
+                              isError: true,
+                            ),
+                          ],
+                          const SizedBox(height: 22),
+                          Text(
+                            l10n.routineAddRepeatDays,
+                            style: AppTextStyles.label,
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: List.generate(
+                              DateTime.daysPerWeek,
+                              (index) => Expanded(
+                                child: RoutineWeekdayCircle(
+                                  weekday: index + 1,
+                                  selected: _weekdays[index],
+                                  onTap: () => _onWeekdayChanged(
+                                    index,
+                                    !_weekdays[index],
+                                  ),
+                                ),
+                              ),
+                            ),
+                          ),
+                          if (_repeatError != null) ...[
+                            const SizedBox(height: 8),
+                            AppFieldMessage(
+                              message: _errorMessage(l10n, _repeatError!),
+                              isError: true,
+                            ),
+                          ],
+                          const SizedBox(height: 16),
+                          RoutineFormInfoLine(
+                            text: widget.initialWeekday == null
+                                ? l10n.routineAddReflectedHint
+                                : l10n.routineAddPreselectedHint,
+                          ),
+                        ],
                       ),
-                    ),
-                    if (_showMoreSettings) ...[
-                      const SizedBox(height: 12),
+                      const SizedBox(height: 16),
                       RoutineFormSurface(
-                        child: PastelColorPalette(
-                          title: l10n.routineAddColorSection,
-                          colors: routineFormPaletteColors,
-                          selectedIndex: _paletteIndexForUi(),
-                          onSelected: (index) => setState(() {
-                            _selectedColorArgb = routineColorArgbNormalize(
-                              routineFormPaletteColors[index].toARGB32(),
-                            );
-                          }),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      RoutineFormSurface(
-                        child: RoutineIconPicker(
-                          selected: _selectedIconId,
-                          color: Color(_selectedColorArgb),
-                          onSelected: (icon) =>
-                              setState(() => _selectedIconId = icon),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      RoutineFormSurface(
-                        child: PastelSwitchTile(
-                          title: l10n.routineAddNotifyLabel,
-                          subtitle: l10n.routineAddNotifyDesc,
-                          helper: l10n.routineAddNotifyHint,
-                          value: _notificationEnabled,
-                          onChanged: (value) => setState(
-                            () => _notificationEnabled = value,
+                        padding: EdgeInsets.zero,
+                        child: InkWell(
+                          onTap: () => setState(
+                            () => _showMoreSettings = !_showMoreSettings,
+                          ),
+                          borderRadius: BorderRadius.zero,
+                          child: Padding(
+                            padding: const EdgeInsets.all(18),
+                            child: Row(
+                              children: [
+                                AppIcon(
+                                  Icons.tune_rounded,
+                                  color: Theme.of(context).colorScheme.primary,
+                                ),
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        l10n.routineAddMoreSection,
+                                        style: AppTextStyles.bodyStrong,
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        l10n.routineAddMoreCaption,
+                                        style: AppTextStyles.caption,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Icon(
+                                  _showMoreSettings
+                                      ? Icons.keyboard_arrow_up_rounded
+                                      : Icons.keyboard_arrow_down_rounded,
+                                  color: AppColors.textMuted,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
+                      if (_showMoreSettings) ...[
+                        const SizedBox(height: 12),
+                        RoutineFormSurface(
+                          child: PastelColorPalette(
+                            title: l10n.routineAddColorSection,
+                            colors: routineFormPaletteColors,
+                            selectedIndex: _paletteIndexForUi(),
+                            onSelected: (index) => setState(() {
+                              _selectedColorArgb = routineColorArgbNormalize(
+                                routineFormPaletteColors[index].toARGB32(),
+                              );
+                            }),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        RoutineFormSurface(
+                          child: RoutineIconPicker(
+                            selected: _selectedIconId,
+                            color: Color(_selectedColorArgb),
+                            onSelected: (icon) =>
+                                setState(() => _selectedIconId = icon),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        RoutineFormSurface(
+                          child: PastelSwitchTile(
+                            title: l10n.routineAddNotifyLabel,
+                            subtitle: l10n.routineAddNotifyDesc,
+                            helper: l10n.routineAddNotifyHint,
+                            value: _notificationEnabled,
+                            onChanged: (value) =>
+                                setState(() => _notificationEnabled = value),
+                          ),
+                        ),
+                      ],
                     ],
                     if (conflicts.isNotEmpty) ...[
                       const SizedBox(height: 14),
@@ -653,6 +753,7 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
         _startTime = picked;
       } else {
         _endTime = picked;
+        _legacyEndOfDay = false;
       }
       _timeError = _timeRangeError();
     });
@@ -698,6 +799,8 @@ String _errorMessage(AppLocalizations l10n, RoutineFormError error) {
       return l10n.validationNameTooLong;
     case RoutineFormError.endBeforeStart:
       return l10n.validationEndAfterStart;
+    case RoutineFormError.equalSleepTimes:
+      return l10n.sleepEqualTimesError;
     case RoutineFormError.noRepeatDays:
       return l10n.validationPickOneDay;
   }

@@ -13,6 +13,8 @@ class RoutineNotificationTarget {
     this.updatedAtMs,
     this.startMinutes,
     this.endMinutes,
+    this.routineType = RoutineType.activity,
+    this.notificationMinutes,
   });
 
   factory RoutineNotificationTarget.forRoutine(Routine routine,
@@ -24,6 +26,10 @@ class RoutineNotificationTarget {
         updatedAtMs: routine.updatedAtMs,
         startMinutes: routine.startMinutesFromMidnight,
         endMinutes: routine.endMinutesFromMidnight,
+        routineType: routine.type,
+        notificationMinutes: routine.isSleep
+            ? routine.endMinutesFromMidnight
+            : routine.startMinutesFromMidnight,
       );
 
   final String routineId;
@@ -32,6 +38,8 @@ class RoutineNotificationTarget {
   final int? updatedAtMs;
   final int? startMinutes;
   final int? endMinutes;
+  final RoutineType routineType;
+  final int? notificationMinutes;
 
   String encode({required bool snooze}) =>
       '${snooze ? 'routine_snooze:' : 'routine_notification:'}${jsonEncode({
@@ -41,6 +49,8 @@ class RoutineNotificationTarget {
             'version': updatedAtMs,
             'start': startMinutes,
             'end': endMinutes,
+            'type': routineType.name,
+            'notificationMinutes': notificationMinutes,
           })}';
 
   static RoutineNotificationTarget? parse(String? payload) {
@@ -65,6 +75,9 @@ class RoutineNotificationTarget {
         updatedAtMs: json['version'] as int?,
         startMinutes: json['start'] as int?,
         endMinutes: json['end'] as int?,
+        routineType:
+            json['type'] == 'sleep' ? RoutineType.sleep : RoutineType.activity,
+        notificationMinutes: json['notificationMinutes'] as int?,
       );
     } catch (_) {
       return null;
@@ -81,7 +94,9 @@ class RoutineNotificationTarget {
     }
     var day = DateTime(postedAt.year, postedAt.month, postedAt.day);
     var daysBack = (postedAt.weekday - weekday!) % 7;
-    if (daysBack == 0 && postedAt.hour * 60 + postedAt.minute < startMinutes!) {
+    if (daysBack == 0 &&
+        postedAt.hour * 60 + postedAt.minute <
+            (notificationMinutes ?? startMinutes!)) {
       daysBack = 7;
     }
     day = DateTime(day.year, day.month, day.day - daysBack);
@@ -90,6 +105,7 @@ class RoutineNotificationTarget {
 
   bool matches(Routine routine) =>
       routine.id == routineId &&
+      routine.type == routineType &&
       routine.updatedAtMs == updatedAtMs &&
       routine.startMinutesFromMidnight == startMinutes &&
       routine.endMinutesFromMidnight == endMinutes;

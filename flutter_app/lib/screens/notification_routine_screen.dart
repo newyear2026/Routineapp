@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../application/routine_app_controller.dart';
 import '../domain/models/routine_notification_target.dart';
 import '../domain/services/routine_state_resolver.dart';
-import '../domain/utils/time_minutes.dart';
+import '../domain/services/routine_occurrences.dart';
 import '../l10n/app_localizations.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -31,15 +31,24 @@ class _NotificationRoutineScreenState extends State<NotificationRoutineScreen> {
     final app = context.watch<RoutineAppController>();
     final l10n = AppLocalizations.of(context);
     final target = widget.target;
-    final routine =
+    final definition =
         app.routines.where((r) => r.id == target?.routineId).firstOrNull;
-    final log =
-        app.todayLogs.where((l) => l.routineId == routine?.id).firstOrNull;
+    final date = DateTime.tryParse(widget.dateYmd ?? '');
+    final routine = definition == null
+        ? null
+        : date == null
+            ? definition
+            : RoutineOccurrences.onDate(definition, date);
+    final log = routine == null
+        ? null
+        : RoutineOccurrences.logFor(routine, app.occurrenceLogs, app.now);
     final current = routine != null &&
         target != null &&
         target.matches(routine) &&
-        widget.dateYmd == TimeMinutes.dateYmd(app.now) &&
-        routine.repeatWeekdays.contains(app.now.weekday);
+        date != null &&
+        routine.repeatWeekdays.contains(date.weekday) &&
+        !app.now.isBefore(RoutineOccurrences.window(routine, app.now).start) &&
+        app.now.isBefore(RoutineOccurrences.day(date, 1));
     final canComplete = current &&
         RoutineStateResolver.canApplyUserAction(
             routine: routine, log: log, nowLocal: app.now);

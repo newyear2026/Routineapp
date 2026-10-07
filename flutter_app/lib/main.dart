@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/foundation.dart'
     show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
+import 'domain/models/routine.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:intl/date_symbol_data_local.dart';
@@ -434,7 +435,11 @@ final GoRouter _router = GoRouter(
           state.uri.queryParameters['weekday'] ?? '',
         );
         return RoutineAddScreen(
+          key: ValueKey(state.uri.toString()),
           editRoutineId: id,
+          initialType: state.uri.queryParameters['type'] == 'sleep'
+              ? RoutineType.sleep
+              : RoutineType.activity,
           initialWeekday: weekday,
           returnToRoutines: state.uri.queryParameters['returnTo'] == 'routines',
         );

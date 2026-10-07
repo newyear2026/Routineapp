@@ -1,3 +1,4 @@
+import '../../domain/services/routine_occurrences.dart';
 import '../../domain/models/routine.dart';
 import '../../domain/utils/app_date_formats.dart';
 import '../../domain/utils/time_minutes.dart';
@@ -5,20 +6,27 @@ import '../../models/home_models.dart';
 
 /// 도메인 [Routine] → 홈 UI용 [RoutineSegment] / [CurrentRoutine] 등
 abstract final class HomeViewMapper {
-  static List<RoutineSegment> toSegments(List<Routine> todaysSorted) {
-    return todaysSorted
-        .map(
-          (r) => RoutineSegment(
-            id: r.id,
-            startMinutesFromMidnight: r.startMinutesFromMidnight,
-            endMinutesFromMidnight: r.endMinutesFromMidnight,
-            label: r.title,
-            emoji: r.iconEmoji,
-            color: r.color,
-            iconId: r.iconId,
-          ),
-        )
-        .toList();
+  static List<RoutineSegment> toSegments(List<Routine> todaysSorted,
+      {DateTime? date}) {
+    return [
+      for (final r in todaysSorted)
+        for (final segment in date == null
+            ? [
+                (
+                  start: r.startMinutesFromMidnight,
+                  end: r.endMinutesFromMidnight
+                )
+              ]
+            : RoutineOccurrences.segments(r, date))
+          RoutineSegment(
+              id: r.occurrenceKey,
+              startMinutesFromMidnight: segment.start,
+              endMinutesFromMidnight: segment.end,
+              label: r.title,
+              emoji: r.iconEmoji,
+              color: r.color,
+              iconId: r.iconId)
+    ];
   }
 
   static CurrentRoutine toCurrentRoutine(
@@ -28,7 +36,7 @@ abstract final class HomeViewMapper {
     String localeName,
   ) {
     return CurrentRoutine(
-      id: r.id,
+      id: r.occurrenceKey,
       name: r.title,
       emoji: r.iconEmoji,
       startTime: TimeMinutes.formatHm(r.startMinutesFromMidnight),
@@ -60,7 +68,7 @@ abstract final class HomeViewMapper {
   /// [CurrentRoutine] id만 링 강조에 사용 (표시용 필드 채움)
   static CurrentRoutine ringStubFromRoutine(Routine r, String localeName) {
     return CurrentRoutine(
-      id: r.id,
+      id: r.occurrenceKey,
       name: r.title,
       emoji: r.iconEmoji,
       startTime: TimeMinutes.formatHm(r.startMinutesFromMidnight),

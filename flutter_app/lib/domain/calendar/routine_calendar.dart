@@ -1,4 +1,5 @@
 import '../models/routine.dart';
+import '../services/routine_occurrences.dart';
 
 /// 루틴 반복 규칙을 월간 캘린더와 날짜별 목록에 투영하는 순수 함수 모음.
 abstract final class RoutineCalendar {
@@ -30,16 +31,6 @@ abstract final class RoutineCalendar {
     DateTime date,
     List<Routine> allRoutines,
   ) {
-    final routines = allRoutines
-        .where((routine) => routine.repeatWeekdays.contains(date.weekday))
-        .toList();
-    routines.sort((a, b) {
-      final time = a.startMinutesFromMidnight.compareTo(
-        b.startMinutesFromMidnight,
-      );
-      if (time != 0) return time;
-      return a.id.compareTo(b.id);
-    });
-    return routines;
+    return RoutineOccurrences.timeline(date, allRoutines);
   }
 }

@@ -969,7 +969,13 @@
   "launchGiftDescription": "You got Stargazer Cat, a night-sky widget and three decorations.",
   "launchGiftUseAction": "Use it now",
   "characterPackBuyAction": "Buy for {price}",
-  "@characterPackBuyAction": {"placeholders": {"price": {"type": "String"}}},
+  "@characterPackBuyAction": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
   "characterPackBuyPending": "Waiting for Google Play to confirm the payment",
   "@characterPackBuyPending": {},
   "characterPackBuyHint": "Yours for good once bought. Reinstall with the same Google account and it comes back.",
@@ -1046,5 +1052,50 @@
         "type": "int"
       }
     }
-  }
+  },
+  "sleepCreateTitle": "Create a sleep routine",
+  "sleepCreateDescription": "Set your bedtime and wake-up alarm",
+  "sleepChoice": "Sleep",
+  "sleepSettingsTitle": "Sleep routine",
+  "sleepName": "Sleep",
+  "sleepBedtimeQuestion": "What time will you sleep?",
+  "sleepWakeQuestion": "What time will you wake up?",
+  "sleepDaysQuestion": "Which days will you wake up?",
+  "sleepNextDay": "Next day",
+  "sleepDuration": "Total {duration}",
+  "sleepWakeAlarm": "Wake-up reminder",
+  "sleepWakeAlarmHint": "Sends one notification at your wake-up time.",
+  "sleepWakeAlarmSoundHint": "It may be silent depending on your notification settings.",
+  "sleepAlarmSummary": "I’ll remind you at {time} on {days}.",
+  "sleepScheduleSummary": "Wake up at {time} on {days}.",
+  "sleepEqualTimesError": "Choose different sleep and wake-up times (less than 24 hours).",
+  "sleepWakeNotificationBody": "Time to wake up.",
+  "@sleepDuration": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "@sleepAlarmSummary": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "@sleepScheduleSummary": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepPreviousDay": "Previous day"
 }

@@ -1,5 +1,6 @@
 import '../widgets/ds/app_pixel_hint.dart';
 import 'package:flutter/material.dart';
+import '../application/mappers/sleep_schedule_copy.dart';
 import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
@@ -11,7 +12,6 @@ import '../domain/models/routine.dart';
 import '../domain/models/routine_log.dart';
 import '../domain/utils/repeat_days_label.dart';
 import '../domain/utils/app_date_formats.dart';
-import '../domain/utils/time_minutes.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/routine_load_failure_view.dart';
 import '../widgets/routines/routine_today_timeline.dart';
@@ -107,7 +107,7 @@ class _RoutinesScreenState extends State<RoutinesScreen> {
                 ? _RoutineContent(
                     view: _view,
                     home: app.homeSnapshotFor(AppLocalizations.of(context)),
-                    logsToday: app.todayLogs,
+                    logsToday: app.occurrenceLogs,
                     now: app.now,
                     today: DateTime(app.now.year, app.now.month, app.now.day),
                     selectedDate: _selectedDate!,
@@ -469,7 +469,8 @@ class _ViewSwitchButton extends StatelessWidget {
 }
 
 class _RoutineList extends StatelessWidget {
-  const _RoutineList({required this.routines});
+  const _RoutineList({required this.routines, this.displayDate});
+  final DateTime? displayDate;
 
   final List<Routine> routines;
 
@@ -485,10 +486,8 @@ class _RoutineList extends StatelessWidget {
                 color: routine.color,
                 icon: routine.iconId,
                 title: routine.title,
-                subtitle: TimeMinutes.formatRange(
-                  routine.startMinutesFromMidnight,
-                  routine.endMinutesFromMidnight,
-                ),
+                subtitle: SleepScheduleCopy.range(
+                    AppLocalizations.of(context), routine, displayDate),
                 // 목록에서 '매일'인지 '평일'인지 알 수 없으면
                 // 카드를 열어봐야만 판단할 수 있다.
                 subtitleBadge:
@@ -573,7 +572,7 @@ class _CalendarRoutineView extends StatelessWidget {
           // 목록 탭과 같은 줄을 쓴다. 예전에는 캘린더만 루틴 색을 배경
           // 틴트로 칠하고 왼쪽에 시각·점 레일을 따로 뒀는데, 통합 줄이
           // 색 원과 시간을 모두 갖고 있어 레일이 같은 말을 반복했다.
-          _RoutineList(routines: selectedRoutines),
+          _RoutineList(routines: selectedRoutines, displayDate: selectedDate),
         const SizedBox(height: 16),
         AppButton(
           key: const Key('calendar-add-routine-button'),

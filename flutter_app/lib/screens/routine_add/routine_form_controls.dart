@@ -23,11 +23,13 @@ class RoutineFormHeader extends StatelessWidget {
     required this.title,
     required this.onBack,
     this.onDelete,
+    this.showDecoration = true,
   });
 
   final String title;
   final VoidCallback onBack;
   final VoidCallback? onDelete;
+  final bool showDecoration;
 
   @override
   Widget build(BuildContext context) {
@@ -37,7 +39,8 @@ class RoutineFormHeader extends StatelessWidget {
       height: 62,
       child: Stack(
         children: [
-          if (onDelete == null &&
+          if (showDecoration &&
+              onDelete == null &&
               MediaQuery.textScalerOf(context).scale(1) <= 1.2) ...[
             if (garden) ...[
               if (MediaQuery.sizeOf(context).width >= 360)

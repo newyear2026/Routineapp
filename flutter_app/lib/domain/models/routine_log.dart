@@ -18,7 +18,7 @@ class RoutineLog {
   final String id;
   final String routineId;
 
-  /// `yyyy-MM-dd` (로컬 날짜)
+  /// `yyyy-MM-dd`: activity start date / sleep wake date, in local time.
   final String dateYmd;
   final RoutineLogStatus status;
 

@@ -1,7 +1,7 @@
 import '../models/routine.dart';
 import '../models/routine_log.dart';
 import '../models/routine_log_status.dart';
-import '../utils/time_calculation.dart';
+import 'routine_occurrences.dart';
 
 /// 시간대(스케줄) + 저장된 [RoutineLog]를 합쳐 **화면/판단용** 상태를 결정한다.
 ///
@@ -13,14 +13,10 @@ abstract final class RoutineStateResolver {
     required RoutineLog? log,
     required DateTime nowLocal,
   }) {
-    final m = nowLocal.hour * 60 + nowLocal.minute;
-    final inWindow = TimeCalculation.containsMinuteInOpenInterval(
-      m,
-      routine.startMinutesFromMidnight,
-      routine.endMinutesFromMidnight,
-    );
-    final beforeStart = m < routine.startMinutesFromMidnight;
-    final afterEnd = m >= routine.endMinutesFromMidnight;
+    final window = RoutineOccurrences.window(routine, nowLocal);
+    final inWindow = RoutineOccurrences.active(routine, nowLocal);
+    final beforeStart = nowLocal.isBefore(window.start);
+    final afterEnd = !nowLocal.isBefore(window.end);
 
     if (log != null) {
       switch (log.status) {
@@ -61,13 +57,13 @@ abstract final class RoutineStateResolver {
     required RoutineLog? log,
     required DateTime nowLocal,
   }) {
-    final m = nowLocal.hour * 60 + nowLocal.minute;
-    final inWindow = TimeCalculation.containsMinuteInOpenInterval(
-      m,
-      routine.startMinutesFromMidnight,
-      routine.endMinutesFromMidnight,
-    );
-    if (!inWindow) return false;
+    final window = RoutineOccurrences.window(routine, nowLocal);
+    final inWindow = RoutineOccurrences.active(routine, nowLocal);
+    final wakeDayAction = routine.isSleep &&
+        routine.repeatWeekdays.contains(window.date.weekday) &&
+        !nowLocal.isBefore(window.start) &&
+        nowLocal.isBefore(RoutineOccurrences.day(window.date, 1));
+    if (!inWindow && !wakeDayAction) return false;
 
     if (log == null) return true;
 

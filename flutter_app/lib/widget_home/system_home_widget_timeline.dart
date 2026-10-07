@@ -1,7 +1,7 @@
 import '../application/home/home_snapshot_builder.dart';
 import '../domain/models/routine.dart';
 import '../domain/models/routine_log.dart';
-import '../domain/utils/time_minutes.dart';
+import '../domain/services/routine_occurrences.dart';
 import '../l10n/app_localizations.dart';
 import '../widget_medium/home_medium_widget_selector.dart';
 import 'system_home_widget_payload.dart';
@@ -23,13 +23,9 @@ abstract final class SystemHomeWidgetTimeline {
     for (var day = 0; day < horizonDays; day++) {
       final date = DateTime(now.year, now.month, now.day + day);
       if (date.isAfter(now)) moments.add(date.millisecondsSinceEpoch);
-      for (final routine in routines) {
-        if (!routine.repeatWeekdays.contains(date.weekday)) continue;
-        for (final minute in [
-          routine.startMinutesFromMidnight,
-          routine.endMinutesFromMidnight,
-        ]) {
-          final at = DateTime(date.year, date.month, date.day, 0, minute);
+      for (final routine in RoutineOccurrences.timeline(date, routines)) {
+        final window = RoutineOccurrences.window(routine, date);
+        for (final at in [window.start, window.end]) {
           if (at.isAfter(now) && at.isBefore(until)) {
             moments.add(at.millisecondsSinceEpoch);
           }
@@ -38,12 +34,9 @@ abstract final class SystemHomeWidgetTimeline {
     }
 
     final sorted = moments.toList()..sort();
-    final todayYmd = TimeMinutes.dateYmd(now);
     final states = sorted.map((ms) {
       final at = DateTime.fromMillisecondsSinceEpoch(ms);
-      final logs = TimeMinutes.dateYmd(at) == todayYmd
-          ? logsToday
-          : const <RoutineLog>[];
+      final logs = logsToday;
       final snapshot = HomeSnapshotBuilder.build(
         l10n: l10n,
         nowLocal: at,
@@ -52,16 +45,12 @@ abstract final class SystemHomeWidgetTimeline {
       );
       final vm = HomeMediumWidgetSelector.fromSnapshot(snapshot, l10n);
       final display = snapshot.displayRoutine;
-      final timingTargetMinutes = display == null
+      final window =
+          display == null ? null : RoutineOccurrences.window(display, at);
+      final timingTarget = vm.currentRoutineTimingHint.isEmpty || window == null
           ? null
-          : snapshot.isDisplayUpcoming
-              ? display.startMinutesFromMidnight
-              : display.endMinutesFromMidnight;
-      final timingTarget =
-          vm.currentRoutineTimingHint.isEmpty || timingTargetMinutes == null
-              ? null
-              : DateTime(at.year, at.month, at.day, 0, timingTargetMinutes)
-                  .millisecondsSinceEpoch;
+          : (snapshot.isDisplayUpcoming ? window.start : window.end)
+              .millisecondsSinceEpoch;
       return SystemWidgetStatePayload(
         effectiveAtEpochMs: ms,
         currentRoutineTitle: vm.currentRoutineTitle,

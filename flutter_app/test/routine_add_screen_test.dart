@@ -65,11 +65,7 @@ void main() {
     await tester.pumpWidget(
       ChangeNotifierProvider.value(
         value: controller,
-        child: localizedApp(
-          routerConfig: router,
-          theme: theme,
-          locale: locale,
-        ),
+        child: localizedApp(routerConfig: router, theme: theme, locale: locale),
       ),
     );
     await tester.pumpAndSettle();
@@ -95,14 +91,22 @@ void main() {
 
     expect(find.byKey(const Key('routine-add-header-cloud')), findsNothing);
     expect(find.byKey(const Key('routine-add-preview-cloud')), findsNothing);
-    expect(find.byKey(const Key('routine-add-header-garden-leaf')),
-        findsOneWidget);
-    expect(find.byKey(const Key('routine-add-header-garden-daisy')),
-        findsOneWidget);
-    expect(find.byKey(const Key('routine-add-preview-garden-leaf')),
-        findsOneWidget);
-    expect(find.byKey(const Key('routine-add-preview-garden-daisy')),
-        findsOneWidget);
+    expect(
+      find.byKey(const Key('routine-add-header-garden-leaf')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const Key('routine-add-header-garden-daisy')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const Key('routine-add-preview-garden-leaf')),
+      findsOneWidget,
+    );
+    expect(
+      find.byKey(const Key('routine-add-preview-garden-daisy')),
+      findsOneWidget,
+    );
     expect(
       tester
           .widget<ActionChip>(find.byType(ActionChip).first)
@@ -119,7 +123,9 @@ void main() {
     expect(find.byKey(const Key('routine-add-header-cloud')), findsOneWidget);
     expect(find.byKey(const Key('routine-add-preview-cloud')), findsOneWidget);
     expect(
-        find.byKey(const Key('routine-add-header-garden-leaf')), findsNothing);
+      find.byKey(const Key('routine-add-header-garden-leaf')),
+      findsNothing,
+    );
   });
 
   testWidgets('하단 저장 바 뒤에 배경이 칠해져 검은 띠가 보이지 않는다', (tester) async {
@@ -129,12 +135,10 @@ void main() {
     final scaffold = tester.widget<Scaffold>(find.byType(Scaffold));
     expect(scaffold.bottomNavigationBar, isA<ColoredBox>());
     // 본문(AppScreenShell)과 같은 색이어야 저장 바 뒤에 색 띠가 생기지 않는다.
-    final pageColor =
-        Theme.of(tester.element(find.byType(Scaffold))).scaffoldBackgroundColor;
-    expect(
-      (scaffold.bottomNavigationBar! as ColoredBox).color,
-      pageColor,
-    );
+    final pageColor = Theme.of(
+      tester.element(find.byType(Scaffold)),
+    ).scaffoldBackgroundColor;
+    expect((scaffold.bottomNavigationBar! as ColoredBox).color, pageColor);
   });
 
   testWidgets('테마 배경이 바뀌면 저장 바도 같은 색을 따른다', (tester) async {
@@ -209,15 +213,24 @@ void main() {
   // 칩 아이콘을 번역된 이름으로 추측하면 추측 규칙이 모르는 언어에서
   // 전부 커피 아이콘이 됐다. 언어마다 같은 아이콘이 저장돼야 한다.
   for (final locale in AppLocalizations.supportedLocales) {
-    testWidgets('${locale.languageCode}: 추천 칩은 언어와 무관하게 정해진 아이콘을 쓴다',
-        (tester) async {
+    testWidgets('${locale.languageCode}: 추천 칩은 언어와 무관하게 정해진 아이콘을 쓴다', (
+      tester,
+    ) async {
       final l10n = lookupAppLocalizations(locale);
       final controller = await pumpAddScreen(tester, locale: locale);
       addTearDown(controller.dispose);
 
-      expect(find.byType(RoutineSuggestionChip),
-          findsNWidgets(RoutineSuggestion.values.length));
-      await tester.tap(find.text(l10n.routineQuickExercise));
+      expect(
+        find.byType(RoutineSuggestionChip),
+        findsNWidgets(RoutineSuggestion.values.length),
+      );
+      final exerciseChip = find.widgetWithText(
+        RoutineSuggestionChip,
+        l10n.routineQuickExercise,
+      );
+      await tester.ensureVisible(exerciseChip);
+      await tester.pumpAndSettle();
+      await tester.tap(exerciseChip);
       await tester.pump();
       await tester.tap(find.text(l10n.routineAddSaveNew));
       await tester.pumpAndSettle();
@@ -244,9 +257,12 @@ void main() {
   });
 
   testWidgets('충돌 확인창은 조정 취소와 확인 저장을 유지한다', (tester) async {
-    final controller = await pumpAddScreen(tester, routines: [
-      dailyRoutine(id: 'study', title: '공부', startHour: 9, endHour: 10),
-    ]);
+    final controller = await pumpAddScreen(
+      tester,
+      routines: [
+        dailyRoutine(id: 'study', title: '공부', startHour: 9, endHour: 10),
+      ],
+    );
     addTearDown(controller.dispose);
     await tester.enterText(find.byType(TextField).first, '새 루틴');
     await tester.tap(find.text('루틴 저장'));
@@ -267,8 +283,11 @@ void main() {
   testWidgets('삭제 확인창은 취소 후 유지하고 확인 후 삭제한다', (tester) async {
     final controller = await pumpAddScreen(tester, editId: 'wake');
     addTearDown(controller.dispose);
-    await tester.scrollUntilVisible(find.text('이 루틴 삭제'), 250,
-        scrollable: find.byType(Scrollable).first);
+    await tester.scrollUntilVisible(
+      find.text('이 루틴 삭제'),
+      250,
+      scrollable: find.byType(Scrollable).first,
+    );
     await tester.tap(find.text('이 루틴 삭제'));
     await tester.pumpAndSettle();
     await tester.tap(find.text('취소'));

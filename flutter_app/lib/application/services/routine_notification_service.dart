@@ -8,6 +8,7 @@ import 'package:timezone/data/latest_all.dart' as tz_data;
 import 'package:timezone/timezone.dart' as tz;
 
 import '../../domain/models/routine.dart';
+import '../../domain/validation/routine_form_validator.dart';
 import '../../domain/models/routine_log.dart';
 import '../../domain/models/routine_log_status.dart';
 import '../../domain/models/routine_notification_target.dart';
@@ -63,7 +64,14 @@ class RoutineNotificationService {
     await _cancelInvalidPendingSnoozes(routines);
     final exact = await _exactAlarmsAllowed();
     for (final routine in routines) {
-      if (!routine.notificationEnabled) continue;
+      if (!routine.alertsEnabled) continue;
+      if (routine.isSleep &&
+          RoutineFormValidator.validateSleepTimeRange(
+                  routine.startMinutesFromMidnight,
+                  routine.endMinutesFromMidnight) !=
+              null) {
+        continue;
+      }
       await _scheduleRoutine(routine, prefs: prefs, l10n: l10n, exact: exact);
     }
   }
@@ -100,12 +108,17 @@ class RoutineNotificationService {
   Future<void> _cancelInvalidPendingSnoozes(List<Routine> routines) async {
     final enabledIds = {
       for (final routine in routines)
-        if (routine.notificationEnabled) routine.id,
+        if (routine.alertsEnabled) routine.id,
     };
     final pending = await _gateway.pendingNotificationRequests();
     for (final request in pending.where((p) => isSnoozePayload(p.payload))) {
-      final id = RoutineNotificationTarget.parse(request.payload)?.routineId;
-      if (!enabledIds.contains(id)) {
+      final target = RoutineNotificationTarget.parse(request.payload);
+      final id = target?.routineId;
+      final routine = routines.where((r) => r.id == id).firstOrNull;
+      final changed = target?.updatedAtMs != null &&
+          routine != null &&
+          !target!.matches(routine);
+      if (!enabledIds.contains(id) || changed) {
         await _gateway.cancel(request.id);
       }
     }
@@ -125,7 +138,7 @@ class RoutineNotificationService {
 
     await _gateway.initialize();
     final prefs = await _preferencesLoader();
-    if (!_appNotificationsAvailable(prefs) || !routine.notificationEnabled) {
+    if (!_appNotificationsAvailable(prefs) || !routine.alertsEnabled) {
       await _gateway.cancel(snoozeNotificationIdFor(routine.id));
       return;
     }
@@ -179,11 +192,19 @@ class RoutineNotificationService {
       await _gateway.scheduleWeekly(
         id: notificationIdFor(routine.id, weekday),
         title: routine.title,
-        body: l10n.notificationBody(routine.title),
+        body: routine.isSleep
+            ? l10n.sleepWakeNotificationBody
+            : l10n.notificationBody(routine.title),
         weekday: weekday,
         time: TimeOfDay(
-          hour: routine.startMinutesFromMidnight ~/ 60,
-          minute: routine.startMinutesFromMidnight % 60,
+          hour: (routine.isSleep
+                  ? routine.endMinutesFromMidnight
+                  : routine.startMinutesFromMidnight) ~/
+              60,
+          minute: (routine.isSleep
+                  ? routine.endMinutesFromMidnight
+                  : routine.startMinutesFromMidnight) %
+              60,
         ),
         details: notificationDetails,
         payload: RoutineNotificationTarget.forRoutine(routine, weekday: weekday)
@@ -281,7 +302,7 @@ class RoutineNotificationService {
               log.snoozedUntilMs! > currentTime.millisecondsSinceEpoch)
           .toList()
         ..sort((a, b) => b.snoozedUntilMs!.compareTo(a.snoozedUntilMs!));
-      if (routine == null || !routine.notificationEnabled || matches.isEmpty) {
+      if (routine == null || !routine.alertsEnabled || matches.isEmpty) {
         await _gateway.cancel(request.id);
         continue;
       }
@@ -516,7 +537,8 @@ class FlutterLocalNotificationGateway implements LocalNotificationGateway {
 
     while (scheduledDate.weekday != weekday ||
         scheduledDate.isBefore(tz.TZDateTime.now(tz.local))) {
-      scheduledDate = scheduledDate.add(const Duration(days: 1));
+      scheduledDate = tz.TZDateTime(tz.local, scheduledDate.year,
+          scheduledDate.month, scheduledDate.day + 1, time.hour, time.minute);
     }
     return scheduledDate;
   }

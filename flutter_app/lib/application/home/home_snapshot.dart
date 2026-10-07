@@ -13,6 +13,7 @@ typedef HomeViewModel = HomeSnapshot;
 
 class HomeSnapshot {
   const HomeSnapshot({
+    this.dateYmd,
     required this.dateLabel,
     required this.dayOfWeekLabel,
     required this.dateWithWeekdayLabel,
@@ -48,6 +49,8 @@ class HomeSnapshot {
   });
 
   // —— 헤더 ——
+  /// Locale-independent occurrence date for one-time UI transitions.
+  final String? dateYmd;
   final String dateLabel;
   final String dayOfWeekLabel;
 
