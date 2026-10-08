@@ -44,7 +44,8 @@ abstract final class HomeSnapshotBuilder {
 
     final display = current ?? next;
     final upcomingRoutines = display != null
-        ? HomeRoutineSchedule.routinesAfter(display, focusSchedule)
+        ? HomeRoutineSchedule.routinesAfter(display, focusSchedule,
+            startingAfter: nowLocal)
         : const <Routine>[];
     final nextAfterDisplay =
         upcomingRoutines.isEmpty ? null : upcomingRoutines.first;

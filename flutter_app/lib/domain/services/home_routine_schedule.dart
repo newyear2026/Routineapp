@@ -30,10 +30,13 @@ abstract final class HomeRoutineSchedule {
     if (current != null) {
       final idx = todaySorted
           .indexWhere((e) => e.occurrenceKey == current.occurrenceKey);
-      if (idx >= 0 && idx < todaySorted.length - 1) {
-        return todaySorted[idx + 1];
-      }
-      return null;
+      if (idx < 0) return null;
+      // 지금 루틴과 겹쳐 이미 시작한 루틴은 '다음'이 아니다.
+      // (예: 23:00 → 15:02 수면 중이면 07:00 기상은 지나갔다.)
+      return todaySorted
+          .skip(idx + 1)
+          .where((r) => _startsAfter(r, nowLocal))
+          .firstOrNull;
     }
     for (final r in todaySorted) {
       if (nowLocal.isBefore(RoutineOccurrences.window(r, nowLocal).start)) {
@@ -78,11 +81,18 @@ abstract final class HomeRoutineSchedule {
   /// 같은 루틴을 두 번 넣는 실수를 막으려면 이 목록 하나만 소비한다.
   static List<Routine> routinesAfter(
     Routine anchor,
-    List<Routine> sortedToday,
-  ) {
+    List<Routine> sortedToday, {
+    DateTime? startingAfter,
+  }) {
     final i =
         sortedToday.indexWhere((e) => e.occurrenceKey == anchor.occurrenceKey);
     if (i < 0 || i >= sortedToday.length - 1) return const <Routine>[];
-    return List<Routine>.unmodifiable(sortedToday.sublist(i + 1));
+    final after = sortedToday.sublist(i + 1);
+    return List<Routine>.unmodifiable(startingAfter == null
+        ? after
+        : after.where((r) => _startsAfter(r, startingAfter)));
   }
+
+  static bool _startsAfter(Routine r, DateTime now) =>
+      now.isBefore(RoutineOccurrences.window(r, now).start);
 }

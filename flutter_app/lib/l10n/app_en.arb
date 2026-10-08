@@ -1066,6 +1066,18 @@
   "sleepWakeAlarm": "Wake-up reminder",
   "sleepWakeAlarmHint": "Sends one notification at your wake-up time.",
   "sleepWakeAlarmSoundHint": "It may be silent depending on your notification settings.",
+  "sleepWakeSameTimeAlert": "'{name}' also sends a notification at {time}, so you'll get two at once.",
+  "sleepWakeAlarmTurnOff": "Turn off wake-up reminder",
+  "@sleepWakeSameTimeAlert": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
   "sleepAlarmSummary": "I’ll remind you at {time} on {days}.",
   "sleepScheduleSummary": "Wake up at {time} on {days}.",
   "sleepEqualTimesError": "Choose different sleep and wake-up times (less than 24 hours).",

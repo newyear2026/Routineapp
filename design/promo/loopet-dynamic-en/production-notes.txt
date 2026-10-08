@@ -1,0 +1,30 @@
+LOOPET / Your day. Your pace. / Dynamic English promo
+
+16 seconds, 1080 x 1920, 9:16, 60 fps, H.264 MP4 + stereo AAC.
+English copy and actual English app screenshots, matching the language of
+the preceding promo. Built as a new version; earlier videos are preserved.
+
+0-2s    YOUR DAY. YOUR PACE. / Character landing, rotating rings, kinetic labels.
+2-5s    PLAN IT. / Rotating phone entrance and push-in on the real home screen.
+5-8s    CHECK IT. / Real progress summary and completed routine cards slide in.
+8-10s   GLANCE. GO. / Home screen widget pulled forward for a readable close-up.
+10-12s  PICK YOUR SIDEKICK. / Cat, red panda, and sea otter character carousel.
+12-16s  MAKE TODAY YOURS. / App icon, LOOPET, and Start your routine CTA.
+
+Short diagonal wipes connect the scenes. A moving footer and small character
+accents maintain motion while the final CTA is held for reading.
+Music: locally synthesized 120 BPM pluck, bass, kick, clap, hi-hat, and transition
+effects. No external music, voiceover, or stock footage was used.
+
+Phone screens and enlarged cards are sourced from the actual Flutter English
+captures generated for the previous video. This is a motion-graphics edit of
+screenshots and character art, not a live app recording. Progress values and
+completed cards are the existing example data; no extra app behavior is invented.
+Character artwork comes from approved project assets. Additional character packs
+are identified with the line 'Extra character packs available'.
+
+Rebuild from repository root:
+python3 design/promo/loopet-dynamic-en/render_dynamic.py
+
+Storyboard only:
+python3 design/promo/loopet-dynamic-en/render_dynamic.py --preview

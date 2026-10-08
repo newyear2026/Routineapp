@@ -1,0 +1,16 @@
+Mode: built-in ImageGen
+Edit source: concept-C-integrated-v2.png
+
+Use case: precise-object-edit.
+Input image is the existing fennec concept to revise.
+Problem: its round puffy cheeks, broad white face mask, little white eyebrow spots, and flat kitten-like muzzle make the FACE resemble the app's red panda mascot. Give this character a distinct, unmistakably BABY FENNEC face while retaining cuteness and the successfully integrated ears.
+
+Redesign the face as a soft tapered wedge: forehead remains broad and cute, cheek outline slopes gently inward toward a narrower lower jaw instead of ballooning outward into round cheek pads. Reduce the broad fluffy side-cheek protrusions. Turn the head gently about 20 degrees toward the viewer's right so a short but visibly projecting fox muzzle can be read. Add a modest nose bridge and a soft small pointed cream muzzle ending in a tiny dark brown nose. Keep the muzzle youthful and rounded at the tip, never a long sharp adult fox snout.
+
+Remove the TWO WHITE EYEBROW DOTS entirely. Remove the broad cream mask circling the eyes and spreading across the cheek pads. Keep warm sand-colored fur around BOTH eyes and most of the cheeks. Cream coloration is concentrated on the lower muzzle, a narrow lower-jaw edge and throat, transitioning softly into the sandy cheek fur. No panda-like white eye patches or circular blush spots.
+
+Eyes remain large, glossy honey-brown and charming, gently rounded almond/oval shapes, with a tender curious gaze and no thick winged eyeliner. Friendly tiny closed smile follows the forward-projecting muzzle, not a symmetrical cat W mouth. The defining facial silhouette should be a cute little fox rather than a round bear, raccoon or cat.
+
+Preserve the ear-to-skull continuity that was fixed in the supplied image: BOTH broad large ears grow seamlessly from the forehead, with their lower halves in the same sandy fur as the face. No internal dark root line, no separate face disk, no white feather-shaped insert, no closed white ear rim. Adjust ear perspective naturally to the slightly turned new head without making them look like accessories.
+
+Keep everything below the jaw as close to the source as possible: teal scarf, seated plump body, exactly four natural legs, paws, fluffy cream-tipped tail, pose and scale. Same opaque warm ivory square background, one full-body character with complete ears, tail and feet in frame. Preserve pixel-art stepped edges, consistent warm dark outline, warm cream/apricot palette and cute cohesive game-mascot style. No new props, text, other characters, landscape panels or watermark. This is a visible FACE-SHAPE and FACE-MARKING redesign, not a recolor of the original round face.

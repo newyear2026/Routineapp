@@ -8,6 +8,9 @@ import 'package:routine_timer/application/services/app_telemetry.dart';
 import 'package:routine_timer/application/services/firebase_telemetry.dart';
 
 Future<void> main() async {
+  if (!kDebugMode) {
+    throw StateError('Firebase smoke tests are only available in debug mode.');
+  }
   WidgetsFlutterBinding.ensureInitialized();
   if (kIsWeb ||
       defaultTargetPlatform != TargetPlatform.android ||

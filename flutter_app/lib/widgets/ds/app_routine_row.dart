@@ -49,8 +49,15 @@ class AppRoutineRow extends StatelessWidget {
 
   static const double _radius = 0;
 
+  /// trailing이 차지할 수 있는 줄 폭의 상한.
+  static const double _trailingMaxFraction = 0.4;
+
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context) => LayoutBuilder(
+      builder: (context, constraints) =>
+          _build(context, constraints.maxWidth));
+
+  Widget _build(BuildContext context, double rowWidth) {
     final subtitle = this.subtitle;
     final trailing = this.trailing ??
         (onTap == null
@@ -116,10 +123,13 @@ class AppRoutineRow extends StatelessWidget {
           if (trailing != null) ...[
             const SizedBox(width: 10),
             // trailing(시각·상태 배지)이 길어져도 루틴 이름을 밀어내지 않는다.
-            Flexible(
-                child: Align(
-                    alignment: AlignmentDirectional.centerEnd,
-                    child: trailing)),
+            // flex 자식으로 두면 chevron 하나에도 줄 폭의 절반을 떼어 줘서
+            // 수면처럼 긴 시각이 잘린다. 상한만 씌우고 나머지는 이름·시각에 준다.
+            ConstrainedBox(
+              constraints:
+                  BoxConstraints(maxWidth: rowWidth * _trailingMaxFraction),
+              child: trailing,
+            ),
           ],
         ],
       ),

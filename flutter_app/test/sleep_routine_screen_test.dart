@@ -358,6 +358,64 @@ void main() {
     },
   );
 
+  testWidgets('another alert at wake time is flagged and can be turned off', (
+    tester,
+  ) async {
+    // 첫 실행 기본 «기상 07:00» 루틴과 수면 기상 알림이 같은 시각에 온다.
+    const wake = Routine(
+      id: 'wake',
+      title: '기상',
+      startMinutesFromMidnight: 420,
+      endMinutesFromMidnight: 450,
+      repeatWeekdays: {1, 2, 3, 4, 5, 6, 7},
+      colorValue: 0xFFFF746C,
+      iconEmoji: '',
+    );
+    final app = await pump(tester, routines: [wake]);
+    final notice = find.byKey(const Key('sleep-wake-same-time'));
+    await tester.ensureVisible(notice);
+    await tester.pumpAndSettle();
+    expect(
+      find.text("오전 7:00 '기상' 루틴도 알림을 보내요.\n같은 시각에 알림이 두 번 와요."),
+      findsOneWidget,
+    );
+    await tester.tap(find.byKey(const Key('sleep-wake-alarm-off')));
+    await tester.pumpAndSettle();
+    expect(notice, findsNothing);
+    expect(
+      tester
+          .widget<AppPixelSwitch>(find.byKey(const Key('sleep-wake-alarm')))
+          .value,
+      false,
+    );
+    await tester.tap(find.text('루틴 저장'));
+    await tester.pumpAndSettle();
+    expect(
+      app.routines.singleWhere((r) => r.isSleep).wakeNotificationEnabled,
+      false,
+    );
+  });
+
+  testWidgets('no flag when the other routine is silent or on other days', (
+    tester,
+  ) async {
+    const base = Routine(
+      id: 'wake',
+      title: '기상',
+      startMinutesFromMidnight: 420,
+      endMinutesFromMidnight: 450,
+      repeatWeekdays: {6, 7},
+      colorValue: 0xFFFF746C,
+      iconEmoji: '',
+    );
+    await pump(tester, routines: [
+      base,
+      base.copyWith(
+          id: 'quiet', repeatWeekdays: {1}, notificationEnabled: false),
+    ]);
+    expect(find.byKey(const Key('sleep-wake-same-time')), findsNothing);
+  });
+
   testWidgets('wake alarm off changes summary and persists without promise', (
     tester,
   ) async {

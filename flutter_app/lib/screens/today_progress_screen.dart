@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import 'package:provider/provider.dart';
 
+import '../application/mappers/sleep_schedule_copy.dart';
 import '../application/routine_app_controller.dart';
 import '../domain/models/routine.dart';
 import '../l10n/app_localizations.dart';
@@ -10,7 +11,6 @@ import '../widgets/routine_load_failure_view.dart';
 import '../domain/models/routine_log.dart';
 import '../domain/models/routine_log_status.dart';
 import '../domain/progress/daily_progress.dart';
-import '../domain/utils/time_minutes.dart';
 import '../domain/services/routine_state_resolver.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
@@ -499,9 +499,11 @@ class _ProgressGroup extends StatelessWidget {
                   color: entry.$2.color,
                   icon: entry.$2.iconId,
                   title: entry.$2.title,
-                  subtitle: TimeMinutes.formatRange(
-                    entry.$2.startMinutesFromMidnight,
-                    entry.$2.endMinutesFromMidnight,
+                  // 수면은 목록·달력과 같은 «전날 23:00 → 07:00» 표기를 쓴다.
+                  subtitle: SleepScheduleCopy.range(
+                    AppLocalizations.of(context),
+                    entry.$2,
+                    entry.$2.occurrenceDate,
                   ),
                   trailing: _RoutineStatusTrailing(
                     kind: group.kind,

@@ -406,6 +406,21 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
     context.go(widget.returnToRoutines ? '/routines' : '/home');
   }
 
+  /// 기상 시각과 같은 때 알림을 보내는 다른 루틴. 같은 요일이 하나라도 겹쳐야 한다.
+  /// 일반 루틴은 시작 시각, 수면 루틴은 기상 시각에 알림을 보낸다.
+  Routine? _sameTimeAlert(Routine sleep, List<Routine> routines) {
+    for (final r in routines) {
+      if (r.id == widget.editRoutineId || !r.alertsEnabled) continue;
+      final alertMinute =
+          r.isSleep ? r.endMinutesFromMidnight : r.startMinutesFromMidnight;
+      if (alertMinute == sleep.endMinutesFromMidnight &&
+          r.repeatWeekdays.any(sleep.repeatWeekdays.contains)) {
+        return r;
+      }
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
@@ -475,6 +490,9 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                         alarmEnabled: _wakeNotificationEnabled,
                         onAlarm: (value) =>
                             setState(() => _wakeNotificationEnabled = value),
+                        sameTimeAlertName: _sameTimeAlert(
+                                candidate, controller.routines)
+                            ?.title,
                         timeError: _timeError == null
                             ? null
                             : _errorMessage(l10n, _timeError!),

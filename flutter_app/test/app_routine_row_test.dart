@@ -45,6 +45,27 @@ void main() {
     expect(chevron, findsOneWidget);
   });
 
+  testWidgets('chevron이 줄 폭을 나눠 갖지 않아 긴 시각이 잘리지 않는다', (tester) async {
+    // trailing을 flex 자식으로 두었을 때는 chevron 하나에 폭의 절반이 가서
+    // 수면 시각 «23:00 → 다음 날 07:00»이 «23:00 → 다…»로 잘렸다.
+    await pump(
+      tester,
+      AppRoutineRow(
+        color: Colors.red,
+        title: '잠자기',
+        subtitle: '23:00 → 다음 날 07:00',
+        subtitleBadge: '평일',
+        onTap: () {},
+      ),
+    );
+
+    final rowWidth = tester.getSize(find.byType(AppRoutineRow)).width;
+    final textColumn =
+        find.ancestor(of: find.text('잠자기'), matching: find.byType(Column));
+    expect(tester.getSize(textColumn.first).width, greaterThan(rowWidth * 0.6));
+    expect(chevron, findsOneWidget);
+  });
+
   testWidgets('누를 수 없으면 chevron을 붙이지 않는다', (tester) async {
     await pump(
       tester,

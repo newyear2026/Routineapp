@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../application/home/home_focus_state.dart';
 import '../../application/home/home_snapshot.dart';
+import '../../application/mappers/sleep_schedule_copy.dart';
 import '../../data/store/character_pack_catalog.dart';
 import '../../domain/models/routine.dart';
 import '../../domain/utils/time_minutes.dart';
@@ -323,10 +324,8 @@ class HomeFocusCard extends StatelessWidget {
           title: routine!.title,
           line: timing,
           lineColor: AppColors.scheduledText,
-          subLine: TimeMinutes.formatRange(
-            routine.startMinutesFromMidnight,
-            routine.endMinutesFromMidnight,
-          ),
+          // 시작 전이라 자정을 넘는 수면은 «23:00 → 다음 날 07:00»으로 쓴다.
+          subLine: SleepScheduleCopy.range(l10n, routine, null),
           next: next,
           nextLabel: nextLabel,
         );

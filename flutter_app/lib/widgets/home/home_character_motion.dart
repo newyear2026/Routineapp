@@ -20,6 +20,7 @@ class HomeCharacterMotion extends StatefulWidget {
     required this.pack,
     required this.assets,
     required this.label,
+    this.flipWalkHorizontally = false,
     this.spriteBounds = const Rect.fromLTRB(16, 0, 370, 364),
   });
 
@@ -32,6 +33,9 @@ class HomeCharacterMotion extends StatefulWidget {
   final CharacterPack pack;
   final Map<HomeCharacterMotionClip, String> assets;
   final String label;
+
+  /// Mirror walking cells without changing idle or completion poses.
+  final bool flipWalkHorizontally;
   final Rect spriteBounds;
 
   static const frameDurations = <Duration>[
@@ -246,23 +250,29 @@ class _HomeCharacterMotionState extends State<HomeCharacterMotion>
                   height: 384 * scale,
                   // Clip the cell as well as the outer slot: otherwise a
                   // previous row's paws can peek into unused headroom.
-                  child: ClipRect(
-                    child: Stack(children: [
-                      Positioned(
-                        key: ValueKey('${widget.label}-atlas-position'),
-                        left: -(_frame % 4) * 384 * scale,
-                        top: -(_frame ~/ 4) * 384 * scale,
-                        width: 1536 * scale,
-                        height: 768 * scale,
-                        child: Image.asset(
-                          widget.assets[_clip]!,
-                          key: ValueKey('${widget.label}-${_clip.name}-image'),
-                          filterQuality: FilterQuality.none,
-                          gaplessPlayback: true,
-                          excludeFromSemantics: true,
+                  child: Transform.flip(
+                    flipX: widget.flipWalkHorizontally &&
+                        _clip == HomeCharacterMotionClip.walk,
+                    // Mirror the selected cell, not the atlas or frame order.
+                    child: ClipRect(
+                      child: Stack(children: [
+                        Positioned(
+                          key: ValueKey('${widget.label}-atlas-position'),
+                          left: -(_frame % 4) * 384 * scale,
+                          top: -(_frame ~/ 4) * 384 * scale,
+                          width: 1536 * scale,
+                          height: 768 * scale,
+                          child: Image.asset(
+                            widget.assets[_clip]!,
+                            key:
+                                ValueKey('${widget.label}-${_clip.name}-image'),
+                            filterQuality: FilterQuality.none,
+                            gaplessPlayback: true,
+                            excludeFromSemantics: true,
+                          ),
                         ),
-                      ),
-                    ]),
+                      ]),
+                    ),
                   ),
                 ),
               ]);

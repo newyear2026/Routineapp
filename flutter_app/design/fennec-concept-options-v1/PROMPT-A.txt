@@ -1,0 +1,17 @@
+Mode: built-in ImageGen
+Variant: A — 둥근 아기형
+References: ../fennec-concept-v1/concept-v2.png; ../fennec-concept-v1/concept-v3.png
+
+Use case: stylized-concept.
+Asset: one new standalone character concept for a cute pixel-art routine app.
+Input image 1 is a reference for appealing baby-like cuteness: rounded face, large warm eyes, soft proportions. Input image 2 is a reference for coherent fennec anatomy: naturally attached ears, matching head perspective and a subtly projecting fox muzzle. Combine these strengths into a NEW cohesive fennec design, not a pasted combination. The user finds image 1 cuter and image 2 more anatomically finished.
+
+Make a square 1024x1024 character portrait on a plain warm ivory background. ONE complete seated fennec fox only, no landscape panels. Same comparison pose: front-facing seated body, head turned only 10 degrees toward viewer's right, gaze meeting viewer, tail curled upward on viewer's left, both forepaws resting together on the ground, two hind legs tucked naturally alongside. Exactly four legs/paws total, no extras or floating paws. Entire ears, tail and feet inside frame with generous 8-10% margins.
+
+Shared identity: creamy sand fur with apricot shadows, cream cheeks/chest/paw tips/tail tip, warm honey-brown eyes with small bright catchlights, tiny dark brown nose, small friendly closed smile, short fox muzzle with subtle depth, small teal scarf tied at neck. Baby fennec personality, approachable and cute, no sharp mature fox expression. Only the scarf as accessory.
+
+Both ears and the whole face MUST be designed as one continuous anatomical structure. Wide ear roots grow from upper lateral skull and merge naturally into temples/cheek fur. Ear perspective agrees with eyes, muzzle and skull. Consistent outline weight and pixel cluster size on ears, face and body; peach inner-ear shadow, narrow cream edge, a simple small tuft at the base. No large floating white feather shapes or sticker-like ear borders. Large fennec ears stay balanced with the face.
+
+Style: polished cute 2D pixel-art game mascot, clear stepped silhouette, crisp square pixel clusters, controlled clustered shading, warm dark brown outline, simple readable details. No smooth vector shading, painterly grain, airbrush, photorealism or 3D. No text, numbers, captions, watermark, extra creatures or objects.
+
+VARIANT A — ROUND BABY CUB. Emphasize the cuteness of reference 1 most strongly. Short, gently rounded face with broad soft cheeks, very large round amber eyes, tiny short muzzle that still projects naturally, small plump body and short legs. Ears are medium-large broad rounded triangles, slightly upright and only gently splayed; visible ear height about 55-60% of face height. Slightly flattened broad forehead and cream muzzle keep this recognizably a baby fennec. No cat W mouth. Warm innocent expression. The head should feel like one soft, compact shape.

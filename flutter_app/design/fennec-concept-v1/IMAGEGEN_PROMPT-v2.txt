@@ -1,0 +1,9 @@
+Mode: built-in ImageGen
+Edit source: concept.png
+
+Use case: precise-object-edit.
+Input image 1 is the edit target: the existing Sandstar Fennec concept board. Correct ONLY the fox's ears and the small adjoining skull/temple transition so that the ears feel like a natural part of this character.
+
+The current ears look oversized and pasted onto the small round head. Make each ear about 35% shorter and 20% narrower than in the reference, while retaining the species' distinctly large ears. Use compact, broad triangular ears with softly rounded tips, a modest outward tilt, and ear roots positioned naturally on the upper sides of the skull. The two ears must share coherent perspective, scale and a continuous head silhouette. Merge the lower ear fur into the temple/cheek fur rather than drawing a dark cutout border across each ear's base. Use the same dark outline thickness, square pixel clusters, cream/apricot palette, and shading scale as the face. Simplify the inner ears to soft peach areas with one small cream fur tuft; remove the tall white feather-like shapes. They should look like naturally attached warm, fluffy ears, not separate elongated rabbit ears or giant decorative pieces.
+
+Preserve the face identity, expression, eye size, muzzle, seated body, teal scarf, tail, four-limb anatomy, all colors outside the edit region, warm ivory background, and BOTH desert landscape panels on the right. Keep the same landscape board layout and canvas aspect ratio. Do not enlarge the head or reposition the body to compensate; leave additional ivory breathing room above the shorter ears. No new accessories, characters, text or watermark. Keep the established crisp cute pixel-art style.

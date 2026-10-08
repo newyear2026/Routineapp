@@ -455,6 +455,8 @@
   "sleepWakeAlarm": "기상 알림",
   "sleepWakeAlarmHint": "일어날 시간에 알림을 한 번 보내요.",
   "sleepWakeAlarmSoundHint": "알림 설정에 따라 소리가 안 날 수 있어요.",
+  "sleepWakeSameTimeAlert": "{time} '{name}' 루틴도 알림을 보내요.\n같은 시각에 알림이 두 번 와요.",
+  "sleepWakeAlarmTurnOff": "기상 알림 끄기",
   "sleepAlarmSummary": "{days} {time}에 알려드려요",
   "sleepScheduleSummary": "{days} {time}에 일어나는 일정이에요",
   "sleepEqualTimesError": "취침·기상 시각을 다르게 선택해 주세요. 24시간 미만으로 설정할 수 있어요.",

@@ -28,7 +28,8 @@ func gif(_ path: String, frames: [CGImage], delays: [Double], hold: Bool) {
     guard CGImageDestinationFinalize(dest) else { fatalError(path) }
     print(path)
 }
-for kind in ["idle", "walk", "complete"] {
+let kinds = CommandLine.arguments.contains("--walk-only") ? ["walk"] : ["idle", "walk", "complete"]
+for kind in kinds {
     let folder = "\(root)/\(kind)"
     for name in ["home", "card"] {
         gif("\(folder)/\(name)-preview.gif",
@@ -44,6 +45,11 @@ for kind in ["idle", "walk", "complete"] {
         ctx.interpolationQuality = .none
         ctx.setFillColor(red: 1, green: 0.983, blue: 0.949, alpha: 1)
         ctx.fill(CGRect(x: 0, y: 0, width: 384, height: 384))
+        // Match OtterHomeMotion: only walking is mirrored to face right.
+        if kind == "walk" {
+            ctx.translateBy(x: 384, y: 0)
+            ctx.scaleBy(x: -1, y: 1)
+        }
         ctx.draw(image, in: CGRect(x: 0, y: 0, width: 384, height: 384))
         return ctx.makeImage()!
     }

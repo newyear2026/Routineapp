@@ -43,5 +43,6 @@ class OtterHomeMotion extends StatelessWidget {
         pack: CharacterPackCatalog.otterSeaside,
         assets: assets,
         label: 'otter',
+        flipWalkHorizontally: true,
       );
 }

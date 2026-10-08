@@ -455,6 +455,8 @@
   "sleepWakeAlarm": "Aviso para despertar",
   "sleepWakeAlarmHint": "Te enviamos un aviso a la hora de despertar.",
   "sleepWakeAlarmSoundHint": "Puede que no suene según tus ajustes de avisos.",
+  "sleepWakeSameTimeAlert": "'{name}' también envía un aviso a las {time}, así que recibirás dos a la vez.",
+  "sleepWakeAlarmTurnOff": "Desactivar aviso para despertar",
   "sleepAlarmSummary": "Te avisaré a las {time} los {days}.",
   "sleepScheduleSummary": "Despierta a las {time} los {days}.",
   "sleepEqualTimesError": "Elige horas distintas para dormir y despertar (menos de 24 horas).",

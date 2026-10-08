@@ -1,0 +1,25 @@
+LOOPET promotional video / English / 15 seconds
+
+Format: 1080 x 1920, vertical 9:16, 30 fps, H.264 MP4 with stereo AAC.
+Matches the Korean version in art direction, timing, character, and music.
+
+00:00-00:03  Your day, a little cuter.
+             Wake up / Rest / Read. Tiny routines. Cozy days.
+00:03-00:07  Your routines, at a glance.
+             Real English Flutter home screen; 24-hour routine clock.
+00:07-00:11  Small wins, every day.
+             Real English Flutter progress screen.
+00:11-00:15  Find your rhythm. One day at a time.
+             LOOPET. Your daily routine buddy. Start your routine.
+
+App screens are captured from the actual English-localized Flutter UI with
+the redpanda_teashop character pack and example routine data. They are animated
+screenshots, not a live screen recording. The red panda is an additional pack;
+no claim of free access is made. There is no narration. The same synthesized
+music as the Korean version is used. No stock music, store badges, or URLs.
+
+Render video from the repository root:
+python3 design/promo/loopet-15s-en/render_promo.py
+
+Regenerate English app screenshots from flutter_app/:
+flutter test --no-pub tool/generate_store_screenshots.dart --dart-define=STORE_SCREENSHOT_LOCALE=en --dart-define=STORE_SCREENSHOT_PACK_ID=redpanda_teashop --dart-define=STORE_SCREENSHOT_OUTPUT_ROOT=../design/promo/loopet-15s-en/source

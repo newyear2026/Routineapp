@@ -195,6 +195,33 @@ void main() {
     expect(day.nextRoutine, isNull);
   });
 
+  test('next skips routines that already started inside a long sleep', () {
+    // 23:00 → 15:02 수면 중(수 14:58)이면 07:00 기상과 14:00 휴식은 이미 시작했다.
+    final longSleep = sleep.copyWith(endMinutesFromMidnight: 902);
+    Routine activity(String id, int start, int end) => sleep.copyWith(
+        id: id,
+        type: RoutineType.activity,
+        startMinutesFromMidnight: start,
+        endMinutesFromMidnight: end,
+        repeatWeekdays: {1, 2, 3, 4, 5, 6, 7},
+        updatedAtMs: 1);
+    final h = HomeSnapshotBuilder.build(
+        l10n: testL10n,
+        nowLocal: DateTime(2026, 10, 7, 14, 58),
+        allRoutines: [
+          longSleep,
+          activity('wake', 420, 450),
+          activity('rest', 840, 960),
+          activity('dinner', 1080, 1140),
+        ],
+        logsToday: []);
+    expect(h.currentRoutine!.id, 'sleep');
+    expect(h.nextRoutine!.id, 'dinner');
+    expect(h.nextAfterDisplay!.id, 'dinner');
+    expect(h.upcomingRoutines.map((r) => r.id), isNot(contains('wake')));
+    expect(h.upcomingRoutines.map((r) => r.id), isNot(contains('rest')));
+  });
+
   test('elapsed sleep progress uses one continuous overnight window', () {
     const progress = RoutineProgressService();
     expect(

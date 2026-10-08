@@ -1,0 +1,16 @@
+Concept preview only for the proposed tenth mascot, “모래별 사막여우” (Sandstar Fennec). Do not implement app assets or animation frames yet.
+
+Create one polished landscape concept board, approximately 3:2. Use the two supplied mascot PNGs ONLY as references for cute chibi proportions, pixel density, dark outlines, palette restraint, and clustered pixel shading. Create a genuinely new fennec fox, not a recolored cat or red panda.
+
+Layout: the left 60% is a warm ivory field with a single large, complete, seated fennec mascot, front three-quarter view. The right 40% contains two neatly stacked, smaller landscape pixel-art mood scenes: a sunlit desert oasis above and a starry desert at night below. Generous clear margins and a refined simple composition; character remains the main focus. No lettering, captions, logos, UI, grid, or watermarks.
+
+Fennec design: creamy pale sand fur, soft apricot shadows, unmistakably oversized wide triangular fennec ears with pale warm pink inner ears, petite body, gently pointed short fox muzzle, tiny dark nose, large warm honey-brown eyes with small glints, friendly calm expression, fluffy long curved tail with a cream tip. A small teal scarf tied at the neck is the only accessory. Both ears and the complete tail must fit comfortably inside the image. Two forepaws rest naturally on the ground in front, the two hind limbs form a clear anatomically coherent seated silhouette. Exactly four limbs total. No floating paws, duplicate legs, extra feet, human hands, horns, hats, wings, stripes, or magical props. Preserve a readable small-sprite silhouette.
+
+Style: charming premium 2D pixel-art game mascot matching the supplied references, crisp square pixel clusters and stepped contours, dark warm brown/navy outline, limited colors and restrained highlights. Not vector art, not smooth airbrushed illustration, not 3D. Avoid excessive tiny dithering. The fox should feel soft, warm and alert, with especially recognizable large ears.
+
+Upper right environment: gentle peach and golden sand dunes, a small clear turquoise oasis, a few distant palms, a pale warm sky. Lower right environment: the same desert in indigo and muted violet, fine golden stars and a small moon, cool turquoise oasis. Environments should use the same pixel-art visual language and leave airy sky space suitable for a routine-app card. No extra characters in these environment panels.
+
+Output mode: built-in ImageGen; opaque concept board with ivory background.
+Style references:
+- assets/characters/cat_starlight/v1/approved/idle.png
+- assets/characters/redpanda_teashop/v1/approved/idle.png

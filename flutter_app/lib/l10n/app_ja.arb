@@ -455,6 +455,8 @@
   "sleepWakeAlarm": "起床通知",
   "sleepWakeAlarmHint": "起きる時間に通知を1回送ります。",
   "sleepWakeAlarmSoundHint": "通知の設定によっては音が鳴らないことがあります。",
+  "sleepWakeSameTimeAlert": "{time}に「{name}」も通知します。\n同じ時刻に通知が2回届きます。",
+  "sleepWakeAlarmTurnOff": "起床通知をオフ",
   "sleepAlarmSummary": "{days}の{time}にお知らせします",
   "sleepScheduleSummary": "{days}の{time}に起きる予定です",
   "sleepEqualTimesError": "就寝と起床を異なる時刻にしてください。24時間未満で設定できます。",

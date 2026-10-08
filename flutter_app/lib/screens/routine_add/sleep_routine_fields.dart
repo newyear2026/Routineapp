@@ -5,7 +5,9 @@ import '../../l10n/app_localizations.dart';
 import '../../theme/app_text_styles.dart';
 import '../../theme/app_colors.dart';
 import '../../theme/app_pixel_style.dart';
+import '../../widgets/ds/app_button.dart';
 import '../../widgets/ds/app_field_message.dart';
+import '../../widgets/ds/app_pixel_hint.dart';
 import '../../widgets/ds/app_pixel_switch.dart';
 import '../../widgets/ds/routine_mark.dart';
 import 'routine_form_controls.dart';
@@ -23,6 +25,7 @@ class SleepRoutineFields extends StatelessWidget {
       required this.onWeekday,
       required this.alarmEnabled,
       required this.onAlarm,
+      this.sameTimeAlertName,
       this.timeError,
       this.daysError});
   final Routine routine;
@@ -32,6 +35,9 @@ class SleepRoutineFields extends StatelessWidget {
   final void Function(int, bool) onWeekday;
   final bool alarmEnabled;
   final ValueChanged<bool> onAlarm;
+
+  /// 기상 시각에 알림을 보내는 다른 루틴의 이름. 있으면 알림이 두 번 온다고 알린다.
+  final String? sameTimeAlertName;
   final String? timeError, daysError;
 
   @override
@@ -99,28 +105,44 @@ class SleepRoutineFields extends StatelessWidget {
       const SizedBox(height: 24),
       RoutineFormSurface(
           padding: const EdgeInsets.fromLTRB(18, 10, 18, 14),
-          child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                Row(children: [
-                  Expanded(
-                      child: Text(l10n.sleepWakeAlarm,
-                          style: AppTextStyles.titleSection)),
-                  AppPixelSwitch(
-                      key: const Key('sleep-wake-alarm'),
-                      value: alarmEnabled,
-                      onChanged: onAlarm,
-                      label: l10n.sleepWakeAlarm),
-                ]),
-                const SizedBox(height: 4),
-                // 지속 알람이 아니라 한 번 보내는 알림임을 알린다.
-                // 문장마다 줄을 나눠 한국어가 단어 중간에서 끊기지 않게 한다.
-                Text(l10n.sleepWakeAlarmHint,
-                    key: const Key('sleep-wake-alarm-hint'),
-                    style: AppTextStyles.caption),
-                Text(l10n.sleepWakeAlarmSoundHint,
-                    style: AppTextStyles.caption),
-              ])),
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Row(children: [
+              Expanded(
+                  child: Text(l10n.sleepWakeAlarm,
+                      style: AppTextStyles.titleSection)),
+              AppPixelSwitch(
+                  key: const Key('sleep-wake-alarm'),
+                  value: alarmEnabled,
+                  onChanged: onAlarm,
+                  label: l10n.sleepWakeAlarm),
+            ]),
+            const SizedBox(height: 4),
+            // 지속 알람이 아니라 한 번 보내는 알림임을 알린다.
+            // 문장마다 줄을 나눠 한국어가 단어 중간에서 끊기지 않게 한다.
+            Text(l10n.sleepWakeAlarmHint,
+                key: const Key('sleep-wake-alarm-hint'),
+                style: AppTextStyles.caption),
+            Text(l10n.sleepWakeAlarmSoundHint, style: AppTextStyles.caption),
+            if (alarmEnabled && sameTimeAlertName != null) ...[
+              const SizedBox(height: 10),
+              AppPixelHint(
+                  key: const Key('sleep-wake-same-time'),
+                  message: l10n.sleepWakeSameTimeAlert(
+                      endLabel, sameTimeAlertName!)),
+              const SizedBox(height: 8),
+              Align(
+                alignment: AlignmentDirectional.centerStart,
+                child: AppButton(
+                    key: const Key('sleep-wake-alarm-off'),
+                    label: l10n.sleepWakeAlarmTurnOff,
+                    variant: AppButtonVariant.secondary,
+                    expand: false,
+                    height: 44,
+                    onPressed: () => onAlarm(false)),
+              ),
+            ],
+          ])),
     ]);
   }
 }

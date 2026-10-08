@@ -383,6 +383,22 @@ void main() {
       expect(find.text('기상'), findsOneWidget);
     });
 
+    testWidgets('수면은 목록과 같은 «전날 → 기상» 표기를 쓴다', (tester) async {
+      final controller = await pump(
+        tester,
+        const TodayProgressScreen(),
+        now: DateTime(2026, 8, 4, 12, 0),
+        routines: [
+          dailyRoutine(id: 'sleep', title: '잠자기', startHour: 23, endHour: 7)
+              .copyWith(type: RoutineType.sleep, wakeNotificationEnabled: true),
+        ],
+      );
+      addTearDown(controller.dispose);
+
+      expect(find.text('전날 23:00 → 07:00'), findsOneWidget);
+      expect(find.textContaining('(+1)'), findsNothing);
+    });
+
     testWidgets('진행률은 분수 하나로만 말한다', (tester) async {
       final controller = await pump(
         tester,

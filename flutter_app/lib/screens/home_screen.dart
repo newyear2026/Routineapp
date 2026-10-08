@@ -10,12 +10,12 @@ import '../app_route_observer.dart';
 import '../application/home/home_focus_state.dart';
 import '../application/release/release_announcements.dart';
 import '../application/review/review_prompt.dart';
+import '../application/mappers/sleep_schedule_copy.dart';
 import '../application/routine_app_controller.dart';
 import '../application/update/app_updates_controller.dart';
 import '../domain/models/routine.dart';
 import '../l10n/app_localizations.dart';
 import '../widgets/routine_load_failure_view.dart';
-import '../domain/utils/time_minutes.dart';
 import '../theme/app_colors.dart';
 import '../widgets/ads/home_upcoming_ad_card.dart';
 import '../widgets/ds/app_pixel_hint.dart';
@@ -498,7 +498,7 @@ class _HomeScreenState extends State<HomeScreen>
                                 color: routine.color,
                                 icon: routine.iconId,
                                 title: routine.title,
-                                subtitle: _timeRange(routine),
+                                subtitle: _timeRange(l10n, routine),
                                 onTap: () => context.push(
                                   '/routine-add?id=${routine.id}',
                                 ),
@@ -646,7 +646,6 @@ class _EmptyOrbit extends StatelessWidget {
       );
 }
 
-String _timeRange(Routine routine) => TimeMinutes.formatRange(
-      routine.startMinutesFromMidnight,
-      routine.endMinutesFromMidnight,
-    );
+/// 다음 루틴은 아직 시작 전이라, 자정을 넘는 수면은 늘 «23:00 → 다음 날 07:00»이다.
+String _timeRange(AppLocalizations l10n, Routine routine) =>
+    SleepScheduleCopy.range(l10n, routine, null);
