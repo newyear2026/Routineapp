@@ -461,5 +461,9 @@
   "sleepScheduleSummary": "Acordar às {time} em {days}.",
   "sleepEqualTimesError": "Escolha horários diferentes para dormir e acordar (menos de 24 horas).",
   "sleepWakeNotificationBody": "Está na hora de acordar.",
-  "sleepPreviousDay": "Dia anterior"
+  "sleepPreviousDay": "Dia anterior",
+  "widgetStyleTimeline": "Linha do tempo",
+  "widgetStyleCards": "Cartão de rotina",
+  "widgetStyleRing": "Horário circular",
+  "widgetComplete": "Concluir"
 }

@@ -111,3 +111,58 @@ final result: passed
 - No Play Console changes or release upload were performed. The selected illustration's earlier standalone-delivery note is superseded by this app integration.
 
 final result: passed
+
+---
+
+# Card and circular home widgets (2026-10-07)
+
+The user selected the first and second displayed widget mockups. This change applies them to the existing Android widgets and Flutter preview screen; it does not scaffold a separate prototype or change the iOS WidgetKit layout.
+
+## Visual evidence
+
+- Selected images: `output/widget-design-2026-10-07/reference-card.png` (1774 × 887) and `reference-ring.png` (1672 × 941).
+- Actual Android RemoteViews captures in the same directory: `android-cards-360.png`, `android-ring-360.png`, `android-cards-250.png`, `android-ring-250.png`, `android-cards-completed.png`, and `android-ring-completed.png`.
+- Android viewports: 360 × 180 dp (990 × 495 pixels, density 2.75) and 250 × 160 dp (687 × 440 pixels, with fractional pixel rounding).
+- Actual Flutter captures: `cards-360.png`, `ring-360.png`, `cards-250.png`, and `ring-250.png`; 360/250 × 180 logical pixels at 3× density.
+- Comparison state: Korean, Starlight Cat, Reading 21:00–21:30, 12 minutes remaining, Stretching next at 21:30. Completed captures are supplemental states; the selected mocks only specify the active state.
+- Each reference and its latest Android implementation were opened in the same comparison response. Comparison uses the card content, excluding the generated image's outer presentation canvas, and judges positions at a common logical width. The card reference's content aspect ratio is approximately 2.18:1; Android uses 2:1 to accommodate its 4 × 2 sizing and a usable action. The ring reference is approximately 2:1. Pixel-for-pixel equivalence of the surrounding mockup canvas is not claimed.
+- Full-size captures make the countdown, action, labels and mascot clearly readable; no separate detail crop was needed. Narrow and completed states were inspected independently.
+
+## Required fidelity surfaces
+
+- Typography: readable system Korean sans-serif, bold routine/countdown hierarchy, smaller secondary labels, and white completion labels. Android uses native text rather than baking copy into artwork. Explicit row heights and disabled extra fallback line spacing prevent Korean glyph clipping. Long titles truncate within the widget instead of covering the action.
+- Spacing: card content keeps the current routine and countdown at left, mascot at right, and next routine/action beneath a divider. The circular layout keeps the action left and the cat above the dial. A separate compact layout retains the same hierarchy at 250 × 160 dp. New widgets default to 4 × 2; existing launcher placements retain their old size until resized or re-added.
+- Colors: existing cream/lavender skin, dark ink and purple action are preserved. Other character packs retain their own artwork and text/background tokens. Buttons use the app's flat purple treatment and stepped border instead of the generated highlight gradient.
+- Assets: shipped cat sprites and decoration artwork replace the reference's generated approximation of the same character. The 24-hour dial renders actual routine segments, so it does not invent the reference's decorative extra appointments. No new generated artwork is required.
+- Copy: current state, routine name, time range, remaining duration, next routine and localized completion action follow the selected hierarchy. Completion, no-current-routine and expired-data states use real state rather than continuing to show an actionable sample timer. New labels are present in all five supported locales.
+
+## Findings and iteration history
+
+1. P1: the initial Flutter capture lacked its Material icon font. The capture harness now loads the existing MaterialIcons font; the completion check renders correctly.
+2. P2: an early ring layout clipped the next routine title. Combined the native next time/title into one bounded row and adjusted vertical spacing. The final normal and narrow captures show the entire Korean fixture row.
+3. P2: Spanish next-label text overflowed in Flutter. Constrained the localized prefix and title; the five-locale 1.0×/1.3× layout regression run passes.
+4. P2: reducing native height to the declared minimum clipped the card countdown and native next-row baseline. Allocated explicit text rows, removed excess fallback line spacing, reduced vertical gaps, and reduced the narrow mascot frame. Added native bounds checks for visible child/text clipping. All six native states pass after these changes and the final captures show complete glyphs.
+5. P3: reduced the completed circular widget's clock type size to leave more clearance from the dial's 06/18 labels. Its clock derives from the same render timestamp as the rest of the view.
+
+The existing rounded Android outer frame and small status badge differ slightly from the generated pixel corner shapes; the stepped action and dial preserve the pixel style. These are minor integration differences. No actionable P0/P1/P2 visual findings remain after the corrections above.
+
+## Interaction and regression verification
+
+- 119 relevant Dart test cases passed across the final widget, payload/timeline, action, background-callback and localization/layout runs. The callback test sends two concurrent actions, observes one persisted completion, and verifies updates for all three Android widget providers.
+- Completion targets the displayed routine ID and occurrence date, including the sleep wake date. Tests cover stale/deleted/changed definitions, wrong dates, malformed actions, overlap, duplicate completion and preserving skipped records.
+- Android saves under the repository's shared native lock and informs the foreground app of changes. After saving, the background callback cancels the routine's snooze and regenerates widget data. Storage failure does not produce a completed state.
+- Native instrumentation renders the real RemoteViews without changing saved routines/logs, checks completion PendingIntent binding, confirms its removal for completed state, and checks visible text/child bounds at both sizes.
+- Targeted Dart static analysis: no issues. Android debug APK and instrumentation APK build: passed.
+- Launcher picker previews use the verified native captures and preserve their aspect ratio. The app's widget preview shows both designs; sample completion remains isolated from real logs.
+- Physical launcher taps through the OS background worker and physical-device battery restrictions have not been verified end to end. Callback persistence and native action binding were tested separately. Existing five-minute/boundary refresh scheduling is retained; this is not a per-second countdown.
+
+## Handoff checklist
+
+- [x] Both selected layouts implemented in the existing app.
+- [x] Completion persistence and widget refresh connected.
+- [x] Compact and completed-state rendering checked.
+- [x] Launcher picker artwork updated.
+- [x] Targeted tests, static analysis and Android build passed.
+- [ ] Optional physical-phone pass for launcher sizing and OS-delivered completion taps.
+
+final result: passed

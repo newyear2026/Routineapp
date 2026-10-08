@@ -25,6 +25,8 @@ class WidgetMediumPreviewScreen extends StatefulWidget {
 
 class _WidgetMediumPreviewScreenState extends State<WidgetMediumPreviewScreen> {
   bool _useSampleData = false;
+  bool _sampleCompleted = false;
+  bool _completing = false;
 
   @override
   Widget build(BuildContext context) {
@@ -45,7 +47,8 @@ class _WidgetMediumPreviewScreenState extends State<WidgetMediumPreviewScreen> {
             }
 
             final HomeMediumWidgetViewModel vm = _useSampleData
-                ? HomeMediumWidgetViewModel.dummy(l10n)
+                ? HomeMediumWidgetViewModel.dummy(l10n,
+                    completed: _sampleCompleted)
                 : HomeMediumWidgetSelector.fromSnapshot(
                     app.homeSnapshotFor(l10n), l10n);
 
@@ -69,26 +72,57 @@ class _WidgetMediumPreviewScreenState extends State<WidgetMediumPreviewScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                // 위젯 바탕은 앱 페이지 배경과 같은 색이라 이 화면에 그대로
-                // 얹으면 경계가 사라진다. orbitBorder로 테두리를 둘러도
-                // 배경 대비 1.22:1이라 보이지 않는다.
-                // 홈 화면 배경 역할의 패널을 깔아 위젯 면적을 드러낸다.
-                Container(
-                  padding: const EdgeInsets.all(18),
-                  decoration: ShapeDecoration(
-                    color: AppColors.textMuted.withValues(alpha: 0.5),
-                    shape: AppPixelStyle.shape(),
+                for (final style in HomeWidgetStyle.values) ...[
+                  Text(
+                      switch (style) {
+                        HomeWidgetStyle.cards => l10n.widgetStyleCards,
+                        HomeWidgetStyle.ring => l10n.widgetStyleRing,
+                        HomeWidgetStyle.timeline => l10n.widgetStyleTimeline,
+                      },
+                      style: AppTextStyles.bodyStrong),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: ShapeDecoration(
+                        color: AppColors.textMuted.withValues(alpha: 0.3),
+                        shape: AppPixelStyle.shape()),
+                    child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: SizedBox(
+                            width: 340,
+                            child: MediaQuery.withNoTextScaling(
+                                child: HomeMediumWidget(
+                                    viewModel: vm,
+                                    style: style,
+                                    pack: app.currentPack,
+                                    onComplete: _completing
+                                        ? null
+                                        : () async {
+                                            if (_useSampleData) {
+                                              setState(() =>
+                                                  _sampleCompleted = true);
+                                              return;
+                                            }
+                                            setState(() => _completing = true);
+                                            try {
+                                              await app.completeCurrent();
+                                            } catch (error) {
+                                              if (context.mounted) {
+                                                ScaffoldMessenger.of(context)
+                                                    .showSnackBar(SnackBar(
+                                                        content: Text(l10n
+                                                            .homeActionSaveFailed)));
+                                              }
+                                            } finally {
+                                              if (mounted) {
+                                                setState(
+                                                    () => _completing = false);
+                                              }
+                                            }
+                                          })))),
                   ),
-                  child: FittedBox(
-                    fit: BoxFit.scaleDown,
-                    child: SizedBox(
-                        width: 340,
-                        child: MediaQuery.withNoTextScaling(
-                            child: HomeMediumWidget(
-                                viewModel: vm,
-                                pack: app.currentPack))),
-                  ),
-                ),
+                  const SizedBox(height: 18),
+                ],
                 const SizedBox(height: 10),
                 // 안내 문구는 패널 밖에 둔다. 패널 위에서는 대비가 2.5:1로 떨어진다.
                 Text(
@@ -115,8 +149,10 @@ class _WidgetMediumPreviewScreenState extends State<WidgetMediumPreviewScreen> {
                       AppPixelSwitch(
                         label: l10n.widgetPreviewSample,
                         value: _useSampleData,
-                        onChanged: (value) =>
-                            setState(() => _useSampleData = value),
+                        onChanged: (value) => setState(() {
+                          _useSampleData = value;
+                          _sampleCompleted = false;
+                        }),
                       ),
                     ],
                   ),

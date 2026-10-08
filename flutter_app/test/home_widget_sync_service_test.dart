@@ -44,6 +44,6 @@ void main() {
         'com.dayround.app.RoutineCardsWidgetProvider',
       ],
     );
-    expect(calls.where((call) => call.method == 'saveWidgetData'), hasLength(1));
+    expect(calls.where((call) => call.method == 'saveWidgetData'), hasLength(2));
   });
 }

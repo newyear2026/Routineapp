@@ -1109,5 +1109,9 @@
       }
     }
   },
-  "sleepPreviousDay": "Previous day"
+  "sleepPreviousDay": "Previous day",
+  "widgetStyleTimeline": "Routine timeline",
+  "widgetStyleCards": "Routine card",
+  "widgetStyleRing": "Circular timetable",
+  "widgetComplete": "Done"
 }

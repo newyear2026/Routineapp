@@ -107,6 +107,9 @@
                 android:resource="@xml/routine_medium_widget_info" />
         </receiver>
         <receiver
+            android:name="es.antonborri.home_widget.HomeWidgetBackgroundReceiver"
+            android:exported="false" />
+        <receiver
             android:name=".RoutineTimelineWidgetProvider"
             android:label="@string/widget_timeline_name"
             android:exported="true">

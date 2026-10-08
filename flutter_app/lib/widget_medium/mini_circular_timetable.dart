@@ -27,6 +27,8 @@ class MiniCircularTimetable extends StatelessWidget {
     this.pointerAngleRad,
     required this.centerLabel,
     this.size = 120,
+    this.centerValue,
+    this.labelsInside = false,
     this.palette = const DialPalette(),
   });
 
@@ -38,6 +40,9 @@ class MiniCircularTimetable extends StatelessWidget {
   final double? pointerAngleRad;
   final String centerLabel;
   final double size;
+  final String? centerValue;
+  final bool labelsInside;
+
   /// 팩마다 다른 원판 색. 비운 값은 기본 위젯 색이다.
   final DialPalette palette;
 
@@ -93,12 +98,16 @@ class MiniCircularTimetable extends StatelessWidget {
               activeSegmentId: activeSegmentId ?? '',
               nowMinutes: nowMinutes,
               showHourLabels: true,
+              pointerInnerFraction: labelsInside ? 0.68 : 0,
+              pixelHourLabels: !labelsInside,
+              hourLabelFontFamily:
+                  Theme.of(context).textTheme.bodyMedium?.fontFamily,
               radiusFactor: 0.39,
               // 292는 홈(286) 기준이라 이 크기에서는 눈금·라벨이 사라진다.
               referenceSize: 150,
               // 기본 상한(0.448)은 홈 글자 크기에서 정한 값이라, 여기서는
               // 라벨이 계단 원판(0.48) 테두리를 넘어 잘린다.
-              hourLabelRadiusFactor: 0.425,
+              hourLabelRadiusFactor: labelsInside ? 0.29 : 0.425,
               trackColor: palette.track ?? AppColors.orbitHalo,
               pointerColor: palette.pointer ?? AppColors.orbitPrimary,
               hourLabelColor: palette.hourLabel ?? AppColors.textStrong,
@@ -108,19 +117,32 @@ class MiniCircularTimetable extends StatelessWidget {
           Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              PixelDigits(
-                timeText,
-                height: size * 0.15,
-                maxWidth: size * 0.5,
-                color: WidgetTheme.textPrimary,
-              ),
+              if (centerValue != null)
+                SizedBox(
+                    width: size * 0.58,
+                    child: FittedBox(
+                        fit: BoxFit.scaleDown,
+                        child: Text(centerValue!,
+                            style: TextStyle(
+                                fontSize: size * 0.19,
+                                fontWeight: FontWeight.w800,
+                                color: palette.hourLabel ??
+                                    WidgetTheme.textPrimary))))
+              else
+                PixelDigits(timeText,
+                    height: size * 0.15,
+                    maxWidth: size * 0.5,
+                    color: WidgetTheme.textPrimary),
               SizedBox(height: size * 0.03),
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 1),
-                decoration: BoxDecoration(
-                  color: palette.centerLabel ?? AppColors.orbitSurfaceSoft,
-                  border: Border.all(color: AppColors.orbitBorder),
-                ),
+                decoration: labelsInside
+                    ? null
+                    : BoxDecoration(
+                        color:
+                            palette.centerLabel ?? AppColors.orbitSurfaceSoft,
+                        border: Border.all(color: AppColors.orbitBorder),
+                      ),
                 child: Text(
                   centerLabel,
                   style: TextStyle(

@@ -461,5 +461,9 @@
   "sleepScheduleSummary": "{days} {time}에 일어나는 일정이에요",
   "sleepEqualTimesError": "취침·기상 시각을 다르게 선택해 주세요. 24시간 미만으로 설정할 수 있어요.",
   "sleepWakeNotificationBody": "일어날 시간이에요.",
-  "sleepPreviousDay": "전날"
+  "sleepPreviousDay": "전날",
+  "widgetStyleTimeline": "가로 시간선",
+  "widgetStyleCards": "루틴 카드",
+  "widgetStyleRing": "원형 시간표",
+  "widgetComplete": "완료"
 }

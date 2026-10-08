@@ -54,6 +54,9 @@ class OrbitRingPainter extends CustomPainter {
     this.activeSegmentId = '',
     this.showHourLabels = true,
     this.showNowPointer = true,
+    this.pointerInnerFraction = 0,
+    this.pixelHourLabels = true,
+    this.hourLabelFontFamily,
     this.radiusFactor = 0.34,
     this.referenceSize = 292,
     this.hourLabelRadiusFactor,
@@ -74,6 +77,11 @@ class OrbitRingPainter extends CustomPainter {
 
   /// 루틴 편집 미리보기처럼 '지금'이 뜻이 없는 곳에서는 바늘을 끈다.
   final bool showNowPointer;
+
+  /// Leave the countdown center clear in system widget previews.
+  final double pointerInnerFraction;
+  final bool pixelHourLabels;
+  final String? hourLabelFontFamily;
 
   /// 링 반지름 / 박스 폭. 라벨을 그리려면 바깥 여백이 필요하다.
   final double radiusFactor;
@@ -182,6 +190,7 @@ class OrbitRingPainter extends CustomPainter {
     for (var hour = 0; hour < 24; hour++) {
       final angle = _minutesToRad(hour * 60);
       final isMajor = hour % 6 == 0;
+      if (!pixelHourLabels && isMajor) continue;
       final tickLength = isMajor ? 11 * scale : 6 * scale;
       final base = orbitRadius - trackStroke / 2 - 10 * scale;
       canvas.drawLine(
@@ -214,6 +223,21 @@ class OrbitRingPainter extends CustomPainter {
       center.dx + math.cos(angle) * radius,
       center.dy + math.sin(angle) * radius,
     );
+    if (!pixelHourLabels) {
+      final painter = TextPainter(
+          text: TextSpan(
+              text: text,
+              style: TextStyle(
+                  fontSize: 10 * scale,
+                  fontFamily: hourLabelFontFamily,
+                  fontWeight: FontWeight.w600,
+                  color: hourLabelColor)),
+          textDirection: TextDirection.ltr)
+        ..layout();
+      painter.paint(
+          canvas, position - Offset(painter.width / 2, painter.height / 2));
+      return;
+    }
     // 작은 눈금도 시계 가운데와 같은 격자 숫자로 그린다. Pixelify로 그리면
     // 이 크기에서 «12»가 «18»처럼 읽혔다.
     final cell = PixelDigitGlyphs.snap(1.1 * scale, devicePixelRatio);
@@ -246,7 +270,10 @@ class OrbitRingPainter extends CustomPainter {
     );
 
     canvas.drawLine(
-      center,
+      center +
+          Offset(math.cos(nowRad), math.sin(nowRad)) *
+              orbitRadius *
+              pointerInnerFraction,
       nowCenter,
       Paint()
         ..isAntiAlias = false
@@ -269,6 +296,9 @@ class OrbitRingPainter extends CustomPainter {
         oldDelegate.activeSegmentId != activeSegmentId ||
         oldDelegate.showHourLabels != showHourLabels ||
         oldDelegate.showNowPointer != showNowPointer ||
+        oldDelegate.pointerInnerFraction != pointerInnerFraction ||
+        oldDelegate.pixelHourLabels != pixelHourLabels ||
+        oldDelegate.hourLabelFontFamily != hourLabelFontFamily ||
         oldDelegate.radiusFactor != radiusFactor ||
         oldDelegate.referenceSize != referenceSize ||
         oldDelegate.hourLabelRadiusFactor != hourLabelRadiusFactor ||

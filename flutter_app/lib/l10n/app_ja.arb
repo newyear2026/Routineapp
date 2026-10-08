@@ -461,5 +461,9 @@
   "sleepScheduleSummary": "{days}の{time}に起きる予定です",
   "sleepEqualTimesError": "就寝と起床を異なる時刻にしてください。24時間未満で設定できます。",
   "sleepWakeNotificationBody": "起きる時間です。",
-  "sleepPreviousDay": "前日"
+  "sleepPreviousDay": "前日",
+  "widgetStyleTimeline": "タイムライン",
+  "widgetStyleCards": "ルーティンカード",
+  "widgetStyleRing": "円形時刻表",
+  "widgetComplete": "完了"
 }

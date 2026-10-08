@@ -50,7 +50,7 @@ void main() {
     expect(medium.ringSegments[1].sweepMinutes, 120);
   });
 
-  testWidgets('다음 루틴 시각은 왼쪽 정보 칸 끝에 붙는다', (tester) async {
+  testWidgets('원형 위젯의 다음 일정은 시각 다음에 이름을 표시한다', (tester) async {
     await tester.pumpWidget(localizedApp(
       home: Center(
         child: SizedBox(
@@ -66,6 +66,11 @@ void main() {
 
     final time = tester.getRect(find.text('18:00'));
     final ring = tester.getRect(find.byType(MiniCircularTimetable));
-    expect(ring.left - time.right, lessThan(35));
+    final next = tester.getRect(find.text(testL10n.catalogDinner));
+    expect(next.left, greaterThan(time.right));
+    expect(next.right, lessThan(ring.left));
+    expect((next.center.dy - time.center.dy).abs(), lessThan(2));
+    expect(find.text(testL10n.widgetComplete), findsOneWidget);
+    expect(tester.takeException(), isNull);
   });
 }

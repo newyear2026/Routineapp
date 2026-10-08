@@ -8,6 +8,7 @@ import '../widget_medium/home_medium_widget_selector.dart';
 import '../widget_medium/home_medium_widget_view_model.dart';
 import '../widget_medium/medium_ring_segment.dart';
 import '../widget_medium/mini_circular_timetable.dart';
+import '../widget_medium/widget_timeline_item.dart';
 
 /// 시스템 홈 위젯(iOS/Android)과 공유하는 JSON 페이로드 — [docs/SYSTEM_HOME_WIDGET_SPEC.md].
 class SystemHomeWidgetPayload {
@@ -34,11 +35,14 @@ class SystemHomeWidgetPayload {
     this.durationHoursTemplate = '',
     this.durationMinutesTemplate = '',
     this.characterPackId = 'cat_starlight',
+    this.completeActionUri,
+    this.completeLabel = '',
     this.currentRoutineTimeRange = '',
     this.upcomingRoutines = const [],
     this.ringUntilStartLabel = '',
     this.ringUntilEndLabel = '',
     this.upNextLabel = '',
+    this.timelineItems = const [],
   });
 
   /// v3: 미래 루틴 경계·다국어 표시 템플릿·만료 시점을 추가했다.
@@ -70,11 +74,14 @@ class SystemHomeWidgetPayload {
   final String characterPackId;
 
   /// 4×2 링 위젯이 쓴다. 옛 네이티브 코드는 읽지 않으므로 v3 그대로 둔다.
+  final String? completeActionUri;
+  final String completeLabel;
   final String currentRoutineTimeRange;
   final List<SystemUpcomingRoutinePayload> upcomingRoutines;
   final String ringUntilStartLabel;
   final String ringUntilEndLabel;
   final String upNextLabel;
+  final List<WidgetTimelineItem> timelineItems;
 
   factory SystemHomeWidgetPayload.fromHomeSnapshot(
     HomeSnapshot snapshot,
@@ -110,8 +117,11 @@ class SystemHomeWidgetPayload {
       ringSegments:
           vm.ringSegments.map(SystemRingSegmentPayload.fromMedium).toList(),
       activeSegmentId: vm.activeSegmentId,
+      completeActionUri: vm.completeActionUri,
+      completeLabel: vm.completeLabel,
       currentRoutineTimeRange: vm.currentRoutineTimeRange,
       upcomingRoutines: upcomingRoutines,
+      timelineItems: vm.timelineItems,
     );
   }
 
@@ -148,11 +158,14 @@ class SystemHomeWidgetPayload {
         durationMinutesTemplate:
             l10n.durationMinutes(202).replaceFirst('202', '{minutes}'),
         characterPackId: characterPackId,
+        completeActionUri: completeActionUri,
+        completeLabel: completeLabel,
         currentRoutineTimeRange: currentRoutineTimeRange,
         upcomingRoutines: upcomingRoutines,
         ringUntilStartLabel: l10n.widgetRingUntilStart,
         ringUntilEndLabel: l10n.widgetRingUntilEnd,
         upNextLabel: l10n.widgetUpNext,
+        timelineItems: timelineItems,
       );
 
   SystemHomeWidgetPayload withCharacterPack(String packId) =>
@@ -179,11 +192,14 @@ class SystemHomeWidgetPayload {
         durationHoursTemplate: durationHoursTemplate,
         durationMinutesTemplate: durationMinutesTemplate,
         characterPackId: packId,
+        completeActionUri: completeActionUri,
+        completeLabel: completeLabel,
         currentRoutineTimeRange: currentRoutineTimeRange,
         upcomingRoutines: upcomingRoutines,
         ringUntilStartLabel: ringUntilStartLabel,
         ringUntilEndLabel: ringUntilEndLabel,
         upNextLabel: upNextLabel,
+        timelineItems: timelineItems,
       );
 
   Map<String, dynamic> toJson() => {
@@ -209,11 +225,14 @@ class SystemHomeWidgetPayload {
         'durationHoursTemplate': durationHoursTemplate,
         'durationMinutesTemplate': durationMinutesTemplate,
         'characterPackId': characterPackId,
+        'completeActionUri': completeActionUri,
+        'completeLabel': completeLabel,
         'currentRoutineTimeRange': currentRoutineTimeRange,
         'upcomingRoutines': upcomingRoutines.map((e) => e.toJson()).toList(),
         'ringUntilStartLabel': ringUntilStartLabel,
         'ringUntilEndLabel': ringUntilEndLabel,
         'upNextLabel': upNextLabel,
+        'timelineItems': timelineItems.map((e) => e.toJson()).toList(),
       };
 
   String encode() => jsonEncode(toJson());
@@ -233,8 +252,11 @@ class SystemWidgetStatePayload {
     this.activeSegmentId,
     this.timingTargetEpochMs,
     this.timingMode,
+    this.completeActionUri,
+    this.completeLabel = '',
     this.currentRoutineTimeRange = '',
     this.upcomingRoutines = const [],
+    this.timelineItems = const [],
   });
 
   final int effectiveAtEpochMs;
@@ -248,8 +270,11 @@ class SystemWidgetStatePayload {
   final String? activeSegmentId;
   final int? timingTargetEpochMs;
   final String? timingMode;
+  final String? completeActionUri;
+  final String completeLabel;
   final String currentRoutineTimeRange;
   final List<SystemUpcomingRoutinePayload> upcomingRoutines;
+  final List<WidgetTimelineItem> timelineItems;
 
   Map<String, dynamic> toJson() => {
         'effectiveAtEpochMs': effectiveAtEpochMs,
@@ -263,8 +288,11 @@ class SystemWidgetStatePayload {
         'activeSegmentId': activeSegmentId,
         'timingTargetEpochMs': timingTargetEpochMs,
         'timingMode': timingMode,
+        'completeActionUri': completeActionUri,
+        'completeLabel': completeLabel,
         'currentRoutineTimeRange': currentRoutineTimeRange,
         'upcomingRoutines': upcomingRoutines.map((e) => e.toJson()).toList(),
+        'timelineItems': timelineItems.map((e) => e.toJson()).toList(),
       };
 }
 

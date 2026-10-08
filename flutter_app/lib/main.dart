@@ -48,6 +48,8 @@ import 'screens/release_notes_screen.dart';
 import 'screens/routines_screen.dart';
 import 'theme/app_theme.dart';
 import 'widget_home/home_widget_sync_service.dart';
+import 'widget_home/widget_interactivity.dart';
+import 'package:home_widget/home_widget.dart';
 import 'widgets/store/character_pack_scope.dart';
 import 'widgets/store/purchase_text.dart';
 import 'domain/onboarding/onboarding_preview_nav.dart';
@@ -73,6 +75,10 @@ Future<void> main() async {
       debugPrint('notification startup failed: $e');
     }
     await HomeWidgetSyncService.instance.init();
+    if (defaultTargetPlatform == TargetPlatform.android) {
+      await HomeWidget.registerInteractivityCallback(
+          routineWidgetBackgroundAction);
+    }
     // 기다리지 않는다. 광고는 없어도 앱이 돌아가야 하는 기능이라, 여기서
     // 붙잡으면 SDK가 느린 날 첫 화면이 그만큼 늦게 뜬다.
     unawaited(AdBootstrap.instance.ensureInitialized());

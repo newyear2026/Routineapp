@@ -49,6 +49,8 @@ class HomeWidgetSyncService {
       SystemHomeWidgetPayload.storageKey,
       payload.encode(),
     );
+    await HomeWidget.saveWidgetData<String>(
+        'routine_widget_pack', characterPackId);
     await HomeWidget.updateWidget(
       androidName: androidWidgetName,
       qualifiedAndroidName: androidWidgetQualifiedName,

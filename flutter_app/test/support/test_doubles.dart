@@ -57,6 +57,19 @@ class MemoryLogRepository implements RoutineLogRepository {
   final List<RoutineLog> logs;
 
   @override
+  Future<bool> saveWidgetCompletion(RoutineLog log) async {
+    if (logs.any((old) =>
+        old.routineId == log.routineId &&
+        old.dateYmd == log.dateYmd &&
+        (old.status == RoutineLogStatus.completed ||
+            old.status == RoutineLogStatus.skipped))) {
+      return false;
+    }
+    await upsertLog(log);
+    return true;
+  }
+
+  @override
   Future<bool> saveNotificationSnooze(RoutineLog log) async {
     final protected = logs.any((old) =>
         old.routineId == log.routineId &&

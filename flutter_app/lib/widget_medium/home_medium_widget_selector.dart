@@ -1,4 +1,6 @@
 import '../application/home/home_snapshot.dart';
+import '../domain/services/routine_occurrences.dart';
+import '../widget_home/widget_routine_target.dart';
 import '../domain/models/routine_log_status.dart';
 import '../domain/utils/time_minutes.dart';
 import '../l10n/app_localizations.dart';
@@ -7,6 +9,7 @@ import '../domain/models/routine_icon_id.dart';
 import '../theme/routine_palette.dart';
 import 'home_medium_widget_view_model.dart';
 import 'medium_ring_segment.dart';
+import 'widget_timeline_item.dart';
 
 /// [HomeSnapshot]·도메인 지표 → Medium 위젯 [HomeMediumWidgetViewModel].
 ///
@@ -45,7 +48,55 @@ abstract final class HomeMediumWidgetSelector {
     final ring = _ringSegmentsFromUiSegments(h.segments);
     final activeId = h.activeRoutineForRing?.id;
 
+    final day = DateTime.tryParse(h.dateYmd ?? '');
+    final now = day == null
+        ? null
+        : DateTime(
+            day.year, day.month, day.day, h.clockTime.hour, h.clockTime.minute);
+    final hint = _timingHint(
+        logStatus: h.currentRoutineLogStatus,
+        hint: h.currentRoutineCard?.timingHint);
+    var duration = '';
+    if (display != null && now != null && hint.isNotEmpty) {
+      final window = RoutineOccurrences.window(display, now);
+      final target = h.isDisplayUpcoming ? window.start : window.end;
+      final minutes = target.difference(now).inMinutes;
+      if (minutes > 0) {
+        duration = minutes < 60
+            ? l10n.durationMinutes(minutes)
+            : minutes % 60 == 0
+                ? l10n.durationHours(minutes ~/ 60)
+                : l10n.durationHoursMinutes(minutes ~/ 60, minutes % 60);
+      }
+    }
     return HomeMediumWidgetViewModel(
+      timelineNowEpochMs: now?.millisecondsSinceEpoch ?? 0,
+      timelineItems: display == null || now == null
+          ? const []
+          : [
+              for (final routine in [display, ...h.upcomingRoutines.take(2)])
+                WidgetTimelineItem(
+                  id: routine.id,
+                  title: routine.title,
+                  time: TimeMinutes.formatHm(routine.startMinutesFromMidnight),
+                  startEpochMs: RoutineOccurrences.window(routine, now)
+                      .start
+                      .millisecondsSinceEpoch,
+                ),
+            ],
+      remainingDuration: duration,
+      remainingLabel: duration.isEmpty
+          ? ''
+          : h.isDisplayUpcoming
+              ? l10n.widgetRingUntilStart
+              : l10n.widgetRingUntilEnd,
+      completeLabel: l10n.widgetComplete,
+      completeActionUri: h.canActOnCurrentSlot &&
+              display != null &&
+              now != null &&
+              display.id == h.currentRoutine?.id
+          ? WidgetRoutineTarget.forRoutine(display, now).uri.toString()
+          : null,
       currentRoutineTitle: title,
       currentRoutineTimingHint: display == null
           ? l10n.widgetAddHint

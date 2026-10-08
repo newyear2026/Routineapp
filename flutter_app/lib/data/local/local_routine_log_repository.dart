@@ -103,6 +103,22 @@ class LocalRoutineLogRepository implements RoutineLogRepository {
     return true;
   }
 
+  @override
+  Future<bool> saveWidgetCompletion(RoutineLog log) async {
+    final result = await _nativeMutation('widget_complete', log: log);
+    if (result != null) return result;
+    final existing = await loadAllLogs();
+    if (existing.any((old) =>
+        old.routineId == log.routineId &&
+        old.dateYmd == log.dateYmd &&
+        (old.status == RoutineLogStatus.completed ||
+            old.status == RoutineLogStatus.skipped))) {
+      return false;
+    }
+    await upsertLog(log);
+    return true;
+  }
+
   Future<bool?> _nativeMutation(String operation,
       {RoutineLog? log, String? routineId, String? dateYmd}) async {
     if (kIsWeb || defaultTargetPlatform != TargetPlatform.android) return null;

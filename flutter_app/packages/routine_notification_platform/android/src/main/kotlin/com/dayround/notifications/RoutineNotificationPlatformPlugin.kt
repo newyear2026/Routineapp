@@ -98,7 +98,7 @@ class RoutineNotificationPlatformPlugin : FlutterPlugin, MethodChannel.MethodCal
                 "mutateLogs" -> {
                     val saved = mutateLogs(call)
                     result.success(saved)
-                    if (saved && call.argument<String>("operation") == "snooze") {
+                    if (saved && call.argument<String>("operation") in listOf("snooze", "widget_complete")) {
                         channels.forEach { it.invokeMethod("logsChanged", null) }
                     }
                 }
@@ -125,6 +125,9 @@ class RoutineNotificationPlatformPlugin : FlutterPlugin, MethodChannel.MethodCal
                 (date == null || old.getString("dateYmd") == date)
             if (!matches) {
                 result.put(old)
+            } else if (operation == "widget_complete" &&
+                old.getString("status") in listOf("completed", "skipped")) {
+                return@synchronized false
             } else if (operation == "snooze" &&
                 (old.getString("status") in listOf("completed", "skipped") ||
                  old.optLong("snoozedUntilMs", 0) >= incoming!!.getLong("snoozedUntilMs"))) {

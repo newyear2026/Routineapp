@@ -14,6 +14,9 @@ abstract class RoutineLogRepository {
   /// 조건 확인과 쓰기를 하나의 원자적 작업으로 처리해야 한다.
   Future<bool> saveNotificationSnooze(RoutineLog log);
 
+  /// Atomically preserve an existing completed/skipped record on repeated taps.
+  Future<bool> saveWidgetCompletion(RoutineLog log);
+
   /// 마이그레이션·백업·동기화용
   Future<List<RoutineLog>> loadAllLogs();
 

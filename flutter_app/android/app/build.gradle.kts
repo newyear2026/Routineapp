@@ -38,6 +38,7 @@ android {
     defaultConfig {
         // Play Console 에서 앱을 만든 뒤에는 절대 바꿀 수 없다.
         applicationId = "com.dayround.app"
+        testInstrumentationRunner = "com.dayround.app.WidgetRenderInstrumentation"
         // You can update the following values to match your application needs.
         // For more information, see: https://flutter.dev/to/review-gradle-config.
         minSdk = flutter.minSdkVersion
