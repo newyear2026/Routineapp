@@ -33,28 +33,30 @@ class CompactWidgetTimeline extends StatelessWidget {
                   painter: _TimelineTrack(visible, nowEpochMs, accent, muted))),
           const SizedBox(height: 4),
           Row(children: [
-            for (final item in visible)
+            for (final (index, item) in visible.indexed)
               Expanded(
+                  flex: visible.length == 3 && index == 1 ? 3 : 1,
                   child: Column(children: [
-                Text(item.time,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                        fontSize: 13,
-                        height: 1.15,
-                        fontWeight: FontWeight.w700,
-                        color: ink)),
-                const SizedBox(height: 2),
-                Text(item.title,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: TextStyle(
-                        fontSize: 13,
-                        height: 1.15,
-                        fontWeight: FontWeight.w700,
-                        color:
-                            nowEpochMs >= item.startEpochMs ? accent : muted)),
-              ]))
+                    Text(item.time,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            fontSize: 13,
+                            height: 1.15,
+                            fontWeight: FontWeight.w700,
+                            color: ink)),
+                    const SizedBox(height: 2),
+                    Text(item.title,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                            fontSize: 13,
+                            height: 1.15,
+                            fontWeight: FontWeight.w700,
+                            color: nowEpochMs >= item.startEpochMs
+                                ? accent
+                                : muted)),
+                  ]))
           ]),
         ]));
   }
@@ -70,7 +72,9 @@ class _TimelineTrack extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()..strokeWidth = 3;
-    double x(int i) => size.width * (i + 0.5) / items.length;
+    double x(int i) =>
+        size.width *
+        (items.length == 3 ? 0.1 + 0.4 * i : (i + 0.5) / items.length);
     for (var i = 0; i < items.length - 1; i++) {
       canvas.drawLine(Offset(x(i), 8), Offset(x(i + 1), 8),
           paint..color = muted.withValues(alpha: 0.25));
@@ -78,11 +82,12 @@ class _TimelineTrack extends CustomPainter {
       final progress = span <= 0
           ? (now >= items[i].startEpochMs ? 1.0 : 0.0)
           : ((now - items[i].startEpochMs) / span).clamp(0.0, 1.0);
-      if (progress > 0)
+      if (progress > 0) {
         canvas.drawLine(
             Offset(x(i), 8),
             Offset(x(i) + (x(i + 1) - x(i)) * progress, 8),
             paint..color = accent);
+      }
     }
     for (var i = 0; i < items.length; i++) {
       final rect =

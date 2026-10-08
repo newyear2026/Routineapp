@@ -15,7 +15,7 @@ object RoutineWidgetTimelineTrack {
         val canvas = Canvas(bitmap)
         val scale = height / 16f
         val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { strokeWidth = 3f * scale }
-        fun x(i: Int) = width * (i + 0.5f) / starts.size
+        fun x(i: Int) = width * (if (starts.size == 3) 0.1f + 0.4f * i else (i + 0.5f) / starts.size)
         val y = height / 2f
         for (i in 0 until starts.lastIndex) {
             paint.color = (muted and 0x00FFFFFF) or (0x40 shl 24)

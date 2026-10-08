@@ -53,6 +53,14 @@ class WidgetRenderInstrumentation : Instrumentation() {
             put("activeSegmentId", "reading")
             put("pointerAngleRad", 1278.0 / 1440 * 2 * Math.PI - Math.PI / 2)
             put("currentTimeHour", 21); put("currentTimeMinute", 18)
+            put("timelineItems", JSONArray().apply {
+                listOf("독서", "스트레칭", "취침").forEachIndexed { index, title ->
+                    val minute = 1260 + index * 30
+                    put(JSONObject().put("id", "timeline-$index").put("title", title)
+                        .put("time", "%02d:%02d".format(minute / 60, minute % 60))
+                        .put("startEpochMs", now - 18 * 60000 + index * 30 * 60000))
+                }
+            })
             put("ringSegments", JSONArray().apply {
                 listOf(Triple("reading",1260,0xFF6744F4), Triple("stretch",1290,0xFFFFAD3D),
                     Triple("sleep",1320,0xFFFF746C)).forEach { (id, start, color) ->
@@ -71,14 +79,14 @@ class WidgetRenderInstrumentation : Instrumentation() {
         val method = RoutineMediumWidgetProvider::class.java.getDeclaredMethod("renderLarge",
             Context::class.java, JSONObject::class.java, JSONObject::class.java,
             java.lang.Long.TYPE, Bitmap::class.java, RoutineWidgetSkin::class.java,
-            java.lang.Boolean.TYPE, java.lang.Boolean.TYPE).apply { isAccessible = true }
+            java.lang.Boolean.TYPE, java.lang.Boolean.TYPE, java.lang.Integer.TYPE).apply { isAccessible = true }
         val skin = RoutineWidgetSkin.default
         val ring = RoutineWidgetRingBitmap.create(state, 420, drawCenter = false,
             colors = skin.ring, labelsInside = true)
         for ((name, provider) in listOf("cards" to RoutineCardsWidgetProvider(),
-            "ring" to RoutineMediumWidgetProvider())) {
+            "ring" to RoutineMediumWidgetProvider(), "timeline" to RoutineTimelineWidgetProvider())) {
             for (width in listOf(360, 250)) {
-                val remote = method.invoke(provider, context, payload, state, now, ring, skin, false, width < 300) as RemoteViews
+                val remote = method.invoke(provider, context, payload, state, now, ring, skin, false, width < 300, width) as RemoteViews
                 val root = remote.apply(context, FrameLayout(context))
                 check(root.findViewById<TextView>(R.id.widget_action_complete).hasOnClickListeners())
                 render(root, "$name-$width", width, if (width < 300) 160 else 180)
@@ -87,11 +95,38 @@ class WidgetRenderInstrumentation : Instrumentation() {
                 put("currentRoutineStatus","완료"); remove("completeActionUri")
                 remove("timingTargetEpochMs"); put("currentRoutineTimingHint", "")
             }
-            val remote = method.invoke(provider, context, payload, completed, now, ring, skin, false, false) as RemoteViews
+            val remote = method.invoke(provider, context, payload, completed, now, ring, skin, false, false, 360) as RemoteViews
             val root = remote.apply(context, FrameLayout(context))
             check(root.findViewById<TextView>(R.id.widget_action_complete).visibility == View.GONE)
             render(root, "$name-completed", 360, 180)
         }
+        for (count in 0..2) {
+            val subset = JSONObject(state.toString()).apply {
+                put("timelineItems", JSONArray().apply {
+                    for (i in 0 until count) put(state.getJSONArray("timelineItems").getJSONObject(i))
+                })
+                if (count == 0) {
+                    remove("completeActionUri"); remove("timingTargetEpochMs")
+                    put("currentRoutineTitle", "오늘 루틴이 없어요")
+                    put("currentRoutineStatus", ""); put("currentRoutineTimingHint", "앱에서 루틴을 추가해 보세요")
+                }
+            }
+            val remote = method.invoke(RoutineTimelineWidgetProvider(), context, payload, subset, now,
+                ring, skin, false, true, 250) as RemoteViews
+            val root = remote.apply(context, FrameLayout(context))
+            val ids = intArrayOf(R.id.widget_timeline_item_0, R.id.widget_timeline_item_1, R.id.widget_timeline_item_2)
+            check(root.findViewById<View>(R.id.widget_timeline_schedule).visibility ==
+                if (count == 0) View.GONE else View.VISIBLE)
+            val visibleSlots = when (count) { 1 -> setOf(1); 2 -> setOf(0, 2); else -> emptySet() }
+            for (i in ids.indices) check(root.findViewById<View>(ids[i]).visibility ==
+                if (i in visibleSlots) View.VISIBLE else View.GONE)
+            render(root, "timeline-count-$count", 250, 160)
+        }
+        val expired = method.invoke(RoutineTimelineWidgetProvider(), context, payload, state, now,
+            ring, skin, true, false, 360) as RemoteViews
+        val expiredRoot = expired.apply(context, FrameLayout(context))
+        check(expiredRoot.findViewById<View>(R.id.widget_action_complete).visibility == View.GONE)
+        check(expiredRoot.findViewById<View>(R.id.widget_timeline_schedule).visibility == View.GONE)
         ring.recycle()
     }
 

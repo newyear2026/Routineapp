@@ -79,8 +79,9 @@ void main() {
           image.dispose();
           return data!.buffer.asUint8List();
         });
-        final out = File(
-            'output/widget-design-2026-10-07/${style.name}-${width.toInt()}.png');
+        const output = String.fromEnvironment('WIDGET_RENDER_OUTPUT',
+            defaultValue: 'output/widget-design-2026-10-07');
+        final out = File('$output/${style.name}-${width.toInt()}.png');
         out.parent.createSync(recursive: true);
         out.writeAsBytesSync(bytes!);
       }

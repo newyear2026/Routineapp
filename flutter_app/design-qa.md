@@ -166,3 +166,46 @@ The existing rounded Android outer frame and small status badge differ slightly 
 - [ ] Optional physical-phone pass for launcher sizing and OS-delivered completion taps.
 
 final result: passed
+
+---
+
+# Horizontal routine timeline widget (2026-10-08)
+
+The user supplied an additional image and requested the same treatment for the existing timeline widget. The earlier card and circular designs remain available.
+
+## Evidence and comparison
+
+- Source: `output/widget-timeline-2026-10-08/reference.png`, copied unchanged from the user's attachment, 1619 × 972 pixels.
+- Android implementation: `android-timeline-360.png` (990 × 495 pixels, 360 × 180 dp at 2.75×) and `android-timeline-250.png` (687 × 440 pixels, 250 × 160 dp with fractional pixel rounding) in the same directory.
+- Additional Android captures: `android-timeline-completed.png` and `android-timeline-count-0.png`, `android-timeline-count-1.png`, `android-timeline-count-2.png`.
+- Flutter implementation: `timeline-360.png` and `timeline-250.png`, 360/250 × 180 logical pixels at 3× density.
+- State: Korean Starlight Cat; Reading 21:00–21:30 at 21:18, Stretching at 21:30, Sleep at 22:00. The reference's surrounding presentation canvas is excluded from the layout comparison. Its widget region is approximately 1335 × 629 (2.12:1); the implementation uses the app's 360 × 180 native widget viewport (2:1).
+- The source and actual native normal-size capture were opened together in the same comparison response. Flutter source comparisons and all five supplemental native states were also inspected. Comparison judges the widget content at a common logical width rather than claiming pixel equality with the reference's outer canvas. The full-size captures resolve all text and controls; no separate detail crop was necessary.
+
+## Required fidelity surfaces
+
+- Typography: bold current routine and remaining duration, compact status, readable Korean system text, and smaller milestone times/names. Native labels remain TextViews with intact accessibility text. The compact Flutter action uses a smaller check and tighter padding so its completion caption remains visible.
+- Spacing: mascot left, status/title/countdown center, completion right, and a separate schedule below. The three milestone centers use 10%/50%/90% of the inner width, matching the reference's wide timeline. With one or two real items, the points recenter and unused columns disappear.
+- Colors: existing cream/lavender character skin, dark ink, purple action/current item, and muted future points. Other character packs retain their own artwork and tokens. The solid purple action follows the app's UI standards.
+- Assets: real bundled cat and background decorations are reused. The timeline is a data visualization with native text, not a screenshot used as the UI. Markers and line lengths derive from actual occurrence times.
+- Copy: real current/next routines, translated status/countdown/completion, and a new localized timeline style label in all five languages. Empty schedules show the existing add-routine guidance and no invented points; completion removes the action and countdown.
+
+## Findings and iteration history
+
+1. P2: the initial compact Flutter button showed only the check. Reduced its icon, label size and horizontal padding; the revised 250-pixel render shows the full Korean completion caption and all five language interaction tests pass.
+2. P2: the first timeline occupied too little horizontal space. Widened milestone placement while keeping labels aligned using the center column's weight. Native and Flutter captures now follow the supplied composition.
+3. P2: native Korean title metrics exceeded its initial row height. Increased title height and adjusted compact gaps. The final native title renders fully.
+4. P2: independently rounded dp heights clipped the last native footer/header child by 1–3 physical pixels. Reserved vertical rounding space and reran the existing text/child bounds checks. Both viewport sizes and all schedule-count/completed states pass and show complete glyphs.
+
+No actionable P0/P1/P2 findings remain. P3 integration differences: the existing Android outer/status corners are rounded, the divider is solid rather than dashed, and the approved mascot's proportions differ slightly from the generated reference. These do not change the selected composition or behavior.
+
+## Verification and limits
+
+- 124 relevant Dart tests passed across the feature/payload/action/render run (23) and existing layout/localization/background-action regression run (101). A further final feature/render run passed after the spacing correction.
+- Tests cover actual item counts, current/next boundary advancement, serialized occurrence dates, overnight sleep, five locales at 250/360 pixels, and a tappable completion action.
+- Native instrumentation renders all three widget styles, checks completion binding and removal, verifies visible text/child bounds, and validates zero/one/two timeline items plus expired-state hiding. Final result: all checks passed.
+- Targeted static analysis: no issues. Android app and instrumentation builds: passed. Launcher picker artwork is the verified native normal-size capture, using aspect-preserving display.
+- Existing widgets keep their launcher placement until resized or re-added; the timeline now defaults to 4 × 2, with a 160dp minimum resize height. The old one-row layout remains as a compatibility fallback.
+- Physical-phone launcher taps and OS background-worker delivery remain unverified end to end; callback persistence and native PendingIntent binding are tested separately. Existing boundary/five-minute refresh scheduling is preserved.
+
+final result: passed

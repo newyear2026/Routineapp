@@ -41,6 +41,7 @@ class HomeMediumWidget extends StatelessWidget {
     final l10n = AppLocalizations.of(context);
     return LayoutBuilder(builder: (context, constraints) {
       final narrow = constraints.maxWidth < 300;
+      final compactTimeline = narrow && style == HomeWidgetStyle.timeline;
       final dialSize = narrow ? 104.0 : ringSize;
       Widget label(String text, double size, Color color, {int lines = 1}) =>
           Text(text,
@@ -74,16 +75,20 @@ class HomeMediumWidget extends StatelessWidget {
                           decoration: ShapeDecoration(
                               color: AppColors.orbitPrimary,
                               shape: AppPixelStyle.shape(steps: 2)),
-                          padding: const EdgeInsets.symmetric(horizontal: 10),
+                          padding: EdgeInsets.symmetric(
+                              horizontal: compactTimeline ? 6 : 10),
                           child: Row(
                               mainAxisAlignment: MainAxisAlignment.center,
                               children: [
-                                const Icon(Icons.check_rounded,
-                                    color: Colors.white, size: 22),
-                                const SizedBox(width: 5),
+                                Icon(Icons.check_rounded,
+                                    color: Colors.white,
+                                    size: compactTimeline ? 18 : 22),
+                                SizedBox(width: compactTimeline ? 3 : 5),
                                 Flexible(
                                     child: label(
-                                        vm.completeLabel, 15, Colors.white))
+                                        vm.completeLabel,
+                                        compactTimeline ? 13 : 15,
+                                        Colors.white))
                               ])))))
           : const SizedBox.shrink();
       final next = Row(children: [

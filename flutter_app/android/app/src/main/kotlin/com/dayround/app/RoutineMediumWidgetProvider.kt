@@ -107,7 +107,8 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
         for (id in appWidgetIds) {
             val views = if (isLarge(appWidgetManager, id))
                 renderLarge(context, json, display, nowMs, largeRing, skin, expired,
-                    isCompact(appWidgetManager, id))
+                    isCompact(appWidgetManager, id),
+                    appWidgetManager.getAppWidgetOptions(id).getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH, 360))
             else renderWidget(context, json, display, nowMs, ring, skin, expired)
             appWidgetManager.updateAppWidget(id, views)
         }
@@ -186,6 +187,7 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
         skin: RoutineWidgetSkin,
         expired: Boolean,
         compact: Boolean,
+        widthDp: Int = if (compact) 250 else 360,
     ): RemoteViews {
         val cards = widgetStyle == WidgetStyle.CARDS
         val timeline = widgetStyle == WidgetStyle.TIMELINE
@@ -255,26 +257,28 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
                 if (!counting) 18f else if (duration.length > 5) 14f else if (compact) 19f else 23f)
         }
         if (timeline) {
-            bindTimeline(context, views, display, nowMs, m, expired, compact)
+            bindTimeline(context, views, display, nowMs, m, expired, compact, widthDp)
         } else {
-        val nextTime = display.optString("nextRoutineTime")
-        val nextLabel = "${payload.optString("nextLabel")} $nextTime".trim()
-        val nextTitle = display.optString("nextRoutineTitle")
-        bindText(views, R.id.widget_action_next_label, if (expired || !cards) "" else nextLabel)
-        bindText(views, R.id.widget_action_next_title, when {
-            expired -> ""
-            cards -> nextTitle
-            nextTime.isBlank() -> "$nextLabel $nextTitle".trim()
-            else -> "$nextLabel $nextTitle"
-        })
-        views.setTextColor(R.id.widget_action_next_label, m.muted)
-        views.setTextColor(R.id.widget_action_next_title, m.title)
+            val nextTime = display.optString("nextRoutineTime")
+            val nextLabel = "${payload.optString("nextLabel")} $nextTime".trim()
+            val nextTitle = display.optString("nextRoutineTitle")
+            bindText(views, R.id.widget_action_next_label, if (expired || !cards) "" else nextLabel)
+            bindText(views, R.id.widget_action_next_title, when {
+                expired -> ""
+                cards -> nextTitle
+                nextTime.isBlank() -> "$nextLabel $nextTitle".trim()
+                else -> "$nextLabel $nextTitle"
+            })
+            views.setTextColor(R.id.widget_action_next_label, m.muted)
+            views.setTextColor(R.id.widget_action_next_title, m.title)
         }
         views.setInt(R.id.widget_action_divider, "setBackgroundColor",
             (m.muted and 0x00FFFFFF) or (0x55 shl 24))
         val action = if (expired || display.isNull("completeActionUri")) "" else
             display.optString("completeActionUri")
         views.setViewVisibility(R.id.widget_action_complete,
+            if (action.isBlank()) View.GONE else View.VISIBLE)
+        if (timeline) views.setViewVisibility(R.id.widget_timeline_complete_container,
             if (action.isBlank()) View.GONE else View.VISIBLE)
         val completeLabel = display.optString("completeLabel")
         views.setTextViewText(R.id.widget_action_complete, "✓  $completeLabel")
@@ -289,7 +293,7 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
     }
 
     private fun bindTimeline(context: Context, views: RemoteViews, display: JSONObject,
-        nowMs: Long, skin: RoutineWidgetSkin.MediumSkin, expired: Boolean, compact: Boolean) {
+        nowMs: Long, skin: RoutineWidgetSkin.MediumSkin, expired: Boolean, compact: Boolean, widthDp: Int) {
         val rows = display.optJSONArray("timelineItems")
         val items = if (expired || rows == null) emptyList() else
             (0 until rows.length()).mapNotNull { rows.optJSONObject(it) }
@@ -300,20 +304,22 @@ open class RoutineMediumWidgetProvider : HomeWidgetProvider() {
         val columns = intArrayOf(R.id.widget_timeline_item_0, R.id.widget_timeline_item_1, R.id.widget_timeline_item_2)
         val times = intArrayOf(R.id.widget_timeline_time_0, R.id.widget_timeline_time_1, R.id.widget_timeline_time_2)
         val titles = intArrayOf(R.id.widget_timeline_title_0, R.id.widget_timeline_title_1, R.id.widget_timeline_title_2)
-        for (i in columns.indices) {
-            views.setViewVisibility(columns[i], if (i < items.size) View.VISIBLE else View.GONE)
-            if (i >= items.size) continue
-            val item = items[i]
-            views.setTextViewText(times[i], item.optString("time"))
-            views.setTextViewText(titles[i], item.optString("title"))
-            views.setTextColor(times[i], skin.title)
-            views.setTextColor(titles[i], if (nowMs >= item.optLong("startEpochMs")) skin.accent else skin.muted)
+        for (column in columns) views.setViewVisibility(column, View.GONE)
+        val slots = when (items.size) { 1 -> listOf(1); 2 -> listOf(0, 2); else -> listOf(0, 1, 2) }
+        for ((index, item) in items.withIndex()) {
+            val slot = slots[index]
+            views.setViewVisibility(columns[slot], View.VISIBLE)
+            views.setTextViewText(times[slot], item.optString("time"))
+            views.setTextViewText(titles[slot], item.optString("title"))
+            views.setTextColor(times[slot], skin.title)
+            views.setTextColor(titles[slot], if (nowMs >= item.optLong("startEpochMs")) skin.accent else skin.muted)
         }
         if (items.isNotEmpty()) {
             val density = context.resources.displayMetrics.density
             views.setImageViewBitmap(R.id.widget_timeline_track,
                 RoutineWidgetTimelineTrack.create(items.map { it.optLong("startEpochMs") }, nowMs,
-                    ((if (compact) 230 else 336) * density).toInt(), (16 * density).toInt(), skin.accent, skin.muted))
+                    ((widthDp - if (compact) 20 else 24).coerceAtLeast(1) * density).toInt(),
+                    (16 * density).toInt(), skin.accent, skin.muted))
         }
     }
 
