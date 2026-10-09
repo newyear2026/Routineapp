@@ -297,6 +297,7 @@ class _HomeScreenState extends State<HomeScreen>
           // 액션이 달린 스낵바는 기본으로 사라지지 않는다. 그대로 두면
           // 다른 탭으로 옮겨도 «되돌리기»가 화면 아래를 계속 가린다.
           persist: false,
+          duration: const Duration(seconds: 2),
           action: SnackBarAction(
             label: AppLocalizations.of(context).commonUndo,
             onPressed: () async {

@@ -107,6 +107,7 @@ class _NotificationRoutineScreenState extends State<NotificationRoutineScreen> {
                                 : l10n.homeMarkedDone),
                             // 액션이 있으면 기본으로 사라지지 않는다.
                             persist: false,
+                            duration: const Duration(seconds: 2),
                             action: undo == null
                                 ? null
                                 : SnackBarAction(
