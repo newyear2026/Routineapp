@@ -268,6 +268,26 @@ void main() {
     expect(controller.progressSummary.completed, 0);
   });
 
+  testWidgets('되돌리기 안내는 잠시 뒤 저절로 사라진다', (tester) async {
+    // 지금 Flutter는 액션이 달린 스낵바를 기본으로 영영 남겨 둔다.
+    // 그대로 두면 다른 탭으로 옮겨도 «되돌리기»가 계속 떠 있다.
+    final controller = await pumpHome(
+      tester,
+      now: DateTime(2026, 8, 4, 12, 30),
+    );
+    addTearDown(controller.dispose);
+
+    await tapAction(tester, 'home-complete-button');
+    expect(find.text('되돌리기'), findsOneWidget);
+
+    await tester.pump(const Duration(seconds: 10));
+    await tester.pump(const Duration(seconds: 1));
+
+    expect(find.text('완료로 기록했어요'), findsNothing);
+    expect(find.text('되돌리기'), findsNothing);
+    expect(controller.todayLogs.single.status, RoutineLogStatus.completed);
+  });
+
   testWidgets('완료 기록 쓰기가 실패하면 성공으로 오해하지 않게 알린다', (tester) async {
     final controller = await pumpHome(
       tester,

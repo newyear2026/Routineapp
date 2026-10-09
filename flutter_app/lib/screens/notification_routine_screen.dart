@@ -105,6 +105,8 @@ class _NotificationRoutineScreenState extends State<NotificationRoutineScreen> {
                             content: Text(undo == null
                                 ? l10n.notificationOccurrenceExpired
                                 : l10n.homeMarkedDone),
+                            // 액션이 있으면 기본으로 사라지지 않는다.
+                            persist: false,
                             action: undo == null
                                 ? null
                                 : SnackBarAction(
