@@ -25,6 +25,12 @@ class SleepRoutineFields extends StatelessWidget {
       required this.onWeekday,
       required this.alarmEnabled,
       required this.onAlarm,
+      required this.loudAlarm,
+      required this.onLoudAlarm,
+      required this.bedtimeEnabled,
+      required this.onBedtime,
+      required this.bedtimeLead,
+      required this.onBedtimeLead,
       this.sameTimeAlertName,
       this.timeError,
       this.daysError});
@@ -35,6 +41,17 @@ class SleepRoutineFields extends StatelessWidget {
   final void Function(int, bool) onWeekday;
   final bool alarmEnabled;
   final ValueChanged<bool> onAlarm;
+
+  /// 기상 알림을 알람처럼 울릴지. 기상 알림이 켜져 있을 때만 보인다.
+  final bool loudAlarm;
+  final ValueChanged<bool> onLoudAlarm;
+
+  final bool bedtimeEnabled;
+  final ValueChanged<bool> onBedtime;
+
+  /// 취침 시각보다 몇 분 먼저 알릴지 — [Routine.bedtimeLeadChoices] 중 하나.
+  final int bedtimeLead;
+  final ValueChanged<int> onBedtimeLead;
 
   /// 기상 시각에 알림을 보내는 다른 루틴의 이름. 있으면 알림이 두 번 온다고 알린다.
   final String? sameTimeAlertName;
@@ -109,6 +126,40 @@ class SleepRoutineFields extends StatelessWidget {
               Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
             Row(children: [
               Expanded(
+                  child: Text(l10n.sleepBedtimeReminder,
+                      style: AppTextStyles.titleSection)),
+              AppPixelSwitch(
+                  key: const Key('sleep-bedtime-reminder'),
+                  value: bedtimeEnabled,
+                  onChanged: onBedtime,
+                  label: l10n.sleepBedtimeReminder),
+            ]),
+            const SizedBox(height: 4),
+            Text(l10n.sleepBedtimeReminderHint, style: AppTextStyles.caption),
+            if (bedtimeEnabled) ...[
+              const SizedBox(height: 12),
+              // 한 줄에 넷을 고르게 둔다. 줄이 넘어가면 «1시간 전»만 혼자 떨어진다.
+              Row(children: [
+                for (final (i, minutes)
+                    in Routine.bedtimeLeadChoices.indexed) ...[
+                  if (i > 0) const SizedBox(width: 6),
+                  Expanded(
+                      child: _LeadChip(
+                          key: Key('sleep-bedtime-lead-$minutes'),
+                          label: _leadLabel(l10n, minutes),
+                          selected: minutes == bedtimeLead,
+                          onTap: () => onBedtimeLead(minutes))),
+                ],
+              ]),
+            ],
+          ])),
+      const SizedBox(height: 14),
+      RoutineFormSurface(
+          padding: const EdgeInsets.fromLTRB(18, 10, 18, 14),
+          child:
+              Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [
+            Row(children: [
+              Expanded(
                   child: Text(l10n.sleepWakeAlarm,
                       style: AppTextStyles.titleSection)),
               AppPixelSwitch(
@@ -123,7 +174,34 @@ class SleepRoutineFields extends StatelessWidget {
             Text(l10n.sleepWakeAlarmHint,
                 key: const Key('sleep-wake-alarm-hint'),
                 style: AppTextStyles.caption),
-            Text(l10n.sleepWakeAlarmSoundHint, style: AppTextStyles.caption),
+            // 알람처럼 울리면 휴대폰 알림 설정과 무관하게 소리가 난다.
+            if (!alarmEnabled || !loudAlarm)
+              Text(l10n.sleepWakeAlarmSoundHint, style: AppTextStyles.caption),
+            if (alarmEnabled) ...[
+              const SizedBox(height: 12),
+              const Divider(height: 1, color: AppColors.border),
+              const SizedBox(height: 12),
+              Row(children: [
+                Expanded(
+                    child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                      Text(l10n.sleepWakeAlarmLoud,
+                          style: AppTextStyles.bodyStrong),
+                      const SizedBox(height: 4),
+                      Text(l10n.sleepWakeAlarmLoudHint,
+                          style: AppTextStyles.caption),
+                      Text(l10n.sleepWakeAlarmLoudVibrateHint,
+                          style: AppTextStyles.caption),
+                    ])),
+                const SizedBox(width: 12),
+                AppPixelSwitch(
+                    key: const Key('sleep-wake-alarm-loud'),
+                    value: loudAlarm,
+                    onChanged: onLoudAlarm,
+                    label: l10n.sleepWakeAlarmLoud),
+              ]),
+            ],
             if (alarmEnabled && sameTimeAlertName != null) ...[
               const SizedBox(height: 10),
               AppPixelHint(
@@ -144,6 +222,54 @@ class SleepRoutineFields extends StatelessWidget {
             ],
           ])),
     ]);
+  }
+}
+
+String _leadLabel(AppLocalizations l10n, int minutes) => switch (minutes) {
+      0 => l10n.sleepBedtimeLeadOnTime,
+      60 => l10n.sleepBedtimeLeadHour,
+      _ => l10n.sleepBedtimeLeadMinutes(minutes),
+    };
+
+class _LeadChip extends StatelessWidget {
+  const _LeadChip(
+      {super.key,
+      required this.label,
+      required this.selected,
+      required this.onTap});
+  final String label;
+  final bool selected;
+  final VoidCallback onTap;
+
+  @override
+  Widget build(BuildContext context) {
+    final primary = Theme.of(context).colorScheme.primary;
+    return Semantics(
+      button: true,
+      selected: selected,
+      child: InkWell(
+        onTap: onTap,
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 160),
+          constraints: const BoxConstraints(minHeight: 44),
+          alignment: Alignment.center,
+          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 10),
+          decoration: ShapeDecoration(
+            color: selected
+                ? primary.withValues(alpha: .12)
+                : AppColors.orbitSurface,
+            shape: AppPixelStyle.shape(
+              step: AppPixelStyle.cornerStepSmall,
+              color: selected ? primary : AppColors.orbitBorder,
+              width: selected ? 1.8 : 1,
+            ),
+          ),
+          child: Text(label,
+              style: AppTextStyles.bodyStrong
+                  .copyWith(color: selected ? primary : AppColors.textMuted)),
+        ),
+      ),
+    );
   }
 }
 

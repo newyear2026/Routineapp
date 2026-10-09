@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/foundation.dart'
     show TargetPlatform, defaultTargetPlatform, kIsWeb;
 import 'package:flutter/material.dart';
@@ -12,11 +14,13 @@ import '../../domain/validation/routine_form_validator.dart';
 import '../../domain/models/routine_log.dart';
 import '../../domain/models/routine_log_status.dart';
 import '../../domain/models/routine_notification_target.dart';
+import '../../domain/services/bedtime_reminder_schedule.dart';
 import '../../domain/utils/time_minutes.dart';
 import '../../domain/settings/notification_permission_status.dart';
 import '../../domain/settings/notification_preferences.dart';
 import '../../data/local/notification_preferences_storage.dart';
 import '../../l10n/app_localizations.dart';
+import '../mappers/sleep_schedule_copy.dart';
 import 'exact_alarm_service.dart';
 import 'notification_runtime.dart';
 
@@ -45,6 +49,10 @@ class RoutineNotificationService {
   /// 루틴을 저장하거나 설정을 건드릴 때마다 미뤄둔 알림이 조용히 사라진다.
   static const snoozePayloadPrefix = 'routine_snooze:';
 
+  /// 수면 루틴의 취침 알림. 주간 예약처럼 [syncAll]이 지우고 다시 건다.
+  /// 기록을 남길 루틴 시점이 아니라서 누르면 앱만 연다.
+  static const bedtimePayloadPrefix = 'routine_bedtime:';
+
   /// [l10n]은 알림 문구에 쓸 현재 언어다. 알림은 위젯 트리 밖에서 예약되므로
   /// 호출자가 넘겨준다(컨트롤러의 `strings`).
   Future<void> syncAll(List<Routine> routines, AppLocalizations l10n) async {
@@ -64,7 +72,6 @@ class RoutineNotificationService {
     await _cancelInvalidPendingSnoozes(routines);
     final exact = await _exactAlarmsAllowed();
     for (final routine in routines) {
-      if (!routine.alertsEnabled) continue;
       if (routine.isSleep &&
           RoutineFormValidator.validateSleepTimeRange(
                   routine.startMinutesFromMidnight,
@@ -72,7 +79,12 @@ class RoutineNotificationService {
               null) {
         continue;
       }
-      await _scheduleRoutine(routine, prefs: prefs, l10n: l10n, exact: exact);
+      if (routine.alertsEnabled) {
+        await _scheduleRoutine(routine, prefs: prefs, l10n: l10n, exact: exact);
+      }
+      if (routine.bedtimeAlertsEnabled) {
+        await _scheduleBedtime(routine, prefs: prefs, l10n: l10n, exact: exact);
+      }
     }
   }
 
@@ -88,7 +100,8 @@ class RoutineNotificationService {
   Future<void> _cancelManagedPendingNotifications() async {
     final pending = await _gateway.pendingNotificationRequests();
     for (final request in pending) {
-      if (isManagedPayload(request.payload)) {
+      if (isManagedPayload(request.payload) ||
+          isBedtimePayload(request.payload)) {
         await _gateway.cancel(request.id);
       }
     }
@@ -146,12 +159,18 @@ class RoutineNotificationService {
     await _gateway.scheduleOnce(
       id: snoozeNotificationIdFor(routine.id),
       title: routine.title,
-      body: l10n.notificationSnoozeBody(routine.title),
+      // 미룬 기상 알림은 다시 «일어날 시간»이다. 일반 루틴 문구(«다시 시작할
+      // 시간»)는 잠에서 깨우는 알림에 맞지 않는다.
+      body: routine.isSleep
+          ? l10n.sleepWakeNotificationBody
+          : l10n.notificationSnoozeBody(routine.title),
       whenLocal: whenLocal,
-      details: _notificationDetails(
-        mode: prefs.mode,
-        l10n: l10n,
-      ),
+      details: routine.wakeAlarmActive
+          ? _wakeAlarmDetails(l10n)
+          : _notificationDetails(
+              mode: prefs.mode,
+              l10n: l10n,
+            ),
       payload: RoutineNotificationTarget.forRoutine(routine,
               dateYmd: occurrenceDate ?? TimeMinutes.dateYmd(whenLocal))
           .encode(snooze: true),
@@ -175,6 +194,17 @@ class RoutineNotificationService {
 
   /// 기존 무음 채널은 진동이 켜져 있으므로 화면 전용 채널은 따로 둔다.
   static const visualChannelId = 'routine_schedule_visual';
+
+  /// «알람처럼 울리기»를 켠 기상 알림. 알람 볼륨으로 울리고 확인할 때까지
+  /// 반복하므로, 앱 전체 알림 방식과 섞이지 않게 채널을 따로 둔다.
+  static const wakeAlarmChannelId = 'routine_wake_alarm';
+
+  /// 아무도 끄지 않으면 이만큼 울린 뒤 멈춘다. 자리를 비운 사이 폰이
+  /// 한없이 울리지 않게 한다.
+  static const wakeAlarmTimeout = Duration(minutes: 10);
+
+  /// Android `Notification.FLAG_INSISTENT` — 소리·진동을 확인할 때까지 반복한다.
+  static const _flagInsistent = 4;
   static const previewNotificationId = 0x7ffffffe;
 
   Future<void> _scheduleRoutine(
@@ -183,10 +213,12 @@ class RoutineNotificationService {
     required AppLocalizations l10n,
     required bool exact,
   }) async {
-    final notificationDetails = _notificationDetails(
-      mode: prefs.mode,
-      l10n: l10n,
-    );
+    final notificationDetails = routine.wakeAlarmActive
+        ? _wakeAlarmDetails(l10n)
+        : _notificationDetails(
+            mode: prefs.mode,
+            l10n: l10n,
+          );
     final sortedWeekdays = routine.repeatWeekdays.toList()..sort();
     for (final weekday in sortedWeekdays) {
       await _gateway.scheduleWeekly(
@@ -212,6 +244,77 @@ class RoutineNotificationService {
         exact: exact,
       );
     }
+  }
+
+  /// 취침 알림. 기록을 남기는 시점이 아니어서 «나중에»는 두지 않는다.
+  Future<void> _scheduleBedtime(
+    Routine routine, {
+    required NotificationPreferences prefs,
+    required AppLocalizations l10n,
+    required bool exact,
+  }) async {
+    final details = _notificationDetails(
+      mode: prefs.mode,
+      l10n: l10n,
+      routineActions: false,
+    );
+    final bedtime = SleepScheduleCopy.time(
+        l10n,
+        TimeOfDay(
+            hour: routine.startMinutesFromMidnight ~/ 60,
+            minute: routine.startMinutesFromMidnight % 60));
+    for (final slot in BedtimeReminderSchedule.slots(routine)) {
+      await _gateway.scheduleWeekly(
+        id: bedtimeNotificationIdFor(routine.id, slot.wakeWeekday),
+        title: routine.bedtimeReminderLeadMinutes == 0
+            ? l10n.bedtimeNotificationTitleNow
+            : l10n.bedtimeNotificationTitle,
+        body: l10n.bedtimeNotificationBody(bedtime, routine.title),
+        weekday: slot.weekday,
+        time: TimeOfDay(hour: slot.minutes ~/ 60, minute: slot.minutes % 60),
+        details: details,
+        payload: '$bedtimePayloadPrefix${routine.id}',
+        exact: exact,
+      );
+    }
+  }
+
+  NotificationDetails _wakeAlarmDetails(AppLocalizations l10n) {
+    final android = AndroidNotificationDetails(
+      wakeAlarmChannelId,
+      l10n.notificationChannelWakeAlarm,
+      channelDescription: l10n.notificationChannelWakeAlarmDesc,
+      importance: Importance.max,
+      priority: Priority.max,
+      playSound: true,
+      // 기기의 기본 알람음. 알람 볼륨으로 나가서 휴대폰이 진동 모드여도 울린다.
+      sound: const UriAndroidNotificationSound(
+          'content://settings/system/alarm_alert'),
+      audioAttributesUsage: AudioAttributesUsage.alarm,
+      enableVibration: true,
+      vibrationPattern: Int64List.fromList([0, 800, 600, 800]),
+      category: AndroidNotificationCategory.alarm,
+      additionalFlags: Int32List.fromList([_flagInsistent]),
+      timeoutAfter: wakeAlarmTimeout.inMilliseconds,
+      icon: '@drawable/ic_notification',
+      largeIcon: const DrawableResourceAndroidBitmap('ic_notification_large'),
+      color: const Color(0xFF6841F5),
+      autoCancel: false,
+      actions: [
+        AndroidNotificationAction(
+            notificationAcknowledgeAction, l10n.notificationActionWokeUp,
+            cancelNotification: false),
+        AndroidNotificationAction(
+            notificationSnoozeAction, l10n.notificationActionSnoozeWakeAlarm,
+            cancelNotification: false),
+      ],
+    );
+    const darwin = DarwinNotificationDetails(
+      presentAlert: true,
+      presentBadge: true,
+      presentSound: true,
+    );
+    return NotificationDetails(android: android, iOS: darwin, macOS: darwin);
   }
 
   NotificationDetails _notificationDetails({
@@ -338,6 +441,13 @@ class RoutineNotificationService {
 
   static bool isManagedPayload(String? payload) =>
       payload != null && payload.startsWith(managedPayloadPrefix);
+
+  static bool isBedtimePayload(String? payload) =>
+      payload != null && payload.startsWith(bedtimePayloadPrefix);
+
+  /// 기상 요일마다 하나. 주간 예약 id 와 키를 나눠 겹치지 않게 한다.
+  static int bedtimeNotificationIdFor(String routineId, int wakeWeekday) =>
+      _fnv1a('$bedtimePayloadPrefix$routineId:$wakeWeekday');
 
   static String snoozePayloadFor(String routineId) =>
       '$snoozePayloadPrefix$routineId';

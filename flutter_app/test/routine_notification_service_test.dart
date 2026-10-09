@@ -4,6 +4,7 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:routine_timer/application/services/routine_notification_service.dart';
 import 'package:routine_timer/domain/models/routine.dart';
 import 'package:routine_timer/domain/models/routine_notification_target.dart';
+import 'package:routine_timer/domain/services/bedtime_reminder_schedule.dart';
 import 'package:routine_timer/domain/settings/notification_permission_status.dart';
 import 'package:routine_timer/domain/settings/notification_preferences.dart';
 import 'support/localization.dart';
@@ -288,6 +289,169 @@ void main() {
       expect(gateway.cancelledIds, [snoozeId]);
     });
   });
+
+  sleepAlertTests();
+}
+
+void sleepAlertTests() {
+  group('수면 루틴 알림', () {
+    // 23시에 자고 7시에 일어나는 월~금 일정. 반복 요일은 기상 요일이다.
+    const sleep = Routine(
+      id: 'sleep',
+      title: '잠자기',
+      startMinutesFromMidnight: 23 * 60,
+      endMinutesFromMidnight: 7 * 60,
+      repeatWeekdays: {1, 2, 3, 4, 5},
+      colorValue: 0xFF000000,
+      iconEmoji: '',
+      notificationEnabled: false,
+      type: RoutineType.sleep,
+      wakeNotificationEnabled: true,
+      bedtimeReminderEnabled: true,
+    );
+
+    RoutineNotificationService serviceOn(_FakeLocalNotificationGateway g,
+            {bool soundEnabled = true}) =>
+        RoutineNotificationService(
+          exactAlarmsAllowed: () async => true,
+          gateway: g,
+          preferencesLoader: () async => NotificationPreferences(
+            notificationsEnabled: true,
+            permissionStatus: NotificationPermissionStatus.granted,
+            soundEnabled: soundEnabled,
+          ),
+        );
+
+    List<_ScheduledNotification> bedtimes(_FakeLocalNotificationGateway g) => g
+        .scheduled
+        .where((s) => RoutineNotificationService.isBedtimePayload(s.payload))
+        .toList();
+
+    test('월요일 기상의 취침 알림은 일요일 밤에 울린다', () {
+      final slots = BedtimeReminderSchedule.slots(sleep);
+      expect(slots.map((s) => (s.wakeWeekday, s.weekday)), [
+        (1, 7),
+        (2, 1),
+        (3, 2),
+        (4, 3),
+        (5, 4),
+      ]);
+      expect(slots.first.minutes, 22 * 60 + 30);
+    });
+
+    test('정각을 고르면 취침 시각에, 자정을 넘기면 전날로 간다', () {
+      expect(
+        BedtimeReminderSchedule.slots(
+                sleep.copyWith(bedtimeReminderLeadMinutes: 0))
+            .first
+            .minutes,
+        23 * 60,
+      );
+      // 00:15에 자면 30분 전은 전날 23:45다.
+      final late = BedtimeReminderSchedule.slots(
+          sleep.copyWith(startMinutesFromMidnight: 15, repeatWeekdays: {1}));
+      expect(late.single.weekday, 7);
+      expect(late.single.minutes, 23 * 60 + 45);
+      // 01:00에 자면 30분 전도 같은 날 00:30이다.
+      final early = BedtimeReminderSchedule.slots(
+          sleep.copyWith(startMinutesFromMidnight: 60, repeatWeekdays: {1}));
+      expect(early.single.weekday, 1);
+      expect(early.single.minutes, 30);
+    });
+
+    test('취침 알림을 끄면 예약하지 않는다', () {
+      expect(
+        BedtimeReminderSchedule.slots(
+            sleep.copyWith(bedtimeReminderEnabled: false)),
+        isEmpty,
+      );
+    });
+
+    test('syncAll 이 취침 알림을 기상 알림과 따로 건다', () async {
+      final gateway = _FakeLocalNotificationGateway();
+
+      await serviceOn(gateway).syncAll([sleep], testL10n);
+
+      final bed = bedtimes(gateway);
+      expect(bed, hasLength(5));
+      expect(bed.first.weekday, 7);
+      expect(bed.first.time, const TimeOfDay(hour: 22, minute: 30));
+      expect(bed.first.title, '곧 잘 시간이에요');
+      expect(bed.first.body, "오후 11:00에 '잠자기' 루틴이 시작돼요.");
+      expect(bed.first.exact, isTrue);
+      // 취침 알림에는 «나중에»가 없다 — 미룰 기록이 아니다.
+      expect(bed.first.details.android!.actions!.map((a) => a.id),
+          ['routine_acknowledge']);
+      // 기상 알림 5개와 id 가 겹치지 않는다.
+      expect(gateway.scheduled.map((s) => s.id).toSet(), hasLength(10));
+    });
+
+    test('기상 알림을 꺼도 취침 알림은 남는다', () async {
+      final gateway = _FakeLocalNotificationGateway();
+
+      await serviceOn(gateway)
+          .syncAll([sleep.copyWith(wakeNotificationEnabled: false)], testL10n);
+
+      expect(gateway.scheduled, hasLength(5));
+      expect(bedtimes(gateway), hasLength(5));
+    });
+
+    test('다시 걸 때 예전 취침 알림을 지운다', () async {
+      final gateway = _FakeLocalNotificationGateway(pending: [
+        const PendingNotificationRequest(
+            42, 'old', 'old', 'routine_bedtime:sleep'),
+      ]);
+
+      await serviceOn(gateway)
+          .syncAll([sleep.copyWith(bedtimeReminderEnabled: false)], testL10n);
+
+      expect(gateway.cancelledIds, [42]);
+      expect(bedtimes(gateway), isEmpty);
+    });
+
+    test('알람처럼 울리기는 알람 채널로 확인할 때까지 울린다', () async {
+      final gateway = _FakeLocalNotificationGateway();
+
+      // 앱 전체가 «진동만»이어도 루틴에서 고른 알람이 이긴다.
+      await serviceOn(gateway, soundEnabled: false).syncAll([
+        sleep.copyWith(wakeAlarmEnabled: true, bedtimeReminderEnabled: false)
+      ], testL10n);
+
+      final android = gateway.scheduled.first.details.android!;
+      expect(android.channelId, RoutineNotificationService.wakeAlarmChannelId);
+      expect(android.audioAttributesUsage, AudioAttributesUsage.alarm);
+      expect(android.category, AndroidNotificationCategory.alarm);
+      expect(android.playSound, isTrue);
+      expect((android.sound as UriAndroidNotificationSound).sound,
+          'content://settings/system/alarm_alert');
+      expect(android.additionalFlags, [4]); // FLAG_INSISTENT
+      expect(android.timeoutAfter, const Duration(minutes: 10).inMilliseconds);
+      expect(android.actions!.map((a) => a.title), ['일어났어요', '5분 뒤 다시']);
+    });
+
+    test('알람을 고르지 않은 기상 알림은 앱 알림 방식을 따른다', () async {
+      final gateway = _FakeLocalNotificationGateway();
+
+      await serviceOn(gateway, soundEnabled: false)
+          .syncAll([sleep.copyWith(bedtimeReminderEnabled: false)], testL10n);
+
+      expect(gateway.scheduled.first.details.android!.channelId,
+          RoutineNotificationService.silentChannelId);
+    });
+
+    test('알람 기상을 미루면 다시 울릴 때도 알람으로 울린다', () async {
+      final gateway = _FakeLocalNotificationGateway();
+
+      await serviceOn(gateway).scheduleSnooze(
+          sleep.copyWith(wakeAlarmEnabled: true),
+          DateTime(2026, 10, 12, 7, 5),
+          testL10n);
+
+      expect(gateway.scheduledOnce.single.details.android!.channelId,
+          RoutineNotificationService.wakeAlarmChannelId);
+      expect(gateway.scheduledOnce.single.body, '일어날 시간이에요.');
+    });
+  });
 }
 
 class _FakeLocalNotificationGateway implements LocalNotificationGateway {
@@ -337,6 +501,8 @@ class _FakeLocalNotificationGateway implements LocalNotificationGateway {
     scheduled.add(
       _ScheduledNotification(
         id: id,
+        title: title,
+        body: body,
         weekday: weekday,
         time: time,
         payload: payload,
@@ -363,6 +529,7 @@ class _FakeLocalNotificationGateway implements LocalNotificationGateway {
         body: body,
         whenLocal: whenLocal,
         payload: payload,
+        details: details,
         exact: exact,
       ),
     );
@@ -372,6 +539,8 @@ class _FakeLocalNotificationGateway implements LocalNotificationGateway {
 class _ScheduledNotification {
   const _ScheduledNotification({
     required this.id,
+    required this.title,
+    required this.body,
     required this.weekday,
     required this.time,
     required this.payload,
@@ -380,6 +549,8 @@ class _ScheduledNotification {
   });
 
   final int id;
+  final String title;
+  final String body;
   final int weekday;
   final TimeOfDay time;
   final String payload;
@@ -394,6 +565,7 @@ class _ScheduledOnce {
     required this.body,
     required this.whenLocal,
     required this.payload,
+    required this.details,
     required this.exact,
   });
 
@@ -402,5 +574,6 @@ class _ScheduledOnce {
   final String body;
   final DateTime whenLocal;
   final String payload;
+  final NotificationDetails details;
   final bool exact;
 }

@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_test/flutter_test.dart';
@@ -7,7 +9,9 @@ import 'package:routine_timer/application/services/notification_action_service.d
 import 'package:routine_timer/application/services/notification_runtime.dart';
 import 'package:routine_timer/application/services/routine_data_service.dart';
 import 'package:routine_timer/application/services/routine_notification_service.dart';
+import 'package:routine_timer/data/local/local_routine_repository.dart';
 import 'package:routine_timer/data/local/local_settings_repository.dart';
+import 'package:routine_timer/domain/models/routine.dart';
 import 'package:routine_timer/domain/models/routine_action_source.dart';
 import 'package:routine_timer/domain/models/routine_log.dart';
 import 'package:routine_timer/domain/models/routine_log_status.dart';
@@ -64,6 +68,35 @@ void main() {
           now: at ?? now,
           l10n: testL10n);
 
+  test('woke up action completes the delivered sleep occurrence', () async {
+    const sleep = Routine(
+      id: 'sleep',
+      title: '잠자기',
+      startMinutesFromMidnight: 60,
+      endMinutesFromMidnight: 9 * 60,
+      repeatWeekdays: {1, 2, 3, 4, 5, 6, 7},
+      colorValue: 0xFF000000,
+      iconEmoji: '',
+      notificationEnabled: false,
+      type: RoutineType.sleep,
+      wakeNotificationEnabled: true,
+      wakeAlarmEnabled: true,
+    );
+    routines.items.add(sleep);
+    final wakeTarget =
+        RoutineNotificationTarget.forRoutine(sleep, dateYmd: '2026-10-04');
+    expect(
+        await actions.complete(target: wakeTarget, postedAt: posted, now: now),
+        isTrue);
+    expect(logs.logs.single.status, RoutineLogStatus.completed);
+    expect(logs.logs.single.actionSource, RoutineActionSource.notification);
+    expect(
+        await actions.complete(target: wakeTarget, postedAt: posted, now: now),
+        isFalse);
+    expect(await actions.complete(target: target, postedAt: posted, now: now),
+        isFalse);
+  });
+
   test(
       'snooze records the named overlapping routine and schedules once after 15 minutes',
       () async {
@@ -77,6 +110,31 @@ void main() {
     expect(routines.items.first.startMinutesFromMidnight, 9 * 60);
     expect(await snooze(), isFalse); // Duplicate delivery of the same response.
     expect(gateway.schedules, 1);
+  });
+
+  test('알람처럼 울리는 기상 알림은 5분 뒤에 다시 울린다', () async {
+    // 15분은 다시 잠들기에 길다. 알람을 고른 수면 루틴만 짧게 미룬다.
+    const sleep = Routine(
+      id: 'sleep',
+      title: '잠자기',
+      startMinutesFromMidnight: 60,
+      endMinutesFromMidnight: 9 * 60,
+      repeatWeekdays: {1, 2, 3, 4, 5, 6, 7},
+      colorValue: 0xFF000000,
+      iconEmoji: '',
+      notificationEnabled: false,
+      type: RoutineType.sleep,
+      wakeNotificationEnabled: true,
+      wakeAlarmEnabled: true,
+    );
+    routines.items.add(sleep);
+
+    expect(
+        await snooze(
+            selected: RoutineNotificationTarget.forRoutine(sleep,
+                weekday: now.weekday)),
+        isTrue);
+    expect(gateway.when, now.add(const Duration(minutes: 5)));
   });
 
   test(
@@ -218,6 +276,70 @@ void main() {
         nativeCalls.last.arguments['postedAt'], posted.millisecondsSinceEpoch);
     expect(pluginCalls, isEmpty);
     expect(logs.logs, isEmpty);
+  });
+
+  test('알람 기상을 «일어났어요»로 끝내면 홈 위젯도 바로 다시 그린다', () async {
+    // 위젯은 기록을 직접 읽지 않는다. 앱이 꺼진 채 알림에서 완료하면 여기서
+    // 보내지 않는 한 «진행 중» 위젯이 그대로 남는다.
+    final delivered = DateTime.now().subtract(const Duration(seconds: 1));
+    final wake = delivered.hour * 60 + delivered.minute;
+    final sleep = Routine(
+      id: 'sleep',
+      title: '잠자기',
+      startMinutesFromMidnight: (wake - 8 * 60) % 1440,
+      endMinutesFromMidnight: wake,
+      repeatWeekdays: const {1, 2, 3, 4, 5, 6, 7},
+      colorValue: 0xFF000000,
+      iconEmoji: '',
+      notificationEnabled: false,
+      type: RoutineType.sleep,
+      wakeNotificationEnabled: true,
+      wakeAlarmEnabled: true,
+    );
+    await LocalRoutineRepository.instance.saveRoutines([sleep]);
+    final nativeCalls = <MethodCall>[];
+    final widgetCalls = <String>[];
+    messenger.setMockMethodCallHandler(RoutineNotificationPlatform.channel,
+        (call) async {
+      nativeCalls.add(call);
+      return switch (call.method) {
+        'notificationInfo' => {'postedAt': delivered.millisecondsSinceEpoch},
+        // 기기에서는 기록 저장을 네이티브가 맡는다. 저장됐다고 답한다.
+        'mutateLogs' => true,
+        _ => null,
+      };
+    });
+    const widget = MethodChannel('home_widget');
+    messenger.setMockMethodCallHandler(widget, (call) async {
+      widgetCalls.add(call.method);
+      return true;
+    });
+    addTearDown(() {
+      messenger.setMockMethodCallHandler(
+          RoutineNotificationPlatform.channel, null);
+      messenger.setMockMethodCallHandler(widget, null);
+    });
+
+    await NotificationRuntime.instance.handle(NotificationResponse(
+        id: 7,
+        actionId: notificationAcknowledgeAction,
+        payload: RoutineNotificationTarget.forRoutine(sleep,
+                weekday: delivered.weekday)
+            .encode(snooze: false),
+        notificationResponseType:
+            NotificationResponseType.selectedNotificationAction));
+
+    // 소리부터 끄고 나서 기록한다.
+    expect(nativeCalls.map((c) => c.method),
+        ['notificationInfo', 'dismiss', 'mutateLogs']);
+    final mutation = nativeCalls.last.arguments as Map;
+    expect(mutation['operation'], 'widget_complete');
+    final log = RoutineLog.fromJson(
+        jsonDecode(mutation['log'] as String) as Map<String, dynamic>);
+    expect(log.routineId, 'sleep');
+    expect(log.status, RoutineLogStatus.completed);
+    expect(log.actionSource, RoutineActionSource.notification);
+    expect(widgetCalls, contains('updateWidget'));
   });
 
   test('body tap preserves original routine and delivery date for navigation',

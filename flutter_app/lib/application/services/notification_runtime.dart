@@ -103,7 +103,13 @@ class NotificationRuntime {
         android ? await RoutineNotificationPlatform.postedAt(id) : null;
     final action = response.actionId;
     if (action == notificationAcknowledgeAction) {
+      // 알람 소리부터 끈다. 기록 저장은 그 뒤에 해도 늦지 않다.
       await RoutineNotificationPlatform.dismiss(id, postedAt: postedAt);
+      if (target == null || postedAt == null) return;
+      final now = DateTime.now();
+      final completed = await NotificationActionService()
+          .complete(target: target, postedAt: postedAt, now: now);
+      if (completed) await _pushHomeWidget(now, await _strings());
       return;
     }
     if (action == notificationSnoozeAction) {
@@ -114,23 +120,7 @@ class NotificationRuntime {
           .snooze(target: target, postedAt: postedAt, now: now, l10n: l10n);
       // Invalid/stale actions are dismissed, without altering any other routine.
       await RoutineNotificationPlatform.dismiss(id, postedAt: postedAt);
-      if (applied) {
-        await initializeDateFormatting();
-        final settings =
-            await LocalSettingsRepository.instance.loadAppSettings();
-        await HomeWidgetSyncService.instance.push(
-          now: now,
-          routines: await LocalRoutineRepository.instance.loadRoutines(),
-          logsToday: [
-            ...await LocalRoutineLogRepository.instance.loadLogsForDate(now),
-            ...await LocalRoutineLogRepository.instance
-                .loadLogsForDate(RoutineOccurrences.day(now, 1)),
-          ],
-          l10n: l10n,
-          characterPackId:
-              settings.characterPackId ?? CharacterPackCatalog.defaultPack.id,
-        );
-      }
+      if (applied) await _pushHomeWidget(now, l10n);
       return;
     }
     if (action != null && action.isNotEmpty) return;
@@ -141,6 +131,25 @@ class NotificationRuntime {
     AdPolicyService.instance.markStartedFromNotification();
     openRequest.value = NotificationOpenRequest(target,
         postedAt == null ? target.dateYmd : target.occurrenceDate(postedAt));
+  }
+
+  /// 홈 위젯은 기록을 직접 읽지 않고 여기서 보낸 화면 데이터만 그린다.
+  /// 알림에서 기록을 바꿨으면 앱이 꺼져 있어도 바로 다시 보낸다.
+  Future<void> _pushHomeWidget(DateTime now, AppLocalizations l10n) async {
+    await initializeDateFormatting();
+    final settings = await LocalSettingsRepository.instance.loadAppSettings();
+    await HomeWidgetSyncService.instance.push(
+      now: now,
+      routines: await LocalRoutineRepository.instance.loadRoutines(),
+      logsToday: [
+        ...await LocalRoutineLogRepository.instance.loadLogsForDate(now),
+        ...await LocalRoutineLogRepository.instance
+            .loadLogsForDate(RoutineOccurrences.day(now, 1)),
+      ],
+      l10n: l10n,
+      characterPackId:
+          settings.characterPackId ?? CharacterPackCatalog.defaultPack.id,
+    );
   }
 
   Future<AppLocalizations> _strings() async {

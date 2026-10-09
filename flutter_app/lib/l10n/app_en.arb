@@ -1064,7 +1064,7 @@
   "sleepNextDay": "Next day",
   "sleepDuration": "Total {duration}",
   "sleepWakeAlarm": "Wake-up reminder",
-  "sleepWakeAlarmHint": "Sends one notification at your wake-up time.",
+  "sleepWakeAlarmHint": "Lets you know when it's time to wake up.",
   "sleepWakeAlarmSoundHint": "It may be silent depending on your notification settings.",
   "sleepWakeSameTimeAlert": "'{name}' also sends a notification at {time}, so you'll get two at once.",
   "sleepWakeAlarmTurnOff": "Turn off wake-up reminder",
@@ -1113,5 +1113,50 @@
   "widgetStyleTimeline": "Routine timeline",
   "widgetStyleCards": "Routine card",
   "widgetStyleRing": "Circular timetable",
-  "widgetComplete": "Done"
+  "widgetComplete": "Done",
+  "sleepBedtimeReminder": "Bedtime reminder",
+  "@sleepBedtimeReminder": {},
+  "sleepBedtimeReminderHint": "Reminds you once when it's time to get ready for bed.",
+  "@sleepBedtimeReminderHint": {},
+  "sleepBedtimeLeadOnTime": "On time",
+  "@sleepBedtimeLeadOnTime": {},
+  "sleepBedtimeLeadMinutes": "{minutes} min before",
+  "@sleepBedtimeLeadMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepBedtimeLeadHour": "1 hr before",
+  "@sleepBedtimeLeadHour": {},
+  "sleepWakeAlarmLoud": "Ring like an alarm",
+  "@sleepWakeAlarmLoud": {},
+  "sleepWakeAlarmLoudHint": "Repeats the alarm sound until you respond.",
+  "@sleepWakeAlarmLoudHint": {},
+  "sleepWakeAlarmLoudVibrateHint": "Rings even in vibrate mode.",
+  "@sleepWakeAlarmLoudVibrateHint": {},
+  "bedtimeNotificationTitle": "Bedtime soon",
+  "@bedtimeNotificationTitle": {},
+  "bedtimeNotificationTitleNow": "It's bedtime",
+  "@bedtimeNotificationTitleNow": {},
+  "bedtimeNotificationBody": "'{name}' starts at {time}.",
+  "@bedtimeNotificationBody": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationChannelWakeAlarm": "Wake-up alarm",
+  "@notificationChannelWakeAlarm": {},
+  "notificationChannelWakeAlarmDesc": "Wake-up reminders set to ring like an alarm",
+  "@notificationChannelWakeAlarmDesc": {},
+  "notificationActionWokeUp": "I'm up",
+  "@notificationActionWokeUp": {},
+  "notificationActionSnoozeWakeAlarm": "Again in 5 min",
+  "@notificationActionSnoozeWakeAlarm": {}
 }

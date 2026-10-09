@@ -342,8 +342,23 @@ void main() {
       expect(find.text('어느 요일에 일어날까요?'), findsOneWidget);
       expect(find.text('월~금 오전 7시에 알려드려요'), findsOneWidget);
       expect(find.text('총 8시간'), findsOneWidget);
-      expect(find.text('일어날 시간에 알림을 한 번 보내요.'), findsOneWidget);
+      expect(find.text('일어날 시간에 알려드려요.'), findsOneWidget);
       expect(find.text('알림 설정에 따라 소리가 안 날 수 있어요.'), findsOneWidget);
+      // 새 수면 루틴은 취침 30분 전 알림을 켠 채로, 알람 울리기는 끈 채로 시작한다.
+      expect(
+        tester
+            .widget<AppPixelSwitch>(
+                find.byKey(const Key('sleep-bedtime-reminder')))
+            .value,
+        true,
+      );
+      expect(
+        tester
+            .widget<AppPixelSwitch>(
+                find.byKey(const Key('sleep-wake-alarm-loud')))
+            .value,
+        false,
+      );
       await capture(tester, 'sleep-default-on');
       await tester.tap(find.text('루틴 저장'));
       await tester.pumpAndSettle();
@@ -355,8 +370,64 @@ void main() {
       expect(saved.endMinutesFromMidnight, 420);
       expect(saved.notificationEnabled, false);
       expect(saved.wakeNotificationEnabled, true);
+      expect(saved.bedtimeReminderEnabled, true);
+      expect(saved.bedtimeReminderLeadMinutes, 30);
+      expect(saved.wakeAlarmEnabled, false);
     },
   );
+
+  testWidgets('취침 알림 시점과 알람 울리기를 골라 저장한다', (tester) async {
+    final app = await pump(tester);
+    final lead = find.byKey(const Key('sleep-bedtime-lead-60'));
+    await tester.ensureVisible(lead);
+    await tester.pumpAndSettle();
+    expect(find.text('정각'), findsOneWidget);
+    expect(find.text('15분 전'), findsOneWidget);
+    expect(find.text('30분 전'), findsOneWidget);
+    expect(find.text('1시간 전'), findsOneWidget);
+    await tester.tap(lead);
+    await tester.pumpAndSettle();
+
+    final loud = find.byKey(const Key('sleep-wake-alarm-loud'));
+    await tester.ensureVisible(loud);
+    await tester.pumpAndSettle();
+    await tester.tap(loud);
+    await tester.pumpAndSettle();
+    expect(find.text('확인할 때까지 알람 소리로 반복해요.'), findsOneWidget);
+    expect(find.text('진동 모드에서도 울려요.'), findsOneWidget);
+    // 알람으로 울리면 «소리가 안 날 수 있어요»는 틀린 말이 된다.
+    expect(find.text('알림 설정에 따라 소리가 안 날 수 있어요.'), findsNothing);
+    await capture(tester, 'sleep-bedtime-and-loud-alarm');
+
+    await tester.tap(find.text('루틴 저장'));
+    await tester.pumpAndSettle();
+    final saved = app.routines.single;
+    expect(saved.bedtimeReminderLeadMinutes, 60);
+    expect(saved.wakeAlarmEnabled, true);
+  });
+
+  testWidgets('취침 알림을 끄면 시점 선택을 숨기고 꺼진 채 저장한다', (tester) async {
+    final app = await pump(tester);
+    final toggle = find.byKey(const Key('sleep-bedtime-reminder'));
+    await tester.ensureVisible(toggle);
+    await tester.pumpAndSettle();
+    await tester.tap(toggle);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('sleep-bedtime-lead-30')), findsNothing);
+
+    // 기상 알림을 끄면 알람 울리기도 고를 수 없다.
+    final wake = find.byKey(const Key('sleep-wake-alarm'));
+    await tester.ensureVisible(wake);
+    await tester.pumpAndSettle();
+    await tester.tap(wake);
+    await tester.pumpAndSettle();
+    expect(find.byKey(const Key('sleep-wake-alarm-loud')), findsNothing);
+
+    await tester.tap(find.text('루틴 저장'));
+    await tester.pumpAndSettle();
+    expect(app.routines.single.bedtimeReminderEnabled, false);
+    expect(app.routines.single.wakeNotificationEnabled, false);
+  });
 
   testWidgets('another alert at wake time is flagged and can be turned off', (
     tester,
@@ -426,7 +497,7 @@ void main() {
     await tester.tap(toggle);
     await tester.pumpAndSettle();
     expect(find.text('월~금 오전 7시에 일어나는 일정이에요'), findsOneWidget);
-    expect(find.textContaining('알려드려요'), findsNothing);
+    expect(find.text('월~금 오전 7시에 알려드려요'), findsNothing);
     await capture(tester, 'sleep-alarm-off');
     await tester.tap(find.text('루틴 저장'));
     await tester.pumpAndSettle();

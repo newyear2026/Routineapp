@@ -68,6 +68,12 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
       _legacyEndOfDay ? 1440 : TimeMinutes.fromTimeOfDay(_endTime);
   bool _notificationEnabled = true;
   bool _wakeNotificationEnabled = true;
+  bool _wakeAlarmEnabled = false;
+
+  /// 새 수면 루틴은 취침 알림을 켠 채로 시작한다. 잘 시간을 알려주는 게
+  /// 수면 루틴의 핵심이라서다.
+  bool _bedtimeReminderEnabled = true;
+  int _bedtimeLeadMinutes = Routine.defaultBedtimeLeadMinutes;
   RoutineType _type = RoutineType.activity;
   bool get _isSleep => _type == RoutineType.sleep;
   RoutineFormError? _titleError;
@@ -137,6 +143,9 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
       _legacyEndOfDay = !r.isSleep && r.endMinutesFromMidnight == 1440;
       _type = r.type;
       _wakeNotificationEnabled = r.wakeNotificationEnabled;
+      _wakeAlarmEnabled = r.wakeAlarmEnabled;
+      _bedtimeReminderEnabled = r.bedtimeReminderEnabled;
+      _bedtimeLeadMinutes = r.bedtimeReminderLeadMinutes;
       _nameController.text = r.title;
       _startTime = TimeOfDay(
         hour: r.startMinutesFromMidnight ~/ 60,
@@ -238,6 +247,9 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
         notificationEnabled: _isSleep ? false : _notificationEnabled,
         type: _type,
         wakeNotificationEnabled: _isSleep && _wakeNotificationEnabled,
+        wakeAlarmEnabled: _isSleep && _wakeAlarmEnabled,
+        bedtimeReminderEnabled: _isSleep && _bedtimeReminderEnabled,
+        bedtimeReminderLeadMinutes: _bedtimeLeadMinutes,
       );
     }
 
@@ -251,6 +263,9 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
       notificationEnabled: _isSleep ? false : _notificationEnabled,
       type: _type,
       wakeNotificationEnabled: _isSleep && _wakeNotificationEnabled,
+      wakeAlarmEnabled: _isSleep && _wakeAlarmEnabled,
+      bedtimeReminderEnabled: _isSleep && _bedtimeReminderEnabled,
+      bedtimeReminderLeadMinutes: _bedtimeLeadMinutes,
     );
   }
 
@@ -490,9 +505,18 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                         alarmEnabled: _wakeNotificationEnabled,
                         onAlarm: (value) =>
                             setState(() => _wakeNotificationEnabled = value),
-                        sameTimeAlertName: _sameTimeAlert(
-                                candidate, controller.routines)
-                            ?.title,
+                        loudAlarm: _wakeAlarmEnabled,
+                        onLoudAlarm: (value) =>
+                            setState(() => _wakeAlarmEnabled = value),
+                        bedtimeEnabled: _bedtimeReminderEnabled,
+                        onBedtime: (value) =>
+                            setState(() => _bedtimeReminderEnabled = value),
+                        bedtimeLead: _bedtimeLeadMinutes,
+                        onBedtimeLead: (value) =>
+                            setState(() => _bedtimeLeadMinutes = value),
+                        sameTimeAlertName:
+                            _sameTimeAlert(candidate, controller.routines)
+                                ?.title,
                         timeError: _timeError == null
                             ? null
                             : _errorMessage(l10n, _timeError!),

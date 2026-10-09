@@ -20,6 +20,9 @@ class Routine {
     this.notificationEnabled = true,
     this.type = RoutineType.activity,
     this.wakeNotificationEnabled = false,
+    this.wakeAlarmEnabled = false,
+    this.bedtimeReminderEnabled = false,
+    this.bedtimeReminderLeadMinutes = defaultBedtimeLeadMinutes,
     this.occurrenceDate,
     this.memo,
     this.updatedAtMs = 0,
@@ -46,6 +49,18 @@ class Routine {
   final RoutineType type;
   final bool wakeNotificationEnabled;
 
+  /// 기상 알림을 알람처럼 울린다 — 알람 볼륨으로, 확인할 때까지 반복.
+  final bool wakeAlarmEnabled;
+
+  /// 취침 알림. 기상 알림과 따로 켜고 끈다.
+  final bool bedtimeReminderEnabled;
+
+  /// 취침 시각보다 몇 분 먼저 알릴지. [bedtimeLeadChoices] 중 하나다.
+  final int bedtimeReminderLeadMinutes;
+
+  static const defaultBedtimeLeadMinutes = 30;
+  static const bedtimeLeadChoices = [0, 15, 30, 60];
+
   /// Transient projection only; never persisted. Sleep records belong to the wake date.
   final DateTime? occurrenceDate;
   bool get isSleep => type == RoutineType.sleep;
@@ -57,6 +72,9 @@ class Routine {
       (crossesMidnight ? 1440 : 0);
   bool get alertsEnabled =>
       isSleep ? wakeNotificationEnabled : notificationEnabled;
+  bool get bedtimeAlertsEnabled => isSleep && bedtimeReminderEnabled;
+  bool get wakeAlarmActive =>
+      isSleep && wakeNotificationEnabled && wakeAlarmEnabled;
   String get occurrenceKey => occurrenceDate == null
       ? id
       : "${id}_${TimeMinutes.dateYmd(occurrenceDate!)}";
@@ -77,6 +95,9 @@ class Routine {
     bool notificationEnabled = true,
     RoutineType type = RoutineType.activity,
     bool wakeNotificationEnabled = false,
+    bool wakeAlarmEnabled = false,
+    bool bedtimeReminderEnabled = false,
+    int bedtimeReminderLeadMinutes = defaultBedtimeLeadMinutes,
     String iconEmoji = '',
     RoutineIconId? iconId,
   }) {
@@ -94,6 +115,9 @@ class Routine {
       notificationEnabled: notificationEnabled,
       type: type,
       wakeNotificationEnabled: wakeNotificationEnabled,
+      wakeAlarmEnabled: wakeAlarmEnabled,
+      bedtimeReminderEnabled: bedtimeReminderEnabled,
+      bedtimeReminderLeadMinutes: bedtimeReminderLeadMinutes,
       updatedAtMs: now,
     );
   }
@@ -110,6 +134,9 @@ class Routine {
     bool? notificationEnabled,
     RoutineType? type,
     bool? wakeNotificationEnabled,
+    bool? wakeAlarmEnabled,
+    bool? bedtimeReminderEnabled,
+    int? bedtimeReminderLeadMinutes,
     DateTime? occurrenceDate,
     String? memo,
     int? updatedAtMs,
@@ -129,6 +156,11 @@ class Routine {
       type: type ?? this.type,
       wakeNotificationEnabled:
           wakeNotificationEnabled ?? this.wakeNotificationEnabled,
+      wakeAlarmEnabled: wakeAlarmEnabled ?? this.wakeAlarmEnabled,
+      bedtimeReminderEnabled:
+          bedtimeReminderEnabled ?? this.bedtimeReminderEnabled,
+      bedtimeReminderLeadMinutes:
+          bedtimeReminderLeadMinutes ?? this.bedtimeReminderLeadMinutes,
       occurrenceDate: occurrenceDate ?? this.occurrenceDate,
       memo: memo ?? this.memo,
       updatedAtMs: updatedAtMs ?? this.updatedAtMs,
@@ -147,6 +179,9 @@ class Routine {
         'notificationEnabled': notificationEnabled,
         'type': type.name,
         'wakeNotificationEnabled': wakeNotificationEnabled,
+        'wakeAlarmEnabled': wakeAlarmEnabled,
+        'bedtimeReminderEnabled': bedtimeReminderEnabled,
+        'bedtimeReminderLeadMinutes': bedtimeReminderLeadMinutes,
         'memo': memo,
         'updatedAtMs': updatedAtMs,
       };
@@ -173,8 +208,18 @@ class Routine {
       type: json['type'] == 'sleep' ? RoutineType.sleep : RoutineType.activity,
       wakeNotificationEnabled:
           json['wakeNotificationEnabled'] as bool? ?? false,
+      wakeAlarmEnabled: json['wakeAlarmEnabled'] as bool? ?? false,
+      bedtimeReminderEnabled: json['bedtimeReminderEnabled'] as bool? ?? false,
+      bedtimeReminderLeadMinutes:
+          _bedtimeLead(json['bedtimeReminderLeadMinutes']),
       memo: json['memo'] as String?,
       updatedAtMs: json['updatedAtMs'] as int? ?? 0,
     );
   }
+
+  /// 고를 수 없는 값이 저장돼 있으면 기본값으로 돌린다.
+  static int _bedtimeLead(Object? raw) =>
+      raw is int && bedtimeLeadChoices.contains(raw)
+          ? raw
+          : defaultBedtimeLeadMinutes;
 }

@@ -98,6 +98,32 @@ void main() {
         sleep.toJson());
   });
 
+  test('취침 알림·알람 설정이 저장되고, 예전 기록은 꺼진 채로 읽힌다', () {
+    final custom = sleep.copyWith(
+        bedtimeReminderEnabled: true,
+        bedtimeReminderLeadMinutes: 15,
+        wakeAlarmEnabled: true);
+    final restored = Routine.fromJson(custom.toJson());
+    expect(restored.bedtimeReminderEnabled, isTrue);
+    expect(restored.bedtimeReminderLeadMinutes, 15);
+    expect(restored.wakeAlarmEnabled, isTrue);
+
+    // 이 기능 전에 저장한 수면 루틴은 갑자기 울리기 시작하면 안 된다.
+    final legacy = Routine.fromJson(sleep.toJson()
+      ..remove('bedtimeReminderEnabled')
+      ..remove('bedtimeReminderLeadMinutes')
+      ..remove('wakeAlarmEnabled'));
+    expect(legacy.bedtimeReminderEnabled, isFalse);
+    expect(legacy.bedtimeReminderLeadMinutes, 30);
+    expect(legacy.wakeAlarmEnabled, isFalse);
+
+    // 고를 수 없는 값은 기본값으로 돌린다.
+    expect(
+        Routine.fromJson(custom.toJson()..['bedtimeReminderLeadMinutes'] = 45)
+            .bedtimeReminderLeadMinutes,
+        30);
+  });
+
   test('weekday wake dates start Sunday night and stop Thursday night', () {
     for (var i = 0; i < 7; i++) {
       final bedtime = DateTime(2026, 10, 4 + i, 23);
