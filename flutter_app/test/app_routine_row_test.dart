@@ -3,6 +3,11 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:routine_timer/widgets/ds/ds.dart';
+import 'support/localization.dart';
+
+/// chevron은 이제 Material 아이콘이 아니라 픽셀 글리프로 그린다.
+final chevron = find.byWidgetPredicate(
+    (w) => w is PixelIcon && w.glyph == PixelGlyph.chevronRight);
 
 /// 루틴 한 줄은 화면마다 다시 만들지 않는다.
 ///
@@ -11,7 +16,7 @@ import 'package:routine_timer/widgets/ds/ds.dart';
 void main() {
   Future<void> pump(WidgetTester tester, Widget child) {
     return tester.pumpWidget(
-      MaterialApp(home: Scaffold(body: child)),
+      localizedApp(home: Scaffold(body: child)),
     );
   }
 
@@ -37,7 +42,28 @@ void main() {
       AppRoutineRow(color: Colors.red, title: '아침 산책', onTap: () {}),
     );
 
-    expect(find.byIcon(Icons.chevron_right_rounded), findsOneWidget);
+    expect(chevron, findsOneWidget);
+  });
+
+  testWidgets('chevron이 줄 폭을 나눠 갖지 않아 긴 시각이 잘리지 않는다', (tester) async {
+    // trailing을 flex 자식으로 두었을 때는 chevron 하나에 폭의 절반이 가서
+    // 수면 시각 «23:00 → 다음 날 07:00»이 «23:00 → 다…»로 잘렸다.
+    await pump(
+      tester,
+      AppRoutineRow(
+        color: Colors.red,
+        title: '잠자기',
+        subtitle: '23:00 → 다음 날 07:00',
+        subtitleBadge: '평일',
+        onTap: () {},
+      ),
+    );
+
+    final rowWidth = tester.getSize(find.byType(AppRoutineRow)).width;
+    final textColumn =
+        find.ancestor(of: find.text('잠자기'), matching: find.byType(Column));
+    expect(tester.getSize(textColumn.first).width, greaterThan(rowWidth * 0.6));
+    expect(chevron, findsOneWidget);
   });
 
   testWidgets('누를 수 없으면 chevron을 붙이지 않는다', (tester) async {
@@ -46,7 +72,7 @@ void main() {
       const AppRoutineRow(color: Colors.red, title: '아침 산책'),
     );
 
-    expect(find.byIcon(Icons.chevron_right_rounded), findsNothing);
+    expect(chevron, findsNothing);
   });
 
   testWidgets('trailing을 주면 chevron 대신 그것을 쓴다', (tester) async {
@@ -61,7 +87,7 @@ void main() {
     );
 
     expect(find.text('완료'), findsOneWidget);
-    expect(find.byIcon(Icons.chevron_right_rounded), findsNothing);
+    expect(chevron, findsNothing);
   });
 
   testWidgets('화면들이 각자 루틴 줄을 다시 만들지 않는다', (tester) async {

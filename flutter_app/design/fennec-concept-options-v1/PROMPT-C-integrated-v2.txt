@@ -1,0 +1,14 @@
+Mode: built-in ImageGen
+Edit source: concept-C.png
+
+Use case: precise-object-edit.
+Input image is the edit target: the seated cream-and-apricot fennec with teal scarf.
+The user's specific problem is that the ears look like separate pieces stuck behind a round face. Make a CLEAR STRUCTURAL CORRECTION to the ear-to-head transition, not another minor resize.
+
+Redraw the upper head and both ears as ONE unified furry silhouette while preserving the cute round eyes, little smile, short muzzle, and overall identity. Use these three concrete changes:
+1. Paint the LOWER HALF of each ear and its entire root in the SAME warm sandy fur color and continuous shading as the forehead. The forehead fur must flow upward and outward into both ears in a wide uninterrupted connection. Remove the round cap-like boundary of the face where it meets the ears. No visible seam, rim, stripe, curved separator, or notch across the ear bases.
+2. Remove BOTH large white feather/leaf shapes inside the ears completely. Restrict the peach inner-ear cavity to the UPPER HALF of each ear, with a softly simplified edge and much lower contrast. It ends well above the ear root, leaving a wide solid-fur bridge between ear and forehead. No closed white frame around the inner ear.
+3. Give the forehead, temples and ear roots the same simple pixel-cluster shading, outline thickness and light direction. The only strong dark outline should be the outer boundary of the unified head-and-ears shape. The face must no longer read as a circular foreground disk over two separate triangles. Keep the ears broad, gently outward, soft-tipped and clearly fennec-like, but their integration takes priority over preserving their original shape.
+
+Preserve everything below the jaw: teal scarf, seated body, exactly four natural limbs, paws, tail, pose, cream/apricot colors. Preserve facial expression and friendly big-eyed baby-fox cuteness. Plain warm ivory background. One character, square composition, full ears/tail/paws visible with generous margins. Polished cute 2D pixel-art illustration with crisp stepped contours; no added text, labels, accessories, alternate views or background scenes.
+This must visibly differ at the ear bases and ear interiors from the input image.

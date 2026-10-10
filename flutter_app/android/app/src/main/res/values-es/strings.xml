@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">LOOPET</string>
+    <string name="widget_ring_desc">Anillo de rutinas de hoy</string>
+    <string name="widget_medium_description">Tus rutinas de hoy en un círculo</string>
+    <string name="widget_ring_name">LOOPET Círculo</string>
+    <string name="widget_timeline_name">LOOPET Línea de tiempo</string>
+    <string name="widget_cards_name">LOOPET Tarjetas</string>
+    <string name="widget_timeline_description">Tus rutinas de hoy en una línea de tiempo</string>
+    <string name="widget_cards_description">Tarjetas de rutina actual y siguiente</string>
+    <string name="widget_next_label">Siguiente</string>
+    <string name="widget_sync_prompt">Abre la app</string>
+    <string name="widget_now_label">Ahora</string>
+</resources>

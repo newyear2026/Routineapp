@@ -1,0 +1,76 @@
+{
+  "mode": "built-in image_gen",
+  "approach": "Two independent compositions per pack; Flutter time-of-day color grading plus native pixel particles. No character artwork changes.",
+  "jobs": [
+    {
+      "key": "stargazer-header",
+      "ref": "/Users/jaewook/dev_app/routine_app/flutter_app/design/top-strip-soft-transition-concepts/03-cat-stargazer.png",
+      "prompt": "Create ONE production background asset for a cozy pixel-art mobile routine app, inspired by the attached reference's landscape palette and pixel texture ONLY. Theme: astronomer's hill observatory, teal and cobalt with brass gold. Scene: wide open pale blue daytime sky, distant observatory dome on lower right, pine hills along bottom corners. Landscape 3:2 composition, artwork reaches BOTH side edges, main detail right and at edges, left middle stays quiet for a title. Daylight neutral lighting, crisp square pixel clusters, polished 16-bit pixel illustration, no smooth vector art, no outlines around whole image, no borders. NO sun, NO moon (these will be rendered dynamically by app), NO characters, NO animals, NO people, NO UI, NO letters, NO typography, NO clock, NO panels, NO contact sheet. Background fills entire canvas. A single landscape, not a screenshot.",
+      "source": "/Users/jaewook/.codex/generated_images/01a0eea2-b3b2-7f60-a465-2dfad3de4373/exec-b89f7073-5e47-4915-8f0c-021bbdd35774.png",
+      "asset": "assets/pack_backgrounds/stargazer-scene-header.png"
+    },
+    {
+      "key": "stargazer-card",
+      "ref": "/Users/jaewook/dev_app/routine_app/flutter_app/design/top-strip-soft-transition-concepts/03-cat-stargazer.png",
+      "prompt": "Create ONE production background asset for a cozy pixel-art mobile routine app, inspired by the attached reference's landscape palette and pixel texture ONLY. Theme: astronomer's hill observatory, teal and cobalt with brass gold. Scene: close foreground observatory terrace on the far right, small brass telescope pointed upward and low stone railing, distant blue hills; quiet pale sky across left two thirds. Wide landscape 3:1 composition; bottom right will later receive a character sprite so leave landing space, left two thirds low contrast and empty for readable dark text. Daylight neutral lighting, crisp square pixel clusters, polished 16-bit pixel illustration, no smooth vector art, no outlines around whole image, no borders. NO sun, NO moon (these will be rendered dynamically by app), NO characters, NO animals, NO people, NO UI, NO letters, NO typography, NO clock, NO panels, NO contact sheet. Background fills entire canvas. A single landscape, not a screenshot.",
+      "source": "/Users/jaewook/.codex/generated_images/01a0eea2-b3b2-7f60-a465-2dfad3de4373/exec-e3cc24e1-1618-460a-8b99-bbcec9a4ede7.png",
+      "asset": "assets/pack_backgrounds/stargazer-scene-card.png"
+    },
+    {
+      "key": "rabbit-header",
+      "ref": "/Users/jaewook/dev_app/routine_app/flutter_app/assets/pack_backgrounds/rabbit-dawn.png",
+      "prompt": "Create ONE production background asset for a cozy pixel-art mobile routine app, inspired by the attached reference's landscape palette and pixel texture ONLY. Theme: postal rabbit's peaceful village, peach cream and mint. Scene: wide pale peach sky above a distant mint village, low picket fences and daisies at lower corners. Landscape 3:2 composition, artwork reaches BOTH side edges, main detail right and at edges, left middle stays quiet for a title. Daylight neutral lighting, crisp square pixel clusters, polished 16-bit pixel illustration, no smooth vector art, no outlines around whole image, no borders. NO sun, NO moon (these will be rendered dynamically by app), NO characters, NO animals, NO people, NO UI, NO letters, NO typography, NO clock, NO panels, NO contact sheet. Background fills entire canvas. A single landscape, not a screenshot.",
+      "source": "/Users/jaewook/.codex/generated_images/01a0eea2-b3b2-7f60-a465-2dfad3de4373/exec-0f6575fe-39ed-4ed4-b9f6-a01522928585.png",
+      "asset": "assets/pack_backgrounds/rabbit-scene-header.png"
+    },
+    {
+      "key": "rabbit-card",
+      "ref": "/Users/jaewook/dev_app/routine_app/flutter_app/assets/pack_backgrounds/rabbit-dawn.png",
+      "prompt": "Create ONE production background asset for a cozy pixel-art mobile routine app, inspired by the attached reference's landscape palette and pixel texture ONLY. Theme: postal rabbit's peaceful village, peach cream and mint. Scene: close garden path and a small coral mailbox on far right beside white picket fence and daisies; quiet cream meadow across left two thirds. Wide landscape 3:1 composition; bottom right will later receive a character sprite so leave landing space, left two thirds low contrast and empty for readable dark text. Daylight neutral lighting, crisp square pixel clusters, polished 16-bit pixel illustration, no smooth vector art, no outlines around whole image, no borders. NO sun, NO moon (these will be rendered dynamically by app), NO characters, NO animals, NO people, NO UI, NO letters, NO typography, NO clock, NO panels, NO contact sheet. Background fills entire canvas. A single landscape, not a screenshot.",
+      "source": "/Users/jaewook/.codex/generated_images/01a0eea2-b3b2-7f60-a465-2dfad3de4373/exec-fb3aec06-32c9-4817-a4a3-53a8534f6516.png",
+      "asset": "assets/pack_backgrounds/rabbit-scene-card.png"
+    },
+    {
+      "key": "sheep-header",
+      "ref": "/Users/jaewook/dev_app/routine_app/flutter_app/assets/pack_backgrounds/sheep-sky.png",
+      "prompt": "Create ONE production background asset for a cozy pixel-art mobile routine app, inspired by the attached reference's landscape palette and pixel texture ONLY. Theme: dreamy sheep cloud realm, soft sky blue and cream with lavender shadows. Scene: expansive pale blue sky, fluffy cream cloud banks frame both side edges and bottom with open center. Landscape 3:2 composition, artwork reaches BOTH side edges, main detail right and at edges, left middle stays quiet for a title. Daylight neutral lighting, crisp square pixel clusters, polished 16-bit pixel illustration, no smooth vector art, no outlines around whole image, no borders. NO sun, NO moon (these will be rendered dynamically by app), NO characters, NO animals, NO people, NO UI, NO letters, NO typography, NO clock, NO panels, NO contact sheet. Background fills entire canvas. A single landscape, not a screenshot.",
+      "source": "/Users/jaewook/.codex/generated_images/01a0eea2-b3b2-7f60-a465-2dfad3de4373/exec-e07e2b31-b289-48b3-ac9b-9a234a4b1f23.png",
+      "asset": "assets/pack_backgrounds/sheep-scene-header.png"
+    },
+    {
+      "key": "sheep-card",
+      "ref": "/Users/jaewook/dev_app/routine_app/flutter_app/assets/pack_backgrounds/sheep-sky.png",
+      "prompt": "Create ONE production background asset for a cozy pixel-art mobile routine app, inspired by the attached reference's landscape palette and pixel texture ONLY. Theme: dreamy sheep cloud realm, soft sky blue and cream with lavender shadows. Scene: close fluffy cloud nest and tiny star cushions at far right, layered rounded clouds and distant pale blue sky; very quiet cream cloud across left two thirds. Wide landscape 3:1 composition; bottom right will later receive a character sprite so leave landing space, left two thirds low contrast and empty for readable dark text. Daylight neutral lighting, crisp square pixel clusters, polished 16-bit pixel illustration, no smooth vector art, no outlines around whole image, no borders. NO sun, NO moon (these will be rendered dynamically by app), NO characters, NO animals, NO people, NO UI, NO letters, NO typography, NO clock, NO panels, NO contact sheet. Background fills entire canvas. A single landscape, not a screenshot.",
+      "source": "/Users/jaewook/.codex/generated_images/01a0eea2-b3b2-7f60-a465-2dfad3de4373/exec-8ed5169b-2d79-4d13-9cf6-4cd0c23d494f.png",
+      "asset": "assets/pack_backgrounds/sheep-scene-card.png"
+    },
+    {
+      "key": "redpanda-header",
+      "ref": "/Users/jaewook/dev_app/routine_app/flutter_app/assets/pack_backgrounds/redpanda-teashop.png",
+      "prompt": "Create ONE production background asset for a cozy pixel-art mobile routine app, inspired by the attached reference's landscape palette and pixel texture ONLY. Theme: cozy red panda tea house, honey wood, sage green plants, cream. Scene: wide upper tea house interior with rainy window on right and trailing green leaves at top edges, open softly lit cream wall left. Landscape 3:2 composition, artwork reaches BOTH side edges, main detail right and at edges, left middle stays quiet for a title. Daylight neutral lighting, crisp square pixel clusters, polished 16-bit pixel illustration, no smooth vector art, no outlines around whole image, no borders. NO sun, NO moon (these will be rendered dynamically by app), NO characters, NO animals, NO people, NO UI, NO letters, NO typography, NO clock, NO panels, NO contact sheet. Background fills entire canvas. A single landscape, not a screenshot.",
+      "source": "/Users/jaewook/.codex/generated_images/01a0eea2-b3b2-7f60-a465-2dfad3de4373/exec-190d0f81-e3af-4476-9bb2-22369242a7de.png",
+      "asset": "assets/pack_backgrounds/redpanda-scene-header.png"
+    },
+    {
+      "key": "redpanda-card",
+      "ref": "/Users/jaewook/dev_app/routine_app/flutter_app/assets/pack_backgrounds/redpanda-teashop.png",
+      "prompt": "Create ONE production background asset for a cozy pixel-art mobile routine app, inspired by the attached reference's landscape palette and pixel texture ONLY. Theme: cozy red panda tea house, honey wood, sage green plants, cream. Scene: close wooden tea counter with small teapot, cup and steam at far right, rainy window behind right, pale quiet cream wall on left two thirds. Wide landscape 3:1 composition; bottom right will later receive a character sprite so leave landing space, left two thirds low contrast and empty for readable dark text. Daylight neutral lighting, crisp square pixel clusters, polished 16-bit pixel illustration, no smooth vector art, no outlines around whole image, no borders. NO sun, NO moon (these will be rendered dynamically by app), NO characters, NO animals, NO people, NO UI, NO letters, NO typography, NO clock, NO panels, NO contact sheet. Background fills entire canvas. A single landscape, not a screenshot.",
+      "source": "/Users/jaewook/.codex/generated_images/01a0eea2-b3b2-7f60-a465-2dfad3de4373/exec-4011f44f-60b6-4f53-bf96-ebe23d72d379.png",
+      "asset": "assets/pack_backgrounds/redpanda-scene-card.png"
+    },
+    {
+      "key": "otter-header",
+      "ref": "/Users/jaewook/dev_app/routine_app/flutter_app/assets/pack_backgrounds/otter-seaside.png",
+      "prompt": "Create ONE production background asset for a cozy pixel-art mobile routine app, inspired by the attached reference's landscape palette and pixel texture ONLY. Theme: gentle otter seaside, turquoise sea and warm ivory sand. Scene: wide open pale blue sky over a distant calm turquoise ocean horizon, sea grasses and rock edges at bottom corners. Landscape 3:2 composition, artwork reaches BOTH side edges, main detail right and at edges, left middle stays quiet for a title. Daylight neutral lighting, crisp square pixel clusters, polished 16-bit pixel illustration, no smooth vector art, no outlines around whole image, no borders. NO sun, NO moon (these will be rendered dynamically by app), NO characters, NO animals, NO people, NO UI, NO letters, NO typography, NO clock, NO panels, NO contact sheet. Background fills entire canvas. A single landscape, not a screenshot.",
+      "source": "/Users/jaewook/.codex/generated_images/01a0eea2-b3b2-7f60-a465-2dfad3de4373/exec-1e5027da-dd0a-4ac0-a9de-2b9e7e75f61d.png",
+      "asset": "assets/pack_backgrounds/otter-scene-header.png"
+    },
+    {
+      "key": "otter-card",
+      "ref": "/Users/jaewook/dev_app/routine_app/flutter_app/assets/pack_backgrounds/otter-seaside.png",
+      "prompt": "Create ONE production background asset for a cozy pixel-art mobile routine app, inspired by the attached reference's landscape palette and pixel texture ONLY. Theme: gentle otter seaside, turquoise sea and warm ivory sand. Scene: close shallow tide pool and seashells beside a smooth shore rock on far right, low gentle waves and cream sand across left two thirds. Wide landscape 3:1 composition; bottom right will later receive a character sprite so leave landing space, left two thirds low contrast and empty for readable dark text. Daylight neutral lighting, crisp square pixel clusters, polished 16-bit pixel illustration, no smooth vector art, no outlines around whole image, no borders. NO sun, NO moon (these will be rendered dynamically by app), NO characters, NO animals, NO people, NO UI, NO letters, NO typography, NO clock, NO panels, NO contact sheet. Background fills entire canvas. A single landscape, not a screenshot.",
+      "source": "/Users/jaewook/.codex/generated_images/01a0eea2-b3b2-7f60-a465-2dfad3de4373/exec-b19075d0-50c1-428a-9efb-ac600b0cfc40.png",
+      "asset": "assets/pack_backgrounds/otter-scene-card.png"
+    }
+  ]
+}

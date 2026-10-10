@@ -1,0 +1,15 @@
+Use case: identity-preserve.
+Asset type: production pixel-art animation sprite sheet for the Stargazer wizard cat in a Flutter mobile routine app.
+Input image 1 is the exact current idle character; preserve its navy fur, three cream forehead tufts, large gold eyes, cream muzzle, chest, paws and tail tip, star-patterned navy wizard beret with gold pin, gold-trim navy cape and star clasp. Input image 2 is a supporting POSE reference, not a different identity.
+Output one transparent PNG atlas, ideally 2048x1024, EXACTLY EIGHT equally sized square cells in a strict 4-column x 2-row grid, frame order left to right then top to bottom. Transparent alpha, no drawn checkerboard, background, ground plane, labels, letters, borders, or grid. One whole cat per cell.
+Keep consistent character size, pixel scale, crisp pixel edges, outlines, body proportions, fixed camera and fixed horizontal center across all eight cells. Leave at least 10% transparent padding on every side in every cell so paws, tail, hat and effects are never cut off. Baseline at 88% cell height; neutral full-body height about 66% of cell height, leaving headroom for motion. Do NOT fit/resize individual poses to their cells independently. Preserve costume details, never add accessories.
+Primary request: a short joyful completion celebration, one small hop with two tiny golden pixel stars, then a settled happy seated pose. Preserve the exact same kitten as image 1. Image 2 illustrates the happy closed-eye expression and upraised paws.
+Frame 1: neutral seated front-facing pose exactly like image 1.
+Frame 2: slightly crouch down ready to hop, paws bending, eyes happy.
+Frame 3: push upward, front paws raise, body lifts a little above fixed ground line.
+Frame 4: apex of ONE small hop, all feet visibly just above the baseline, two front paws joyfully raised, closed smiling eyes, tiny open happy mouth, two small gold four-point stars beside head.
+Frame 5: descending from the hop, paws still raised, stars a little smaller.
+Frame 6: gentle landing at original baseline, paws lower, tiny squash drawn naturally rather than stretched, stars fading.
+Frame 7: settle back into seated pose at original baseline, happy closed eyes, stars gone.
+Frame 8: settled seated HAPPY pose, eyes curved shut, content smile, front paws resting at original baseline; body and hat match original idle size.
+No somersault, no large jump, no sideways motion, no oversize effects. Keep full hat and all stars inside every cell with generous padding. ONLY two tiny stars and only in frames 4-6. Ground baseline remains fixed across atlas, airborne vertical motion must be drawn into frames 3-5.

@@ -19,8 +19,13 @@ class LocalSettingsRepository implements SettingsRepository {
   static const _kNotificationsEnabled = 'prefs.notifications.enabled';
   static const _kPermissionStatus = 'prefs.notifications.permission_status';
   static const _kSoundEnabled = 'prefs.notifications.sound_enabled';
+  static const _kVibrationEnabled = 'prefs.notifications.vibration_enabled';
+  static const _kCompletionHaptic = 'prefs.notifications.completion_haptic';
 
   Future<SharedPreferences> get _prefs => SharedPreferences.getInstance();
+
+  /// Background engines have their own SharedPreferences cache.
+  Future<void> reload() async => (await _prefs).reload();
 
   @override
   Future<AppSettings> loadAppSettings() async {
@@ -74,6 +79,8 @@ class LocalSettingsRepository implements SettingsRepository {
         prefs.getString(_kPermissionStatus),
       ),
       soundEnabled: prefs.getBool(_kSoundEnabled) ?? true,
+      vibrationEnabled: prefs.getBool(_kVibrationEnabled) ?? true,
+      completionHapticEnabled: prefs.getBool(_kCompletionHaptic) ?? true,
     );
   }
 
@@ -87,5 +94,8 @@ class LocalSettingsRepository implements SettingsRepository {
     await prefs.setString(
         _kPermissionStatus, preferences.permissionStatus.toRaw);
     await prefs.setBool(_kSoundEnabled, preferences.soundEnabled);
+    await prefs.setBool(_kVibrationEnabled, preferences.vibrationEnabled);
+    await prefs.setBool(
+        _kCompletionHaptic, preferences.completionHapticEnabled);
   }
 }

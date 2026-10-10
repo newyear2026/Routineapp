@@ -1,0 +1,146 @@
+[
+  {
+    "label": "stargazer",
+    "pack": "cat_stargazer",
+    "scale": 0.8888888888888888,
+    "ground": [
+      418,
+      418,
+      412,
+      418,
+      406,
+      408,
+      401,
+      405
+    ],
+    "centerX": 192.0
+  },
+  {
+    "label": "starlight",
+    "pack": "cat_starlight",
+    "scale": 0.8952879581151832,
+    "ground": [
+      421,
+      420,
+      421,
+      421,
+      412,
+      412,
+      404,
+      412
+    ],
+    "centerX": 200.0
+  },
+  {
+    "label": "poodle",
+    "pack": "poodle_garden",
+    "scale": 0.9248895434462445,
+    "ground": [
+      416,
+      416,
+      414,
+      416,
+      399,
+      399,
+      399,
+      388
+    ],
+    "centerX": 213.0
+  },
+  {
+    "label": "rabbit",
+    "pack": "rabbit_postman",
+    "scale": 0.7948051948051948,
+    "ground": [
+      428,
+      433,
+      429,
+      429,
+      409,
+      409,
+      416,
+      419
+    ],
+    "centerX": 225.0
+  },
+  {
+    "label": "squirrel",
+    "pack": "squirrel_explorer",
+    "scale": 0.8583333333333333,
+    "ground": [
+      424,
+      424,
+      424,
+      424,
+      401,
+      405,
+      401,
+      401
+    ],
+    "centerX": 221.0
+  },
+  {
+    "label": "sheep",
+    "pack": "sheep_mooncloud",
+    "scale": 0.830238726790451,
+    "ground": [
+      431,
+      431,
+      431,
+      431,
+      416,
+      416,
+      416,
+      416
+    ],
+    "centerX": 229.5
+  },
+  {
+    "label": "redpanda",
+    "pack": "redpanda_teashop",
+    "scale": 0.8392603129445235,
+    "ground": [
+      426,
+      426,
+      426,
+      424,
+      397,
+      397,
+      398,
+      398
+    ],
+    "centerX": 223.0
+  },
+  {
+    "label": "otter",
+    "pack": "otter_seaside",
+    "scale": 0.8403141361256544,
+    "ground": [
+      418,
+      418,
+      418,
+      418,
+      404,
+      404,
+      405,
+      404
+    ],
+    "centerX": 246.5
+  },
+  {
+    "label": "penguin",
+    "pack": "penguin_snow_walk",
+    "scale": 0.8340306834030683,
+    "ground": [
+      425,
+      425,
+      425,
+      425,
+      415,
+      422,
+      414,
+      421
+    ],
+    "centerX": 214.0
+  }
+]

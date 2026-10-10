@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="800dp" android:height="220dp"
+    android:viewportWidth="800" android:viewportHeight="220">
+    <!-- The scene sits behind information. Its lower silhouettes do not cross text. -->
+    <path android:fillColor="#2B7080" android:fillAlpha="0.32"
+        android:pathData="M0,195 Q120,172 215,198 Q308,178 405,199 Q505,172 595,196 Q705,168 800,195 L800,220 L0,220 Z" />
+    <path android:fillColor="#082D40" android:fillAlpha="0.80"
+        android:pathData="M0,206 L12,187 L19,206 L29,182 L39,206 L52,174 L65,206 L72,195 L85,212 L115,205 L131,190 L143,209 L178,201 L195,191 L209,210 L250,203 L270,190 L291,210 L339,201 L357,190 L375,211 L424,204 L439,194 L454,210 L486,205 L500,185 L510,205 L524,192 L538,211 L558,206 L573,180 L584,208 L614,200 L630,190 L645,212 L679,203 L695,179 L707,206 L721,187 L734,209 L752,176 L763,207 L780,190 L800,207 L800,220 L0,220 Z" />
+    <!-- Observatory dome on the right, below the next-routine text. -->
+    <path android:fillColor="#16495B" android:fillAlpha="0.78"
+        android:pathData="M503,206 L503,183 Q514,163 535,163 Q556,163 567,183 L567,206 Z" />
+    <path android:strokeColor="#57A2AA" android:strokeAlpha="0.38"
+        android:strokeWidth="2" android:fillColor="#00000000"
+        android:pathData="M503,183 L567,183 M535,163 L535,206 M516,176 Q535,170 554,176" />
+    <!-- Sparse stars and a meteor, away from the status and title. -->
+    <path android:fillColor="#FFD75C"
+        android:pathData="M30,45 L33,45 L33,40 L37,40 L37,45 L41,45 L41,49 L37,49 L37,54 L33,54 L33,49 L30,49 Z M146,29 L149,29 L149,25 L152,25 L152,29 L156,29 L156,32 L152,32 L152,36 L149,36 L149,32 L146,32 Z M415,37 L418,37 L418,33 L421,33 L421,37 L425,37 L425,40 L421,40 L421,44 L418,44 L418,40 L415,40 Z M721,38 L725,38 L725,31 L729,31 L729,38 L736,38 L736,42 L729,42 L729,49 L725,49 L725,42 L721,42 Z" />
+    <path android:fillColor="#9CE9E7" android:fillAlpha="0.83"
+        android:pathData="M283,24 L286,24 L286,27 L283,27 Z M626,25 L629,25 L629,28 L626,28 Z M772,72 L775,72 L775,75 L772,75 Z" />
+    <path android:strokeColor="#5CC9CD" android:strokeAlpha="0.70"
+        android:strokeWidth="2" android:fillColor="#00000000"
+        android:pathData="M603,35 L562,61" />
+    <path android:fillColor="#FFD75C"
+        android:pathData="M558,61 L562,58 L565,61 L562,64 Z" />
+</vector>

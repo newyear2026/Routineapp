@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 
 import '../../theme/app_colors.dart';
 import '../../theme/app_spacing.dart';
-import '../../theme/app_theme_preset.dart';
+import '../../theme/app_pixel_style.dart';
 import '../../theme/app_text_styles.dart';
+import 'pixel_icon.dart';
 
 enum AppButtonVariant { primary, secondary, ghost, destructive }
 
-class AppButton extends StatelessWidget {
+class AppButton extends StatefulWidget {
   const AppButton({
     super.key,
     required this.label,
@@ -27,121 +28,154 @@ class AppButton extends StatelessWidget {
   final double height;
   final bool isLoading;
 
-  bool get _enabled => onPressed != null && !isLoading;
+  @override
+  State<AppButton> createState() => _AppButtonState();
+}
+
+class _AppButtonState extends State<AppButton> {
+  bool _pressed = false;
+  bool _focused = false;
+  bool get _enabled => widget.onPressed != null && !widget.isLoading;
+  bool get _ghost => widget.variant == AppButtonVariant.ghost;
 
   @override
   Widget build(BuildContext context) {
-    final theme = context.appTheme;
-    final radius = BorderRadius.circular(AppRadii.button);
-    final child = Opacity(
-      opacity: _enabled ? 1 : 0.5,
-      child: Material(
-        color: Colors.transparent,
-        child: InkWell(
-          onTap: onPressed,
-          borderRadius: radius,
-          child: Ink(
-            width: expand ? double.infinity : null,
-            height: height,
-            padding: const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
-            decoration: _decoration(theme),
-            child: Row(
-              mainAxisSize: expand ? MainAxisSize.max : MainAxisSize.min,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                if (icon != null) ...[
-                  Icon(icon, color: _foregroundColor, size: 20),
-                  const SizedBox(width: AppSpacing.sm),
-                ] else if (isLoading) ...[
-                  SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2.2,
-                      valueColor: AlwaysStoppedAnimation(_foregroundColor),
-                    ),
+    final pressed = _pressed && _enabled;
+    final foreground = switch (widget.variant) {
+      AppButtonVariant.primary || AppButtonVariant.destructive => Colors.white,
+      AppButtonVariant.secondary => AppColors.textPrimary,
+      AppButtonVariant.ghost => AppColors.textMuted,
+    };
+    final fill = switch (widget.variant) {
+      AppButtonVariant.primary => Theme.of(context).colorScheme.primary,
+      AppButtonVariant.secondary => AppColors.orbitSurface,
+      AppButtonVariant.ghost => Colors.transparent,
+      AppButtonVariant.destructive => AppColors.dangerText,
+    };
+
+    final child = Padding(
+      // 누를 때 다음 요소와 겹치지 않도록 그림자 공간을 유지한다.
+      padding:
+          EdgeInsets.only(bottom: _ghost ? 0 : AppPixelStyle.buttonOffset.dy),
+      child: Opacity(
+        opacity: _enabled || widget.isLoading ? 1 : 0.5,
+        child: Transform.translate(
+          offset: pressed && !_ghost ? AppPixelStyle.buttonOffset : Offset.zero,
+          child: Material(
+            color: Colors.transparent,
+            child: InkWell(
+              onTap: _enabled ? widget.onPressed : null,
+              borderRadius: AppPixelStyle.radius,
+              splashFactory: NoSplash.splashFactory,
+              highlightColor: Colors.transparent,
+              // InkWell을 유지해 키보드·스크린리더 활성화를 보존한다.
+              onHighlightChanged: (value) => setState(() => _pressed = value),
+              onFocusChange: (value) => setState(() => _focused = value),
+              child: CustomPaint(
+                // 베벨은 «밝은 위 / 어두운 아래»로 면이 솟은 듯 보이게 한다.
+                // 흰 면에서는 위쪽 하이라이트가 묻히고 아래쪽 어두운 획만
+                // 남아, 솟아 보이는 대신 회색 테두리가 하나 더 생긴다.
+                // 그래서 글자가 흰색인 어두운 면에만 건다.
+                foregroundPainter: foreground == Colors.white && !_ghost
+                    ? _ButtonBevel(pressed: pressed)
+                    : null,
+                child: Ink(
+                  width: widget.expand ? double.infinity : null,
+                  height: widget.height,
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: AppSpacing.xl),
+                  decoration: ShapeDecoration(
+                    color: fill,
+                    shape: _ghost && !_focused
+                        ? AppPixelStyle.plainShape
+                        : AppPixelStyle.shape(
+                            color: _focused
+                                ? AppColors.orbitSecondary
+                                : AppPixelStyle.outline,
+                          ),
+                    shadows: _ghost || pressed || !_enabled
+                        ? null
+                        : const [
+                            BoxShadow(
+                              color: AppPixelStyle.shadow,
+                              offset: AppPixelStyle.buttonOffset,
+                            )
+                          ],
                   ),
-                  const SizedBox(width: AppSpacing.sm),
-                ],
-                Flexible(
-                  child: Text(
-                    label,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: AppTextStyles.button.copyWith(
-                      color: _foregroundColor,
-                    ),
+                  child: Row(
+                    mainAxisSize:
+                        widget.expand ? MainAxisSize.max : MainAxisSize.min,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      if (widget.isLoading) ...[
+                        SizedBox(
+                          width: 18,
+                          height: 18,
+                          child: CircularProgressIndicator(
+                            strokeWidth: 2.2,
+                            valueColor: AlwaysStoppedAnimation(foreground),
+                          ),
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                      ] else if (widget.icon != null) ...[
+                        AppIcon(widget.icon!, color: foreground, size: 20),
+                        const SizedBox(width: AppSpacing.sm),
+                      ],
+                      Flexible(
+                        child: Text(
+                          widget.label,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style:
+                              AppTextStyles.button.copyWith(color: foreground),
+                        ),
+                      ),
+                    ],
                   ),
                 ),
-              ],
+              ),
             ),
           ),
         ),
       ),
     );
-
-    if (expand) return child;
+    if (widget.expand) return child;
     return IntrinsicWidth(child: child);
   }
+}
 
-  Color get _foregroundColor {
-    switch (variant) {
-      case AppButtonVariant.primary:
-        return Colors.white;
-      case AppButtonVariant.secondary:
-        return AppColors.textPrimary;
-      case AppButtonVariant.ghost:
-        return AppColors.textMuted;
-      case AppButtonVariant.destructive:
-        return Colors.white;
-    }
+/// 면 전체를 밝히지 않고 가장자리만 강조해 버튼 글자 대비를 유지한다.
+class _ButtonBevel extends CustomPainter {
+  const _ButtonBevel({required this.pressed});
+  final bool pressed;
+
+  /// 테두리 안쪽으로 이만큼 들어간 자리에 획을 둔다.
+  static const _inset = 4.0;
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final outer = Offset.zero & size;
+    final rect = outer.deflate(_inset);
+    if (rect.isEmpty) return;
+    final shader = LinearGradient(
+      begin: pressed ? Alignment.bottomCenter : Alignment.topCenter,
+      end: pressed ? Alignment.topCenter : Alignment.bottomCenter,
+      colors: const [Color(0x99FFFFFF), Color(0x00221C42), Color(0x33221C42)],
+      stops: const [0, 0.5, 1],
+    ).createShader(rect);
+    canvas.drawPath(
+      // 사각형만 줄인 경로를 쓰면 모서리 계단이 테두리와 평행하지 않아
+      // 네 귀퉁이만 간격이 벌어진다. 도형에게 평행한 경로를 직접 받는다.
+      AppPixelStyle.plainShape.insetPath(outer, _inset),
+      Paint()
+        ..shader = shader
+        ..style = PaintingStyle.stroke
+        ..strokeWidth = 2
+        ..isAntiAlias = false,
+    );
   }
 
-  BoxDecoration _decoration(AppThemeTokens theme) {
-    switch (variant) {
-      case AppButtonVariant.primary:
-        return BoxDecoration(
-          borderRadius: BorderRadius.circular(AppRadii.button),
-          gradient: AppColors.orbitPrimaryGradient,
-          border: Border.all(color: Colors.white.withValues(alpha: 0.28)),
-          boxShadow: [
-            BoxShadow(
-              color: AppColors.orbitPrimary.withValues(alpha: 0.22),
-              blurRadius: 20,
-              offset: const Offset(0, 10),
-            ),
-          ],
-        );
-      case AppButtonVariant.secondary:
-        return BoxDecoration(
-          borderRadius: BorderRadius.circular(AppRadii.button),
-          color: Colors.white.withValues(alpha: 0.74),
-          border: Border.all(
-            color: AppColors.orbitBorder.withValues(alpha: 0.9),
-          ),
-        );
-      case AppButtonVariant.ghost:
-        // UI_STANDARDS 2: Ghost는 배경 없는 텍스트형 버튼이다.
-        // 옅은 채움을 넣으면 Secondary처럼 보여 위계가 무너진다.
-        return BoxDecoration(
-          borderRadius: BorderRadius.circular(AppRadii.button),
-          color: Colors.transparent,
-        );
-      case AppButtonVariant.destructive:
-        return BoxDecoration(
-          borderRadius: BorderRadius.circular(AppRadii.button),
-          gradient: const LinearGradient(
-            colors: [Color(0xFFE78D76), Color(0xFFD76A5B)],
-          ),
-          border: Border.all(color: Colors.white.withValues(alpha: 0.24)),
-          boxShadow: [
-            BoxShadow(
-              color: const Color(0xFFD76A5B).withValues(alpha: 0.24),
-              blurRadius: 18,
-              offset: const Offset(0, 8),
-            ),
-          ],
-        );
-    }
-  }
+  @override
+  bool shouldRepaint(_ButtonBevel oldDelegate) =>
+      oldDelegate.pressed != pressed;
 }

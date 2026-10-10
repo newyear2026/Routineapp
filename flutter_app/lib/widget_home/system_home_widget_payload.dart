@@ -1,11 +1,14 @@
 import 'dart:convert';
 
 import '../application/home/home_snapshot.dart';
+import '../domain/models/routine.dart';
 import '../domain/utils/time_minutes.dart';
+import '../l10n/app_localizations.dart';
 import '../widget_medium/home_medium_widget_selector.dart';
 import '../widget_medium/home_medium_widget_view_model.dart';
 import '../widget_medium/medium_ring_segment.dart';
 import '../widget_medium/mini_circular_timetable.dart';
+import '../widget_medium/widget_timeline_item.dart';
 
 /// 시스템 홈 위젯(iOS/Android)과 공유하는 JSON 페이로드 — [docs/SYSTEM_HOME_WIDGET_SPEC.md].
 class SystemHomeWidgetPayload {
@@ -22,12 +25,29 @@ class SystemHomeWidgetPayload {
     required this.centerTimeLabel,
     required this.ringSegments,
     this.activeSegmentId,
+    this.nextLabel = '',
+    this.refreshHint = '',
+    this.validUntilEpochMs = 0,
+    this.timelineStates = const [],
+    this.timingStartTemplate = '',
+    this.timingEndTemplate = '',
+    this.durationHoursMinutesTemplate = '',
+    this.durationHoursTemplate = '',
+    this.durationMinutesTemplate = '',
+    this.characterPackId = 'cat_starlight',
+    this.completeActionUri,
+    this.completeLabel = '',
+    this.currentRoutineTimeRange = '',
+    this.upcomingRoutines = const [],
+    this.ringUntilStartLabel = '',
+    this.ringUntilEndLabel = '',
+    this.upNextLabel = '',
+    this.timelineItems = const [],
   });
 
-  /// v2: 렌더링하지 않는 `headerTitle`·`subtitle`·`nextRoutineLine`·`currentRoutineTimeRange`·`currentRoutineIconEmoji`를 빼고
-  /// `currentRoutineTimingHint`를 넣었다.
+  /// v3: 미래 루틴 경계·다국어 표시 템플릿·만료 시점을 추가했다.
   /// 네이티브 디코더는 없는 필드에 깨지지 않도록 모두 옵셔널로 읽는다.
-  static const currentSchemaVersion = 2;
+  static const currentSchemaVersion = 3;
   static const storageKey = 'routine_widget_payload';
 
   final int schemaVersion;
@@ -42,22 +62,43 @@ class SystemHomeWidgetPayload {
   final String centerTimeLabel;
   final List<SystemRingSegmentPayload> ringSegments;
   final String? activeSegmentId;
+  final String nextLabel;
+  final String refreshHint;
+  final int validUntilEpochMs;
+  final List<SystemWidgetStatePayload> timelineStates;
+  final String timingStartTemplate;
+  final String timingEndTemplate;
+  final String durationHoursMinutesTemplate;
+  final String durationHoursTemplate;
+  final String durationMinutesTemplate;
+  final String characterPackId;
 
-  factory SystemHomeWidgetPayload.fromHomeSnapshot(HomeSnapshot snapshot) {
-    final vm = HomeMediumWidgetSelector.fromSnapshot(snapshot);
-    return SystemHomeWidgetPayload.fromViewModel(vm, snapshot);
+  /// 4×2 링 위젯이 쓴다. 옛 네이티브 코드는 읽지 않으므로 v3 그대로 둔다.
+  final String? completeActionUri;
+  final String completeLabel;
+  final String currentRoutineTimeRange;
+  final List<SystemUpcomingRoutinePayload> upcomingRoutines;
+  final String ringUntilStartLabel;
+  final String ringUntilEndLabel;
+  final String upNextLabel;
+  final List<WidgetTimelineItem> timelineItems;
+
+  factory SystemHomeWidgetPayload.fromHomeSnapshot(
+    HomeSnapshot snapshot,
+    AppLocalizations l10n,
+  ) {
+    final vm = HomeMediumWidgetSelector.fromSnapshot(snapshot, l10n);
+    return SystemHomeWidgetPayload.fromViewModel(
+      vm,
+      upcomingRoutines:
+          SystemUpcomingRoutinePayload.listFrom(snapshot.upcomingRoutines),
+    );
   }
 
   factory SystemHomeWidgetPayload.fromViewModel(
-    HomeMediumWidgetViewModel vm,
-    HomeSnapshot snapshot,
-  ) {
-    final nextCard = snapshot.nextRoutineCard;
-    final nextR = snapshot.nextRoutine;
-    final nextTitle = nextCard?.name ?? nextR?.title ?? '';
-    final nextTime = nextCard?.time ??
-        (nextR != null ? TimeMinutes.formatHm(nextR.startMinutesFromMidnight) : '');
-
+    HomeMediumWidgetViewModel vm, {
+    List<SystemUpcomingRoutinePayload> upcomingRoutines = const [],
+  }) {
     final t = vm.currentTime;
     final ptr =
         vm.pointerAngleRad ?? MiniCircularTimetable.pointerAngleFromTime(t);
@@ -67,8 +108,8 @@ class SystemHomeWidgetPayload {
       currentRoutineTitle: vm.currentRoutineTitle,
       currentRoutineStatus: vm.currentRoutineStatusLabel,
       currentRoutineTimingHint: vm.currentRoutineTimingHint,
-      nextRoutineTitle: nextTitle,
-      nextRoutineTime: nextTime,
+      nextRoutineTitle: vm.nextRoutineTitle,
+      nextRoutineTime: vm.nextRoutineTime,
       currentTimeHour: t.hour,
       currentTimeMinute: t.minute,
       pointerAngleRad: ptr,
@@ -76,9 +117,90 @@ class SystemHomeWidgetPayload {
       ringSegments:
           vm.ringSegments.map(SystemRingSegmentPayload.fromMedium).toList(),
       activeSegmentId: vm.activeSegmentId,
+      completeActionUri: vm.completeActionUri,
+      completeLabel: vm.completeLabel,
+      currentRoutineTimeRange: vm.currentRoutineTimeRange,
+      upcomingRoutines: upcomingRoutines,
+      timelineItems: vm.timelineItems,
     );
   }
 
+  SystemHomeWidgetPayload withTimeline({
+    required AppLocalizations l10n,
+    required int validUntilEpochMs,
+    required List<SystemWidgetStatePayload> states,
+  }) =>
+      SystemHomeWidgetPayload(
+        schemaVersion: schemaVersion,
+        currentRoutineTitle: currentRoutineTitle,
+        currentRoutineStatus: currentRoutineStatus,
+        currentRoutineTimingHint: currentRoutineTimingHint,
+        nextRoutineTitle: nextRoutineTitle,
+        nextRoutineTime: nextRoutineTime,
+        currentTimeHour: currentTimeHour,
+        currentTimeMinute: currentTimeMinute,
+        pointerAngleRad: pointerAngleRad,
+        centerTimeLabel: centerTimeLabel,
+        ringSegments: ringSegments,
+        activeSegmentId: activeSegmentId,
+        nextLabel: l10n.commonNext,
+        refreshHint: l10n.widgetRefreshHint,
+        validUntilEpochMs: validUntilEpochMs,
+        timelineStates: states,
+        timingStartTemplate: l10n.timingUntilStart('{duration}'),
+        timingEndTemplate: l10n.timingUntilEnd('{duration}'),
+        durationHoursMinutesTemplate: l10n
+            .durationHoursMinutes(101, 202)
+            .replaceFirst('101', '{hours}')
+            .replaceFirst('202', '{minutes}'),
+        durationHoursTemplate:
+            l10n.durationHours(101).replaceFirst('101', '{hours}'),
+        durationMinutesTemplate:
+            l10n.durationMinutes(202).replaceFirst('202', '{minutes}'),
+        characterPackId: characterPackId,
+        completeActionUri: completeActionUri,
+        completeLabel: completeLabel,
+        currentRoutineTimeRange: currentRoutineTimeRange,
+        upcomingRoutines: upcomingRoutines,
+        ringUntilStartLabel: l10n.widgetRingUntilStart,
+        ringUntilEndLabel: l10n.widgetRingUntilEnd,
+        upNextLabel: l10n.widgetUpNext,
+        timelineItems: timelineItems,
+      );
+
+  SystemHomeWidgetPayload withCharacterPack(String packId) =>
+      SystemHomeWidgetPayload(
+        schemaVersion: schemaVersion,
+        currentRoutineTitle: currentRoutineTitle,
+        currentRoutineStatus: currentRoutineStatus,
+        currentRoutineTimingHint: currentRoutineTimingHint,
+        nextRoutineTitle: nextRoutineTitle,
+        nextRoutineTime: nextRoutineTime,
+        currentTimeHour: currentTimeHour,
+        currentTimeMinute: currentTimeMinute,
+        pointerAngleRad: pointerAngleRad,
+        centerTimeLabel: centerTimeLabel,
+        ringSegments: ringSegments,
+        activeSegmentId: activeSegmentId,
+        nextLabel: nextLabel,
+        refreshHint: refreshHint,
+        validUntilEpochMs: validUntilEpochMs,
+        timelineStates: timelineStates,
+        timingStartTemplate: timingStartTemplate,
+        timingEndTemplate: timingEndTemplate,
+        durationHoursMinutesTemplate: durationHoursMinutesTemplate,
+        durationHoursTemplate: durationHoursTemplate,
+        durationMinutesTemplate: durationMinutesTemplate,
+        characterPackId: packId,
+        completeActionUri: completeActionUri,
+        completeLabel: completeLabel,
+        currentRoutineTimeRange: currentRoutineTimeRange,
+        upcomingRoutines: upcomingRoutines,
+        ringUntilStartLabel: ringUntilStartLabel,
+        ringUntilEndLabel: ringUntilEndLabel,
+        upNextLabel: upNextLabel,
+        timelineItems: timelineItems,
+      );
 
   Map<String, dynamic> toJson() => {
         'schemaVersion': schemaVersion,
@@ -93,9 +215,85 @@ class SystemHomeWidgetPayload {
         'centerTimeLabel': centerTimeLabel,
         'ringSegments': ringSegments.map((e) => e.toJson()).toList(),
         'activeSegmentId': activeSegmentId,
+        'nextLabel': nextLabel,
+        'refreshHint': refreshHint,
+        'validUntilEpochMs': validUntilEpochMs,
+        'timelineStates': timelineStates.map((e) => e.toJson()).toList(),
+        'timingStartTemplate': timingStartTemplate,
+        'timingEndTemplate': timingEndTemplate,
+        'durationHoursMinutesTemplate': durationHoursMinutesTemplate,
+        'durationHoursTemplate': durationHoursTemplate,
+        'durationMinutesTemplate': durationMinutesTemplate,
+        'characterPackId': characterPackId,
+        'completeActionUri': completeActionUri,
+        'completeLabel': completeLabel,
+        'currentRoutineTimeRange': currentRoutineTimeRange,
+        'upcomingRoutines': upcomingRoutines.map((e) => e.toJson()).toList(),
+        'ringUntilStartLabel': ringUntilStartLabel,
+        'ringUntilEndLabel': ringUntilEndLabel,
+        'upNextLabel': upNextLabel,
+        'timelineItems': timelineItems.map((e) => e.toJson()).toList(),
       };
 
   String encode() => jsonEncode(toJson());
+}
+
+/// 앱이 꺼져 있어도 네이티브 위젯이 미래의 루틴 경계에서 고를 수 있는 상태.
+class SystemWidgetStatePayload {
+  const SystemWidgetStatePayload({
+    required this.effectiveAtEpochMs,
+    required this.currentRoutineTitle,
+    required this.currentRoutineStatus,
+    required this.currentRoutineTimingHint,
+    required this.nextRoutineTitle,
+    required this.nextRoutineTime,
+    required this.centerTimeLabel,
+    required this.ringSegments,
+    this.activeSegmentId,
+    this.timingTargetEpochMs,
+    this.timingMode,
+    this.completeActionUri,
+    this.completeLabel = '',
+    this.currentRoutineTimeRange = '',
+    this.upcomingRoutines = const [],
+    this.timelineItems = const [],
+  });
+
+  final int effectiveAtEpochMs;
+  final String currentRoutineTitle;
+  final String currentRoutineStatus;
+  final String currentRoutineTimingHint;
+  final String nextRoutineTitle;
+  final String nextRoutineTime;
+  final String centerTimeLabel;
+  final List<SystemRingSegmentPayload> ringSegments;
+  final String? activeSegmentId;
+  final int? timingTargetEpochMs;
+  final String? timingMode;
+  final String? completeActionUri;
+  final String completeLabel;
+  final String currentRoutineTimeRange;
+  final List<SystemUpcomingRoutinePayload> upcomingRoutines;
+  final List<WidgetTimelineItem> timelineItems;
+
+  Map<String, dynamic> toJson() => {
+        'effectiveAtEpochMs': effectiveAtEpochMs,
+        'currentRoutineTitle': currentRoutineTitle,
+        'currentRoutineStatus': currentRoutineStatus,
+        'currentRoutineTimingHint': currentRoutineTimingHint,
+        'nextRoutineTitle': nextRoutineTitle,
+        'nextRoutineTime': nextRoutineTime,
+        'centerTimeLabel': centerTimeLabel,
+        'ringSegments': ringSegments.map((e) => e.toJson()).toList(),
+        'activeSegmentId': activeSegmentId,
+        'timingTargetEpochMs': timingTargetEpochMs,
+        'timingMode': timingMode,
+        'completeActionUri': completeActionUri,
+        'completeLabel': completeLabel,
+        'currentRoutineTimeRange': currentRoutineTimeRange,
+        'upcomingRoutines': upcomingRoutines.map((e) => e.toJson()).toList(),
+        'timelineItems': timelineItems.map((e) => e.toJson()).toList(),
+      };
 }
 
 class SystemRingSegmentPayload {
@@ -124,6 +322,40 @@ class SystemRingSegmentPayload {
         'id': id,
         'startMinutesFromMidnight': startMinutesFromMidnight,
         'sweepMinutes': sweepMinutes,
+        'colorArgb': colorArgb,
+      };
+}
+
+/// 4×2 링 위젯의 «이어서» 목록 한 줄 — 표시 루틴 뒤에 오늘 남은 루틴.
+class SystemUpcomingRoutinePayload {
+  const SystemUpcomingRoutinePayload({
+    required this.title,
+    required this.time,
+    required this.colorArgb,
+  });
+
+  /// 위젯 높이에 들어가는 줄 수만큼만 보낸다.
+  static const maxCount = 3;
+
+  static List<SystemUpcomingRoutinePayload> listFrom(List<Routine> routines) =>
+      routines
+          .take(maxCount)
+          .map(
+            (r) => SystemUpcomingRoutinePayload(
+              title: r.title,
+              time: TimeMinutes.formatHm(r.startMinutesFromMidnight),
+              colorArgb: r.color.toARGB32(),
+            ),
+          )
+          .toList();
+
+  final String title;
+  final String time;
+  final int colorArgb;
+
+  Map<String, dynamic> toJson() => {
+        'title': title,
+        'time': time,
         'colorArgb': colorArgb,
       };
 }

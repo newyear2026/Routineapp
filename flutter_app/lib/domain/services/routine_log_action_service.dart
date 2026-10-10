@@ -7,6 +7,9 @@ import '../models/routine_log_status.dart';
 abstract final class RoutineLogActionService {
   static const defaultSnooze = Duration(minutes: 15);
 
+  /// 알람처럼 울리는 기상 알림의 «다시 울림». 15분은 다시 잠들기에 길다.
+  static const wakeAlarmSnooze = Duration(minutes: 5);
+
   /// 완료 — 이미 완료면 동일 로그 반환 + [RoutineLogApplyOutcome.shouldPersist] = false
   static RoutineLogApplyOutcome complete({
     required Routine routine,

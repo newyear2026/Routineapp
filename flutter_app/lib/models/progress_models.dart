@@ -1,3 +1,5 @@
+import '../l10n/app_localizations.dart';
+
 /// Progress 화면용 모델 (더미 → 이후 저장소/상태로 교체)
 class ProgressRoutineItem {
   const ProgressRoutineItem({
@@ -20,18 +22,19 @@ enum ProgressRoutineStatus {
 }
 
 extension ProgressRoutineStatusX on ProgressRoutineStatus {
-  String get label {
+  /// 상태 이름은 언어에 따라 달라지므로 게터가 아니라 현재 언어를 받는다.
+  String label(AppLocalizations l10n) {
     switch (this) {
       case ProgressRoutineStatus.completed:
-        return '완료';
+        return l10n.statusCompleted;
       case ProgressRoutineStatus.later:
-        return '나중에';
+        return l10n.statusSnoozed;
       case ProgressRoutineStatus.skipped:
-        return '스킵';
+        return l10n.statusSkipped;
       case ProgressRoutineStatus.noResponse:
-        return '응답 없음';
+        return l10n.statusNoResponse;
       case ProgressRoutineStatus.pending:
-        return '대기';
+        return l10n.statusWaiting;
     }
   }
 }

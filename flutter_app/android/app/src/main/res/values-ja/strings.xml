@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">LOOPET</string>
+    <string name="widget_ring_desc">今日のルーティンリング</string>
+    <string name="widget_medium_description">今日のルーティンを円でひと目で</string>
+    <string name="widget_ring_name">LOOPET 円形時刻表</string>
+    <string name="widget_timeline_name">LOOPET 時間軸</string>
+    <string name="widget_cards_name">LOOPET カード</string>
+    <string name="widget_timeline_description">今日のルーティンを時間軸で表示</string>
+    <string name="widget_cards_description">現在と次のルーティンカード</string>
+    <string name="widget_next_label">次</string>
+    <string name="widget_sync_prompt">アプリを開く</string>
+    <string name="widget_now_label">今</string>
+</resources>

@@ -1,0 +1,483 @@
+import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
+
+import '../app_optional_provider.dart';
+import '../application/store/pack_purchases.dart';
+
+import '../data/store/character_pack_catalog.dart';
+import '../domain/store/character_pack.dart';
+import '../domain/store/pack_ad_unlock.dart';
+import '../l10n/app_localizations.dart';
+import '../theme/app_colors.dart';
+import '../theme/app_spacing.dart';
+import '../theme/app_text_styles.dart';
+import '../widgets/ds/ds.dart';
+import '../widgets/ds/pixel_decoration.dart';
+import '../widgets/store/character_pack_preview.dart';
+import '../widgets/store/character_pack_scope.dart';
+import '../widgets/store/character_pack_text.dart';
+import '../theme/pack_skin.dart';
+import '../theme/pack_skin_catalog.dart';
+
+/// 팩 하나를 보여 주고, 가진 팩이면 쓰게 하고, 아니면 파는 화면.
+///
+/// 결제는 아직 붙지 않았다. `BUSINESS_MODEL.md` 5장이 유료화의 전제로 둔
+/// D30 리텐션 20%가 아직 없고, 가격도 스토어가 정한다. 그래서 구매 동작은
+/// [CharacterPackOwnership] 자리만 남기고 비워 둔다 — 붙일 때 화면은
+/// 건드리지 않는다.
+class CharacterPackDetailScreen extends StatelessWidget {
+  const CharacterPackDetailScreen({super.key, required this.packId});
+
+  final String packId;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final pack = CharacterPackCatalog.byId(packId);
+    if (pack == null) {
+      return Scaffold(
+        body: AppScreenShell(
+          child: Center(
+            child: TextButton(
+              onPressed: () => context.pop(),
+              child: Text(l10n.commonGoBack),
+            ),
+          ),
+        ),
+      );
+    }
+
+    final ownership = CharacterPackScope.ownershipOf(context);
+    final inUse = CharacterPackScope.currentOf(context).id == pack.id;
+    return Scaffold(
+      body: AppScreenShell(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(24, 8, 24, 32),
+          children: [
+            ConstrainedBox(
+              constraints: const BoxConstraints(minHeight: 56),
+              child: Row(
+                children: [
+                  IconButton(
+                    tooltip: l10n.commonBack,
+                    onPressed: () => context.pop(),
+                    icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                    color: AppColors.textPrimary,
+                  ),
+                  Expanded(
+                    child: Text(
+                      l10n.characterPackKicker,
+                      style: AppTextStyles.caption,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  const SizedBox(width: 48),
+                ],
+              ),
+            ),
+            const SizedBox(height: 4),
+            Text(
+              pack.name(l10n),
+              style: AppTextStyles.titleScreen,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 6),
+            Text(
+              pack.tagline(l10n),
+              style: AppTextStyles.helper,
+              textAlign: TextAlign.center,
+            ),
+            if (pack.availability == CharacterPackAvailability.launchGift) ...[
+              const SizedBox(height: AppSpacing.sm),
+              Center(child: AppStatusBadge(label: l10n.launchGiftBadge)),
+            ],
+            const SizedBox(height: AppSpacing.xxl),
+            Center(
+              child: SizedBox(
+                width: 210,
+                height: 166,
+                child: Stack(
+                  alignment: Alignment.bottomCenter,
+                  children: [
+                    if (PackSkinCatalog.of(pack).decorStyle ==
+                        PackDecorStyle.garden) ...[
+                      const Positioned(
+                        left: 0,
+                        top: 2,
+                        child: GardenLeaf(
+                          key: Key('poodle-detail-leaf-left-top'),
+                          size: 28,
+                          angle: -0.2,
+                        ),
+                      ),
+                      const Positioned(
+                        right: 1,
+                        top: 12,
+                        child: GardenLeaf(
+                          key: Key('poodle-detail-leaf-right-top'),
+                          size: 25,
+                          mirror: true,
+                        ),
+                      ),
+                      const Positioned(
+                        left: 14,
+                        bottom: 55,
+                        child: GardenLeaf(size: 20, mirror: true),
+                      ),
+                      const Positioned(
+                        right: 13,
+                        bottom: 58,
+                        child: GardenLeaf(size: 21, angle: 0.5),
+                      ),
+                      const Positioned(
+                        right: 0,
+                        bottom: 4,
+                        child: PixelDecoration(
+                          asset: 'garden-daisy',
+                          size: 58,
+                        ),
+                      ),
+                    ],
+                    CharacterPackPortrait(pack: pack, size: 148),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: AppSpacing.xxl),
+            _SectionLabel(l10n.characterPackContents),
+            const SizedBox(height: AppSpacing.md),
+            _ContentsRow(pack: pack),
+            const SizedBox(height: AppSpacing.xxl),
+            _SectionLabel(l10n.characterPackThemeColors),
+            const SizedBox(height: AppSpacing.md),
+            CharacterPackColorRow(pack: pack),
+            const SizedBox(height: AppSpacing.xxl),
+            _SectionLabel(l10n.characterPackDecoItems),
+            const SizedBox(height: AppSpacing.md),
+            CharacterPackDecoRow(pack: pack),
+            const SizedBox(height: AppSpacing.huge),
+            _PackAction(
+              pack: pack,
+              inUse: inUse,
+              owned: ownership.owns(pack),
+              selectable: CharacterPackCatalog.isSelectable(pack, ownership),
+              adViews: CharacterPackScope.adViewsOf(context, pack) ?? 0,
+              onSelect: CharacterPackScope.onSelectOf(context),
+              onWatchAd: CharacterPackScope.onWatchAdOf(context),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _SectionLabel extends StatelessWidget {
+  const _SectionLabel(this.text);
+
+  final String text;
+
+  @override
+  Widget build(BuildContext context) =>
+      Text(text, style: AppTextStyles.titleSection);
+}
+
+/// 시안의 «팩 구성 내용» 세 칸. 팩이 실제로 들고 있는 것만 센다.
+class _ContentsRow extends StatelessWidget {
+  const _ContentsRow({required this.pack});
+
+  final CharacterPack pack;
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    final slots = <(IconData, String, String)>[
+      (
+        Icons.emoji_emotions_outlined,
+        l10n.characterPackSlotCharacter,
+        l10n.characterPackSlotCharacterDesc,
+      ),
+      (
+        Icons.animation_rounded,
+        l10n.characterPackSlotPoses(CharacterPack.poseNames.length),
+        l10n.characterPackSlotPosesDesc,
+      ),
+      (
+        Icons.palette_outlined,
+        l10n.characterPackSlotTheme,
+        l10n.characterPackSlotThemeDesc,
+      ),
+    ];
+    // 세 칸은 글자 길이가 달라도 같은 높이로 선다. ListView 안에서는 Row에
+    // 높이 제약이 없어 stretch 만으로는 배치가 서지 않는다.
+    return IntrinsicHeight(
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          for (var i = 0; i < slots.length; i++) ...[
+            if (i > 0) const SizedBox(width: AppSpacing.sm),
+            Expanded(
+              child: AppCard(
+                padding: const EdgeInsets.symmetric(
+                    horizontal: AppSpacing.sm, vertical: AppSpacing.md),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AppIcon(slots[i].$1,
+                        size: 22, color: AppColors.orbitPrimary),
+                    const SizedBox(height: AppSpacing.sm),
+                    Text(
+                      slots[i].$2,
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.bodyStrong,
+                    ),
+                    const SizedBox(height: AppSpacing.xs),
+                    Text(
+                      slots[i].$3,
+                      textAlign: TextAlign.center,
+                      style: AppTextStyles.captionTight
+                          .copyWith(color: AppColors.textMuted),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ],
+      ),
+    );
+  }
+}
+
+/// 사용 중 · 쓰기 · 광고로 열기 · 구매 표시. **판정은 여기 한 곳에서만 한다.**
+///
+/// 조건이 화면 곳곳에 흩어지면 가격 정책을 바꿀 수 없게 된다
+/// (`BUSINESS_MODEL.md` 6장).
+class _PackAction extends StatefulWidget {
+  const _PackAction({
+    required this.pack,
+    required this.inUse,
+    required this.owned,
+    required this.selectable,
+    required this.adViews,
+    required this.onSelect,
+    required this.onWatchAd,
+  });
+
+  final CharacterPack pack;
+  final bool inUse;
+  final bool owned;
+  final bool selectable;
+
+  /// 이 팩을 위해 끝까지 본 광고 수.
+  final int adViews;
+  final Future<bool> Function(CharacterPack pack)? onSelect;
+  final Future<PackAdUnlockOutcome> Function(CharacterPack pack)? onWatchAd;
+
+  @override
+  State<_PackAction> createState() => _PackActionState();
+}
+
+class _PackActionState extends State<_PackAction> {
+  bool _saving = false;
+
+  /// 이 화면에서 결제 창을 열었다. 결제는 앱 밖에서 끝나고 돌아오므로, 팩이
+  /// 소유로 바뀌는 순간을 기다렸다 입힌다.
+  bool _awaitingPurchase = false;
+
+  @override
+  void didUpdateWidget(covariant _PackAction oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    // 산 팩은 광고로 연 팩처럼 바로 입힌다. 다시 «쓰기»를 누르게 하면 돈을 낸
+    // 뒤에 한 번 더 확인받는 셈이다. 다른 경로(복원)로 소유가 된 팩은 두지
+    // 않는다 — 사용자가 고른 적이 없다.
+    if (_awaitingPurchase && !oldWidget.owned && widget.owned) {
+      _awaitingPurchase = false;
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (mounted) _select();
+      });
+    }
+  }
+
+  Future<void> _buy(PackPurchases purchases, String productId) async {
+    _awaitingPurchase = true;
+    await purchases.buy(productId);
+  }
+
+  Future<void> _select() async {
+    final onSelect = widget.onSelect;
+    if (onSelect == null || _saving) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final failureMessage =
+        AppLocalizations.of(context).characterPackSelectFailed;
+    setState(() => _saving = true);
+    final saved = await onSelect(widget.pack);
+    if (!mounted) return;
+    setState(() => _saving = false);
+    if (saved) return;
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(failureMessage)));
+  }
+
+  Future<void> _watchAd() async {
+    final onWatchAd = widget.onWatchAd;
+    if (onWatchAd == null || _saving) return;
+    final messenger = ScaffoldMessenger.of(context);
+    final l10n = AppLocalizations.of(context);
+    // 광고를 보는 사이 스코프가 새 수로 다시 그려질 수 있어 본 뒤의 남은 수를
+    // 미리 셈해 둔다.
+    final remainingAfterThis =
+        RewardedUnlockOwnership.adsRequired - widget.adViews - 1;
+    setState(() => _saving = true);
+    final outcome = await onWatchAd(widget.pack);
+    if (!mounted) return;
+    setState(() => _saving = false);
+    // 다 열리면 알리지 않는다. 버튼이 «사용 중»으로 바뀌고 캐릭터가 바뀌는
+    // 것이 곧 결과다. 반만 채웠을 때는 화면이 거의 그대로라 남은 수를 말한다.
+    final message = switch (outcome) {
+      PackAdUnlockOutcome.unlocked => null,
+      PackAdUnlockOutcome.progressed =>
+        l10n.characterPackAdUnlockProgressed(remainingAfterThis),
+      PackAdUnlockOutcome.adNotCompleted =>
+        l10n.characterPackAdUnlockNotCompleted,
+      PackAdUnlockOutcome.adUnavailable =>
+        l10n.characterPackAdUnlockUnavailable,
+      PackAdUnlockOutcome.failed => l10n.characterPackSelectFailed,
+    };
+    if (message == null) return;
+    messenger
+      ..hideCurrentSnackBar()
+      ..showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
+    if (widget.inUse) {
+      return Center(
+        child: AppStatusBadge(
+          label: l10n.themeInUse,
+          tone: AppStatusBadgeTone.success,
+        ),
+      );
+    }
+    if (widget.owned) {
+      return Column(
+        children: [
+          AppButton(
+            label: l10n.characterPackUseAction,
+            icon: Icons.check_rounded,
+            isLoading: _saving,
+            onPressed:
+                widget.selectable && widget.onSelect != null ? _select : null,
+          ),
+          // 산 팩이라도 그림이 오기 전에는 쓸 수 없다. 잠긴 이유를 말한다
+          // (`PROJECT_RULES.md` 9장).
+          if (!widget.pack.hasArtwork) ...[
+            const SizedBox(height: AppSpacing.sm),
+            Text(
+              l10n.characterPackArtworkPending,
+              textAlign: TextAlign.center,
+              style: AppTextStyles.caption,
+            ),
+          ],
+        ],
+      );
+    }
+    if (widget.pack.availability == CharacterPackAvailability.rewardedUnlock) {
+      return Column(
+        children: [
+          AppButton(
+            label: l10n.characterPackAdUnlockAction(
+                widget.adViews, RewardedUnlockOwnership.adsRequired),
+            icon: Icons.play_circle_outline_rounded,
+            isLoading: _saving,
+            onPressed: widget.onWatchAd != null ? _watchAd : null,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          // 무엇을 내고 무엇을 받는지 누르기 전에 말한다. 보상형 광고 정책도
+          // 보상 내용을 미리 알리도록 요구한다.
+          Text(
+            l10n.characterPackAdUnlockHint(RewardedUnlockOwnership.adsRequired),
+            textAlign: TextAlign.center,
+            style: AppTextStyles.caption,
+          ),
+        ],
+      );
+    }
+    if (widget.pack.availability == CharacterPackAvailability.launchGift) {
+      return Column(
+        children: [
+          AppButton(
+            label: l10n.launchGiftBadge,
+            icon: Icons.card_giftcard_rounded,
+            onPressed: null,
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(l10n.launchGiftLocked,
+              textAlign: TextAlign.center, style: AppTextStyles.caption),
+        ],
+      );
+    }
+    final productId = widget.pack.productId;
+    if (widget.pack.availability == CharacterPackAvailability.forSale &&
+        productId != null) {
+      return _buyAction(l10n, productId);
+    }
+    final pending =
+        widget.pack.availability == CharacterPackAvailability.comingSoon;
+    return Column(
+      children: [
+        AppButton(
+          label: l10n.characterPackOwnAction,
+          icon: Icons.lock_outline_rounded,
+          // 결제가 붙기 전까지 누를 수 없다. 눌리는데 아무 일도 없는 버튼보다
+          // 잠긴 채로 이유를 말하는 편이 낫다 (`PROJECT_RULES.md` 9장).
+          onPressed: null,
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Text(
+          pending ? l10n.characterPackArtworkPending : l10n.commonComingSoon,
+          textAlign: TextAlign.center,
+          style: AppTextStyles.caption,
+        ),
+      ],
+    );
+  }
+
+  /// 판매 팩. 가격은 스토어가 알려 준 현지 가격이다 — 앱이 들고 있으면
+  /// 지역과 환율에 따라 반드시 어긋난다.
+  Widget _buyAction(AppLocalizations l10n, String productId) {
+    final purchases = context.maybeWatch<PackPurchases>();
+    final readiness = purchases?.readiness ?? StoreReadiness.unavailable;
+    final price = purchases?.priceFor(productId);
+    final pending = purchases?.isPending(productId) ?? false;
+    final buying = purchases?.isBuying(productId) ?? false;
+    final canBuy = purchases != null &&
+        readiness == StoreReadiness.ready &&
+        price != null &&
+        !buying;
+    // 스토어가 답하기 전(checking)에는 평소 안내를 둔다. 곧 가격이 뜬다.
+    final hint = pending
+        ? l10n.characterPackBuyPending
+        : readiness == StoreReadiness.unavailable ||
+                (readiness == StoreReadiness.ready && price == null)
+            ? l10n.characterPackBuyUnavailable
+            : l10n.characterPackBuyHint;
+    return Column(
+      children: [
+        AppButton(
+          label: price == null
+              ? l10n.characterPackOwnAction
+              : l10n.characterPackBuyAction(price),
+          icon: Icons.shopping_bag_outlined,
+          isLoading: buying && !pending,
+          onPressed: canBuy ? () => _buy(purchases, productId) : null,
+        ),
+        const SizedBox(height: AppSpacing.sm),
+        Text(hint, textAlign: TextAlign.center, style: AppTextStyles.caption),
+      ],
+    );
+  }
+}

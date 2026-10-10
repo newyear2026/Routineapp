@@ -1,0 +1,12 @@
+Mode: built-in ImageGen
+Variant: A — 순한 아기 얼굴
+Reference: ../fennec-concept-options-v1/concept-C-fox-face-v3.png
+
+Use case: precise-object-edit / character concept variation.
+The supplied image is the user's APPROVED face direction. Create ONE new subtle variant of this SAME fennec mascot, not a different species or a wholesale redesign.
+Preserve the successful identity: soft tapered fox face, a gently projecting short cream muzzle, tiny dark brown nose, large honey-brown eyes, sand-colored fur around the eyes, no white eyebrow spots and no broad panda-like white face mask. Keep the broad fennec ears SEAMLESSLY connected to the forehead with continuous sand-colored fur at the roots, no interior root seam, no white feather inserts, and simple muted peach ear interiors. The ears and face must read as one coherent shape.
+
+Match the input's full-body seated pose, head turned gently toward viewer's right, tail on viewer's left, feet on the same baseline, four natural legs only, proportions and overall scale. Keep the teal scarf, cream chest and paw tips, fluffy cream-tipped tail, warm apricot/cream colors and cohesive cute pixel-art style. Keep the complete ears, tail and feet in frame, with comfortable margins. Plain warm ivory square background. ONE character only. No lettering, labels, extra accessories, scenes, multiple poses, or watermarks.
+Change only the specified small facial proportions and expression. Do not restore the rejected round red-panda face, wide white eye/cheek patches, detached ears, long mature fox snout or dramatic eyeliner. Preserve a soft youthful fennec identity.
+
+VARIANT A — GENTLE BABY FACE. Make the open eyes slightly rounder and about 8% larger than the reference, with a soft clear gaze. Make the lower cheeks just a touch fuller (about 5%) while retaining the unmistakable taper toward the muzzle. Keep the little projecting fox muzzle and a tiny relaxed closed-mouth smile. Soft innocent expression. Keep forehead-to-ear integration and the exact ear silhouette.

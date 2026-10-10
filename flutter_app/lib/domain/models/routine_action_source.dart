@@ -4,6 +4,7 @@ enum RoutineActionSource {
   user,
   system,
   notification,
+  widget,
 }
 
 extension RoutineActionSourceSerialization on RoutineActionSource {
@@ -17,6 +18,8 @@ extension RoutineActionSourceSerialization on RoutineActionSource {
         return 'system';
       case RoutineActionSource.notification:
         return 'notification';
+      case RoutineActionSource.widget:
+        return 'widget';
     }
   }
 }
@@ -32,6 +35,8 @@ RoutineActionSource? parseRoutineActionSource(String? raw) {
       return RoutineActionSource.system;
     case 'notification':
       return RoutineActionSource.notification;
+    case 'widget':
+      return RoutineActionSource.widget;
     default:
       return null;
   }

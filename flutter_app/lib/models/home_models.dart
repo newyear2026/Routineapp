@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../domain/models/routine_icon_id.dart';
+
 /// Home 화면용 모델 — [Routine]에서 매핑 (원형 시간표 위치는 분 단위)
 class RoutineSegment {
   const RoutineSegment({
@@ -9,6 +11,7 @@ class RoutineSegment {
     required this.label,
     required this.emoji,
     required this.color,
+    this.iconId,
   });
 
   final String id;
@@ -19,6 +22,7 @@ class RoutineSegment {
   final String label;
   final String emoji;
   final Color color;
+  final RoutineIconId? iconId;
 
   /// 시 단위 표시/레거시 호환
   int get startHour => startMinutesFromMidnight ~/ 60;

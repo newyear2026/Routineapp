@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>LOOPET — Privacy Policy</title>
+<style>
+  :root { --fg:#2b2b2b; --muted:#6b6b6b; --line:#e6e0d8; --bg:#faf8f5; --accent:#c98a5e; }
+  @media (prefers-color-scheme: dark) {
+    :root { --fg:#e8e4de; --muted:#a09a92; --line:#3a3632; --bg:#1c1a18; --accent:#d9a077; }
+  }
+  * { box-sizing: border-box; }
+  body { margin:0; background:var(--bg); color:var(--fg);
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    line-height:1.75; }
+  main { max-width:44rem; margin:0 auto; padding:3rem 1.25rem 5rem; }
+  h1 { font-size:1.7rem; margin:0 0 .4rem; letter-spacing:-.01em; }
+  h2 { font-size:1.12rem; margin:2.4rem 0 .6rem; padding-bottom:.35rem;
+    border-bottom:1px solid var(--line); }
+  p, li { font-size:.98rem; }
+  ul { padding-left:1.2rem; }
+  li { margin:.3rem 0; }
+  code { font-size:.9em; background:rgba(128,128,128,.14); padding:.1em .4em; border-radius:4px; }
+  .meta { color:var(--muted); font-size:.85rem; margin:0 0 2rem; }
+  .note { background:rgba(201,138,94,.09); border-left:3px solid var(--accent);
+    padding:.9rem 1.1rem; border-radius:0 6px 6px 0; margin:1.5rem 0; font-size:.95rem; }
+  .note p { margin:0; }
+  footer { margin-top:3.5rem; padding-top:1.25rem; border-top:1px solid var(--line);
+    color:var(--muted); font-size:.85rem; }
+</style>
+</head>
+<body>
+<main>
+
+  <h1>Privacy Policy</h1>
+  <p class="meta">
+    LOOPET<br>
+    Package: com.dayround.app<br>
+    Last updated: October 4, 2026
+  </p>
+
+  <div class="note">
+    <p><strong>Summary:</strong> LOOPET stores your routine content on your device, with no account or sign-in. The app uses <strong>Firebase Analytics and Crashlytics</strong> to understand usage and diagnose errors, <strong>Google AdMob</strong> to show ads, and <strong>Google Play</strong> for optional purchases. Routine titles, notes, notification contents and purchase receipts are not attached to custom analytics events or error reports.</p>
+  </div>
+
+  <h2>1. Information We Collect</h2>
+  <p>The app has no account registration or sign-in and does not request your name, email address, phone number, precise location, contacts or photos. Firebase Analytics processes app activity, screen visits, routine action events, app-instance identifiers, app/device information and approximate region. Firebase Crashlytics processes crash/error types and stack traces, app/device information and installation identifiers. The developer can view usage statistics and diagnostic reports in Firebase and Google Analytics.</p>
+  <p>To display ads, Google AdMob processes an advertising identifier (the Android Advertising ID) and coarse device information. That data goes to Google, not to the developer, who sees only aggregate ad performance statistics such as impression counts and revenue. Section 5 covers this in full.</p>
+
+  <h2>2. Information Stored on Your Device</h2>
+  <p>To provide its features, the app stores the following <strong>in your device's local storage</strong>. These stored records are not uploaded. Routine action types (create, edit, delete, complete, snooze, skip and undo) are sent as Analytics events without routine names or identifiers.</p>
+  <ul>
+    <li>Routines you create (name, time, repeat days, icon and color)</li>
+    <li>Completion records (whether and when a routine was completed)</li>
+    <li>App settings (theme, language, notification and sound preferences)</li>
+    <li>Onboarding progress</li>
+    <li>Which character packs you have bought or unlocked, and whether you have bought ad removal</li>
+  </ul>
+  <p>Storage uses the standard local mechanisms provided by the operating system: SharedPreferences on Android and UserDefaults on iOS.</p>
+
+  <h2>3. Home Screen Widget</h2>
+  <p>To display today's routines in the home screen widget, the app writes the minimal summary needed for display to a shared storage area on your device that both the app and the widget can read. On iOS this is an App Group (<code>group.com.dayround.app</code>); on Android it is the app's private storage. This information also never leaves your device.</p>
+
+  <h2>4. Permissions</h2>
+  <ul>
+    <li><strong>Notifications</strong> — used to remind you at the routine times you set. All notifications are local notifications generated on your device; no push notification server is involved. If you decline this permission, every feature other than notifications continues to work normally.</li>
+    <li><strong>Run at startup and vibration</strong> — used incidentally by the notification feature, so that scheduled reminders survive a device restart and can vibrate when they fire.</li>
+    <li><strong>Internet and network state</strong> — used for ads, purchase-related communication, analytics and error reports. Routine text is not transmitted.</li>
+    <li><strong>Advertising ID</strong> (<code>com.google.android.gms.permission.AD_ID</code>) — used by Google AdMob to serve ads and prevent click fraud.</li>
+  </ul>
+  <p>The app requests no sensitive permission such as camera, microphone, location, contacts, or external storage.</p>
+
+  <h2>5. Advertising and Third Parties</h2>
+  <p>We do not sell or rent user information. The Google services described here process information to provide advertising, usage measurement, diagnostics and purchases.</p>
+  <p>To cover its operating costs, the app is free and displays ads from <strong>Google AdMob</strong> (Google LLC). AdMob may collect and process an advertising identifier and coarse device information — device model, operating system version, approximate region — in order to serve ads and prevent click fraud. That processing is governed by <a href="https://policies.google.com/privacy">Google's privacy policy</a>.</p>
+  <ul>
+    <li>Your routines, completion history, and settings are <strong>never sent to the ad network.</strong> Ad requests carry none of the data you entered into the app.</li>
+    <li>You can reset or delete your advertising ID in your device settings to opt out of personalized ads (Android: Settings &rsaquo; Privacy &rsaquo; Ads).</li>
+    <li>If you are in the European Economic Area or the United Kingdom, the app asks for your consent through Google's User Messaging Platform <strong>before</strong> requesting any ad. Without consent, no personalized ads are requested.</li>
+  </ul>
+  <p>The app also uses <strong>Firebase Analytics and Crashlytics</strong> from Google LLC. Analytics advertising-ID collection and personalized-advertising signals are disabled; AdMob consent is handled separately. See <a href="https://firebase.google.com/support/privacy">Firebase privacy information</a>. We do not set an account user ID or attach routine content or purchase receipts to custom events or error reports. Analytics may also collect standard purchase or ad-performance events supported by the SDK integrations.</p>
+
+  <h2>6. In-App Purchases</h2>
+  <p>Some character packs, and a bundle that also removes ads, can be bought in the app. <strong>Google Play handles the payment.</strong> The app never receives your card number, bank details, or billing address.</p>
+  <p>To deliver and restore what you bought, the app receives the result of the purchase from Google Play — the product ID, the purchase state, and a purchase identifier — and records which packs you own on your device only. Purchases are tied to your Google account, so reinstalling the app with the same account restores them. Google's handling of payment information is governed by <a href="https://policies.google.com/privacy">Google's privacy policy</a>.</p>
+
+  <h2>7. Children's Privacy</h2>
+  <p>The app is not directed at children under 13. We do not knowingly collect personal information from children. The app is not enrolled in a families programme, and ad requests are not tagged as child-directed.</p>
+
+  <h2>8. Data Retention and Deletion</h2>
+  <p>You may delete individual routines in the app. Uninstalling removes local app data, but does not immediately erase analytics or diagnostic reports already sent. Analytics retention follows the linked property settings. Crashlytics keeps diagnostic data and associated identifiers for 90 days before starting deletion. You can contact us at the email below about data handling.</p>
+
+  <h2>9. Data Security</h2>
+  <p>Routine content remains on your device. Analytics, diagnostic, advertising and purchase-related communications use the relevant providers' encrypted connections. Local app data is protected from other applications by the operating system's application sandbox.</p>
+
+  <h2>10. Changes to This Policy</h2>
+  <p>If this policy changes, we will post the revised policy and its effective date on this page. Significant changes will also be noted in the app's update description on the store listing.</p>
+
+  <h2>11. Contact</h2>
+  <p>If you have any questions about this policy, please contact us at:<br>
+  Email: <strong>jacoboh7307@gmail.com</strong></p>
+
+  <footer>LOOPET</footer>
+</main>
+</body>
+</html>

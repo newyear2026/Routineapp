@@ -1,0 +1,12 @@
+Mode: built-in ImageGen
+Edit source: concept-v2.png
+
+Use case: precise-object-edit.
+Input image: edit target, the previous Sandstar Fennec concept board.
+The user rejected the relationship between the ears and the face twice. REDRAW THE ENTIRE HEAD, BOTH EARS AND THE FACE TOGETHER AS ONE NEW COHERENT DESIGN. A superficial ear resize is insufficient. The old round kitten face must be replaced.
+
+Design a charming young FENNEC FOX head with coherent animal anatomy and cute game-mascot proportions. Use a soft wedge-shaped face: broad upper cheekbones tapering toward a small forward-projecting cream muzzle and a dark brown nose. Show a subtle three-quarter turn toward the viewer's right so the short fox muzzle has visible depth. Warm honey-brown eyes should be a little smaller and gently almond-shaped, without the current giant circular kitten eyes or exaggerated black eyeliner. A small friendly closed mouth follows the muzzle, not a cat-shaped W mouth. No tall central hair spike.
+
+Design both ears in the SAME DRAWING LANGUAGE as the face: large but balanced, broad at the roots, softly triangular cupped ears that arise naturally from the upper outer sides of the skull. Their roots sit behind the cheek plane and flow into the side of the forehead with continuous warm fur shading. Modest outward splay, matching head perspective, farther ear slightly narrower. Ear height above the forehead roughly two-thirds of the face height. Use matching outline weight and pixel cluster size everywhere. Simplify each inner ear to one muted peach shadow plane and a narrow cream fur edge; remove the white feather/leaf-shaped insert inside the old ears. The ears must not resemble pasted-on accessories, rabbit ears, or separate illustrated pieces. Overall head contour should immediately read as a soft small desert fox.
+
+Keep the established cream, sand and apricot palette, the teal neck scarf, full seated body, four natural limbs, fluffy tail and warm friendly mood. Reconcile the lower jaw with the scarf naturally. Keep the full character comfortably in the left panel. Preserve the two existing day/night desert landscape panels on the right and the ivory board background. Preserve the landscape canvas and overall layout. No extra characters, accessories, text or watermarks. Crisp square pixel clusters, simple controlled shading, consistent dark warm outline across the NEW face and ears. Do not retain the old face out of identity preservation: redesigning that face is essential.

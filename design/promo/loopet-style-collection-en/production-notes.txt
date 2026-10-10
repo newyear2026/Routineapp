@@ -1,0 +1,34 @@
+LOOPET / Four new English video styles
+
+All videos: 16 seconds, vertical 1080 x 1920, H.264/yuv420p MP4,
+stereo AAC at 48 kHz, embedded English copy, no narration.
+
+01 Pixel Arcade - 60 fps. Pixelify typography, neon pixel borders, perspective
+grid, stepped character motion, block reveals, and 128 BPM chip-style music.
+02 Minimal Studio - 30 fps. Ivory and sage, serif typography, a close view of
+the actual circular schedule, subtle camera movement, soft dissolves, and
+sparse piano/bell tones. Includes actual progress and calendar screens.
+03 Daily Scrapbook - 30 fps. Paper grid and grain, taped photo frames,
+collage arrangement, 12-step-per-second paper motion, slide transitions,
+and 96 BPM warm plucked music with light percussion.
+04 Night Orbit - 30 fps. Navy and gold, crescent moon, slow orbiting light,
+quiet stars, long dissolves, and ambient pads with sparse bells. The night
+visuals are campaign artwork, not a claim that the app has a dark UI mode.
+
+App imagery is captured from actual English Flutter widgets using example
+routine data. Original full device and extracted card pixels are preserved;
+this is screenshot-based motion design, not a live screen recording.
+The cat theme was freshly captured for this collection. The scrapbook uses
+the red panda English captures from the previous promo. Additional characters
+use approved project assets. No free-purchase claim, store badge, or store URL
+has been added. No external music or recorded voice was downloaded.
+
+The four soundtracks are separately synthesized by render_collection.py.
+Earlier Korean, English, and dynamic videos are retained unchanged.
+
+Preview: open index.html. Only one video plays at a time.
+Rebuild from the repository root:
+python3 design/promo/loopet-style-collection-en/render_collection.py
+
+To rebuild one video, add --style arcade, minimal, scrapbook, or night.
+To render storyboards only, add --preview.

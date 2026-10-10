@@ -1,0 +1,82 @@
+[
+  {
+    "file": "01-pixel-arcade/loopet-arcade-en-16s.mp4",
+    "duration": 16,
+    "peak_dbfs": -2.0,
+    "streams": [
+      {
+        "codec_name": "h264",
+        "width": 1080,
+        "height": 1920,
+        "r_frame_rate": "60/1"
+      },
+      {
+        "codec_name": "aac",
+        "sample_rate": "48000",
+        "channels": 2,
+        "r_frame_rate": "0/0"
+      }
+    ],
+    "soundtrack_sha256": "67c92d2ce75fceb863e3b1d84a5aad0fa43c5bb0a6c18629bf05ba05beb17a09"
+  },
+  {
+    "file": "02-minimal-studio/loopet-minimal-en-16s.mp4",
+    "duration": 16,
+    "peak_dbfs": -9.5,
+    "streams": [
+      {
+        "codec_name": "h264",
+        "width": 1080,
+        "height": 1920,
+        "r_frame_rate": "30/1"
+      },
+      {
+        "codec_name": "aac",
+        "sample_rate": "48000",
+        "channels": 2,
+        "r_frame_rate": "0/0"
+      }
+    ],
+    "soundtrack_sha256": "a6913feced6e7ebcefacc6d5295e3ddf7be23d4642237274fd9cd242c8ff2e71"
+  },
+  {
+    "file": "03-daily-scrapbook/loopet-scrapbook-en-16s.mp4",
+    "duration": 16,
+    "peak_dbfs": -6.5,
+    "streams": [
+      {
+        "codec_name": "h264",
+        "width": 1080,
+        "height": 1920,
+        "r_frame_rate": "30/1"
+      },
+      {
+        "codec_name": "aac",
+        "sample_rate": "48000",
+        "channels": 2,
+        "r_frame_rate": "0/0"
+      }
+    ],
+    "soundtrack_sha256": "62a90ce29bf8311cbcb129eb944a6bfdb6ae2e7aef5c35d59087b318e242495c"
+  },
+  {
+    "file": "04-night-orbit/loopet-night-en-16s.mp4",
+    "duration": 16,
+    "peak_dbfs": -9.1,
+    "streams": [
+      {
+        "codec_name": "h264",
+        "width": 1080,
+        "height": 1920,
+        "r_frame_rate": "30/1"
+      },
+      {
+        "codec_name": "aac",
+        "sample_rate": "48000",
+        "channels": 2,
+        "r_frame_rate": "0/0"
+      }
+    ],
+    "soundtrack_sha256": "7bd37c55985c26459e263555b496b257a258cefb9d7a9852112e9f5fd0b6b851"
+  }
+]

@@ -1,0 +1,1162 @@
+{
+  "notificationActionAcknowledge": "Got it",
+  "notificationActionSnooze": "Remind in 15 min",
+  "notificationRoutineTitle": "Routine reminder",
+  "notificationOccurrenceExpired": "This reminder is no longer actionable. Check today’s routines on Home.",
+  "@@locale": "en",
+  "themeIncluded": "Included",
+  "themeInUse": "In use",
+  "commonBack": "Back",
+  "@commonBack": {},
+  "commonGoBack": "Go back",
+  "@commonGoBack": {},
+  "commonCancel": "Cancel",
+  "@commonCancel": {},
+  "commonDelete": "Delete",
+  "@commonDelete": {},
+  "commonRetry": "Retry",
+  "@commonRetry": {},
+  "commonUndo": "Undo",
+  "@commonUndo": {},
+  "commonToday": "Today",
+  "@commonToday": {},
+  "commonNow": "Now",
+  "@commonNow": {},
+  "commonNext": "Next",
+  "@commonNext": {},
+  "commonSkipStep": "Skip",
+  "@commonSkipStep": {},
+  "commonComingSoon": "Coming soon",
+  "@commonComingSoon": {},
+  "commonSettings": "Settings",
+  "@commonSettings": {},
+  "commonRoutine": "Routine",
+  "@commonRoutine": {},
+  "commonPreview": "Preview",
+  "@commonPreview": {},
+  "commonColor": "Color",
+  "@commonColor": {},
+  "routineCount": "{count, plural, =1{1 routine} other{{count} routines}}",
+  "@routineCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "selectedCount": "{count, plural, =1{1 selected} other{{count} selected}}",
+  "@selectedCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "statusCompleted": "Done",
+  "@statusCompleted": {},
+  "statusSnoozed": "Later",
+  "@statusSnoozed": {},
+  "statusSkipped": "Skipped",
+  "@statusSkipped": {},
+  "statusNoResponse": "No response",
+  "@statusNoResponse": {},
+  "statusWaiting": "Waiting",
+  "@statusWaiting": {},
+  "statusInProgress": "In progress",
+  "@statusInProgress": {},
+  "statusUpcoming": "Upcoming",
+  "@statusUpcoming": {},
+  "statusSkippedShort": "Skipped",
+  "@statusSkippedShort": {},
+  "statusMissed": "Missed",
+  "@statusMissed": {},
+  "statusSnoozedShort": "Snoozed",
+  "@statusSnoozedShort": {
+    "description": "Badge for a routine the user snoozed (short)."
+  },
+  "statusDayDone": "Day done",
+  "@statusDayDone": {
+    "description": "Home focus card badge when every routine for today is over."
+  },
+  "homeFocusSnoozedUntil": "We'll remind you at {time}",
+  "@homeFocusSnoozedUntil": {
+    "description": "Home focus card line for a snoozed routine.",
+    "placeholders": {
+      "time": {
+        "type": "String",
+        "example": "11:45"
+      }
+    }
+  },
+  "homeFocusCompleted": "Nice! That's {count} done today",
+  "@homeFocusCompleted": {
+    "description": "Home focus card line after completing the current routine.",
+    "placeholders": {
+      "count": {
+        "type": "int",
+        "example": "5"
+      }
+    }
+  },
+  "homeFocusSkipped": "Pick it back up with the next one",
+  "@homeFocusSkipped": {
+    "description": "Home focus card line after skipping the current routine."
+  },
+  "homeFocusDayDoneTitle": "Today's routines are over",
+  "@homeFocusDayDoneTitle": {
+    "description": "Home focus card title when every routine for today is over."
+  },
+  "homeFocusDayCount": "{label} {count}",
+  "@homeFocusDayCount": {
+    "description": "One item of the end-of-day result, e.g. \"Done 6\".",
+    "placeholders": {
+      "label": {
+        "type": "String",
+        "example": "Done"
+      },
+      "count": {
+        "type": "int",
+        "example": "6"
+      }
+    }
+  },
+  "homeFocusNext": "Next",
+  "@homeFocusNext": {
+    "description": "Label before the next routine name on the home focus card."
+  },
+  "homeFocusTomorrow": "Tomorrow",
+  "@homeFocusTomorrow": {
+    "description": "Label before tomorrow's first routine on the home focus card."
+  },
+  "navHome": "Home",
+  "@navHome": {},
+  "navProgress": "Progress",
+  "@navProgress": {},
+  "navRoutines": "Routines",
+  "@navRoutines": {},
+  "navSettings": "Settings",
+  "@navSettings": {},
+  "navTabSemantic": "{label} tab",
+  "@navTabSemantic": {
+    "placeholders": {
+      "label": {
+        "type": "String"
+      }
+    }
+  },
+  "repeatNone": "No repeat",
+  "@repeatNone": {},
+  "repeatDaily": "Every day",
+  "@repeatDaily": {},
+  "repeatWeekdays": "Weekdays",
+  "@repeatWeekdays": {},
+  "repeatWeekend": "Weekend",
+  "@repeatWeekend": {},
+  "homeTitle": "Today's rhythm",
+  "@homeTitle": {},
+  "homeUpcomingSection": "Next routine",
+  "@homeUpcomingSection": {},
+  "homeNoRoutinesLeft": "Nothing left for today.",
+  "@homeNoRoutinesLeft": {},
+  "homeEmptyRingTitle": "Add a routine\nto see your day take shape",
+  "@homeEmptyRingTitle": {},
+  "homeAddRoutine": "Add a routine",
+  "@homeAddRoutine": {},
+  "homeCreateFirstRoutine": "Create your first routine",
+  "@homeCreateFirstRoutine": {},
+  "homeStartYourDay": "Start your day",
+  "@homeStartYourDay": {},
+  "homeSeeRemaining": "See {count} more",
+  "@homeSeeRemaining": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "homeMarkedDone": "Marked as done",
+  "@homeMarkedDone": {},
+  "homeMarkedSnoozed": "Pushed to later",
+  "@homeMarkedSnoozed": {},
+  "homeMarkedSkipped": "Routine skipped",
+  "@homeMarkedSkipped": {},
+  "homeActionSaveFailed": "Couldn't save the record. Please try again.",
+  "@homeActionSaveFailed": {},
+  "homeActionUndoFailed": "Couldn't undo the record. Please try again.",
+  "@homeActionUndoFailed": {},
+  "homeBadgeNext": "NEXT",
+  "@homeBadgeNext": {},
+  "homeBadgeNow": "NOW",
+  "@homeBadgeNow": {},
+  "greetingMorning": "Good morning",
+  "@greetingMorning": {},
+  "greetingAfternoon": "Good afternoon",
+  "@greetingAfternoon": {},
+  "greetingEvening": "Good evening",
+  "@greetingEvening": {},
+  "actionComplete": "Mark done",
+  "@actionComplete": {},
+  "actionCompleteNamed": "Complete {title}",
+  "@actionCompleteNamed": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "actionSkip": "Skip",
+  "@actionSkip": {},
+  "slotAlreadyCompleted": "You already finished this one today",
+  "@slotAlreadyCompleted": {},
+  "slotSnoozedNotice": "Pushed to a later reminder",
+  "@slotSnoozedNotice": {},
+  "slotSkippedNotice": "This routine was skipped",
+  "@slotSkippedNotice": {},
+  "slotExpiredNotice": "That time has passed",
+  "@slotExpiredNotice": {},
+  "timingStartingSoon": "Starting soon",
+  "@timingStartingSoon": {},
+  "timingEndingNow": "Wrapping up now",
+  "@timingEndingNow": {},
+  "timingUntilStart": "{duration} until start",
+  "@timingUntilStart": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "timingUntilEnd": "{duration} until end",
+  "@timingUntilEnd": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "durationHoursMinutes": "{hours} h {minutes} min",
+  "@durationHoursMinutes": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      },
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "durationHours": "{hours} h",
+  "@durationHours": {
+    "placeholders": {
+      "hours": {
+        "type": "int"
+      }
+    }
+  },
+  "durationMinutes": "{minutes} min",
+  "@durationMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "progressTitle": "Today's progress",
+  "@progressTitle": {},
+  "progressSubtitle": "You did well today!",
+  "@progressSubtitle": {},
+  "progressSemantic": "Today's progress {percent} percent",
+  "@progressSemantic": {
+    "placeholders": {
+      "percent": {
+        "type": "int"
+      }
+    }
+  },
+  "progressNoRoutines": "No routines today",
+  "@progressNoRoutines": {},
+  "progressNotStarted": "No routines completed yet",
+  "@progressNotStarted": {},
+  "progressAllDone": "All done for today",
+  "@progressAllDone": {},
+  "progressGreatFlow": "Great flow today",
+  "@progressGreatFlow": {},
+  "progressGoodFlow": "You're doing this steadily",
+  "@progressGoodFlow": {},
+  "progressGroupCompleted": "Done",
+  "@progressGroupCompleted": {},
+  "progressGroupCompletedEmpty": "Nothing completed yet",
+  "@progressGroupCompletedEmpty": {},
+  "progressGroupActive": "In progress",
+  "@progressGroupActive": {},
+  "progressGroupActiveEmpty": "No routine in progress",
+  "@progressGroupActiveEmpty": {},
+  "progressGroupUpcoming": "Upcoming",
+  "@progressGroupUpcoming": {},
+  "progressGroupUpcomingEmpty": "Nothing scheduled",
+  "@progressGroupUpcomingEmpty": {},
+  "progressGroupSkipped": "Skipped",
+  "@progressGroupSkipped": {},
+  "progressGroupSkippedEmpty": "Nothing skipped",
+  "@progressGroupSkippedEmpty": {},
+  "progressGroupMissed": "Missed",
+  "@progressGroupMissed": {},
+  "progressGroupMissedEmpty": "Nothing missed",
+  "@progressGroupMissedEmpty": {},
+  "progressHeroAllDoneTitle": "All routines done",
+  "@progressHeroAllDoneTitle": {},
+  "progressHeroAllDoneBody": "You finished everything you planned!",
+  "@progressHeroAllDoneBody": {},
+  "progressHeroAllDoneFoot": "See you tomorrow",
+  "@progressHeroAllDoneFoot": {},
+  "progressHeroHalfTitle": "Past the halfway mark",
+  "@progressHeroHalfTitle": {},
+  "progressHeroHalfBody": "Keep going just like this.",
+  "@progressHeroHalfBody": {},
+  "progressHeroHalfFoot": "You can finish the rest",
+  "@progressHeroHalfFoot": {},
+  "progressHeroStartTitle": "Today",
+  "@progressHeroStartTitle": {},
+  "progressHeroStartBody": "Fill it in little by little.",
+  "@progressHeroStartBody": {},
+  "progressHeroStartFoot": "Small wins count too",
+  "@progressHeroStartFoot": {},
+  "progressDoneToday": "Done today",
+  "@progressDoneToday": {},
+  "progressRemaining": "Remaining",
+  "@progressRemaining": {},
+  "routinesTitle": "My routines",
+  "@routinesTitle": {},
+  "routinesSubtitle": "Shape the flow of your day",
+  "@routinesSubtitle": {},
+  "routinesAdd": "Add routine",
+  "@routinesAdd": {},
+  "routinesViewList": "List",
+  "@routinesViewList": {},
+  "routinesViewCalendar": "Calendar",
+  "@routinesViewCalendar": {},
+  "routinesPrevMonth": "Previous month",
+  "@routinesPrevMonth": {},
+  "routinesNextMonth": "Next month",
+  "@routinesNextMonth": {},
+  "routinesNoneForDay": "No routines scheduled",
+  "@routinesNoneForDay": {},
+  "routinesNoneForDayHint": "Use the + button at the bottom right to add one for this day.",
+  "@routinesNoneForDayHint": {},
+  "routinesAddFirst": "Add your first routine",
+  "@routinesAddFirst": {},
+  "routinesDaySemanticToday": ", today",
+  "@routinesDaySemanticToday": {},
+  "routinesDaySemanticCount": ", {count} routines",
+  "@routinesDaySemanticCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "routineAddTitleNew": "Add routine",
+  "@routineAddTitleNew": {},
+  "routineAddTitleEdit": "Edit routine",
+  "@routineAddTitleEdit": {},
+  "routineAddSaveNew": "Save routine",
+  "@routineAddSaveNew": {},
+  "routineAddSaveEdit": "Save changes",
+  "@routineAddSaveEdit": {},
+  "routineAddWhatSection": "What kind of routine?",
+  "@routineAddWhatSection": {},
+  "routineAddNameLabel": "Routine name",
+  "@routineAddNameLabel": {},
+  "routineAddNameHint": "e.g. Morning walk",
+  "@routineAddNameHint": {},
+  "routineAddSuggestionsLabel": "Suggested tags",
+  "@routineAddSuggestionsLabel": {},
+  "routineAddWhenSection": "When?",
+  "@routineAddWhenSection": {},
+  "routineAddStartTime": "Start time",
+  "@routineAddStartTime": {},
+  "routineAddEndTime": "End time",
+  "@routineAddEndTime": {},
+  "routineAddRepeatDays": "Repeat days",
+  "@routineAddRepeatDays": {},
+  "routineAddMoreSection": "More options",
+  "@routineAddMoreSection": {},
+  "routineAddMoreCaption": "Color · icon · notifications",
+  "@routineAddMoreCaption": {},
+  "routineAddColorSection": "Accent color",
+  "@routineAddColorSection": {},
+  "routineAddIconSection": "Choose an icon",
+  "@routineAddIconSection": {},
+  "routineAddNotifyLabel": "Routine reminder",
+  "@routineAddNotifyLabel": {},
+  "routineAddNotifyDesc": "We'll send a reminder at the start time.",
+  "@routineAddNotifyDesc": {},
+  "routineAddNotifyHint": "You can change notification permission any time in Settings.",
+  "@routineAddNotifyHint": {},
+  "routineAddDeleteThis": "Delete this routine",
+  "@routineAddDeleteThis": {},
+  "routineAddReflectedHint": "Applied to your timetable right away",
+  "@routineAddReflectedHint": {},
+  "routineAddPreselectedHint": "We preselected the day you picked on the calendar.",
+  "@routineAddPreselectedHint": {},
+  "routineAddCheckInput": "Please check the values you entered.",
+  "@routineAddCheckInput": {},
+  "routineAddNotFound": "We couldn't find that routine.",
+  "@routineAddNotFound": {},
+  "routineAddSaved": "Routine saved",
+  "@routineAddSaved": {},
+  "routineAddDeleted": "Routine deleted",
+  "@routineAddDeleted": {},
+  "routineOverlapTitle": "Overlapping time",
+  "@routineOverlapTitle": {},
+  "routineOverlapBody": "This slot overlaps another routine. Save anyway?",
+  "@routineOverlapBody": {},
+  "routineOverlapAdjust": "Adjust the time",
+  "@routineOverlapAdjust": {},
+  "routineOverlapSaveAnyway": "Save anyway",
+  "@routineOverlapSaveAnyway": {},
+  "routineOverlapInline": "Overlaps with “{title}”. Check the time before saving.",
+  "@routineOverlapInline": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "routineDeleteTitle": "Delete routine",
+  "@routineDeleteTitle": {},
+  "routineDeleteBody": "Delete “{title}” and its records?\nThis cannot be undone.",
+  "@routineDeleteBody": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "routineLoadingTitle": "Loading routine details",
+  "@routineLoadingTitle": {},
+  "routineLoadingBody": "We'll show the edit screen once your settings are checked.",
+  "@routineLoadingBody": {},
+  "routineMissingTitle": "We couldn't find that routine",
+  "@routineMissingTitle": {},
+  "routineMissingBody": "It may have been deleted or not loaded yet. Go back home and try again.",
+  "@routineMissingBody": {},
+  "routineQuickWakeUp": "Wake up",
+  "@routineQuickWakeUp": {},
+  "routineQuickBreakfast": "Breakfast",
+  "@routineQuickBreakfast": {},
+  "routineQuickExercise": "Exercise",
+  "@routineQuickExercise": {},
+  "routineQuickFocus": "Focus time",
+  "@routineQuickFocus": {},
+  "routineQuickBreak": "Break",
+  "@routineQuickBreak": {},
+  "routineQuickWalk": "Walk",
+  "@routineQuickWalk": {},
+  "routineQuickReading": "Reading",
+  "@routineQuickReading": {},
+  "routineQuickBedtime": "Bedtime",
+  "@routineQuickBedtime": {},
+  "validationNameRequired": "Please enter a routine name.",
+  "@validationNameRequired": {},
+  "validationNameTooLong": "Keep the name under 80 characters.",
+  "@validationNameTooLong": {},
+  "validationEndAfterStart": "End time must be later than start time.",
+  "@validationEndAfterStart": {},
+  "validationPickOneDay": "Pick at least one repeat day.",
+  "@validationPickOneDay": {},
+  "settingsTitle": "Settings",
+  "@settingsTitle": {},
+  "settingsSubtitle": "Build a day that fits you",
+  "@settingsSubtitle": {},
+  "settingsSectionNotifications": "Notifications",
+  "@settingsSectionNotifications": {},
+  "settingsPush": "Push notifications",
+  "@settingsPush": {},
+  "settingsSound": "Notification sound",
+  "@settingsSound": {},
+  "settingsSoundDesc": "Available only while push notifications are on",
+  "@settingsSoundDesc": {},
+  "settingsSectionPersonalize": "Personalization",
+  "@settingsSectionPersonalize": {},
+  "settingsOnboardingPreview": "Onboarding preview",
+  "@settingsOnboardingPreview": {},
+  "settingsOnboardingPreviewDesc": "Open each first-run screen from splash to notifications",
+  "@settingsOnboardingPreviewDesc": {},
+  "settingsReplayOnboarding": "Replay getting started",
+  "@settingsReplayOnboarding": {},
+  "settingsReplayOnboardingDesc": "Replay the guide without changing saved routines or settings",
+  "@settingsReplayOnboardingDesc": {},
+  "settingsReplayOnboardingConfirmTitle": "Replay the first-run guide?",
+  "@settingsReplayOnboardingConfirmTitle": {},
+  "settingsReplayOnboardingConfirmBody": "The guide starts over from the splash screen. Notification settings and saved routines stay as they are.",
+  "@settingsReplayOnboardingConfirmBody": {},
+  "settingsReplayOnboardingConfirmAction": "Replay",
+  "@settingsReplayOnboardingConfirmAction": {},
+  "onboardingPreviewTitle": "Onboarding preview",
+  "@onboardingPreviewTitle": {},
+  "onboardingPreviewBody": "Review the screens only. Nothing is saved and notification settings stay as they are.",
+  "@onboardingPreviewBody": {},
+  "onboardingPreviewSectionScreens": "Screens",
+  "@onboardingPreviewSectionScreens": {},
+  "onboardingPreviewSplash": "Splash",
+  "@onboardingPreviewSplash": {},
+  "onboardingPreviewSplashDesc": "Logo and daily routine timetable intro",
+  "@onboardingPreviewSplashDesc": {},
+  "onboardingPreviewIntro": "Getting started (3 pages)",
+  "@onboardingPreviewIntro": {},
+  "onboardingPreviewIntroDesc": "Home, notifications, and progress overview",
+  "@onboardingPreviewIntroDesc": {},
+  "onboardingPreviewRoutine": "First routine setup",
+  "@onboardingPreviewRoutine": {},
+  "onboardingPreviewRoutineDesc": "Pick recommended routines",
+  "@onboardingPreviewRoutineDesc": {},
+  "onboardingPreviewNotification": "Notification setup",
+  "@onboardingPreviewNotification": {},
+  "onboardingPreviewNotificationDesc": "Routine notification permission guide",
+  "@onboardingPreviewNotificationDesc": {},
+  "onboardingPreviewFullFlow": "Run full flow from start",
+  "@onboardingPreviewFullFlow": {},
+  "onboardingPreviewFullFlowDesc": "Shows the screens in order. Nothing is saved.",
+  "@onboardingPreviewFullFlowDesc": {},
+  "settingsSectionSupport": "Support & info",
+  "@settingsSectionSupport": {},
+  "settingsWidgetPreview": "Widget preview",
+  "@settingsWidgetPreview": {},
+  "settingsWidgetPreviewDesc": "See how the home screen widget will look",
+  "@settingsWidgetPreviewDesc": {},
+  "settingsContact": "Contact us",
+  "@settingsContact": {},
+  "settingsContactDesc": "Send us feedback or report a problem by email",
+  "@settingsContactDesc": {},
+  "settingsContactOpenFailed": "Couldn't open a mail app. Please write to {email}.",
+  "@settingsContactOpenFailed": {
+    "placeholders": {
+      "email": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsReview": "Leave a review",
+  "@settingsReview": {},
+  "settingsReviewDesc": "Rate LOOPET and share your thoughts on Google Play",
+  "@settingsReviewDesc": {},
+  "settingsReviewOpenFailed": "Couldn't open Google Play.",
+  "@settingsReviewOpenFailed": {},
+  "settingsOurApps": "Recommended apps",
+  "@settingsOurApps": {},
+  "settingsOurAppsDesc": "Other apps from the LOOPET team",
+  "@settingsOurAppsDesc": {},
+  "ourAppsIntro": "Made by the LOOPET team.",
+  "@ourAppsIntro": {},
+  "ourAppsOpen": "View on Google Play",
+  "@ourAppsOpen": {},
+  "ourAppsRandomFocusKind": "Focus",
+  "@ourAppsRandomFocusKind": {},
+  "ourAppsRandomFocusBlurb": "Spin the wheel to pick how long, then focus without overthinking it.",
+  "@ourAppsRandomFocusBlurb": {},
+  "settingsPrivacyPolicy": "Privacy policy",
+  "@settingsPrivacyPolicy": {},
+  "settingsPrivacyPolicyDesc": "See what LOOPET stores and what ads use",
+  "@settingsPrivacyPolicyDesc": {},
+  "settingsAdPrivacy": "Ad privacy choices",
+  "@settingsAdPrivacy": {},
+  "settingsAdPrivacyDesc": "Change your consent for personalized ads",
+  "@settingsAdPrivacyDesc": {},
+  "settingsOpenFailed": "Couldn't open it. Please try again later.",
+  "@settingsOpenFailed": {},
+  "settingsVersion": "App version",
+  "@settingsVersion": {},
+  "settingsError": "Settings error: {message}",
+  "@settingsError": {
+    "placeholders": {
+      "message": {
+        "type": "String"
+      }
+    }
+  },
+  "settingsErrorDismiss": "Dismiss error message",
+  "@settingsErrorDismiss": {},
+  "settingsThemeComingSoon": "You'll be able to pick a theme in a future update.",
+  "@settingsThemeComingSoon": {},
+  "settingsLanguage": "Language",
+  "@settingsLanguage": {},
+  "settingsLanguageDesc": "Choose the language used in the app",
+  "@settingsLanguageDesc": {},
+  "languageSystem": "Match device",
+  "@languageSystem": {},
+  "languageSystemDesc": "Follow the language your phone is set to",
+  "@languageSystemDesc": {},
+  "languageKorean": "한국어",
+  "@languageKorean": {},
+  "languageEnglish": "English",
+  "@languageEnglish": {},
+  "languageSpanish": "Español",
+  "@languageSpanish": {},
+  "languageJapanese": "日本語",
+  "@languageJapanese": {},
+  "languagePortuguese": "Português",
+  "@languagePortuguese": {},
+  "languageSheetTitle": "Choose a language",
+  "@languageSheetTitle": {},
+  "errorLoadSettings": "Couldn't load your settings. Please try again.",
+  "@errorLoadSettings": {},
+  "loadFailureTitle": "Couldn't load your data",
+  "@loadFailureTitle": {},
+  "loadFailureBody": "Your saved routines are still there. Please try again.",
+  "@loadFailureBody": {},
+  "errorSaveNotifications": "Couldn't save the notification setting. Please try again.",
+  "@errorSaveNotifications": {},
+  "errorSaveSound": "Couldn't save the sound setting. Please try again.",
+  "@errorSaveSound": {},
+  "errorSaveRoutine": "Couldn't save. Please try again in a moment.",
+  "@errorSaveRoutine": {},
+  "errorDeleteRoutine": "Couldn't delete. Please try again in a moment.",
+  "@errorDeleteRoutine": {},
+  "notificationBody": "Time to start {title}.",
+  "@notificationBody": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationSnoozeBody": "Time to get back to {title}.",
+  "@notificationSnoozeBody": {
+    "placeholders": {
+      "title": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationChannelName": "Routine reminders",
+  "@notificationChannelName": {},
+  "notificationChannelNameSilent": "Routine reminders (silent)",
+  "@notificationChannelNameSilent": {},
+  "notificationChannelDesc": "Reminders that fire when a routine starts",
+  "@notificationChannelDesc": {},
+  "permExactTitle": "Exact reminders",
+  "@permExactTitle": {},
+  "permExactBody": "Permission is needed to get reminders at the exact time.",
+  "@permExactBody": {},
+  "settingsExactAlarm": "Exact reminders",
+  "@settingsExactAlarm": {},
+  "settingsExactAlarmOn": "Reminders ring at the time you set",
+  "@settingsExactAlarmOn": {},
+  "settingsExactAlarmOff": "Reminders may arrive several minutes late",
+  "@settingsExactAlarmOff": {},
+  "settingsExactAlarmStatusOn": "Allowed",
+  "@settingsExactAlarmStatusOn": {},
+  "settingsExactAlarmStatusOff": "Off",
+  "@settingsExactAlarmStatusOff": {},
+  "appName": "LOOPET",
+  "@appName": {},
+  "appTagline": "Your day as a timetable",
+  "@appTagline": {},
+  "onboardingStart": "Get started",
+  "@onboardingStart": {},
+  "onboardingPage1Title": "See what to do right now",
+  "@onboardingPage1Title": {},
+  "onboardingPage1Body": "All 24 hours laid out in a circle, so you can see where you are at a glance.",
+  "@onboardingPage1Body": {},
+  "onboardingPage1Tag": "Home",
+  "@onboardingPage1Tag": {},
+  "onboardingPage2Title": "Handle each moment fast",
+  "@onboardingPage2Title": {},
+  "onboardingPage2Body": "A reminder tells you when; mark it done, later, or skip right from home.",
+  "@onboardingPage2Body": {},
+  "onboardingPage2Tag": "Reminders",
+  "@onboardingPage2Tag": {},
+  "onboardingPage3Title": "Small wins into consistency",
+  "@onboardingPage3Title": {},
+  "onboardingPage3Body": "Done, in progress and upcoming are separated so you never lose the thread.",
+  "@onboardingPage3Body": {},
+  "onboardingPage3Tag": "Progress",
+  "@onboardingPage3Tag": {},
+  "onboardingDemoWake": "Wake up",
+  "@onboardingDemoWake": {},
+  "onboardingDemoFocus": "Focus",
+  "@onboardingDemoFocus": {},
+  "onboardingDemoDinner": "Dinner",
+  "@onboardingDemoDinner": {},
+  "onboardingDemoWakeAlert": "Time to wake up",
+  "@onboardingDemoWakeAlert": {},
+  "onboardingDemoWakeAction": "Wake-up done",
+  "@onboardingDemoWakeAction": {},
+  "onboardingDemoGoodFlow": "You're doing this steadily",
+  "@onboardingDemoGoodFlow": {},
+  "permTitle": "Notifications",
+  "@permTitle": {},
+  "permHeadline": "We'll remind you at routine time",
+  "@permHeadline": {},
+  "permBody": "Turn on reminders so you don't lose the flow of your day.",
+  "@permBody": {},
+  "permSampleWakeTitle": "Time to wake up",
+  "@permSampleWakeTitle": {},
+  "permSampleWakeBody": "Start the day feeling fresh",
+  "@permSampleWakeBody": {},
+  "permSampleStudyTitle": "Time to focus",
+  "@permSampleStudyTitle": {},
+  "permSampleStudyBody": "Give this block your attention",
+  "@permSampleStudyBody": {},
+  "permAllow": "Allow notifications",
+  "@permAllow": {},
+  "permLater": "Later",
+  "@permLater": {},
+  "setupTitle": "First routines",
+  "@setupTitle": {},
+  "setupHeadline": "Pick the first blocks of your day",
+  "@setupHeadline": {},
+  "setupBody": "Choose starter routines now and edit them freely later.",
+  "@setupBody": {},
+  "setupStartEmpty": "Start without routines",
+  "@setupStartEmpty": {},
+  "setupFinish": "Start with selected routines",
+  "@setupFinish": {},
+  "setupLater": "I'll set this up later",
+  "@setupLater": {},
+  "setupRecommended": "Suggested",
+  "@setupRecommended": {},
+  "catalogWakeUp": "Wake up",
+  "@catalogWakeUp": {},
+  "catalogExercise": "Exercise",
+  "@catalogExercise": {},
+  "catalogBreakfast": "Breakfast",
+  "@catalogBreakfast": {},
+  "catalogStudy": "Study",
+  "@catalogStudy": {},
+  "catalogLunch": "Lunch",
+  "@catalogLunch": {},
+  "catalogBreak": "Break",
+  "@catalogBreak": {},
+  "catalogDinner": "Dinner",
+  "@catalogDinner": {},
+  "catalogSleep": "Sleep",
+  "@catalogSleep": {},
+  "seedWakeUpMemo": "Start the day.",
+  "@seedWakeUpMemo": {},
+  "seedStudyMemo": "Put the phone aside and focus only on learning.",
+  "@seedStudyMemo": {},
+  "seedBreakMemo": "Take a breath.",
+  "@seedBreakMemo": {},
+  "widgetPreviewTitle": "Widget preview",
+  "@widgetPreviewTitle": {},
+  "widgetPreviewNote": "The grey area stands in for your home screen background.",
+  "@widgetPreviewNote": {},
+  "widgetPreviewSample": "Show with sample data",
+  "@widgetPreviewSample": {},
+  "widgetPreviewSampleNote": "You can check the widget even with no routines today.",
+  "@widgetPreviewSampleNote": {},
+  "widgetNoRoutines": "No routines today",
+  "@widgetNoRoutines": {},
+  "widgetNone": "None",
+  "@widgetNone": {},
+  "widgetAddHint": "You can add one from the Routines tab",
+  "@widgetAddHint": {},
+  "widgetRefreshHint": "Open the app",
+  "@widgetRefreshHint": {},
+  "widgetRingUntilStart": "to start",
+  "@widgetRingUntilStart": {},
+  "widgetRingUntilEnd": "left",
+  "@widgetRingUntilEnd": {},
+  "widgetUpNext": "Up next",
+  "@widgetUpNext": {},
+  "characterPackTitle": "Character Packs",
+  "@characterPackTitle": {},
+  "characterPackSubtitle": "Swap the character and theme as one set",
+  "@characterPackSubtitle": {},
+  "characterPackKicker": "Character theme pack",
+  "@characterPackKicker": {},
+  "characterPackContents": "What's inside",
+  "@characterPackContents": {},
+  "characterPackSlotCharacter": "Character",
+  "@characterPackSlotCharacter": {},
+  "characterPackSlotCharacterDesc": "Your companion for every day",
+  "@characterPackSlotCharacterDesc": {},
+  "characterPackSlotPoses": "{count} poses",
+  "@characterPackSlotPoses": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "characterPackSlotPosesDesc": "Expressions that follow your day",
+  "@characterPackSlotPosesDesc": {},
+  "characterPackSlotTheme": "Theme",
+  "@characterPackSlotTheme": {},
+  "characterPackSlotThemeDesc": "Background and props come together",
+  "@characterPackSlotThemeDesc": {},
+  "characterPackThemeColors": "Theme colors",
+  "@characterPackThemeColors": {},
+  "characterPackDecoItems": "Decorations",
+  "@characterPackDecoItems": {},
+  "characterPackOwnAction": "Own forever",
+  "@characterPackOwnAction": {},
+  "characterPackOwned": "Owned",
+  "@characterPackOwned": {},
+  "characterPackUseAction": "Use this pack",
+  "@characterPackUseAction": {},
+  "characterPackSelectFailed": "Couldn't switch packs. Please try again.",
+  "@characterPackSelectFailed": {},
+  "characterPackArtworkPending": "Artwork in progress",
+  "@characterPackArtworkPending": {},
+  "characterPackAdUnlockAction": "Watch an ad to unlock ({watched}/{required})",
+  "@characterPackAdUnlockAction": {
+    "placeholders": {
+      "watched": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
+  "characterPackAdUnlockHint": "{count, plural, =1{Watch 1 full ad to keep this pack for good.} other{Watch {count} full ads to keep this pack for good. You don't have to watch them in one go.}}",
+  "@characterPackAdUnlockHint": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "characterPackAdUnlockBadge": "Unlock with ads",
+  "@characterPackAdUnlockBadge": {},
+  "characterPackAdUnlockProgress": "Ads {watched}/{required}",
+  "@characterPackAdUnlockProgress": {
+    "placeholders": {
+      "watched": {
+        "type": "int"
+      },
+      "required": {
+        "type": "int"
+      }
+    }
+  },
+  "characterPackAdUnlockProgressed": "{remaining, plural, =1{Watch 1 more ad to keep this pack for good.} other{Watch {remaining} more ads to keep this pack for good.}}",
+  "@characterPackAdUnlockProgressed": {
+    "placeholders": {
+      "remaining": {
+        "type": "int"
+      }
+    }
+  },
+  "characterPackAdUnlockNotCompleted": "Only fully watched ads count.",
+  "@characterPackAdUnlockNotCompleted": {},
+  "characterPackAdUnlockUnavailable": "Couldn't load an ad right now. Please try again in a moment.",
+  "@characterPackAdUnlockUnavailable": {},
+  "packStarlightCatName": "Starlight Cat",
+  "@packStarlightCatName": {},
+  "packStarlightCatTagline": "The original companion on a cream backdrop",
+  "@packStarlightCatTagline": {},
+  "packPoodleGardenName": "Poodle Garden Pack",
+  "@packPoodleGardenName": {},
+  "packPoodleGardenTagline": "Spend the day with a poodle in a cozy garden",
+  "@packPoodleGardenTagline": {},
+  "packPostmanRabbitName": "Postman Rabbit Pack",
+  "@packPostmanRabbitName": {},
+  "packPostmanRabbitTagline": "A warm morning with a little letter",
+  "@packPostmanRabbitTagline": {},
+  "packExplorerSquirrelName": "Explorer Squirrel Pack",
+  "@packExplorerSquirrelName": {},
+  "packExplorerSquirrelTagline": "Find today's path with a little woodland explorer",
+  "@packExplorerSquirrelTagline": {},
+  "packMooncloudSheepName": "Mooncloud Sheep Pack",
+  "@packMooncloudSheepName": {},
+  "packMooncloudSheepTagline": "A gentle day among moonlit clouds",
+  "@packMooncloudSheepTagline": {},
+  "packRedPandaTeashopName": "Red Panda Teashop Pack",
+  "@packRedPandaTeashopName": {},
+  "packRedPandaTeashopTagline": "A warm cup of tea on a rainy day",
+  "@packRedPandaTeashopTagline": {},
+  "packOtterSeasideName": "Sunny Sea Otter Pack",
+  "@packOtterSeasideName": {},
+  "packOtterSeasideTagline": "Drift through a gentle day with a little seashell",
+  "@packOtterSeasideTagline": {},
+  "packPenguinSnowWalkName": "Snow Walk Penguin Pack",
+  "@packPenguinSnowWalkName": {},
+  "packPenguinSnowWalkTagline": "Wander the snowy path with a little penguin in a lavender scarf",
+  "@packPenguinSnowWalkTagline": {},
+  "updateAvailableTitle": "A new version is here",
+  "@updateAvailableTitle": {},
+  "updateAvailableBody": "Update to get the latest LOOPET.",
+  "@updateAvailableBody": {},
+  "updateCurrentVersion": "Your version · v{version}",
+  "@updateCurrentVersion": {
+    "placeholders": {
+      "version": {
+        "type": "String"
+      }
+    }
+  },
+  "updateAction": "Update",
+  "@updateAction": {},
+  "updateLater": "Not now",
+  "@updateLater": {},
+  "updateBannerMessage": "A new version is out",
+  "@updateBannerMessage": {},
+  "updateBannerDismiss": "Dismiss update notice",
+  "@updateBannerDismiss": {},
+  "updateStoreFailed": "Couldn’t open Google Play.",
+  "@updateStoreFailed": {},
+  "settingsCheckUpdate": "Check for updates",
+  "@settingsCheckUpdate": {},
+  "settingsCheckUpdateNotChecked": "Check for a newer version",
+  "@settingsCheckUpdateNotChecked": {},
+  "settingsCheckUpdateFailed": "Couldn’t check for updates. Please try again.",
+  "@settingsCheckUpdateFailed": {},
+  "settingsCheckUpdateBusy": "Checking…",
+  "@settingsCheckUpdateBusy": {},
+  "settingsCheckUpdateUpToDate": "You’re up to date",
+  "@settingsCheckUpdateUpToDate": {},
+  "settingsCheckUpdateAvailable": "A new version is waiting",
+  "@settingsCheckUpdateAvailable": {},
+  "settingsReleaseNotes": "What’s new",
+  "@settingsReleaseNotes": {},
+  "settingsReleaseNotesDesc": "See what changed in this update",
+  "@settingsReleaseNotesDesc": {},
+  "settingsReleaseNotesUnread": "Unread",
+  "@settingsReleaseNotesUnread": {},
+  "releaseNotesTitle": "What’s new",
+  "@releaseNotesTitle": {},
+  "releaseNotesCurrentBadge": "Current",
+  "@releaseNotesCurrentBadge": {},
+  "releaseNotesRetentionHint": "Showing the last {count} versions",
+  "@releaseNotesRetentionHint": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "releaseAnnouncementAction": "Got it",
+  "@releaseAnnouncementAction": {},
+  "releaseAnnouncementMore": "See earlier changes",
+  "@releaseAnnouncementMore": {},
+  "releaseNote101Snooze": "Routines you put off now remind you again at the time you picked.",
+  "@releaseNote101Snooze": {},
+  "releaseNote101PixelClouds": "The clouds on the home timetable are now pixel art.",
+  "@releaseNote101PixelClouds": {},
+  "releaseNote101CharacterPacks": "Pick a character pack and the theme changes with it.",
+  "@releaseNote101CharacterPacks": {},
+  "releaseNote101GardenTrial": "Watch an ad to use the Poodle Garden pack for a day.",
+  "@releaseNote101GardenTrial": {},
+  "releaseNote101Languages": "The app now also speaks Japanese and Portuguese.",
+  "@releaseNote101Languages": {},
+  "releaseNote102Widgets": "Add a circle, timeline, or card widget to your home screen.",
+  "@releaseNote102Widgets": {},
+  "releaseNote102Timeline": "The Routines tab shows today on a timeline.",
+  "@releaseNote102Timeline": {},
+  "releaseNote102GardenUnlock": "Watch two ads to keep the Poodle Garden pack for good.",
+  "@releaseNote102GardenUnlock": {},
+  "releaseNote103Packs": "You can buy the Postman Rabbit, Explorer Squirrel, Mooncloud Sheep, Red Panda Teashop, and Sunny Sea Otter packs.",
+  "@releaseNote103Packs": {},
+  "releaseNote103TimeScenes": "Character pack homes change scene with the time of day.",
+  "@releaseNote103TimeScenes": {},
+  "releaseNote103RingWidget": "The day ring widget is larger.",
+  "@releaseNote103RingWidget": {},
+  "releaseNote104Penguin": "You can buy the Snow Walk Penguin pack.",
+  "@releaseNote104Penguin": {},
+  "releaseNote104Bundle": "Buy five character packs and remove ads together.",
+  "@releaseNote104Bundle": {},
+  "releaseNote104Notifications": "Choose sound, vibration, or a silent alert, and turn on a short buzz when you finish a routine.",
+  "@releaseNote104Notifications": {},
+  "packStargazerName": "Stargazer Cat",
+  "packStargazerTagline": "A limited stargazer with a night-sky widget",
+  "launchGiftBadge": "Launch gift",
+  "launchGiftLocked": "A limited pack for people who started during launch.",
+  "launchGiftTitle": "Your launch gift is here",
+  "launchGiftDescription": "You got Stargazer Cat, a night-sky widget and three decorations.",
+  "launchGiftUseAction": "Use it now",
+  "characterPackBuyAction": "Buy for {price}",
+  "@characterPackBuyAction": {
+    "placeholders": {
+      "price": {
+        "type": "String"
+      }
+    }
+  },
+  "characterPackBuyPending": "Waiting for Google Play to confirm the payment",
+  "@characterPackBuyPending": {},
+  "characterPackBuyHint": "Yours for good once bought. Reinstall with the same Google account and it comes back.",
+  "@characterPackBuyHint": {},
+  "characterPackBuyUnavailable": "Purchases aren't available on this device right now.",
+  "@characterPackBuyUnavailable": {},
+  "storeBundleTitle": "5 character packs + no ads",
+  "@storeBundleTitle": {},
+  "storeBundleDesc": "Five friends with their characters, themes, decor and widgets. Also removes ads on Home and Progress.",
+  "@storeBundleDesc": {},
+  "storeBundleOwned": "You have everything in this bundle.",
+  "@storeBundleOwned": {},
+  "purchaseStoreUnavailable": "Couldn't reach Google Play. Please try again in a moment.",
+  "@purchaseStoreUnavailable": {},
+  "purchaseRejected": "The payment didn't go through.",
+  "@purchaseRejected": {},
+  "purchaseNothingToRestore": "There are no purchases to restore.",
+  "@purchaseNothingToRestore": {},
+  "purchaseNotSaved": "Payment received, but it couldn't be saved. It will arrive next time you open the app.",
+  "@purchaseNotSaved": {},
+  "purchaseRestored": "Your purchases are back.",
+  "@purchaseRestored": {},
+  "settingsRestorePurchases": "Restore purchases",
+  "@settingsRestorePurchases": {},
+  "settingsRestorePurchasesDesc": "Get back the packs bought with this Google account",
+  "@settingsRestorePurchasesDesc": {},
+  "notificationSettingsTitle": "Sound & vibration",
+  "notificationSettingsSubtitle": "How should we let you know?",
+  "notificationStartSection": "Routine start alerts",
+  "notificationModeSound": "Sound + vibration",
+  "notificationModeSoundDesc": "Hear and feel your reminder",
+  "notificationModeVibration": "Vibration only",
+  "notificationModeVibrationDesc": "A quiet nudge to keep you on track",
+  "notificationModeVisual": "Visual alerts only",
+  "notificationModeVisualDesc": "Without sound or vibration",
+  "completionHapticTitle": "A short vibration on completion",
+  "completionHapticDesc": "A gentle tap when you finish",
+  "notificationStatusSound": "Set to notify with sound and vibration",
+  "notificationStatusVibration": "Set to notify with vibration only",
+  "notificationStatusVisual": "Set to show visual alerts only",
+  "notificationPreviewAction": "Try selected alert",
+  "notificationSnoozeSettingsHint": "Also applies to snoozed reminders",
+  "notificationSystemSettingsHint": "Vibrate mode silences alert sounds. Silent, Do Not Disturb and system notification settings still apply.",
+  "notificationPreviewTitle": "Try an alert",
+  "notificationPreviewBody": "Your routines will use this alert style too.",
+  "notificationPreviewFailed": "Could not show the alert. Check notification permissions in your phone settings.",
+  "notificationPreviewSent": "Test alert sent. Sound and vibration depend on your phone settings.",
+  "notificationChannelVisual": "Routine alerts · Visual only",
+  "notificationDisabledHint": "Turn on notifications to use your chosen alert style.",
+  "notificationIosVibrationHint": "iPhone notification vibration is controlled by phone settings. Use silent mode for vibration without sound.",
+  "packCollectionTab": "My characters",
+  "packStoreTab": "Store",
+  "packCollectionTitle": "A friend for today",
+  "packCollectionSubtitle": "Make today yours with a favorite friend.",
+  "packCollectionCount": "My friends · {count}",
+  "packApplyAction": "Apply",
+  "packDiscoverAction": "Meet new friends",
+  "packDiscoverTile": "Meet more friends!",
+  "packStoreTitle": "A favorite friend for your everyday.",
+  "packStoreContents": "Character · theme · decor · widget",
+  "packStorePurchaseNote": "One purchase. Yours to keep.",
+  "packViewDetails": "View pack",
+  "@packCollectionCount": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "packBundleCountTitle": "{count} packs + no ads",
+  "@packBundleCountTitle": {
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepCreateTitle": "Create a sleep routine",
+  "sleepCreateDescription": "Set your bedtime and wake-up alarm",
+  "sleepChoice": "Sleep",
+  "sleepSettingsTitle": "Sleep routine",
+  "sleepName": "Sleep",
+  "sleepBedtimeQuestion": "What time will you sleep?",
+  "sleepWakeQuestion": "What time will you wake up?",
+  "sleepDaysQuestion": "Which days will you wake up?",
+  "sleepNextDay": "Next day",
+  "sleepDuration": "Total {duration}",
+  "sleepWakeAlarm": "Wake-up reminder",
+  "sleepWakeAlarmHint": "Lets you know when it's time to wake up.",
+  "sleepWakeAlarmSoundHint": "It may be silent depending on your notification settings.",
+  "sleepWakeSameTimeAlert": "'{name}' also sends a notification at {time}, so you'll get two at once.",
+  "sleepWakeAlarmTurnOff": "Turn off wake-up reminder",
+  "@sleepWakeSameTimeAlert": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepAlarmSummary": "I’ll remind you at {time} on {days}.",
+  "sleepScheduleSummary": "Wake up at {time} on {days}.",
+  "sleepEqualTimesError": "Choose different sleep and wake-up times (less than 24 hours).",
+  "sleepWakeNotificationBody": "Time to wake up.",
+  "@sleepDuration": {
+    "placeholders": {
+      "duration": {
+        "type": "String"
+      }
+    }
+  },
+  "@sleepAlarmSummary": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "@sleepScheduleSummary": {
+    "placeholders": {
+      "days": {
+        "type": "String"
+      },
+      "time": {
+        "type": "String"
+      }
+    }
+  },
+  "sleepPreviousDay": "Previous day",
+  "widgetStyleTimeline": "Routine timeline",
+  "widgetStyleCards": "Routine card",
+  "widgetStyleRing": "Circular timetable",
+  "widgetComplete": "Done",
+  "sleepBedtimeReminder": "Bedtime reminder",
+  "@sleepBedtimeReminder": {},
+  "sleepBedtimeReminderHint": "Reminds you once when it's time to get ready for bed.",
+  "@sleepBedtimeReminderHint": {},
+  "sleepBedtimeLeadOnTime": "On time",
+  "@sleepBedtimeLeadOnTime": {},
+  "sleepBedtimeLeadMinutes": "{minutes} min before",
+  "@sleepBedtimeLeadMinutes": {
+    "placeholders": {
+      "minutes": {
+        "type": "int"
+      }
+    }
+  },
+  "sleepBedtimeLeadHour": "1 hr before",
+  "@sleepBedtimeLeadHour": {},
+  "sleepWakeAlarmLoud": "Ring like an alarm",
+  "@sleepWakeAlarmLoud": {},
+  "sleepWakeAlarmLoudHint": "Repeats the alarm sound until you respond.",
+  "@sleepWakeAlarmLoudHint": {},
+  "sleepWakeAlarmLoudVibrateHint": "Rings even in vibrate mode.",
+  "@sleepWakeAlarmLoudVibrateHint": {},
+  "bedtimeNotificationTitle": "Bedtime soon",
+  "@bedtimeNotificationTitle": {},
+  "bedtimeNotificationTitleNow": "It's bedtime",
+  "@bedtimeNotificationTitleNow": {},
+  "bedtimeNotificationBody": "'{name}' starts at {time}.",
+  "@bedtimeNotificationBody": {
+    "placeholders": {
+      "time": {
+        "type": "String"
+      },
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "notificationChannelWakeAlarm": "Wake-up alarm",
+  "@notificationChannelWakeAlarm": {},
+  "notificationChannelWakeAlarmDesc": "Wake-up reminders set to ring like an alarm",
+  "@notificationChannelWakeAlarmDesc": {},
+  "notificationActionWokeUp": "I'm up",
+  "@notificationActionWokeUp": {},
+  "notificationActionSnoozeWakeAlarm": "Again in 5 min",
+  "@notificationActionSnoozeWakeAlarm": {}
+}

@@ -1,6 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!-- 기본(무자격) 리소스는 영어다. 한국어·스페인어는 values-ko / values-es 에 둔다. -->
 <resources>
-    <string name="widget_ring_desc">오늘 루틴 링</string>
-    <string name="widget_medium_description">하루 루틴 시간표</string>
-    <string name="widget_next_label">다음</string>
+    <string name="app_name">LOOPET</string>
+    <string name="widget_ring_desc">Today\'s routine ring</string>
+    <string name="widget_medium_description">Today\'s routines in a circle</string>
+    <string name="widget_ring_name">LOOPET Circle</string>
+    <string name="widget_timeline_name">LOOPET Timeline</string>
+    <string name="widget_cards_name">LOOPET Cards</string>
+    <string name="widget_timeline_description">Today\'s routines on a timeline</string>
+    <string name="widget_cards_description">Current and next routine cards</string>
+    <string name="widget_next_label">Next</string>
+    <string name="widget_sync_prompt">Open the app</string>
+    <string name="widget_now_label">Now</string>
 </resources>

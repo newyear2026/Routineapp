@@ -1,0 +1,15 @@
+Use case: identity-preserve
+Asset type: mobile routine app COMPLETE celebration pixel sprite, exactly 8 frames.
+Reference 1 is definitive neutral identity, full-body proportions, palette and pixel style. Reference 2 shows only the desired delighted expression and raised front paws, not its cropped composition or giant head. Always draw the ENTIRE SAME-SIZED BODY and all four limbs.
+Transparent RGBA sheet: 4 equal columns x 2 equal rows, 8 equal square cells in chronological reading order, suggested1536x768. No text, labels, borders, backgrounds, ground shadows, glow or new props. Safe clear gutters around every sprite.
+Same navy starlight cat: golden eyes when open, pink salmon nose, cream muzzle/chest and cream feet, three cream forehead marks, one upright and one folded ear with little cream star, teal collar square gold tag, one cream-tip tail on viewer right. Same exact outline and pixel clusters as reference1. No hat/cloak. Keep head size, collar, face features consistent through the sheet.
+Celebration is a small HAPPY HOP and TWO FRONT PAWS UP then settle in a proud smile. Camera stays fixed and cat body centered. Full standing/seated footprint ground baseline92% cell height. Reserve headroom above neutral ears at13% for a small upward hop.
+Frame1: exact seated neutral, eyes open, four paws on ground.
+Frame2: slight crouch, still four ground paws, anticipation.
+Frame3: begins rising, TWO front paws lift from their original ground positions. Only TWO hind paws remain below, no leftover front paws on ground.
+Frame4: small hop, eyes closed smiling, exactly TWO front paws lifted sideways near chest and TWO hind paws below torso, one tail. Two small golden diamond sparkles outside cheeks.
+Frame5: peak happy pose, TWO front paws up, TWO hind paws below torso. Same head scale. Sparkles fading.
+Frame6: lands only on TWO hind paws, TWO front paws still lifted. Anatomically exactly FOUR visible paws total.
+Frame7: lowers the SAME two front paws toward ground, sparkle gone, warm closed-eye smile.
+Frame8: seated with original four-paw anatomy, no raised hands, eyes softly closed smiling, exact neutral body size/placement, ready to hold.
+CRITICAL CHECK ALL CELLS: Only four limbs exist. When both front paws are raised there are exactly TWO feet below, not four. The two small outside seated hind feet and the two large middle front feet must not be copied in addition to raised paws. No six-legged kitten, detached paws, extra tail, cape, distorted torso or crop.

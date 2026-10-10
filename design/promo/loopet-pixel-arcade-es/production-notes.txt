@@ -1,0 +1,21 @@
+LOOPET / Pixel Arcade / Spanish version
+
+16 seconds, 1080 x 1920, vertical 9:16, 60 fps, H.264 MP4 with stereo AAC.
+All promotional copy and the actual in-app screens are Spanish. Motion,
+characters, timing, colors, and original 128 BPM music match the English
+Pixel Arcade version. The music contains no voiceover.
+
+Spanish copy uses accents, inverted exclamation marks, and the letter ñ.
+Pixelify Sans coverage was checked, and longer lines are fitted to the same
+safe layout widths. Brand name LOOPET remains unchanged.
+
+The app imagery was freshly captured from actual Flutter widgets using locale
+es and character pack cat_starlight. Captures contain example routine data.
+This is screenshot-based motion graphics, not a live app recording.
+Earlier English and Korean videos are preserved.
+
+Rebuild from the repository root:
+python3 design/promo/loopet-pixel-arcade-es/render_arcade_es.py
+
+Preview scenes only:
+python3 design/promo/loopet-pixel-arcade-es/render_arcade_es.py --preview

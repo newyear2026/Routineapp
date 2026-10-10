@@ -1,7 +1,11 @@
 import 'package:flutter/material.dart';
 
+import '../l10n/app_localizations.dart';
+
+import '../domain/models/routine_icon_id.dart';
 import '../theme/routine_palette.dart';
 import 'medium_ring_segment.dart';
+import 'widget_timeline_item.dart';
 
 /// iOS Medium 위젯(스타일)용 ViewModel — [HomeMediumWidgetSelector]에서 주입.
 ///
@@ -16,13 +20,33 @@ class HomeMediumWidgetViewModel {
     required this.currentTime,
     required this.centerTimeLabel,
     required this.ringSegments,
+    this.currentRoutineIconId = RoutineIconId.coffee,
+    this.currentRoutineColor = RoutinePalette.blue,
+    this.currentRoutineTimeRange = '',
+    this.remainingDuration = '',
+    this.remainingLabel = '',
+    this.completeLabel = '',
+    this.completeActionUri,
     this.activeSegmentId,
     this.pointerAngleRad,
+    this.timelineItems = const [],
+    this.timelineNowEpochMs = 0,
   });
+
+  final String remainingDuration;
+  final String remainingLabel;
+  final String completeLabel;
+  final String? completeActionUri;
+  final List<WidgetTimelineItem> timelineItems;
+  final int timelineNowEpochMs;
+  bool get canComplete => completeActionUri != null;
 
   final String currentRoutineTitle;
   final String currentRoutineTimingHint;
   final String currentRoutineStatusLabel;
+  final RoutineIconId currentRoutineIconId;
+  final Color currentRoutineColor;
+  final String currentRoutineTimeRange;
 
   final String nextRoutineTitle;
   final String nextRoutineTime;
@@ -40,17 +64,45 @@ class HomeMediumWidgetViewModel {
   ///
   /// 색은 앱이 실제로 쓰는 [RoutinePalette]에서 가져온다. 더미만 다른 파스텔을
   /// 쓰면 미리보기가 실물과 다른 인상을 준다.
-  static HomeMediumWidgetViewModel dummy() {
-    return const HomeMediumWidgetViewModel(
-      currentRoutineTitle: '저녁식사',
-      currentRoutineTimingHint: '종료까지 58분 남음',
-      currentRoutineStatusLabel: '진행 중',
-      nextRoutineTitle: '취침',
-      nextRoutineTime: '23:00',
-      currentTime: TimeOfDay(hour: 18, minute: 2),
-      centerTimeLabel: '지금',
-      activeSegmentId: 'seg_dinner',
-      ringSegments: [
+  static HomeMediumWidgetViewModel dummy(AppLocalizations l10n,
+      {bool completed = false}) {
+    return HomeMediumWidgetViewModel(
+      remainingDuration: completed ? '' : l10n.durationMinutes(46),
+      remainingLabel: l10n.widgetRingUntilEnd,
+      completeLabel: l10n.widgetComplete,
+      completeActionUri: completed ? null : 'loopet-widget://sample',
+      currentRoutineTitle: l10n.catalogBreak,
+      currentRoutineTimingHint:
+          completed ? '' : l10n.timingUntilEnd(l10n.durationMinutes(46)),
+      currentRoutineStatusLabel:
+          completed ? l10n.statusCompleted : l10n.statusInProgress,
+      currentRoutineIconId: RoutineIconId.coffee,
+      currentRoutineColor: RoutinePalette.blue,
+      currentRoutineTimeRange: '15:00-16:00',
+      nextRoutineTitle: l10n.catalogDinner,
+      nextRoutineTime: '18:00',
+      currentTime: const TimeOfDay(hour: 15, minute: 14),
+      timelineNowEpochMs: DateTime(2000, 1, 1, 15, 14).millisecondsSinceEpoch,
+      timelineItems: [
+        WidgetTimelineItem(
+            id: 'seg_rest',
+            title: l10n.catalogBreak,
+            time: '15:00',
+            startEpochMs: DateTime(2000, 1, 1, 15).millisecondsSinceEpoch),
+        WidgetTimelineItem(
+            id: 'seg_dinner',
+            title: l10n.catalogDinner,
+            time: '18:00',
+            startEpochMs: DateTime(2000, 1, 1, 18).millisecondsSinceEpoch),
+        WidgetTimelineItem(
+            id: 'seg_sleep',
+            title: l10n.catalogSleep,
+            time: '23:00',
+            startEpochMs: DateTime(2000, 1, 1, 23).millisecondsSinceEpoch),
+      ],
+      centerTimeLabel: l10n.commonNow,
+      activeSegmentId: 'seg_rest',
+      ringSegments: const [
         MediumRingSegment(
           id: 'seg_wake',
           startMinutesFromMidnight: 7 * 60,
@@ -68,6 +120,12 @@ class HomeMediumWidgetViewModel {
           startMinutesFromMidnight: 12 * 60,
           sweepMinutes: 60,
           color: RoutinePalette.amber,
+        ),
+        MediumRingSegment(
+          id: 'seg_rest',
+          startMinutesFromMidnight: 15 * 60,
+          sweepMinutes: 60,
+          color: RoutinePalette.blue,
         ),
         MediumRingSegment(
           id: 'seg_dinner',

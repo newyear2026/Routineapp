@@ -1,0 +1,16 @@
+Use case: identity-preserve
+Asset type: eight-frame pixel-art START WALK sprite sheet for a mobile routine app.
+Reference1 is the definitive neutral character identity and pixel style. Reference2 is a supporting four-legged walking pose only. Preserve reference1 head/ear sizes and collar, do not redesign.
+Apricot orange garden toy poodle, detailed curly topknot and fluffy floppy ears, big black eyes with warm golden highlights, black nose, cream muzzle/chest and paw tips, teal collar with square golden tag, one small curly pom-pom tail. No clothes, props, new accessories or other animals.
+Output true transparent RGBA, exactly 8 equal square cells in a 4 columns x 2 rows grid, reading left-to-right then down. Suggested1536x768. No text, labels, grid lines, background, floor, cast shadows or glow. Entire ears/feet/tail stay inside each cell with safe gutters. Same scale/camera every cell; grounded foot baseline92% cell height, keep body in one fixed slot. Ensure visible transparent headroom for animation, no cropping.
+Action is a brief light walk IN PLACE, angled toward viewer-right, then sitting back at original position:
+1 exact front seated neutral from ref1.
+2 turn slightly right and rise onto four legs; one front foot begins a step.
+3 right-facing three-quarter contact pose, near front foot ahead and opposite rear foot behind.
+4 passing pose, feet travel naturally under the body, ears bounce a little.
+5 opposite contact, far front foot ahead while near front foot is back; rear legs alternate correspondingly.
+6 slow down and turn frontward.
+7 lower hindquarters into a seated pose, front paws nearly grounded.
+8 exact seated neutral from ref1.
+Maintain same skull size and coat texture across all8, gentle ear follow-through and cheerful expression. Do not translate across the sheet or shrink the walking poodle.
+ANATOMY: exactly FOUR legs TOTAL, two front and two rear. At three-quarter angles hidden legs may be partly occluded; no duplicate feet, ghost limbs, detached paws, multiple tails. Legs remain attached to the correct body joints. Front seated endpoints have only two middle front paws and two outer rear paws.

@@ -1,6 +1,5 @@
 import '../models/routine.dart';
-import '../utils/time_calculation.dart';
-import '../utils/time_to_minutes.dart';
+import '../services/routine_occurrences.dart';
 
 /// 현재 시각이 속한 슬롯에 **여러 루틴**이 있을 때 — [Routine.updatedAtMs] 최신 우선
 ///
@@ -10,14 +9,9 @@ abstract final class CurrentRoutineSlotResolver {
     DateTime nowLocal,
     List<Routine> todaySorted,
   ) {
-    final m = timeToMinutes(nowLocal);
     final inWindow = <Routine>[];
     for (final r in todaySorted) {
-      if (TimeCalculation.containsMinuteInOpenInterval(
-        m,
-        r.startMinutesFromMidnight,
-        r.endMinutesFromMidnight,
-      )) {
+      if (RoutineOccurrences.active(r, nowLocal)) {
         inWindow.add(r);
       }
     }

@@ -2,11 +2,13 @@ import '../../domain/models/routine.dart';
 import '../../domain/models/routine_log.dart';
 import '../../domain/progress/daily_progress.dart';
 import '../../domain/utils/time_minutes.dart';
+import '../../l10n/app_localizations.dart';
 import '../../models/progress_models.dart';
 
 /// 도메인 [Routine]·[RoutineLog] → Progress 화면용 [ProgressStatusGroup] 등
 abstract final class ProgressViewMapper {
   static List<ProgressStatusGroup> buildStatusGroups({
+    required AppLocalizations l10n,
     required List<Routine> todayRoutines,
     required List<RoutineLog> logsToday,
   }) {
@@ -29,7 +31,7 @@ abstract final class ProgressViewMapper {
       final r = byId[log.routineId];
       return ProgressRoutineItem(
         emoji: r?.iconEmoji ?? '',
-        name: r?.title ?? '루틴',
+        name: r?.title ?? l10n.commonRoutine,
         timeLabel: TimeMinutes.formatHm(r?.startMinutesFromMidnight ?? 0),
       );
     }
@@ -74,45 +76,51 @@ abstract final class ProgressViewMapper {
     return out;
   }
 
-  static ProgressFeedbackContent feedbackForPercent(int percent) {
+  static ProgressFeedbackContent feedbackForPercent(
+    AppLocalizations l10n,
+    int percent,
+  ) {
     if (percent >= 100) {
-      return const ProgressFeedbackContent(
+      return ProgressFeedbackContent(
         titleEmoji: '🎉',
-        title: '오늘 루틴 완료',
-        message: '계획한 루틴을 모두 마쳤어요!',
-        subMessage: '내일도 함께해요',
+        title: l10n.progressHeroAllDoneTitle,
+        message: l10n.progressHeroAllDoneBody,
+        subMessage: l10n.progressHeroAllDoneFoot,
       );
     }
     if (percent >= 50) {
-      return const ProgressFeedbackContent(
+      return ProgressFeedbackContent(
         titleEmoji: '💪',
-        title: '절반 넘었어요',
-        message: '이대로만 가면 돼요.',
-        subMessage: '남은 루틴도 화이팅',
+        title: l10n.progressHeroHalfTitle,
+        message: l10n.progressHeroHalfBody,
+        subMessage: l10n.progressHeroHalfFoot,
       );
     }
-    return const ProgressFeedbackContent(
+    return ProgressFeedbackContent(
       titleEmoji: '✨',
-      title: '오늘 하루',
-      message: '조금씩 채워가면 돼요.',
-      subMessage: '작은 완료도 큰 도움이에요',
+      title: l10n.progressHeroStartTitle,
+      message: l10n.progressHeroStartBody,
+      subMessage: l10n.progressHeroStartFoot,
     );
   }
 
   static List<ProgressMiniStat> miniStatsFromProgress({
+    required AppLocalizations l10n,
     required int completed,
     required int total,
   }) {
     return [
       ProgressMiniStat(
         emoji: '✅',
-        label: '오늘 완료',
+        label: l10n.progressDoneToday,
         value: total > 0 ? '$completed / $total' : '-',
       ),
       ProgressMiniStat(
         emoji: '📅',
-        label: '남은 루틴',
-        value: total > 0 ? '${(total - completed).clamp(0, total)}개' : '-',
+        label: l10n.progressRemaining,
+        value: total > 0
+            ? l10n.routineCount((total - completed).clamp(0, total))
+            : '-',
       ),
     ];
   }

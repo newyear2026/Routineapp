@@ -139,7 +139,7 @@ Scaffold
 
 - Primary CTA는 1개만 강하게
 - 나머지는 secondary 또는 ghost 성격
-- 비활성 상태면 이유 문구를 가까이에 둔다
+- 할 수 없는 상태면 버튼을 숨긴다 (UI_STANDARDS «Home 첫 카드» 표)
 
 ### 2.5 Context Cards
 

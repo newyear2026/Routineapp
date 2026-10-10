@@ -1,13 +1,15 @@
 name: routine_timer
 description: 귀여운 감성 루틴 관리 앱
 publish_to: 'none'
-version: 1.0.0+1
+version: 1.0.8+12
 
 environment:
   sdk: '>=3.0.0 <4.0.0'
 
 dependencies:
   flutter:
+    sdk: flutter
+  flutter_localizations:
     sdk: flutter
   
   # UI & 애니메이션
@@ -22,28 +24,249 @@ dependencies:
   shared_preferences: ^2.2.2
   
   # 알림
-  flutter_local_notifications: ^17.0.0
+  flutter_local_notifications: ^22.3.0
+  routine_notification_platform:
+    path: packages/routine_notification_platform
   
   # 라우팅
   go_router: ^13.0.0
   
   # 유틸리티
-  intl: ^0.19.0
+  # flutter_localizations가 SDK 버전마다 intl을 고정한다.
+  # 여기서 범위를 좁히면 Flutter를 올릴 때마다 해석이 깨진다.
+  intl: any
   home_widget: ^0.9.3
-  timezone: ^0.9.4
+
+  # 광고 — 자리·상한은 docs/AD_PLACEMENT.md, 판정은 domain/ads/AdSlotPolicy
+  google_mobile_ads: ^6.0.0
+  timezone: ^0.11.1
+
+  # 업데이트 안내 — 정책은 application/update/AppUpdates,
+  # 실기기 검증 절차는 docs/DEVICE_VALIDATION.md
+  #
+  # in_app_update는 Play가 설치한 빌드에서만 답한다. 디버그 실행·사이드로드·
+  # iOS는 UnavailableUpdatePort로 후퇴하므로 없어도 앱은 그대로 돌아간다.
+  in_app_update: ^4.2.5
+  url_launcher: ^6.3.0
+  package_info_plus: ^10.2.1
+
+  # 리뷰 요청 — 정책은 application/review/ReviewPrompt.
+  # Play에서 설치한 빌드에서만 창이 뜬다. 디버그 실행·사이드로드에서는 조용히
+  # 아무것도 하지 않는다.
+  in_app_review: ^2.0.12
+  # 캐릭터 팩·번들 판매. 비소모성 상품만 쓰므로 계정 없이 Play 계정으로
+  # 복원된다. android 애드온은 환불을 읽는 queryPastPurchases 때문에 필요하다.
+  in_app_purchase: ^3.3.0
+  in_app_purchase_android: ^0.5.0
+
+  # 공용 Firebase 프로젝트 내 LOOPET 앱 — docs/FIREBASE.md
+  firebase_core: ^4.15.0
+  firebase_analytics: ^12.6.0
+  firebase_crashlytics: ^5.4.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.0
+  flutter_launcher_icons: ^0.14.4
+
+# 승인된 고양이·시계 원본에서 플랫폼별 아이콘을 생성한다.
+#   flutter test tool/generate_app_icon.dart
+#   dart run flutter_launcher_icons
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: assets/icon/app_icon.png
+  # 어댑티브 아이콘은 런처가 마스크를 씌우므로 배경과 전경을 나눠 준다.
+  adaptive_icon_background: "#F7F3EE"
+  adaptive_icon_foreground: assets/icon/app_icon_foreground.png
+  adaptive_icon_foreground_inset: 0
+  # App Store는 알파 채널이 있는 아이콘을 거부한다.
+  remove_alpha_ios: true
 
 flutter:
   uses-material-design: true
+  # 디렉터리째 올리면 옆에 둔 README·manifest까지 앱에 실린다. 쓰는 그림만 적는다.
+  # 그림은 384px로 내보낸다 — 화면에서 가장 큰 자리가 108이고 코드도
+  # cacheWidth 384/256으로 디코딩하므로 3x 기기까지 이 크기면 충분하다.
+  # 1254px 원본은 design/decorations-src 와 characters/cat_starlight/v1 에 있다.
+  assets:
+    - assets/store/bundles/five_pack_forest_picnic.png
+    - assets/apps/randomfocus.png
+    - assets/routine_icons/book.png
+    - assets/routine_icons/coffee.png
+    - assets/routine_icons/dumbbell.png
+    - assets/routine_icons/plant.png
+    - assets/routine_icons/paw.png
+    - assets/routine_icons/sun.png
+    - assets/routine_icons/breakfast.png
+    - assets/routine_icons/bowl.png
+    - assets/routine_icons/utensils.png
+    - assets/routine_icons/moon.png
+    - assets/routine_icons/music.png
+    - assets/routine_icons/bag.png
+    - assets/routine_icons/laptop.png
+    - assets/decorations/bell.png
+    - assets/decorations/garden-daisy.png
+    - assets/decorations/garden-leaf.png
+    - assets/decorations/garden-watering-can.png
+    - assets/decorations/home-sky.png
+    - assets/decorations/plant.png
+    - assets/decorations/progress-sky.png
+    - assets/decorations/routines-sky.png
+    - assets/decorations/settings-card-cloud.png
+    - assets/decorations/settings-sky.png
+    - assets/decorations/sleeping-cat.png
+    - assets/decorations/stargazer-celestial-globe.png
+    - assets/decorations/stargazer-meteor.png
+    - assets/decorations/stargazer-telescope.png
+    - assets/decorations/rabbit-letter.png
+    - assets/decorations/rabbit-satchel.png
+    - assets/decorations/rabbit-carrot-stamp.png
+    - assets/decorations/squirrel-acorn.png
+    - assets/decorations/squirrel-map.png
+    - assets/decorations/squirrel-backpack.png
+    - assets/decorations/sheep-cloud.png
+    - assets/decorations/sheep-moon.png
+    - assets/decorations/sheep-book.png
+    - assets/decorations/redpanda-teapot.png
+    - assets/decorations/redpanda-window.png
+    - assets/decorations/redpanda-teacup.png
+    - assets/decorations/otter-shell.png
+    - assets/decorations/otter-wave.png
+    - assets/decorations/otter-seaglass.png
+    - assets/decorations/penguin-snowflake.png
+    - assets/decorations/penguin-mitten.png
+    - assets/decorations/penguin-thermos.png
+    - assets/pack_backgrounds/squirrel-forest.png
+    - assets/pack_backgrounds/squirrel-home-header.png
+    - assets/pack_backgrounds/squirrel-home-header-morning.png
+    - assets/pack_backgrounds/squirrel-home-header-evening.png
+    - assets/pack_backgrounds/squirrel-home-header-night.png
+    - assets/pack_backgrounds/squirrel-home-card.png
+    - assets/pack_backgrounds/squirrel-home-card-evening.png
+    - assets/pack_backgrounds/squirrel-home-card-night.png
+    - assets/pack_backgrounds/starlight-header-morning.png
+    - assets/pack_backgrounds/starlight-header-day.png
+    - assets/pack_backgrounds/starlight-header-sunset.png
+    - assets/pack_backgrounds/starlight-header-night.png
+    - assets/pack_backgrounds/starlight-card-morning.png
+    - assets/pack_backgrounds/starlight-card-day.png
+    - assets/pack_backgrounds/starlight-card-sunset.png
+    - assets/pack_backgrounds/starlight-card-night.png
+    - assets/pack_backgrounds/poodle-header-morning.png
+    - assets/pack_backgrounds/poodle-header-day.png
+    - assets/pack_backgrounds/poodle-header-sunset.png
+    - assets/pack_backgrounds/poodle-header-night.png
+    - assets/pack_backgrounds/poodle-card-morning.png
+    - assets/pack_backgrounds/poodle-card-day.png
+    - assets/pack_backgrounds/poodle-card-sunset.png
+    - assets/pack_backgrounds/poodle-card-night.png
+    - assets/pack_backgrounds/stargazer-scene-header.png
+    - assets/pack_backgrounds/stargazer-scene-card.png
+    - assets/pack_backgrounds/rabbit-scene-header.png
+    - assets/pack_backgrounds/rabbit-scene-card.png
+    - assets/pack_backgrounds/sheep-scene-header.png
+    - assets/pack_backgrounds/sheep-scene-card.png
+    - assets/pack_backgrounds/redpanda-scene-header.png
+    - assets/pack_backgrounds/redpanda-scene-card.png
+    - assets/pack_backgrounds/otter-scene-header.png
+    - assets/pack_backgrounds/otter-scene-card.png
+    - assets/pack_backgrounds/rabbit-dawn.png
+    - assets/pack_backgrounds/sheep-sky.png
+    - assets/pack_backgrounds/redpanda-teashop.png
+    - assets/pack_backgrounds/otter-seaside.png
+    - assets/pack_backgrounds/penguin-scene-header.png
+    - assets/pack_backgrounds/penguin-scene-card.png
+    - assets/pack_backgrounds/penguin-snowpath.png
+    - assets/characters/cat_starlight/v1/approved/idle.png
+    - assets/characters/cat_starlight/v1/motion/idle_8.png
+    - assets/characters/cat_starlight/v1/motion/walk_loop_8.png
+    - assets/characters/cat_starlight/v1/motion/complete_8.png
+    - assets/characters/cat_starlight/v1/approved/activity.png
+    - assets/characters/cat_starlight/v1/prototype/walk_step.png
+    - assets/characters/cat_starlight/v1/approved/focus.png
+    - assets/characters/cat_starlight/v1/approved/complete.png
+    - assets/characters/cat_starlight/v1/approved/rest.png
+    - assets/characters/poodle_garden/v1/approved/idle.png
+    - assets/characters/poodle_garden/v1/motion/idle_8.png
+    - assets/characters/poodle_garden/v1/motion/walk_loop_8.png
+    - assets/characters/poodle_garden/v1/motion/complete_8.png
+    - assets/characters/poodle_garden/v1/approved/activity.png
+    - assets/characters/poodle_garden/v1/approved/focus.png
+    - assets/characters/poodle_garden/v1/approved/complete.png
+    - assets/characters/poodle_garden/v1/approved/rest.png
+    - assets/characters/poodle_garden/v1/approved/guide.png
+    - assets/characters/cat_starlight/v1/approved/guide.png
+    - assets/characters/cat_stargazer/v1/approved/idle.png
+    - assets/characters/cat_stargazer/v1/motion/idle_8.png
+    - assets/characters/cat_stargazer/v1/motion/walk_loop_8.png
+    - assets/characters/cat_stargazer/v1/motion/complete_8.png
+    - assets/characters/cat_stargazer/v1/approved/activity.png
+    - assets/characters/cat_stargazer/v1/approved/focus.png
+    - assets/characters/cat_stargazer/v1/approved/complete.png
+    - assets/characters/cat_stargazer/v1/approved/rest.png
+    - assets/characters/cat_stargazer/v1/approved/guide.png
+    - assets/characters/rabbit_postman/v1/approved/idle.png
+    - assets/characters/rabbit_postman/v1/motion/idle_8.png
+    - assets/characters/rabbit_postman/v1/motion/walk_loop_8.png
+    - assets/characters/rabbit_postman/v1/motion/complete_8.png
+    - assets/characters/rabbit_postman/v1/approved/activity.png
+    - assets/characters/rabbit_postman/v1/approved/focus.png
+    - assets/characters/rabbit_postman/v1/approved/complete.png
+    - assets/characters/rabbit_postman/v1/approved/rest.png
+    - assets/characters/rabbit_postman/v1/approved/guide.png
+    - assets/characters/squirrel_explorer/v1/approved/idle.png
+    - assets/characters/squirrel_explorer/v1/motion/idle_8.png
+    - assets/characters/squirrel_explorer/v1/motion/walk_loop_8.png
+    - assets/characters/squirrel_explorer/v1/motion/complete_8.png
+    - assets/characters/squirrel_explorer/v1/approved/activity.png
+    - assets/characters/squirrel_explorer/v1/approved/focus.png
+    - assets/characters/squirrel_explorer/v1/approved/complete.png
+    - assets/characters/squirrel_explorer/v1/approved/rest.png
+    - assets/characters/squirrel_explorer/v1/approved/guide.png
+    - assets/characters/sheep_mooncloud/v1/approved/idle.png
+    - assets/characters/sheep_mooncloud/v1/motion/idle_8.png
+    - assets/characters/sheep_mooncloud/v1/motion/walk_loop_8.png
+    - assets/characters/sheep_mooncloud/v1/motion/complete_8.png
+    - assets/characters/sheep_mooncloud/v1/approved/activity.png
+    - assets/characters/sheep_mooncloud/v1/approved/focus.png
+    - assets/characters/sheep_mooncloud/v1/approved/complete.png
+    - assets/characters/sheep_mooncloud/v1/approved/rest.png
+    - assets/characters/sheep_mooncloud/v1/approved/guide.png
+    - assets/characters/redpanda_teashop/v1/approved/idle.png
+    - assets/characters/redpanda_teashop/v1/motion/idle_8.png
+    - assets/characters/redpanda_teashop/v1/motion/walk_loop_8.png
+    - assets/characters/redpanda_teashop/v1/motion/complete_8.png
+    - assets/characters/redpanda_teashop/v1/approved/activity.png
+    - assets/characters/redpanda_teashop/v1/approved/focus.png
+    - assets/characters/redpanda_teashop/v1/approved/complete.png
+    - assets/characters/redpanda_teashop/v1/approved/rest.png
+    - assets/characters/redpanda_teashop/v1/approved/guide.png
+    - assets/characters/otter_seaside/v1/approved/idle.png
+    - assets/characters/otter_seaside/v1/motion/idle_8.png
+    - assets/characters/otter_seaside/v1/motion/walk_loop_8.png
+    - assets/characters/otter_seaside/v1/motion/complete_8.png
+    - assets/characters/otter_seaside/v1/approved/activity.png
+    - assets/characters/otter_seaside/v1/approved/focus.png
+    - assets/characters/otter_seaside/v1/approved/complete.png
+    - assets/characters/otter_seaside/v1/approved/rest.png
+    - assets/characters/otter_seaside/v1/approved/guide.png
+    - assets/characters/penguin_snow_walk/v1/approved/idle.png
+    - assets/characters/penguin_snow_walk/v1/motion/idle_8.png
+    - assets/characters/penguin_snow_walk/v1/motion/walk_loop_8.png
+    - assets/characters/penguin_snow_walk/v1/motion/complete_8.png
+    - assets/characters/penguin_snow_walk/v1/approved/activity.png
+    - assets/characters/penguin_snow_walk/v1/approved/focus.png
+    - assets/characters/penguin_snow_walk/v1/approved/complete.png
+    - assets/characters/penguin_snow_walk/v1/approved/rest.png
+    - assets/characters/penguin_snow_walk/v1/approved/guide.png
+
+  # ARB 기반 다국어 코드 생성 (lib/l10n/*.arb -> AppLocalizations)
+  generate: true
   
-  # 폰트 (필요시 추가)
-  # fonts:
-  #   - family: Pretendard
-  #     fonts:
-  #       - asset: fonts/Pretendard-Regular.ttf
-  #       - asset: fonts/Pretendard-Bold.ttf
-  #         weight: 700
+  # Sobra에서 가져온 숫자용 폰트. 라이선스는 assets/fonts에 함께 보관한다.
+  fonts:
+    - family: PixelifySans
+      fonts:
+        - asset: assets/fonts/PixelifySans.ttf

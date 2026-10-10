@@ -4,31 +4,41 @@ import 'package:provider/provider.dart';
 
 import '../app_scaffold_messenger.dart';
 import '../application/routine_app_controller.dart';
+import '../domain/models/routine_write_error.dart';
+import '../l10n/app_localizations.dart';
 import '../data/routine_form_palette.dart';
 import '../domain/models/routine.dart';
+import '../domain/models/routine_icon_id.dart';
+import '../domain/models/routine_suggestion.dart';
 import '../domain/routine_overlap/routine_schedule_overlap.dart';
 import '../domain/utils/time_minutes.dart';
 import '../domain/validation/routine_form_validator.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_text_styles.dart';
 import '../widgets/ds/ds.dart';
+import '../widgets/time/orbit_time_picker.dart';
 import '../widgets/form/pastel_color_palette.dart';
 import '../widgets/form/pastel_switch_tile.dart';
 import 'routine_add/routine_edit_status_views.dart';
 import 'routine_add/routine_form_controls.dart';
 import 'routine_add/routine_form_preview.dart';
+import 'routine_add/routine_icon_picker.dart';
+import 'routine_add/sleep_routine_entry_card.dart';
+import 'routine_add/sleep_routine_fields.dart';
 
 /// 루틴 추가·편집 — 저장은 [RoutineAppController.saveRoutine]
 class RoutineAddScreen extends StatefulWidget {
   const RoutineAddScreen({
     super.key,
     this.editRoutineId,
+    this.initialType = RoutineType.activity,
     this.initialWeekday,
     this.returnToRoutines = false,
   });
 
   /// 쿼리 `?id=` — 있으면 해당 루틴 편집
   final String? editRoutineId;
+  final RoutineType initialType;
 
   /// 달력에서 진입했을 때 선택 날짜의 요일(월=1 … 일=7)을 미리 선택한다.
   final int? initialWeekday;
@@ -51,26 +61,44 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
 
   /// 저장·편집에 쓰는 ARGB (팔레트와 독립적으로 유지 — 불일치 시에도 기존 색 보존)
   late int _selectedColorArgb;
+  RoutineIconId _selectedIconId = RoutineIconId.coffee;
 
+  bool _legacyEndOfDay = false;
+  int get _endMinutes =>
+      _legacyEndOfDay ? 1440 : TimeMinutes.fromTimeOfDay(_endTime);
   bool _notificationEnabled = true;
-  String? _titleError;
-  String? _timeError;
-  String? _repeatError;
+  bool _wakeNotificationEnabled = true;
+  bool _wakeAlarmEnabled = false;
+
+  /// 새 수면 루틴은 취침 알림을 켠 채로 시작한다. 잘 시간을 알려주는 게
+  /// 수면 루틴의 핵심이라서다.
+  bool _bedtimeReminderEnabled = true;
+  int _bedtimeLeadMinutes = Routine.defaultBedtimeLeadMinutes;
+  RoutineType _type = RoutineType.activity;
+  bool get _isSleep => _type == RoutineType.sleep;
+  RoutineFormError? _titleError;
+  RoutineFormError? _timeError;
+  RoutineFormError? _repeatError;
   bool _isSaving = false;
   bool _isDeleting = false;
+  bool _isOpeningSleep = false;
   bool _isEditLoading = false;
   bool _editLoadFailed = false;
-  bool _showMoreSettings = false;
+  bool _showMoreSettings = true;
 
   Routine? _editingBaseline;
-
-  static const _weekdayLabels = ['월', '화', '수', '목', '금', '토', '일'];
 
   bool get _isEdit => widget.editRoutineId != null;
 
   @override
   void initState() {
     super.initState();
+    _type = widget.initialType;
+    if (_isSleep) {
+      _startTime = const TimeOfDay(hour: 23, minute: 0);
+      _endTime = const TimeOfDay(hour: 7, minute: 0);
+      _selectedIconId = RoutineIconId.moon;
+    }
     final initialWeekday = widget.initialWeekday;
     _weekdays =
         initialWeekday != null && initialWeekday >= 1 && initialWeekday <= 7
@@ -112,19 +140,26 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
       _editLoadFailed = false;
       _isEditLoading = false;
       _editingBaseline = r;
+      _legacyEndOfDay = !r.isSleep && r.endMinutesFromMidnight == 1440;
+      _type = r.type;
+      _wakeNotificationEnabled = r.wakeNotificationEnabled;
+      _wakeAlarmEnabled = r.wakeAlarmEnabled;
+      _bedtimeReminderEnabled = r.bedtimeReminderEnabled;
+      _bedtimeLeadMinutes = r.bedtimeReminderLeadMinutes;
       _nameController.text = r.title;
       _startTime = TimeOfDay(
         hour: r.startMinutesFromMidnight ~/ 60,
         minute: r.startMinutesFromMidnight % 60,
       );
       _endTime = TimeOfDay(
-        hour: r.endMinutesFromMidnight ~/ 60,
+        hour: (r.endMinutesFromMidnight ~/ 60) % 24,
         minute: r.endMinutesFromMidnight % 60,
       );
       for (var i = 0; i < 7; i++) {
         _weekdays[i] = r.repeatWeekdays.contains(i + 1);
       }
       _selectedColorArgb = normalizedArgb;
+      _selectedIconId = r.iconId;
       _notificationEnabled = r.notificationEnabled;
     });
   }
@@ -133,6 +168,29 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
   void dispose() {
     _nameController.dispose();
     super.dispose();
+  }
+
+  Future<void> _openSleep() async {
+    if (_isOpeningSleep || _isEdit || _isSleep || _isSaving || _isDeleting) {
+      return;
+    }
+    setState(() => _isOpeningSleep = true);
+    FocusScope.of(context).unfocus();
+    try {
+      await context.push(
+        Uri(
+          path: '/routine-add',
+          queryParameters: {
+            'type': 'sleep',
+            if (widget.initialWeekday != null)
+              'weekday': '${widget.initialWeekday}',
+            if (widget.returnToRoutines) 'returnTo': 'routines',
+          },
+        ).toString(),
+      );
+    } finally {
+      if (mounted) setState(() => _isOpeningSleep = false);
+    }
   }
 
   void _onWeekdayChanged(int index, bool value) {
@@ -148,15 +206,17 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
     });
   }
 
-  String? _titleValidationError(String value) =>
+  RoutineFormError? _titleValidationError(String value) =>
       RoutineFormValidator.validateTitle(value);
 
-  String? _timeRangeError() => RoutineFormValidator.validateTimeRange(
+  RoutineFormError? _timeRangeError() => (_isSleep
+          ? RoutineFormValidator.validateSleepTimeRange
+          : RoutineFormValidator.validateTimeRange)(
         TimeMinutes.fromTimeOfDay(_startTime),
-        TimeMinutes.fromTimeOfDay(_endTime),
+        _endMinutes,
       );
 
-  String? _repeatDaysError() =>
+  RoutineFormError? _repeatDaysError() =>
       RoutineFormValidator.validateRepeatDays(_selectedRepeatDays());
 
   /// 현재 [_selectedColorArgb]와 일치하는 팔레트 칸. 없으면 null.
@@ -169,7 +229,9 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
   }
 
   Routine _routineFromForm() {
-    final title = _nameController.text;
+    final title = _isSleep && !_isEdit
+        ? AppLocalizations.of(context).sleepName
+        : _nameController.text;
     final colorValue = routineColorArgbNormalize(_selectedColorArgb);
     final repeat = _selectedRepeatDays();
 
@@ -178,10 +240,16 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
       return b.copyWith(
         title: title.trim(),
         startMinutesFromMidnight: TimeMinutes.fromTimeOfDay(_startTime),
-        endMinutesFromMidnight: TimeMinutes.fromTimeOfDay(_endTime),
+        endMinutesFromMidnight: _endMinutes,
         repeatWeekdays: repeat,
         colorValue: colorValue,
-        notificationEnabled: _notificationEnabled,
+        iconId: _selectedIconId,
+        notificationEnabled: _isSleep ? false : _notificationEnabled,
+        type: _type,
+        wakeNotificationEnabled: _isSleep && _wakeNotificationEnabled,
+        wakeAlarmEnabled: _isSleep && _wakeAlarmEnabled,
+        bedtimeReminderEnabled: _isSleep && _bedtimeReminderEnabled,
+        bedtimeReminderLeadMinutes: _bedtimeLeadMinutes,
       );
     }
 
@@ -191,7 +259,13 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
       endTime: _endTime,
       repeatWeekdays: repeat,
       colorValue: colorValue,
-      notificationEnabled: _notificationEnabled,
+      iconId: _selectedIconId,
+      notificationEnabled: _isSleep ? false : _notificationEnabled,
+      type: _type,
+      wakeNotificationEnabled: _isSleep && _wakeNotificationEnabled,
+      wakeAlarmEnabled: _isSleep && _wakeAlarmEnabled,
+      bedtimeReminderEnabled: _isSleep && _bedtimeReminderEnabled,
+      bedtimeReminderLeadMinutes: _bedtimeLeadMinutes,
     );
   }
 
@@ -207,13 +281,13 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
     if (_isSaving || _isDeleting || (_isEdit && _isEditLoading)) return;
     FocusScope.of(context).unfocus();
 
-    final title = _nameController.text;
-    final startMin = TimeMinutes.fromTimeOfDay(_startTime);
-    final endMin = TimeMinutes.fromTimeOfDay(_endTime);
+    final title = _isSleep && !_isEdit
+        ? AppLocalizations.of(context).sleepName
+        : _nameController.text;
     final repeat = _selectedRepeatDays();
 
     final titleError = _titleValidationError(title);
-    final timeError = RoutineFormValidator.validateTimeRange(startMin, endMin);
+    final timeError = _timeRangeError();
     final repeatError = RoutineFormValidator.validateRepeatDays(repeat);
 
     setState(() {
@@ -226,7 +300,9 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
     if (error != null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('입력한 값을 확인해주세요.')),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).routineAddCheckInput),
+        ),
       );
       return;
     }
@@ -234,7 +310,9 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
     if (widget.editRoutineId != null && _editingBaseline == null) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('편집할 루틴을 찾을 수 없어요.')),
+        SnackBar(
+          content: Text(AppLocalizations.of(context).routineAddNotFound),
+        ),
       );
       return;
     }
@@ -253,22 +331,24 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
         if (!mounted) return;
         final go = await showDialog<bool>(
           context: context,
-          builder: (ctx) => AlertDialog(
-            title: const Text('시간 겹침'),
-            content: const Text(
-              '이 시간대에는 다른 루틴과 겹쳐요. 그래도 저장할까요?',
-            ),
-            actions: [
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(false),
-                child: const Text('시간 다시 조정'),
-              ),
-              TextButton(
-                onPressed: () => Navigator.of(ctx).pop(true),
-                child: const Text('그래도 저장'),
-              ),
-            ],
-          ),
+          builder: (ctx) {
+            final dialogL10n = AppLocalizations.of(ctx);
+            return AlertDialog(
+              scrollable: true,
+              title: Text(dialogL10n.routineOverlapTitle),
+              content: Text(dialogL10n.routineOverlapBody),
+              actions: [
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(false),
+                  child: Text(dialogL10n.routineOverlapAdjust),
+                ),
+                TextButton(
+                  onPressed: () => Navigator.of(ctx).pop(true),
+                  child: Text(dialogL10n.routineOverlapSaveAnyway),
+                ),
+              ],
+            );
+          },
         );
         if (go != true || !mounted) return;
       }
@@ -277,12 +357,12 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
       if (!mounted) return;
       if (!result.ok) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text(result.errorMessage ?? '저장에 실패했어요.')),
+          SnackBar(content: Text(_writeErrorMessage(context, result.error))),
         );
         return;
       }
       appScaffoldMessengerKey.currentState?.showSnackBar(
-        const SnackBar(content: Text('루틴을 저장했어요')),
+        SnackBar(content: Text(AppLocalizations.of(context).routineAddSaved)),
       );
       context.go(widget.returnToRoutines ? '/routines' : '/home');
     } finally {
@@ -299,47 +379,66 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
     final routine = _editingBaseline!;
     final shouldDelete = await showDialog<bool>(
       context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('루틴 삭제'),
-        content: Text(
-          '"${routine.title}" 루틴과 관련 기록을 삭제할까요?\n이 작업은 되돌릴 수 없어요.',
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('취소'),
-          ),
-          TextButton(
-            onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('삭제'),
-          ),
-        ],
-      ),
+      builder: (ctx) {
+        final dialogL10n = AppLocalizations.of(ctx);
+        return AlertDialog(
+          scrollable: true,
+          title: Text(dialogL10n.routineDeleteTitle),
+          content: Text(dialogL10n.routineDeleteBody(routine.title)),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(false),
+              child: Text(dialogL10n.commonCancel),
+            ),
+            TextButton(
+              onPressed: () => Navigator.of(ctx).pop(true),
+              child: Text(dialogL10n.commonDelete),
+            ),
+          ],
+        );
+      },
     );
 
     if (shouldDelete != true || !mounted) return;
 
     setState(() => _isDeleting = true);
-    final result =
-        await context.read<RoutineAppController>().deleteRoutine(routine.id);
+    final result = await context.read<RoutineAppController>().deleteRoutine(
+          routine.id,
+        );
     if (!mounted) return;
     setState(() => _isDeleting = false);
 
     if (!result.ok) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(result.errorMessage ?? '삭제에 실패했어요.')),
+        SnackBar(content: Text(_writeErrorMessage(context, result.error))),
       );
       return;
     }
 
     appScaffoldMessengerKey.currentState?.showSnackBar(
-      const SnackBar(content: Text('루틴을 삭제했어요')),
+      SnackBar(content: Text(AppLocalizations.of(context).routineAddDeleted)),
     );
     context.go(widget.returnToRoutines ? '/routines' : '/home');
   }
 
+  /// 기상 시각과 같은 때 알림을 보내는 다른 루틴. 같은 요일이 하나라도 겹쳐야 한다.
+  /// 일반 루틴은 시작 시각, 수면 루틴은 기상 시각에 알림을 보낸다.
+  Routine? _sameTimeAlert(Routine sleep, List<Routine> routines) {
+    for (final r in routines) {
+      if (r.id == widget.editRoutineId || !r.alertsEnabled) continue;
+      final alertMinute =
+          r.isSleep ? r.endMinutesFromMidnight : r.startMinutesFromMidnight;
+      if (alertMinute == sleep.endMinutesFromMidnight &&
+          r.repeatWeekdays.any(sleep.repeatWeekdays.contains)) {
+        return r;
+      }
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final l10n = AppLocalizations.of(context);
     final controller = context.watch<RoutineAppController>();
     final isBusy = _isSaving || _isDeleting || _isEditLoading;
 
@@ -362,13 +461,14 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
     return Scaffold(
       // 저장 바는 Scaffold 기본 배경 위에 뜬다. 배경을 명시하지 않으면
       // 버튼 주변 여백이 칠해지지 않아 루트의 검정이 그대로 보인다.
+      // 본문(AppScreenShell)과 같은 테마 배경을 써야 팩을 바꿔도 띠가 없다.
       bottomNavigationBar: ColoredBox(
-        color: AppColors.pageBackground,
+        color: Theme.of(context).scaffoldBackgroundColor,
         child: SafeArea(
           top: false,
-          minimum: const EdgeInsets.fromLTRB(28, 10, 28, 16),
+          minimum: const EdgeInsets.fromLTRB(24, 10, 24, 16),
           child: AppButton(
-            label: _isEdit ? '변경사항 저장하기' : '루틴 저장하기',
+            label: _isEdit ? l10n.routineAddSaveEdit : l10n.routineAddSaveNew,
             onPressed: isBusy ? null : _saveAfterValidation,
             isLoading: _isSaving,
           ),
@@ -378,24 +478,75 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
         child: Column(
           children: [
             RoutineFormHeader(
-              title: _isEdit ? '루틴 편집' : '새 루틴',
+              showDecoration: !_isSleep,
+              title: _isSleep
+                  ? l10n.sleepSettingsTitle
+                  : _isEdit
+                      ? l10n.routineAddTitleEdit
+                      : l10n.routineAddTitleNew,
               onBack: () => context.pop(),
               onDelete: _isEdit && !isBusy ? _handleDelete : null,
             ),
             Expanded(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.fromLTRB(28, 4, 28, 28),
+                padding: const EdgeInsets.fromLTRB(24, 4, 24, 24),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    RoutineFormPreview(candidate: candidate),
-                    const SizedBox(height: 22),
-                    const Text('무엇을 할까요?', style: AppTextStyles.titleSection),
-                    const SizedBox(height: 10),
-                    RoutineFormSurface(
-                      child: Column(
+                    if (_isSleep)
+                      SleepRoutineFields(
+                        routine: candidate,
+                        start: _startTime,
+                        end: _endTime,
+                        weekdays: _weekdays,
+                        onStart: () => _pickTime(start: true),
+                        onEnd: () => _pickTime(start: false),
+                        onWeekday: _onWeekdayChanged,
+                        alarmEnabled: _wakeNotificationEnabled,
+                        onAlarm: (value) =>
+                            setState(() => _wakeNotificationEnabled = value),
+                        loudAlarm: _wakeAlarmEnabled,
+                        onLoudAlarm: (value) =>
+                            setState(() => _wakeAlarmEnabled = value),
+                        bedtimeEnabled: _bedtimeReminderEnabled,
+                        onBedtime: (value) =>
+                            setState(() => _bedtimeReminderEnabled = value),
+                        bedtimeLead: _bedtimeLeadMinutes,
+                        onBedtimeLead: (value) =>
+                            setState(() => _bedtimeLeadMinutes = value),
+                        sameTimeAlertName:
+                            _sameTimeAlert(candidate, controller.routines)
+                                ?.title,
+                        timeError: _timeError == null
+                            ? null
+                            : _errorMessage(l10n, _timeError!),
+                        daysError: _repeatError == null
+                            ? null
+                            : _errorMessage(l10n, _repeatError!),
+                      )
+                    else ...[
+                      if (!_isEdit) ...[
+                        SleepRoutineEntryCard(
+                          key: const Key('choose-sleep'),
+                          onTap: isBusy || _isOpeningSleep ? null : _openSleep,
+                        ),
+                        const SizedBox(height: 16),
+                      ],
+                      RoutineFormPreview(candidate: candidate),
+                      const SizedBox(height: 22),
+                      Text(
+                        l10n.routineAddWhatSection,
+                        style: AppTextStyles.titleSection,
+                      ),
+                      const SizedBox(height: 10),
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
+                          Text(
+                            l10n.routineAddNameLabel,
+                            style: AppTextStyles.caption,
+                          ),
+                          const SizedBox(height: 8),
                           TextField(
                             controller: _nameController,
                             onChanged: _validateTitle,
@@ -405,59 +556,61 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                               fontWeight: FontWeight.w600,
                             ),
                             decoration: InputDecoration(
-                              hintText: '예: 아침 산책',
+                              hintText: l10n.routineAddNameHint,
                               hintStyle: AppTextStyles.body.copyWith(
-                                color:
-                                    AppColors.textMuted.withValues(alpha: .7),
+                                color: AppColors.textMuted.withValues(
+                                  alpha: .7,
+                                ),
                               ),
-                              border: InputBorder.none,
                               contentPadding: const EdgeInsets.symmetric(
-                                horizontal: 4,
-                                vertical: 8,
+                                horizontal: 12,
+                                vertical: 12,
                               ),
                             ),
                           ),
                           if (_titleError != null) ...[
                             const SizedBox(height: 6),
                             AppFieldMessage(
-                              message: _titleError!,
+                              message: _errorMessage(l10n, _titleError!),
                               isError: true,
                             ),
                           ],
                           const SizedBox(height: 12),
+                          Text(
+                            l10n.routineAddSuggestionsLabel,
+                            style: AppTextStyles.caption,
+                          ),
+                          const SizedBox(height: 8),
                           Wrap(
                             spacing: 8,
                             runSpacing: 8,
                             children: [
-                              RoutineSuggestionChip(
-                                label: '아침 루틴',
-                                onTap: () => _applySuggestion('아침 루틴'),
-                              ),
-                              RoutineSuggestionChip(
-                                label: '운동',
-                                onTap: () => _applySuggestion('운동'),
-                              ),
-                              RoutineSuggestionChip(
-                                label: '독서',
-                                onTap: () => _applySuggestion('독서'),
-                              ),
+                              for (final suggestion in RoutineSuggestion.values)
+                                RoutineSuggestionChip(
+                                  label: _suggestionLabel(l10n, suggestion),
+                                  onTap: () => _applySuggestion(
+                                    _suggestionLabel(l10n, suggestion),
+                                    suggestion.iconId,
+                                  ),
+                                ),
                             ],
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 22),
-                    const Text('언제 할까요?', style: AppTextStyles.titleSection),
-                    const SizedBox(height: 10),
-                    RoutineFormSurface(
-                      child: Column(
+                      const SizedBox(height: 22),
+                      Text(
+                        l10n.routineAddWhenSection,
+                        style: AppTextStyles.titleSection,
+                      ),
+                      const SizedBox(height: 10),
+                      Column(
                         crossAxisAlignment: CrossAxisAlignment.stretch,
                         children: [
                           Row(
                             children: [
                               Expanded(
                                 child: RoutineTimeTile(
-                                  label: '시작 시간',
+                                  label: l10n.routineAddStartTime,
                                   value: _startTime,
                                   onTap: () => _pickTime(start: true),
                                 ),
@@ -465,7 +618,7 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                               const SizedBox(width: 12),
                               Expanded(
                                 child: RoutineTimeTile(
-                                  label: '종료 시간',
+                                  label: l10n.routineAddEndTime,
                                   value: _endTime,
                                   onTap: () => _pickTime(start: false),
                                 ),
@@ -475,19 +628,22 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                           if (_timeError != null) ...[
                             const SizedBox(height: 8),
                             AppFieldMessage(
-                              message: _timeError!,
+                              message: _errorMessage(l10n, _timeError!),
                               isError: true,
                             ),
                           ],
                           const SizedBox(height: 22),
-                          const Text('반복 요일', style: AppTextStyles.label),
+                          Text(
+                            l10n.routineAddRepeatDays,
+                            style: AppTextStyles.label,
+                          ),
                           const SizedBox(height: 12),
                           Row(
                             children: List.generate(
-                              _weekdayLabels.length,
+                              DateTime.daysPerWeek,
                               (index) => Expanded(
                                 child: RoutineWeekdayCircle(
-                                  label: _weekdayLabels[index],
+                                  weekday: index + 1,
                                   selected: _weekdays[index],
                                   onTap: () => _onWeekdayChanged(
                                     index,
@@ -500,86 +656,98 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                           if (_repeatError != null) ...[
                             const SizedBox(height: 8),
                             AppFieldMessage(
-                              message: _repeatError!,
+                              message: _errorMessage(l10n, _repeatError!),
                               isError: true,
                             ),
                           ],
                           const SizedBox(height: 16),
                           RoutineFormInfoLine(
                             text: widget.initialWeekday == null
-                                ? '시간표에 바로 반영돼요'
-                                : '달력에서 선택한 요일을 미리 골랐어요.',
+                                ? l10n.routineAddReflectedHint
+                                : l10n.routineAddPreselectedHint,
                           ),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    RoutineFormSurface(
-                      padding: EdgeInsets.zero,
-                      child: InkWell(
-                        onTap: () => setState(
-                          () => _showMoreSettings = !_showMoreSettings,
-                        ),
-                        borderRadius: BorderRadius.circular(22),
-                        child: Padding(
-                          padding: const EdgeInsets.all(18),
-                          child: Row(
-                            children: [
-                              const Icon(
-                                Icons.tune_rounded,
-                                color: AppColors.orbitPrimary,
-                              ),
-                              const SizedBox(width: 12),
-                              const Expanded(
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text('더 설정하기',
-                                        style: AppTextStyles.bodyStrong),
-                                    SizedBox(height: 2),
-                                    Text(
-                                      '색상 · 알림',
-                                      style: AppTextStyles.caption,
-                                    ),
-                                  ],
+                      const SizedBox(height: 16),
+                      RoutineFormSurface(
+                        padding: EdgeInsets.zero,
+                        child: InkWell(
+                          onTap: () => setState(
+                            () => _showMoreSettings = !_showMoreSettings,
+                          ),
+                          borderRadius: BorderRadius.zero,
+                          child: Padding(
+                            padding: const EdgeInsets.all(18),
+                            child: Row(
+                              children: [
+                                AppIcon(
+                                  Icons.tune_rounded,
+                                  color: Theme.of(context).colorScheme.primary,
                                 ),
-                              ),
-                              Icon(
-                                _showMoreSettings
-                                    ? Icons.keyboard_arrow_up_rounded
-                                    : Icons.keyboard_arrow_down_rounded,
-                                color: AppColors.textMuted,
-                              ),
-                            ],
+                                const SizedBox(width: 12),
+                                Expanded(
+                                  child: Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        l10n.routineAddMoreSection,
+                                        style: AppTextStyles.bodyStrong,
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        l10n.routineAddMoreCaption,
+                                        style: AppTextStyles.caption,
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                                Icon(
+                                  _showMoreSettings
+                                      ? Icons.keyboard_arrow_up_rounded
+                                      : Icons.keyboard_arrow_down_rounded,
+                                  color: AppColors.textMuted,
+                                ),
+                              ],
+                            ),
                           ),
                         ),
                       ),
-                    ),
-                    if (_showMoreSettings) ...[
-                      const SizedBox(height: 12),
-                      RoutineFormSurface(
-                        child: PastelColorPalette(
-                          colors: routineFormPaletteColors,
-                          selectedIndex: _paletteIndexForUi(),
-                          onSelected: (index) => setState(() {
-                            _selectedColorArgb = routineColorArgbNormalize(
-                              routineFormPaletteColors[index].toARGB32(),
-                            );
-                          }),
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      RoutineFormSurface(
-                        child: PastelSwitchTile(
-                          title: '알림 받기',
-                          subtitle: '루틴 시작 시각에 알려드릴게요',
-                          helper: '알림 권한은 설정에서 언제든 바꿀 수 있어요.',
-                          value: _notificationEnabled,
-                          onChanged: (value) => setState(
-                            () => _notificationEnabled = value,
+                      if (_showMoreSettings) ...[
+                        const SizedBox(height: 12),
+                        RoutineFormSurface(
+                          child: PastelColorPalette(
+                            title: l10n.routineAddColorSection,
+                            colors: routineFormPaletteColors,
+                            selectedIndex: _paletteIndexForUi(),
+                            onSelected: (index) => setState(() {
+                              _selectedColorArgb = routineColorArgbNormalize(
+                                routineFormPaletteColors[index].toARGB32(),
+                              );
+                            }),
                           ),
                         ),
-                      ),
+                        const SizedBox(height: 12),
+                        RoutineFormSurface(
+                          child: RoutineIconPicker(
+                            selected: _selectedIconId,
+                            color: Color(_selectedColorArgb),
+                            onSelected: (icon) =>
+                                setState(() => _selectedIconId = icon),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        RoutineFormSurface(
+                          child: PastelSwitchTile(
+                            title: l10n.routineAddNotifyLabel,
+                            subtitle: l10n.routineAddNotifyDesc,
+                            helper: l10n.routineAddNotifyHint,
+                            value: _notificationEnabled,
+                            onChanged: (value) =>
+                                setState(() => _notificationEnabled = value),
+                          ),
+                        ),
+                      ],
                     ],
                     if (conflicts.isNotEmpty) ...[
                       const SizedBox(height: 14),
@@ -590,7 +758,7 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
                       TextButton.icon(
                         onPressed: isBusy ? null : _handleDelete,
                         icon: const Icon(Icons.delete_outline_rounded),
-                        label: const Text('이 루틴 삭제'),
+                        label: Text(l10n.routineAddDeleteThis),
                         style: TextButton.styleFrom(
                           foregroundColor: AppColors.dangerText,
                         ),
@@ -607,7 +775,17 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
   }
 
   Future<void> _pickTime({required bool start}) async {
-    final picked = await showTimePicker(
+    // 앱 전용 24시간 원형 선택기를 쓴다.
+    //
+    // Material 기본 선택기는 24시간제에서 시 다이얼을 바깥 링(0–11) +
+    // 안쪽 링(12–23) 두 겹으로 그려서, 화면이 좁으면 숫자가 서로 겹친다.
+    // 게다가 24시간제 여부를 로케일이 정해(스페인어는 늘 24시간) 언어마다
+    // 다른 화면이 나왔다 — 앱은 어디서나 24시간 표기인데도.
+    //
+    // 직접 만든 선택기는 시를 한 겹 12칸 링 + 오전/오후로 그린다.
+    // 겹칠 구조가 없고, 세 언어가 같은 화면을 본다. 돌려받는 값은
+    // 24시간 TimeOfDay라 타일·홈 원형 시간표 표기는 그대로다.
+    final picked = await showOrbitTimePicker(
       context: context,
       initialTime: start ? _startTime : _endTime,
     );
@@ -617,15 +795,63 @@ class _RoutineAddScreenState extends State<RoutineAddScreen> {
         _startTime = picked;
       } else {
         _endTime = picked;
+        _legacyEndOfDay = false;
       }
       _timeError = _timeRangeError();
     });
   }
 
-  void _applySuggestion(String title) {
+  void _applySuggestion(String title, RoutineIconId iconId) {
     setState(() {
       _nameController.text = title;
       _titleError = _titleValidationError(title);
+      _selectedIconId = iconId;
     });
   }
+}
+
+/// 추천 칩 이름을 현재 언어로 옮긴다.
+String _suggestionLabel(AppLocalizations l10n, RoutineSuggestion suggestion) {
+  switch (suggestion) {
+    case RoutineSuggestion.wakeUp:
+      return l10n.routineQuickWakeUp;
+    case RoutineSuggestion.breakfast:
+      return l10n.routineQuickBreakfast;
+    case RoutineSuggestion.exercise:
+      return l10n.routineQuickExercise;
+    case RoutineSuggestion.focus:
+      return l10n.routineQuickFocus;
+    case RoutineSuggestion.rest:
+      return l10n.routineQuickBreak;
+    case RoutineSuggestion.walk:
+      return l10n.routineQuickWalk;
+    case RoutineSuggestion.reading:
+      return l10n.routineQuickReading;
+    case RoutineSuggestion.bedtime:
+      return l10n.routineQuickBedtime;
+  }
+}
+
+/// 폼 검증 결과를 현재 언어의 문장으로 옮긴다.
+String _errorMessage(AppLocalizations l10n, RoutineFormError error) {
+  switch (error) {
+    case RoutineFormError.titleEmpty:
+      return l10n.validationNameRequired;
+    case RoutineFormError.titleTooLong:
+      return l10n.validationNameTooLong;
+    case RoutineFormError.endBeforeStart:
+      return l10n.validationEndAfterStart;
+    case RoutineFormError.equalSleepTimes:
+      return l10n.sleepEqualTimesError;
+    case RoutineFormError.noRepeatDays:
+      return l10n.validationPickOneDay;
+  }
+}
+
+/// 저장·삭제 실패 문장. 종류를 모르면(이론상 없음) 저장 실패로 말한다.
+String _writeErrorMessage(BuildContext context, RoutineWriteError? error) {
+  final l10n = AppLocalizations.of(context);
+  return error == RoutineWriteError.delete
+      ? l10n.errorDeleteRoutine
+      : l10n.errorSaveRoutine;
 }

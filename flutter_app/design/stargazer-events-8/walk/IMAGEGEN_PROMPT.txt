@@ -1,0 +1,15 @@
+Use case: identity-preserve.
+Asset type: production pixel-art animation sprite sheet for the Stargazer wizard cat in a Flutter mobile routine app.
+Input image 1 is the exact current idle character; preserve its navy fur, three cream forehead tufts, large gold eyes, cream muzzle, chest, paws and tail tip, star-patterned navy wizard beret with gold pin, gold-trim navy cape and star clasp. Input image 2 is a supporting POSE reference, not a different identity.
+Output one transparent PNG atlas, ideally 2048x1024, EXACTLY EIGHT equally sized square cells in a strict 4-column x 2-row grid, frame order left to right then top to bottom. Transparent alpha, no drawn checkerboard, background, ground plane, labels, letters, borders, or grid. One whole cat per cell.
+Keep consistent character size, pixel scale, crisp pixel edges, outlines, body proportions, fixed camera and fixed horizontal center across all eight cells. Leave at least 10% transparent padding on every side in every cell so paws, tail, hat and effects are never cut off. Baseline at 88% cell height; neutral full-body height about 66% of cell height, leaving headroom for motion. Do NOT fit/resize individual poses to their cells independently. Preserve costume details, never add accessories.
+Primary request: a gentle in-place walking START animation, about 1.2 seconds, then return to the seated idle pose. Show real alternating paw poses and tiny cape/tail follow-through, not a sequence of rigid translations of one drawing. The character stays centered in its own small home-card slot, with no horizontal travel.
+Frame 1: neutral seated front-facing pose identical to image 1.
+Frame 2: rise onto all four paws, turn very slightly toward viewer's right (a subtle three-quarter view, face still mostly visible).
+Frame 3: first clear step, near front paw lifted and reaching forward; opposite hind paw supports the gait.
+Frame 4: plant that front paw, other front paw beginning to lift, tiny body weight shift, tail gently following.
+Frame 5: second clear step, opposite front paw lifted and reaching forward; other diagonal pair supports.
+Frame 6: plant that paw, finish a short comfortable two-step walk in place, cape and tail settling.
+Frame 7: rotate gently back front and lower into the seated pose.
+Frame 8: exactly return to the neutral seated pose from frame 1 / image 1.
+The supporting reference shows a raised paw / standing cat as anatomy guidance. Keep the SAME kitten identity from image 1, natural four-legged cat walking, not humanoid marching. Never swap the tail to the opposite side between adjacent frames. No magic or stars floating outside the costume for this walk. Every cell must have visibly logical progress through the gait.
